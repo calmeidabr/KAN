@@ -16,7 +16,11 @@ def calcular_numeros_nome(nome_completo):
     motivacao_total = sum(letter_values.get(ch, 0) for ch in nome if ch in vogais)
     consoantes_total = sum(letter_values.get(ch, 0) for ch in nome if ch not in vogais)
 
-    return (reduce_number(expressao_total), reduce_number(motivacao_total), reduce_number(consoantes_total),
+    impressao_reduzida = reduce_number(consoantes_total)
+    while impressao_reduzida > 9:
+        impressao_reduzida = sum(int(d) for d in str(impressao_reduzida))
+
+    return (reduce_number(expressao_total), reduce_number(motivacao_total), impressao_reduzida,
             expressao_total, motivacao_total, consoantes_total)
 
 def soma_numeros(n):
