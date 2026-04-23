@@ -108,7 +108,9 @@ def calcular_ciclos_vida(dia, mes, ano, destino):
 
 def ano_pessoal(dia, mes, ano_atual):
     total = dia + mes + ano_atual
-    return reduce_number(total)
+    while total > 9:
+        total = sum(int(d) for d in str(total))
+    return total
 
 def calcular_missao(destino, expressao):
     return reduce_number(destino + expressao)
