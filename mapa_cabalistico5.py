@@ -9,6 +9,21 @@ from collections import Counter
 
 st.set_page_config(page_title="Mapa Cabalístico", page_icon="🔮", layout="centered")
 
+# --- CACHED FETCH ---
+@st.cache_data(ttl=3600)
+def fetch_arcanos():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("arcanos").select("*").execute()
+        return {str(int(row['numero'])): {"nome": row['nome'], "descricao": row['descricao']} for row in resp.data if row.get('numero')}
+    except Exception:
+        return {}
+
+ARCANOS_DB = fetch_arcanos()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -174,11 +189,7 @@ def calcular_desafios(dia, mes, ano):
     return desafio1, desafio2, desafio_principal
 
 def calcular_arcano_atual(nome_completo, nascimento, data_atual):
-    try:
-        with open('arcanos.json', 'r', encoding='utf-8') as f:
-            arcanos_dict = json.load(f)
-    except:
-        arcanos_dict = {}
+    arcanos_dict = ARCANOS_DB
 
     nome = nome_completo.upper().replace(' ', '')
     numeros = [str(letter_values.get(ch, 0)) for ch in nome]
@@ -219,7 +230,9 @@ def calcular_arcano_atual(nome_completo, nascimento, data_atual):
             break
             
     arc = periodos[arcano_atual_idx]['arcano']
-    nome_arcano = arcanos_dict.get(str(arc), f"Carta {arc}")
+    arc_data = arcanos_dict.get(str(arc), {"nome": f"Carta {arc}", "descricao": ""})
+    nome_arcano = arc_data["nome"]
+    descricao = arc_data["descricao"]
     data_inicio_str = periodos[arcano_atual_idx]['inicio'].strftime('%d/%m/%Y')
     
     if arcano_atual_idx < total_arcanos - 1:
@@ -234,6 +247,8 @@ def calcular_arcano_atual(nome_completo, nascimento, data_atual):
         data_fim_str = datetime.date(ano, mes, dia).strftime('%d/%m/%Y')
         
     resultado = f"Nº {arc} ({nome_arcano})"
+    if descricao and str(descricao).lower() != "nan":
+        resultado += f" - {descricao}"
     periodo = f"{data_inicio_str} a {data_fim_str}"
     
     return resultado, periodo
