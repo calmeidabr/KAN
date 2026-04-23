@@ -545,6 +545,8 @@ if (submit_mapa or submit_perfil) and nome:
         def add_row_perfil(campo, valor):
             dados_perfil.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
             
+        add_row_perfil("Estrutural", estrutural)
+        add_row_perfil("Direcionamento", direcionamento)
         add_row_perfil("KAN", kan)
         
         df_perfil = pd.DataFrame(dados_perfil)
