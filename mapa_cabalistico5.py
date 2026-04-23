@@ -4,6 +4,7 @@ import datetime
 import unicodedata
 import json
 import calendar
+import tempfile
 from collections import Counter
 
 st.set_page_config(page_title="Mapa Cabalístico", page_icon="🔮", layout="centered")
@@ -336,6 +337,44 @@ def remover_acentos(texto):
     texto_str = str(texto).replace('º', 'o').replace('ª', 'a')
     return ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
 
+def gerar_pdf(nome, data_nasc_str, dados):
+    from fpdf import FPDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(190, 10, "Mapa Numerologico Cabalistico", ln=True, align='C')
+    pdf.ln(10)
+    
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(190, 8, f"Nome: {remover_acentos(nome)}", ln=True)
+    pdf.cell(190, 8, f"Data de Nascimento: {data_nasc_str}", ln=True)
+    pdf.ln(5)
+    
+    col1 = 65
+    col2 = 125
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(col1, 8, "Campo", 1)
+    pdf.cell(col2, 8, "Resultado", 1, 1)
+    
+    for row in dados:
+        campo = str(row['Campo'])
+        resultado = str(row['Resultado'])
+        
+        if len(resultado) > 55:
+            pdf.set_font("Arial", '', 7)
+        elif len(resultado) > 40:
+            pdf.set_font("Arial", '', 8)
+        else:
+            pdf.set_font("Arial", '', 10)
+            
+        pdf.cell(col1, 8, campo, 1)
+        pdf.cell(col2, 8, resultado, 1, 1)
+        
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
+        pdf.output(tmp.name)
+        with open(tmp.name, 'rb') as f:
+            return f.read()
+
 st.title("🔮 Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
 
@@ -411,14 +450,32 @@ if submit and nome:
     df = pd.DataFrame(dados)
     st.table(df)
 
-    # Botão de Download CSV
-    csv = df.to_csv(sep=';', index=False).encode('utf-8')
+    st.markdown("---")
+    st.subheader("Salvar Resultados")
+    col1, col2 = st.columns(2)
+
     nome_limpo = remover_acentos(nome).replace(' ', '_')
-    st.download_button(
-        label="📥 Baixar Resultados como CSV",
-        data=csv,
-        file_name=f"mapa_cabalistico_{nome_limpo}.csv",
-        mime="text/csv",
-    )
+    
+    with col1:
+        # Botão de Download CSV
+        csv = df.to_csv(sep=';', index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Baixar Resultados como CSV",
+            data=csv,
+            file_name=f"mapa_cabalistico_{nome_limpo}.csv",
+            mime="text/csv",
+        )
+
+    with col2:
+        # Botão de Download PDF
+        data_str = data_input.strftime('%d/%m/%Y')
+        pdf_bytes = gerar_pdf(nome, data_str, dados)
+        st.download_button(
+            label="📄 Baixar Resultados como PDF",
+            data=pdf_bytes,
+            file_name=f"mapa_cabalistico_{nome_limpo}.pdf",
+            mime="application/pdf",
+        )
+
 elif submit and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
