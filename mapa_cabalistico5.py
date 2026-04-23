@@ -432,18 +432,52 @@ if not check_password():
 st.title("🔮 Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
 
-with st.form("numerologia_form"):
-    nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
-    data_input = st.date_input("Data de Nascimento:", min_value=datetime.date(1900, 1, 1), format="DD/MM/YYYY")
-    col1, col2 = st.columns(2)
-    with col1:
-        submit_mapa = st.form_submit_button("Calcular Meu Mapa")
-    with col2:
-        submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
+# --- FETCH CLIENTES DO BANCO DE DADOS ---
+clientes_salvos = {}
+supabase_client = None
+try:
+    from supabase import create_client, Client
+    url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+    key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+    supabase_client: Client = create_client(url, key)
+    
+    response = supabase_client.table("mapas_salvos").select("nome, data_nascimento").execute()
+    for row in response.data:
+        clientes_salvos[row['nome']] = row['data_nascimento']
+except Exception:
+    pass
 
-if submit_mapa:
+opcoes_clientes = ["-- Novo Cliente --"] + sorted(list(clientes_salvos.keys()))
+cliente_selecionado = st.selectbox("Selecione um cliente já cadastrado ou crie um novo:", opcoes_clientes)
+
+submit_mapa = False
+submit_perfil = False
+
+if cliente_selecionado == "-- Novo Cliente --":
+    with st.form("numerologia_form"):
+        nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
+        data_input = st.date_input("Data de Nascimento:", min_value=datetime.date(1900, 1, 1), format="DD/MM/YYYY")
+        col1, col2 = st.columns(2)
+        with col1:
+            submit_mapa = st.form_submit_button("Calcular Meu Mapa")
+        with col2:
+            submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
+            
+    if submit_mapa:
+        st.session_state['show_mapa'] = True
+    if submit_perfil:
+        st.session_state['show_perfil'] = True
+else:
+    nome = cliente_selecionado
+    data_str = clientes_salvos[nome]
+    try:
+        dia, mes, ano = map(int, data_str.split('/'))
+        data_input = datetime.date(ano, mes, dia)
+    except:
+        data_input = datetime.date.today()
+        
+    st.info(f"📅 Cliente selecionado: **{nome}** | Nascimento: **{data_str}**")
     st.session_state['show_mapa'] = True
-if submit_perfil:
     st.session_state['show_perfil'] = True
 
 if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) and nome:
@@ -520,6 +554,25 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     add_row_perfil("Direcionamento", direcionamento)
     add_row_perfil("KAN", kan)
 
+    if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
+        try:
+            mapa_json = json.dumps(dados, ensure_ascii=False)
+            perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
+            data_str_to_save = data_input.strftime('%d/%m/%Y')
+            
+            supabase_client.table("mapas_salvos").insert({
+                "nome": nome,
+                "data_nascimento": data_str_to_save,
+                "mapa_json": mapa_json,
+                "perfil_json": perfil_json
+            }).execute()
+            st.toast("✅ Cálculos salvos automaticamente na nuvem!")
+            
+            # Update cache to show in dropdown immediately
+            clientes_salvos[nome] = data_str_to_save
+        except Exception as e:
+            st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
+
     if st.session_state.get('show_mapa'):
         st.success(f"Mapa de **{nome}** calculado com sucesso!")
         df = pd.DataFrame(dados)
@@ -580,31 +633,6 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 file_name=f"perfil_comportamental_{nome_limpo}.pdf",
                 mime="application/pdf",
             )
-
-    st.markdown("---")
-    st.subheader("☁️ Nuvem")
-    if st.button("Salvar Registro no Banco de Dados"):
-        try:
-            from supabase import create_client, Client
-            url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-            key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-            supabase: Client = create_client(url, key)
-            
-            data_str = data_input.strftime('%d/%m/%Y')
-            
-            mapa_json = json.dumps(dados, ensure_ascii=False)
-            perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
-            
-            supabase.table("mapas_salvos").insert({
-                "nome": nome,
-                "data_nascimento": data_str,
-                "mapa_json": mapa_json,
-                "perfil_json": perfil_json
-            }).execute()
-            
-            st.success("✅ Dados salvos com sucesso na nuvem!")
-        except Exception as e:
-            st.error(f"Erro ao salvar no banco de dados. Verifique as chaves ou se a tabela foi criada. Detalhes: {e}")
 
 elif (submit_mapa or submit_perfil) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
