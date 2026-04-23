@@ -46,6 +46,20 @@ def fetch_fortalezas():
 
 FORTALEZAS_DB = fetch_fortalezas()
 
+@st.cache_data(ttl=3600)
+def fetch_kan():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("kans").select("*").execute()
+        return {str(int(row['numero'])): {"kan": row['kan'], "descricao": row['descricao']} for row in resp.data if row.get('numero')}
+    except Exception:
+        return {}
+
+KAN_DB = fetch_kan()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -619,7 +633,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         
     add_row_perfil("Estrutural", estrutural)
     add_row_perfil("Direcionamento", direcionamento)
-    add_row_perfil("KAN", kan)
+    
+    k_data = KAN_DB.get(str(kan), {"kan": "Não Encontrado", "descricao": ""})
+    kan_str = f"{kan} - {k_data['kan']} - {k_data['descricao']}" if k_data['descricao'] else f"{kan} - {k_data['kan']}"
+    add_row_perfil("KAN", kan_str)
     
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     fortaleza_str = f"{f_data['fortaleza']} - {f_data['descricao']}" if f_data['descricao'] else f_data['fortaleza']
