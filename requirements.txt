@@ -1,3 +1,5 @@
 streamlit
 pandas
 fpdf
+supabase
+st-supabase-connection
