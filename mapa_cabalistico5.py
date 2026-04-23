@@ -341,12 +341,12 @@ def remover_acentos(texto):
     texto_str = str(texto).replace('º', 'o').replace('ª', 'a')
     return ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
 
-def gerar_pdf(nome, data_nasc_str, dados):
+def gerar_pdf(nome, data_nasc_str, dados, titulo="Mapa Numerologico Cabalistico"):
     from fpdf import FPDF
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, "Mapa Numerologico Cabalistico", ln=True, align='C')
+    pdf.cell(190, 10, remover_acentos(titulo), ln=True, align='C')
     pdf.ln(10)
     
     pdf.set_font("Arial", 'B', 12)
@@ -379,15 +379,32 @@ def gerar_pdf(nome, data_nasc_str, dados):
         with open(tmp.name, 'rb') as f:
             return f.read()
 
+# --- CÁLCULOS DO PERFIL COMPORTAMENTAL ---
+def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino, missao, ciclo2_num, momento3_num):
+    def reduce_kan(n):
+        while n > 9 and n not in [11, 22]:
+            n = sum(int(d) for d in str(n))
+        return n
+        
+    estrutural = reduce_kan(motivacao + impressao + expressao + reduce_number(dia))
+    direcionamento = reduce_kan(destino + missao + ciclo2_num + momento3_num)
+    kan = reduce_kan(estrutural + direcionamento)
+    
+    return estrutural, direcionamento, kan
+
 st.title("🔮 Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
 
 with st.form("numerologia_form"):
     nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
     data_input = st.date_input("Data de Nascimento:", min_value=datetime.date(1900, 1, 1), format="DD/MM/YYYY")
-    submit = st.form_submit_button("Calcular Meu Mapa")
+    col1, col2 = st.columns(2)
+    with col1:
+        submit_mapa = st.form_submit_button("Calcular Meu Mapa")
+    with col2:
+        submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
 
-if submit and nome:
+if (submit_mapa or submit_perfil) and nome:
     hoje = datetime.date.today()
     data_atual = (hoje.day, hoje.month, hoje.year)
     nascimento = (data_input.day, data_input.month, data_input.year)
@@ -399,87 +416,129 @@ if submit and nome:
      desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
      triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
 
-    st.success(f"Mapa de **{nome}** calculado com sucesso!")
-    
-    dados = []
-    def add_row(campo, valor):
-        dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+    if submit_mapa:
+        st.success(f"Mapa de **{nome}** calculado com sucesso!")
         
-    add_row("Expressão", expressao)
-    add_row("Motivação", motivacao)
-    add_row("Impressão", impressao)
-    add_row("Destino", destino)
-    add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
-    add_row("Triângulo da Vida (Base)", triangulo_base)
-    add_row("Triângulo da Vida (Repetições)", triangulo_reps)
-    add_row("Dia Pessoal", dia_pessoal)
-    add_row("Mês Pessoal", mes_pess)
-    add_row("Ano Pessoal", ano_pess)
-    add_row("Missão", missao)
+        dados = []
+        def add_row(campo, valor):
+            dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+            
+        add_row("Expressão", expressao)
+        add_row("Motivação", motivacao)
+        add_row("Impressão", impressao)
+        add_row("Destino", destino)
+        add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
+        add_row("Triângulo da Vida (Base)", triangulo_base)
+        add_row("Triângulo da Vida (Repetições)", triangulo_reps)
+        add_row("Dia Pessoal", dia_pessoal)
+        add_row("Mês Pessoal", mes_pess)
+        add_row("Ano Pessoal", ano_pess)
+        add_row("Missão", missao)
 
-    dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
-    add_row("Dívidas Cármicas", dividas_str)
+        dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
+        add_row("Dívidas Cármicas", dividas_str)
 
-    licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
-    add_row("Lições Cármicas", licoes_str)
+        licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
+        add_row("Lições Cármicas", licoes_str)
 
-    tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
-    add_row("Tendências Ocultas", tendencias_str)
+        tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
+        add_row("Tendências Ocultas", tendencias_str)
 
-    if tendencias_ocultas:
-        add_row("Soma das Tendências Ocultas", soma_tendencias)
+        if tendencias_ocultas:
+            add_row("Soma das Tendências Ocultas", soma_tendencias)
 
-    add_row("Resposta Subconsciente", resposta_subconsciente)
-    add_row("1º Desafio", desafio1)
-    add_row("2º Desafio", desafio2)
-    add_row("Desafio Principal", desafio_principal)
+        add_row("Resposta Subconsciente", resposta_subconsciente)
+        add_row("1º Desafio", desafio1)
+        add_row("2º Desafio", desafio2)
+        add_row("Desafio Principal", desafio_principal)
 
-    c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
-    c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
-    c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
-    add_row("1º Ciclo de Vida", c1)
-    add_row("2º Ciclo de Vida", c2)
-    add_row("3º Ciclo de Vida", c3)
+        c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
+        c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
+        c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
+        add_row("1º Ciclo de Vida", c1)
+        add_row("2º Ciclo de Vida", c2)
+        add_row("3º Ciclo de Vida", c3)
 
-    m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
-    m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
-    m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
-    m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
-    add_row("1º Momento Decisivo", m1)
-    add_row("2º Momento Decisivo", m2)
-    add_row("3º Momento Decisivo", m3)
-    add_row("4º Momento Decisivo", m4)
+        m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
+        m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
+        m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
+        m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
+        add_row("1º Momento Decisivo", m1)
+        add_row("2º Momento Decisivo", m2)
+        add_row("3º Momento Decisivo", m3)
+        add_row("4º Momento Decisivo", m4)
 
-    # Exibir a tabela no site
-    df = pd.DataFrame(dados)
-    st.table(df)
+        df = pd.DataFrame(dados)
+        st.table(df)
 
-    st.markdown("---")
-    st.subheader("Salvar Resultados")
-    col1, col2 = st.columns(2)
+        st.markdown("---")
+        st.subheader("Salvar Resultados do Mapa")
+        col1, col2 = st.columns(2)
 
-    nome_limpo = remover_acentos(nome).replace(' ', '_')
-    
-    with col1:
-        # Botão de Download CSV
-        csv = df.to_csv(sep=';', index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Baixar Resultados como CSV",
-            data=csv,
-            file_name=f"mapa_cabalistico_{nome_limpo}.csv",
-            mime="text/csv",
+        nome_limpo = remover_acentos(nome).replace(' ', '_')
+        
+        with col1:
+            csv = df.to_csv(sep=';', index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Baixar Mapa como CSV",
+                data=csv,
+                file_name=f"mapa_cabalistico_{nome_limpo}.csv",
+                mime="text/csv",
+            )
+
+        with col2:
+            data_str = data_input.strftime('%d/%m/%Y')
+            pdf_bytes = gerar_pdf(nome, data_str, dados, titulo="Mapa Numerologico Cabalistico")
+            st.download_button(
+                label="📄 Baixar Mapa como PDF",
+                data=pdf_bytes,
+                file_name=f"mapa_cabalistico_{nome_limpo}.pdf",
+                mime="application/pdf",
+            )
+
+    if submit_perfil:
+        st.success(f"Perfil Comportamental de **{nome}** calculado com sucesso!")
+        
+        estrutural, direcionamento, kan = calcular_perfil_comportamental(
+            expressao, motivacao, impressao, nascimento[0],
+            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero']
         )
+        
+        dados_perfil = []
+        def add_row_perfil(campo, valor):
+            dados_perfil.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+            
+        add_row_perfil("Estrutural", estrutural)
+        add_row_perfil("Direcionamento", direcionamento)
+        add_row_perfil("KAN", kan)
+        
+        df_perfil = pd.DataFrame(dados_perfil)
+        st.table(df_perfil)
+        
+        st.markdown("---")
+        st.subheader("Salvar Perfil Comportamental")
+        col1, col2 = st.columns(2)
 
-    with col2:
-        # Botão de Download PDF
-        data_str = data_input.strftime('%d/%m/%Y')
-        pdf_bytes = gerar_pdf(nome, data_str, dados)
-        st.download_button(
-            label="📄 Baixar Resultados como PDF",
-            data=pdf_bytes,
-            file_name=f"mapa_cabalistico_{nome_limpo}.pdf",
-            mime="application/pdf",
-        )
+        nome_limpo = remover_acentos(nome).replace(' ', '_')
+        
+        with col1:
+            csv_perfil = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Baixar Perfil como CSV",
+                data=csv_perfil,
+                file_name=f"perfil_comportamental_{nome_limpo}.csv",
+                mime="text/csv",
+            )
 
-elif submit and not nome:
+        with col2:
+            data_str = data_input.strftime('%d/%m/%Y')
+            pdf_bytes_perfil = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
+            st.download_button(
+                label="📄 Baixar Perfil como PDF",
+                data=pdf_bytes_perfil,
+                file_name=f"perfil_comportamental_{nome_limpo}.pdf",
+                mime="application/pdf",
+            )
+
+elif (submit_mapa or submit_perfil) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
