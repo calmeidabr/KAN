@@ -85,18 +85,18 @@ def calcular_momentos_decisivos(dia, mes, ano, ciclos_vida):
 # Abaixo trecho adaptado da função calcular_numerologia para incluir momentos decisivos
 
 def calcular_ciclos_vida(dia, mes, ano, destino):
-    if mes == 11:
-        ciclo1_num = 11
-    else:
-        ciclo1_num = reduce_number(mes)
+    ciclo1_num = mes
+    while ciclo1_num > 9:
+        ciclo1_num = sum(int(d) for d in str(ciclo1_num))
+        
     ciclo1_ano_inicio = ano
     ciclo1_periodo_anos = 37 - destino
     ciclo1_ano_fim = ciclo1_ano_inicio + ciclo1_periodo_anos
     
-    if dia in [11, 22]:
-        ciclo2_num = dia
-    else:
-        ciclo2_num = reduce_number(dia)
+    ciclo2_num = dia
+    while ciclo2_num > 9:
+        ciclo2_num = sum(int(d) for d in str(ciclo2_num))
+        
     ciclo2_ano_inicio = ciclo1_ano_fim
     ciclo2_ano_fim = ciclo2_ano_inicio + 27
 
