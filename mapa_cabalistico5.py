@@ -458,14 +458,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
      desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
      triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
 
-    if st.session_state.get('show_mapa'):
-        st.success(f"Mapa de **{nome}** calculado com sucesso!")
-        
-        dados = []
-        def add_row(campo, valor):
-            dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
-            
-        add_row("Expressão", expressao)
+    estrutural, direcionamento, kan = calcular_perfil_comportamental(
+        expressao, motivacao, impressao, nascimento[0],
+        destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero']
+    )
+
+    dados = []
+    def add_row(campo, valor):
+        dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+
+    add_row("Expressão", expressao)
         add_row("Motivação", motivacao)
         add_row("Impressão", impressao)
         add_row("Destino", destino)
@@ -510,6 +512,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         add_row("3º Momento Decisivo", m3)
         add_row("4º Momento Decisivo", m4)
 
+    dados_perfil = []
+    def add_row_perfil(campo, valor):
+        dados_perfil.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+        
+    add_row_perfil("Estrutural", estrutural)
+    add_row_perfil("Direcionamento", direcionamento)
+    add_row_perfil("KAN", kan)
+
+    if st.session_state.get('show_mapa'):
+        st.success(f"Mapa de **{nome}** calculado com sucesso!")
         df = pd.DataFrame(dados)
         st.table(df)
 
@@ -541,19 +553,6 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     if st.session_state.get('show_perfil'):
         st.success(f"Perfil Comportamental de **{nome}** calculado com sucesso!")
         
-        estrutural, direcionamento, kan = calcular_perfil_comportamental(
-            expressao, motivacao, impressao, nascimento[0],
-            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero']
-        )
-        
-        dados_perfil = []
-        def add_row_perfil(campo, valor):
-            dados_perfil.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
-            
-        add_row_perfil("Estrutural", estrutural)
-        add_row_perfil("Direcionamento", direcionamento)
-        add_row_perfil("KAN", kan)
-        
         df_perfil = pd.DataFrame(dados_perfil)
         st.table(df_perfil)
         
@@ -581,6 +580,28 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 file_name=f"perfil_comportamental_{nome_limpo}.pdf",
                 mime="application/pdf",
             )
+
+    st.markdown("---")
+    st.subheader("☁️ Nuvem")
+    if st.button("Salvar Registro no Banco de Dados"):
+        try:
+            from st_supabase_connection import SupabaseConnection
+            supabase = st.connection("supabase", type=SupabaseConnection)
+            data_str = data_input.strftime('%d/%m/%Y')
+            
+            mapa_json = json.dumps(dados, ensure_ascii=False)
+            perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
+            
+            supabase.table("mapas_salvos").insert({
+                "nome": nome,
+                "data_nascimento": data_str,
+                "mapa_json": mapa_json,
+                "perfil_json": perfil_json
+            }).execute()
+            
+            st.success("✅ Dados salvos com sucesso na nuvem!")
+        except Exception as e:
+            st.error(f"Erro ao salvar no banco de dados. Verifique se as chaves (URL e KEY) foram configuradas corretamente nos Secrets do Streamlit. Detalhes: {e}")
 
 elif (submit_mapa or submit_perfil) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
