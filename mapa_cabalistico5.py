@@ -201,8 +201,9 @@ def calcular_triangulo_vida(nome_completo):
         
     return base, reps
 
-def calcular_numerologia(nome_completo, nascimento, ano_atual):
+def calcular_numerologia(nome_completo, nascimento, data_atual):
     dia, mes, ano = nascimento
+    dia_atual, mes_atual, ano_atual = data_atual
 
     resultados_nome = calcular_numeros_nome(nome_completo)
     expressao, motivacao, impressao = resultados_nome[0:3]
@@ -211,8 +212,15 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
     destino_total = sum(int(d) for d in str(dia) + str(mes) + str(ano))
     destino = reduce_number(destino_total)
 
-    dia_pessoal = ano_pessoal(dia, mes, ano_atual)
-    ano_pess = dia_pessoal
+    ano_pess = ano_pessoal(dia, mes, ano_atual)
+
+    mes_pess = mes_atual + ano_pess
+    while mes_pess > 9:
+        mes_pess = sum(int(d) for d in str(mes_pess))
+
+    dia_pessoal = dia_atual + mes_pess
+    while dia_pessoal > 9:
+        dia_pessoal = sum(int(d) for d in str(dia_pessoal))
 
     # --- CÁLCULO ESPECÍFICO PARA DÍVIDAS CÁRMICAS ---
     # As dívidas cármicas exigem que a redução ocorra por blocos (cada nome/cada parte da data) antes da soma final
@@ -248,7 +256,7 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
     momentos_decisivos = calcular_momentos_decisivos(dia, mes, ano, ciclos_vida)
     triangulo_base, triangulo_reps = calcular_triangulo_vida(nome_completo)
 
-    return (expressao, motivacao, impressao, destino, dia_pessoal,
+    return (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
             ano_pess, missao, dividas_carmicas, licoes_carmicas,
             tendencias_ocultas, soma_tendencias, resposta_subconsciente,
             desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_base, triangulo_reps)
@@ -268,11 +276,12 @@ with st.form("numerologia_form"):
     submit = st.form_submit_button("Calcular Meu Mapa")
 
 if submit and nome:
-    ano_atual = datetime.date.today().year
+    hoje = datetime.date.today()
+    data_atual = (hoje.day, hoje.month, hoje.year)
     nascimento = (data_input.day, data_input.month, data_input.year)
 
-    resultados = calcular_numerologia(nome, nascimento, ano_atual)
-    (expressao, motivacao, impressao, destino, dia_pessoal,
+    resultados = calcular_numerologia(nome, nascimento, data_atual)
+    (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
      ano_pess, missao, dividas_carmicas, licoes_carmicas,
      tendencias_ocultas, soma_tendencias, resposta_subconsciente,
      desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_base, triangulo_reps) = resultados
@@ -290,6 +299,7 @@ if submit and nome:
     add_row("Triângulo da Vida (Base)", triangulo_base)
     add_row("Triângulo da Vida (Repetições)", triangulo_reps)
     add_row("Dia Pessoal", dia_pessoal)
+    add_row("Mês Pessoal", mes_pess)
     add_row("Ano Pessoal", ano_pess)
     add_row("Missão", missao)
 
