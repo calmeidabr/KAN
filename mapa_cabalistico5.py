@@ -169,19 +169,38 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
 
     resultados_nome = calcular_numeros_nome(nome_completo)
     expressao, motivacao, impressao = resultados_nome[0:3]
-    expressao_total = resultados_nome[3]
-    motivacao_total = resultados_nome[4]
-    impressao_total = resultados_nome[5]
 
-    # O total bruto do Destino é a soma individual dos algarismos da data de nascimento
+    # O total bruto do Destino é a soma individual dos algarismos da data de nascimento (para uso geral)
     destino_total = sum(int(d) for d in str(dia) + str(mes) + str(ano))
     destino = reduce_number(destino_total)
 
     dia_pessoal = ano_pessoal(dia, mes, ano_atual)
     ano_pess = dia_pessoal
 
+    # --- CÁLCULO ESPECÍFICO PARA DÍVIDAS CÁRMICAS ---
+    # As dívidas cármicas exigem que a redução ocorra por blocos (cada nome/cada parte da data) antes da soma final
+    def reduce_single(n):
+        while n > 9:
+            n = sum(int(d) for d in str(n))
+        return n
+
+    carmica_des = reduce_single(dia) + reduce_single(mes) + reduce_single(ano)
+
+    vogais = set('AEIOUÀÁÂÃÄÅÆÉÈÊËÍÎÏÓÒÔÕÖÚÙÛÜ')
+    carmica_mot = 0
+    carmica_imp = 0
+    carmica_exp = 0
+
+    for palavra in nome_completo.upper().split():
+        v = sum(letter_values.get(c, 0) for c in palavra if c in vogais)
+        c = sum(letter_values.get(c, 0) for c in palavra if c not in vogais)
+        e = sum(letter_values.get(c, 0) for c in palavra)
+        carmica_mot += reduce_single(v)
+        carmica_imp += reduce_single(c)
+        carmica_exp += reduce_single(e)
+
     missao = calcular_missao(destino, expressao)
-    dividas_carmicas = calcular_dividas_carmicas(dia, motivacao_total, expressao_total, impressao_total, destino_total)
+    dividas_carmicas = calcular_dividas_carmicas(dia, carmica_mot, carmica_exp, carmica_imp, carmica_des)
     licoes_carmicas = calcular_licoes_carmicas(nome_completo)
     tendencias_ocultas = calcular_tendencias_ocultas(nome_completo)
     soma_tendencias = soma_tendencias_ocultas(tendencias_ocultas)
