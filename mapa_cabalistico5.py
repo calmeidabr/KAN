@@ -468,49 +468,49 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
 
     add_row("Expressão", expressao)
-        add_row("Motivação", motivacao)
-        add_row("Impressão", impressao)
-        add_row("Destino", destino)
-        add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
-        add_row("Triângulo da Vida (Base)", triangulo_base)
-        add_row("Triângulo da Vida (Repetições)", triangulo_reps)
-        add_row("Dia Pessoal", dia_pessoal)
-        add_row("Mês Pessoal", mes_pess)
-        add_row("Ano Pessoal", ano_pess)
-        add_row("Missão", missao)
+    add_row("Motivação", motivacao)
+    add_row("Impressão", impressao)
+    add_row("Destino", destino)
+    add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
+    add_row("Triângulo da Vida (Base)", triangulo_base)
+    add_row("Triângulo da Vida (Repetições)", triangulo_reps)
+    add_row("Dia Pessoal", dia_pessoal)
+    add_row("Mês Pessoal", mes_pess)
+    add_row("Ano Pessoal", ano_pess)
+    add_row("Missão", missao)
 
-        dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
-        add_row("Dívidas Cármicas", dividas_str)
+    dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
+    add_row("Dívidas Cármicas", dividas_str)
 
-        licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
-        add_row("Lições Cármicas", licoes_str)
+    licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
+    add_row("Lições Cármicas", licoes_str)
 
-        tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
-        add_row("Tendências Ocultas", tendencias_str)
+    tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
+    add_row("Tendências Ocultas", tendencias_str)
 
-        if tendencias_ocultas:
-            add_row("Soma das Tendências Ocultas", soma_tendencias)
+    if tendencias_ocultas:
+        add_row("Soma das Tendências Ocultas", soma_tendencias)
 
-        add_row("Resposta Subconsciente", resposta_subconsciente)
-        add_row("1º Desafio", desafio1)
-        add_row("2º Desafio", desafio2)
-        add_row("Desafio Principal", desafio_principal)
+    add_row("Resposta Subconsciente", resposta_subconsciente)
+    add_row("1º Desafio", desafio1)
+    add_row("2º Desafio", desafio2)
+    add_row("Desafio Principal", desafio_principal)
 
-        c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
-        c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
-        c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
-        add_row("1º Ciclo de Vida", c1)
-        add_row("2º Ciclo de Vida", c2)
-        add_row("3º Ciclo de Vida", c3)
+    c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
+    c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
+    c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
+    add_row("1º Ciclo de Vida", c1)
+    add_row("2º Ciclo de Vida", c2)
+    add_row("3º Ciclo de Vida", c3)
 
-        m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
-        m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
-        m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
-        m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
-        add_row("1º Momento Decisivo", m1)
-        add_row("2º Momento Decisivo", m2)
-        add_row("3º Momento Decisivo", m3)
-        add_row("4º Momento Decisivo", m4)
+    m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
+    m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
+    m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
+    m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
+    add_row("1º Momento Decisivo", m1)
+    add_row("2º Momento Decisivo", m2)
+    add_row("3º Momento Decisivo", m3)
+    add_row("4º Momento Decisivo", m4)
 
     dados_perfil = []
     def add_row_perfil(campo, valor):
