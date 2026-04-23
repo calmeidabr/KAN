@@ -383,7 +383,7 @@ st.title("🔮 Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
 
 with st.form("numerologia_form"):
-    nome = st.text_input("Digite seu nome completo (Ex: Cristiano Corrêa de Almeida):")
+    nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
     data_input = st.date_input("Data de Nascimento:", min_value=datetime.date(1900, 1, 1), format="DD/MM/YYYY")
     submit = st.form_submit_button("Calcular Meu Mapa")
 
