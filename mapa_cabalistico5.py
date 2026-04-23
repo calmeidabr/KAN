@@ -392,6 +392,43 @@ def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino
     
     return estrutural, direcionamento, kan
 
+# --- SISTEMA DE LOGIN ---
+USUARIOS = {
+    "admin": "admin123",
+    "cristiano": "kan2026"
+}
+
+def check_password():
+    def password_entered():
+        user = st.session_state["username"]
+        pwd = st.session_state["password"]
+        if user in USUARIOS and USUARIOS[user] == pwd:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        st.title("🔐 Acesso Restrito")
+        st.markdown("Por favor, faça login para acessar a calculadora.")
+        st.text_input("Usuário", key="username")
+        st.text_input("Senha", type="password", key="password")
+        st.button("Entrar", on_click=password_entered)
+        return False
+    elif not st.session_state["password_correct"]:
+        st.title("🔐 Acesso Restrito")
+        st.markdown("Por favor, faça login para acessar a calculadora.")
+        st.text_input("Usuário", key="username")
+        st.text_input("Senha", type="password", key="password")
+        st.button("Entrar", on_click=password_entered)
+        st.error("Usuário ou senha incorretos. Tente novamente.")
+        return False
+    else:
+        return True
+
+if not check_password():
+    st.stop()
+
 st.title("🔮 Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
 
