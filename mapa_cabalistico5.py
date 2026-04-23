@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import datetime
 import unicodedata
+import json
+import calendar
 from collections import Counter
 
 st.set_page_config(page_title="Mapa Cabalístico", page_icon="🔮", layout="centered")
@@ -166,6 +168,71 @@ def calcular_desafios(dia, mes, ano):
     desafio_principal = abs(desafio1 - desafio2)
     return desafio1, desafio2, desafio_principal
 
+def calcular_arcano_atual(nome_completo, nascimento, data_atual):
+    try:
+        with open('arcanos.json', 'r', encoding='utf-8') as f:
+            arcanos_dict = json.load(f)
+    except:
+        arcanos_dict = {}
+
+    nome = nome_completo.upper().replace(' ', '')
+    numeros = [str(letter_values.get(ch, 0)) for ch in nome]
+    seq_str = ''.join(numeros)
+    
+    total_arcanos = len(seq_str) - 1
+    if total_arcanos <= 0:
+        return "N/A", "N/A"
+        
+    arcanos = [int(seq_str[i:i+2]) for i in range(total_arcanos)]
+    dia_nasc, mes_nasc, ano_nasc = nascimento
+    total_meses = 90 * 12
+    duracao_meses_por_arcano = total_meses / total_arcanos
+    
+    periodos = []
+    for i in range(total_arcanos):
+        meses_para_somar = int(i * duracao_meses_por_arcano)
+        mes_index = (mes_nasc - 1) + meses_para_somar
+        ano = ano_nasc + (mes_index // 12)
+        mes = (mes_index % 12) + 1
+        
+        ultimo_dia_mes = calendar.monthrange(ano, mes)[1]
+        dia = min(dia_nasc, ultimo_dia_mes)
+        
+        data_inicio = datetime.date(ano, mes, dia)
+        periodos.append({
+            'arcano': arcanos[i],
+            'inicio': data_inicio
+        })
+        
+    hoje = datetime.date(*data_atual[::-1])
+    
+    arcano_atual_idx = 0
+    for i in range(total_arcanos):
+        if hoje >= periodos[i]['inicio']:
+            arcano_atual_idx = i
+        else:
+            break
+            
+    arc = periodos[arcano_atual_idx]['arcano']
+    nome_arcano = arcanos_dict.get(str(arc), f"Carta {arc}")
+    data_inicio_str = periodos[arcano_atual_idx]['inicio'].strftime('%d/%m/%Y')
+    
+    if arcano_atual_idx < total_arcanos - 1:
+        data_fim_str = periodos[arcano_atual_idx + 1]['inicio'].strftime('%d/%m/%Y')
+    else:
+        meses_para_somar = int(total_arcanos * duracao_meses_por_arcano)
+        mes_index = (mes_nasc - 1) + meses_para_somar
+        ano = ano_nasc + (mes_index // 12)
+        mes = (mes_index % 12) + 1
+        ultimo_dia_mes = calendar.monthrange(ano, mes)[1]
+        dia = min(dia_nasc, ultimo_dia_mes)
+        data_fim_str = datetime.date(ano, mes, dia).strftime('%d/%m/%Y')
+        
+    resultado = f"Nº {arc} ({nome_arcano})"
+    periodo = f"{data_inicio_str} a {data_fim_str}"
+    
+    return resultado, periodo
+
 import itertools
 from collections import defaultdict
 
@@ -255,11 +322,13 @@ def calcular_numerologia(nome_completo, nascimento, data_atual):
     ciclos_vida = calcular_ciclos_vida(dia, mes, ano, destino)
     momentos_decisivos = calcular_momentos_decisivos(dia, mes, ano, ciclos_vida)
     triangulo_base, triangulo_reps = calcular_triangulo_vida(nome_completo)
+    arcano_atual_res, arcano_atual_periodo = calcular_arcano_atual(nome_completo, nascimento, data_atual)
 
     return (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
             ano_pess, missao, dividas_carmicas, licoes_carmicas,
             tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_base, triangulo_reps)
+            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
+            triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo)
 
 
 
@@ -284,7 +353,8 @@ if submit and nome:
     (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
      ano_pess, missao, dividas_carmicas, licoes_carmicas,
      tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_base, triangulo_reps) = resultados
+     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
+     triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
 
     st.success(f"Mapa de **{nome}** calculado com sucesso!")
     
@@ -296,6 +366,7 @@ if submit and nome:
     add_row("Motivação", motivacao)
     add_row("Impressão", impressao)
     add_row("Destino", destino)
+    add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
     add_row("Triângulo da Vida (Base)", triangulo_base)
     add_row("Triângulo da Vida (Repetições)", triangulo_reps)
     add_row("Dia Pessoal", dia_pessoal)
