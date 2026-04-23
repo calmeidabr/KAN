@@ -585,8 +585,11 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     st.subheader("☁️ Nuvem")
     if st.button("Salvar Registro no Banco de Dados"):
         try:
-            from st_supabase_connection import SupabaseConnection
-            supabase = st.connection("supabase", type=SupabaseConnection)
+            from supabase import create_client, Client
+            url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+            key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+            supabase: Client = create_client(url, key)
+            
             data_str = data_input.strftime('%d/%m/%Y')
             
             mapa_json = json.dumps(dados, ensure_ascii=False)
@@ -601,7 +604,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             
             st.success("✅ Dados salvos com sucesso na nuvem!")
         except Exception as e:
-            st.error(f"Erro ao salvar no banco de dados. Verifique se as chaves (URL e KEY) foram configuradas corretamente nos Secrets do Streamlit. Detalhes: {e}")
+            st.error(f"Erro ao salvar no banco de dados. Verifique as chaves ou se a tabela foi criada. Detalhes: {e}")
 
 elif (submit_mapa or submit_perfil) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
