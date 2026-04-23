@@ -395,7 +395,8 @@ def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino
 # --- SISTEMA DE LOGIN ---
 USUARIOS = {
     "admin": "admin123",
-    "cristiano": "kan2026"
+    "cristiano": "kan2026",
+    "maria": "maria2026"
 }
 
 def check_password():
