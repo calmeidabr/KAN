@@ -441,7 +441,12 @@ with st.form("numerologia_form"):
     with col2:
         submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
 
-if (submit_mapa or submit_perfil) and nome:
+if submit_mapa:
+    st.session_state['show_mapa'] = True
+if submit_perfil:
+    st.session_state['show_perfil'] = True
+
+if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) and nome:
     hoje = datetime.date.today()
     data_atual = (hoje.day, hoje.month, hoje.year)
     nascimento = (data_input.day, data_input.month, data_input.year)
@@ -453,7 +458,7 @@ if (submit_mapa or submit_perfil) and nome:
      desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
      triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
 
-    if submit_mapa:
+    if st.session_state.get('show_mapa'):
         st.success(f"Mapa de **{nome}** calculado com sucesso!")
         
         dados = []
@@ -533,7 +538,7 @@ if (submit_mapa or submit_perfil) and nome:
                 mime="application/pdf",
             )
 
-    if submit_perfil:
+    if st.session_state.get('show_perfil'):
         st.success(f"Perfil Comportamental de **{nome}** calculado com sucesso!")
         
         estrutural, direcionamento, kan = calcular_perfil_comportamental(
