@@ -164,6 +164,21 @@ def calcular_desafios(dia, mes, ano):
     desafio_principal = abs(desafio1 - desafio2)
     return desafio1, desafio2, desafio_principal
 
+def calcular_triangulo_vida(nome_completo):
+    nome = nome_completo.upper().replace(' ', '')
+    arr = [letter_values.get(ch, 0) for ch in nome]
+    
+    while len(arr) > 1:
+        new_arr = []
+        for i in range(len(arr) - 1):
+            s = arr[i] + arr[i+1]
+            while s > 9:
+                s = sum(int(d) for d in str(s))
+            new_arr.append(s)
+        arr = new_arr
+        
+    return arr[0] if arr else 0
+
 def calcular_numerologia(nome_completo, nascimento, ano_atual):
     dia, mes, ano = nascimento
 
@@ -209,11 +224,12 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
 
     ciclos_vida = calcular_ciclos_vida(dia, mes, ano, destino)
     momentos_decisivos = calcular_momentos_decisivos(dia, mes, ano, ciclos_vida)
+    triangulo_vida = calcular_triangulo_vida(nome_completo)
 
     return (expressao, motivacao, impressao, destino, dia_pessoal,
             ano_pess, missao, dividas_carmicas, licoes_carmicas,
             tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos)
+            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_vida)
 
 
 
@@ -237,7 +253,7 @@ if submit and nome:
     (expressao, motivacao, impressao, destino, dia_pessoal,
      ano_pess, missao, dividas_carmicas, licoes_carmicas,
      tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos) = resultados
+     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_vida) = resultados
 
     st.success(f"Mapa de **{nome}** calculado com sucesso!")
     
@@ -249,6 +265,7 @@ if submit and nome:
     add_row("Motivação", motivacao)
     add_row("Impressão", impressao)
     add_row("Destino", destino)
+    add_row("Triângulo da Vida (Base)", triangulo_vida)
     add_row("Dia Pessoal", dia_pessoal)
     add_row("Ano Pessoal", ano_pess)
     add_row("Missão", missao)
