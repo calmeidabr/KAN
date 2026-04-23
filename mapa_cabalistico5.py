@@ -164,9 +164,13 @@ def calcular_desafios(dia, mes, ano):
     desafio_principal = abs(desafio1 - desafio2)
     return desafio1, desafio2, desafio_principal
 
+import itertools
+from collections import defaultdict
+
 def calcular_triangulo_vida(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     arr = [letter_values.get(ch, 0) for ch in nome]
+    linhas = [arr]
     
     while len(arr) > 1:
         new_arr = []
@@ -176,8 +180,24 @@ def calcular_triangulo_vida(nome_completo):
                 s = sum(int(d) for d in str(s))
             new_arr.append(s)
         arr = new_arr
+        linhas.append(arr)
         
-    return arr[0] if arr else 0
+    base = arr[0] if arr else 0
+    seq_counts = defaultdict(int)
+    
+    for row in linhas:
+        for num, group in itertools.groupby(row):
+            count = sum(1 for _ in group)
+            if count >= 3:
+                seq_str = str(num) * count
+                seq_counts[seq_str] += 1
+                
+    if not seq_counts:
+        reps = "Não há"
+    else:
+        reps = ", ".join(f"{seq} ({qtd} vez{'es' if qtd > 1 else ''})" for seq, qtd in seq_counts.items())
+        
+    return base, reps
 
 def calcular_numerologia(nome_completo, nascimento, ano_atual):
     dia, mes, ano = nascimento
@@ -224,12 +244,12 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
 
     ciclos_vida = calcular_ciclos_vida(dia, mes, ano, destino)
     momentos_decisivos = calcular_momentos_decisivos(dia, mes, ano, ciclos_vida)
-    triangulo_vida = calcular_triangulo_vida(nome_completo)
+    triangulo_base, triangulo_reps = calcular_triangulo_vida(nome_completo)
 
     return (expressao, motivacao, impressao, destino, dia_pessoal,
             ano_pess, missao, dividas_carmicas, licoes_carmicas,
             tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_vida)
+            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_base, triangulo_reps)
 
 
 
@@ -253,7 +273,7 @@ if submit and nome:
     (expressao, motivacao, impressao, destino, dia_pessoal,
      ano_pess, missao, dividas_carmicas, licoes_carmicas,
      tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_vida) = resultados
+     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos, triangulo_base, triangulo_reps) = resultados
 
     st.success(f"Mapa de **{nome}** calculado com sucesso!")
     
@@ -265,7 +285,8 @@ if submit and nome:
     add_row("Motivação", motivacao)
     add_row("Impressão", impressao)
     add_row("Destino", destino)
-    add_row("Triângulo da Vida (Base)", triangulo_vida)
+    add_row("Triângulo da Vida (Base)", triangulo_base)
+    add_row("Triângulo da Vida (Repetições)", triangulo_reps)
     add_row("Dia Pessoal", dia_pessoal)
     add_row("Ano Pessoal", ano_pess)
     add_row("Missão", missao)
