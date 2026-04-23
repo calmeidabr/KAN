@@ -1,4 +1,10 @@
+import streamlit as st
+import pandas as pd
+import datetime
+import unicodedata
 from collections import Counter
+
+st.set_page_config(page_title="Mapa Cabalístico", page_icon="🔮", layout="centered")
 
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
@@ -173,17 +179,11 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
             tendencias_ocultas, soma_tendencias, resposta_subconsciente,
             desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos)
 
-import streamlit as st
-import pandas as pd
-import datetime
-import unicodedata
+
 
 def remover_acentos(texto):
     texto_str = str(texto).replace('º', 'o').replace('ª', 'a')
     return ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
-
-# Configuração da página web
-st.set_page_config(page_title="Mapa Cabalístico", page_icon="🔮", layout="centered")
 
 st.title("🔮 Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
