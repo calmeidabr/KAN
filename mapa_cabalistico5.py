@@ -441,9 +441,13 @@ try:
     key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
     supabase_client: Client = create_client(url, key)
     
-    response = supabase_client.table("mapas_salvos").select("nome, data_nascimento").execute()
+    response = supabase_client.table("mapas_salvos").select("*").execute()
     for row in response.data:
-        clientes_salvos[row['nome']] = row['data_nascimento']
+        clientes_salvos[row['nome']] = {
+            'data_nascimento': row['data_nascimento'],
+            'cargo': row.get('cargo', ''),
+            'empresa': row.get('empresa', '')
+        }
 except Exception:
     pass
 
@@ -456,27 +460,45 @@ submit_perfil = False
 if cliente_selecionado == "-- Novo Cliente --":
     with st.form("numerologia_form"):
         nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
-        data_input = st.date_input("Data de Nascimento:", min_value=datetime.date(1900, 1, 1), format="DD/MM/YYYY")
+        data_str_input = st.text_input("Data de Nascimento (dd/mm/yyyy):", placeholder="Ex: 25/12/1980")
+        
+        col_cargo, col_empresa = st.columns(2)
+        with col_cargo:
+            cargo = st.text_input("Cargo/Profissão:")
+        with col_empresa:
+            empresa = st.text_input("Empresa/Grupo:")
+            
         col1, col2 = st.columns(2)
         with col1:
             submit_mapa = st.form_submit_button("Calcular Meu Mapa")
         with col2:
             submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
             
-    if submit_mapa:
-        st.session_state['show_mapa'] = True
-    if submit_perfil:
-        st.session_state['show_perfil'] = True
+    if submit_mapa or submit_perfil:
+        try:
+            dia, mes, ano = map(int, data_str_input.split('/'))
+            data_input = datetime.date(ano, mes, dia)
+            st.session_state['show_mapa'] = submit_mapa
+            st.session_state['show_perfil'] = submit_perfil
+        except:
+            st.error("Formato de data inválido! Use dd/mm/yyyy (ex: 25/12/1980).")
+            submit_mapa = False
+            submit_perfil = False
 else:
     nome = cliente_selecionado
-    data_str = clientes_salvos[nome]
+    info_cliente = clientes_salvos[nome]
+    data_str = info_cliente['data_nascimento']
+    cargo = info_cliente['cargo']
+    empresa = info_cliente['empresa']
     try:
         dia, mes, ano = map(int, data_str.split('/'))
         data_input = datetime.date(ano, mes, dia)
     except:
         data_input = datetime.date.today()
         
-    st.info(f"📅 Cliente selecionado: **{nome}** | Nascimento: **{data_str}**")
+    cargo_str = f" | Cargo: **{cargo}**" if cargo else ""
+    emp_str = f" | Empresa: **{empresa}**" if empresa else ""
+    st.info(f"📅 Cliente selecionado: **{nome}** | Nascimento: **{data_str}**{cargo_str}{emp_str}")
     st.session_state['show_mapa'] = True
     st.session_state['show_perfil'] = True
 
@@ -563,13 +585,19 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             supabase_client.table("mapas_salvos").insert({
                 "nome": nome,
                 "data_nascimento": data_str_to_save,
+                "cargo": cargo,
+                "empresa": empresa,
                 "mapa_json": mapa_json,
                 "perfil_json": perfil_json
             }).execute()
             st.toast("✅ Cálculos salvos automaticamente na nuvem!")
             
             # Update cache to show in dropdown immediately
-            clientes_salvos[nome] = data_str_to_save
+            clientes_salvos[nome] = {
+                'data_nascimento': data_str_to_save,
+                'cargo': cargo,
+                'empresa': empresa
+            }
         except Exception as e:
             st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
 
