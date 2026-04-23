@@ -6,8 +6,16 @@ import json
 import calendar
 import tempfile
 from collections import Counter
+from PIL import Image
+import os
 
-st.set_page_config(page_title="Mapa Cabalístico", page_icon="🔮", layout="centered")
+try:
+    logo_path = "kan_logo.jpg"
+    page_icon_img = Image.open(logo_path)
+except Exception:
+    page_icon_img = "🔮"
+
+st.set_page_config(page_title="Mapa Cabalístico", page_icon=page_icon_img, layout="centered")
 
 # --- CACHED FETCH ---
 @st.cache_data(ttl=3600)
@@ -445,7 +453,14 @@ def check_password():
 if not check_password():
     st.stop()
 
-st.title("🔮 Calculadora de Numerologia Cabalística")
+if page_icon_img != "🔮":
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        st.image(page_icon_img, use_container_width=True)
+    with col2:
+        st.title("Calculadora de Numerologia Cabalística")
+else:
+    st.title("Calculadora de Numerologia Cabalística")
 st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
