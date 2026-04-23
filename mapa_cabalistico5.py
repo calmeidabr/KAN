@@ -583,11 +583,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
             data_str_to_save = data_input.strftime('%d/%m/%Y')
             
+            agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            usuario_logado = st.session_state.get("username", "Desconhecido")
+            
             supabase_client.table("mapas_salvos").insert({
                 "nome": nome,
                 "data_nascimento": data_str_to_save,
                 "cargo": cargo,
                 "empresa": empresa,
+                "usuario": usuario_logado,
+                "data_inclusao": agora_str,
                 "mapa_json": mapa_json,
                 "perfil_json": perfil_json
             }).execute()
