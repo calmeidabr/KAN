@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS fortalezas (triangulo INTEGER PRIMARY KEY, fortaleza TEXT, descricao TEXT);
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (1, 'INOVAÇÃO', 'Capacidade de propor e implementar ideias novas, buscando soluções criativas para problemas.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (2, 'SABEDORIA', 'Habilidade de aplicar conhecimento e experiência de forma equilibrada e ponderada em decisões e ações.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (3, 'CRIAÇÃO', 'Tendência a gerar conceitos, produtos ou soluções originais, expressando inventividade.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (4, 'AUTORIDADE', 'Influência reconhecida exercida sobre pessoas ou situações, legitimando decisões e orientações.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (5, 'VERSATILIDADE', 'Facilidade de adaptar-se a diferentes funções, ambientes ou demandas, mostrando flexibilidade comportamental.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (6, 'RELACIONAMENTO', 'Habilidade de estabelecer, manter e fortalecer vínculos interpessoais positivos.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (7, 'DIRECIONAMENTO', 'Capacidade de definir e comunicar objetivos, guiando ações próprias e de outros para o alcance de metas.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (8, 'AUTORIDADE', 'Influência reconhecida exercida sobre pessoas ou situações, legitimando decisões e orientações.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (9, 'CONHECIMENTO', 'Acúmulo e aplicação de informações, habilidades e experiências relevantes ao contexto.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (11, 'DOMINÂNCIA', 'Tendência a assumir o controle de situações e influenciar diretamente decisões e comportamentos de outros.');
+INSERT INTO fortalezas (triangulo, fortaleza, descricao) VALUES (22, 'REALIZAÇÃO', 'Busca constante por atingir objetivos e concretizar projetos, mostrando produtividade e eficácia.');

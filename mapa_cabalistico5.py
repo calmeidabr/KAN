@@ -32,6 +32,20 @@ def fetch_arcanos():
 
 ARCANOS_DB = fetch_arcanos()
 
+@st.cache_data(ttl=3600)
+def fetch_fortalezas():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("fortalezas").select("*").execute()
+        return {str(int(row['triangulo'])): {"fortaleza": row['fortaleza'], "descricao": row['descricao']} for row in resp.data if row.get('triangulo')}
+    except Exception:
+        return {}
+
+FORTALEZAS_DB = fetch_fortalezas()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -606,6 +620,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     add_row_perfil("Estrutural", estrutural)
     add_row_perfil("Direcionamento", direcionamento)
     add_row_perfil("KAN", kan)
+    
+    f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
+    fortaleza_str = f"{f_data['fortaleza']} - {f_data['descricao']}" if f_data['descricao'] else f_data['fortaleza']
+    add_row_perfil("Fortaleza", fortaleza_str)
 
     if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
         try:
