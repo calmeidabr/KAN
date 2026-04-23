@@ -470,7 +470,7 @@ if cliente_selecionado == "-- Novo Cliente --":
             
         col1, col2 = st.columns(2)
         with col1:
-            submit_mapa = st.form_submit_button("Calcular Meu Mapa")
+            submit_mapa = st.form_submit_button("Calcular Mapa Numerológico")
         with col2:
             submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
             
