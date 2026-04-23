@@ -14,7 +14,7 @@ def calcular_numeros_nome(nome_completo):
     consoantes_total = sum(letter_values.get(ch, 0) for ch in nome if ch not in vogais)
 
     return (reduce_number(expressao_total), reduce_number(motivacao_total), reduce_number(consoantes_total),
-            expressao_total, motivacao_total)
+            expressao_total, motivacao_total, consoantes_total)
 
 def soma_numeros(n):
     while n > 9 and n not in [11, 22, 33]:
@@ -113,12 +113,27 @@ def ano_pessoal(dia, mes, ano_atual):
 def calcular_missao(destino, expressao):
     return reduce_number(destino + expressao)
 
-def calcular_dividas_carmicas(dia, motivacao_total, expressao_total, destino_total):
+def calcular_dividas_carmicas(dia, motivacao_total, expressao_total, impressao_total, destino_total):
     dividas = []
-    # Verifica os números não reduzidos e o dia do nascimento
-    for val in (dia, motivacao_total, expressao_total, destino_total):
-        if val in [13, 14, 16, 19]:
-            dividas.append(val)
+    
+    # Função para buscar dívidas durante o processo de redução
+    def extrair_dividas(n):
+        if n in (13, 14, 16, 19):
+            dividas.append(n)
+        while n > 9 and n not in (11, 22, 33):
+            n = sum(int(i) for i in str(n))
+            if n in (13, 14, 16, 19):
+                dividas.append(n)
+
+    # O dia do nascimento é analisado puro
+    if dia in (13, 14, 16, 19):
+        dividas.append(dia)
+        
+    extrair_dividas(motivacao_total)
+    extrair_dividas(expressao_total)
+    extrair_dividas(impressao_total)
+    extrair_dividas(destino_total)
+    
     return sorted(list(set(dividas)))
 
 def calcular_licoes_carmicas(nome_completo):
@@ -156,15 +171,17 @@ def calcular_numerologia(nome_completo, nascimento, ano_atual):
     expressao, motivacao, impressao = resultados_nome[0:3]
     expressao_total = resultados_nome[3]
     motivacao_total = resultados_nome[4]
+    impressao_total = resultados_nome[5]
 
-    destino_total = dia + mes + ano
+    # O total bruto do Destino é a soma individual dos algarismos da data de nascimento
+    destino_total = sum(int(d) for d in str(dia) + str(mes) + str(ano))
     destino = reduce_number(destino_total)
 
     dia_pessoal = ano_pessoal(dia, mes, ano_atual)
     ano_pess = dia_pessoal
 
     missao = calcular_missao(destino, expressao)
-    dividas_carmicas = calcular_dividas_carmicas(dia, motivacao_total, expressao_total, destino_total)
+    dividas_carmicas = calcular_dividas_carmicas(dia, motivacao_total, expressao_total, impressao_total, destino_total)
     licoes_carmicas = calcular_licoes_carmicas(nome_completo)
     tendencias_ocultas = calcular_tendencias_ocultas(nome_completo)
     soma_tendencias = soma_tendencias_ocultas(tendencias_ocultas)
