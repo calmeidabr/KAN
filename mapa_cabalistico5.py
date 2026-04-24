@@ -797,3 +797,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
 elif (submit_mapa or submit_perfil) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
+
+# --- RODAPÉ ---
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+st.markdown("---")
+col_footer1, col_footer2 = st.columns([1, 8])
+
+try:
+    footer_img = Image.open(os.path.join("images", "logo_mundo_kan_peq.jpg"))
+    with col_footer1:
+        st.image(footer_img, use_container_width=True)
+except Exception:
+    pass
+
+with col_footer2:
+    st.markdown("<p style='color: white; font-size: 12px; margin: 0; padding-top: 15px;'>Todos os direitos reservados para mundokan. Metodologia exclusiva registrada.</p>", unsafe_allow_html=True)
