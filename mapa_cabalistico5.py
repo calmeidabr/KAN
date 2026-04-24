@@ -10,12 +10,16 @@ from PIL import Image
 import os
 
 try:
-    logo_path = "kan_logo.jpg"
-    page_icon_img = Image.open(logo_path)
+    favicon_img = Image.open(os.path.join("images", "ico_k.png"))
 except Exception:
-    page_icon_img = "🔮"
+    favicon_img = "🔮"
 
-st.set_page_config(page_title="Mapa Cabalístico", page_icon=page_icon_img, layout="centered")
+try:
+    header_img = Image.open("kan_logo.jpg")
+except Exception:
+    header_img = "🔮"
+
+st.set_page_config(page_title="Mapa Cabalístico", page_icon=favicon_img, layout="centered")
 
 # --- CACHED FETCH ---
 @st.cache_data(ttl=3600)
@@ -477,10 +481,10 @@ def check_password():
             st.session_state["password_correct"] = False
 
     def render_login_header():
-        if page_icon_img != "🔮":
+        if header_img != "🔮":
             col1, col2, col3 = st.columns([1, 1, 1])
             with col2:
-                st.image(page_icon_img, use_container_width=True)
+                st.image(header_img, use_container_width=True)
         st.markdown("<h4 style='text-align: center;'>Descubra sua potencialidade</h4>", unsafe_allow_html=True)
         st.write("")
 
@@ -503,10 +507,10 @@ def check_password():
 if not check_password():
     st.stop()
 
-if page_icon_img != "🔮":
+if header_img != "🔮":
     col1, col2 = st.columns([1, 5])
     with col1:
-        st.image(page_icon_img, use_container_width=True)
+        st.image(header_img, use_container_width=True)
     with col2:
         st.title("Mapa e Perfil Comportamental")
 else:
