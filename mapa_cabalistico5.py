@@ -60,6 +60,20 @@ def fetch_kan():
 
 KAN_DB = fetch_kan()
 
+@st.cache_data(ttl=3600)
+def fetch_desafios():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("desafios").select("*").execute()
+        return {str(int(row['dia_nascimento'])): {"desafio": row['desafio'], "descricao": row['descricao']} for row in resp.data if row.get('dia_nascimento')}
+    except Exception:
+        return {}
+
+DESAFIOS_DB = fetch_desafios()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -643,6 +657,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     fortaleza_str = f"{f_data['fortaleza']} - {f_data['descricao']}" if f_data['descricao'] else f_data['fortaleza']
     add_row_perfil("Fortaleza", fortaleza_str)
+    
+    d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "Não Encontrado", "descricao": ""})
+    desafio_str = f"{d_data['desafio']} - {d_data['descricao']}" if d_data['descricao'] else d_data['desafio']
+    add_row_perfil("Desafio", desafio_str)
 
     if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
         try:
