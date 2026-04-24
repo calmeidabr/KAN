@@ -42,6 +42,12 @@ div[data-baseweb="select"] span {
 table tbody th {
     color: #F18617 !important;
 }
+/* Cabeçalho das tabelas com fundo laranja e texto lilás/roxo */
+table thead th {
+    background-color: #F18617 !important;
+    color: #401041 !important;
+    font-weight: bold !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
