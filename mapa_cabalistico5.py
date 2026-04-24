@@ -15,11 +15,31 @@ except Exception:
     favicon_img = "🔮"
 
 try:
-    header_img = Image.open("kan_logo.jpg")
+    header_img = Image.open(os.path.join("images", "kan_logo_lar.png"))
 except Exception:
     header_img = "🔮"
 
 st.set_page_config(page_title="Mapa Cabalístico", page_icon=favicon_img, layout="centered")
+
+st.markdown("""
+<style>
+/* Força o fundo branco e texto escuro nos inputs para bater com a arte */
+div[data-baseweb="input"] > div {
+    background-color: #FFFFFF !important;
+    border-radius: 6px !important;
+}
+div[data-baseweb="input"] input {
+    color: #000000 !important;
+}
+div[data-baseweb="select"] > div {
+    background-color: #FFFFFF !important;
+    border-radius: 6px !important;
+}
+div[data-baseweb="select"] span {
+    color: #000000 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # --- CACHED FETCH ---
 @st.cache_data(ttl=3600)
