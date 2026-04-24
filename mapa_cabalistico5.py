@@ -108,6 +108,34 @@ def fetch_desafios():
 
 DESAFIOS_DB = fetch_desafios()
 
+@st.cache_data(ttl=3600)
+def fetch_matriz():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("matriz").select("*").execute()
+        return {str(row['resultado']): row for row in resp.data}
+    except Exception:
+        return {}
+
+MATRIZ_DB = fetch_matriz()
+
+@st.cache_data(ttl=3600)
+def fetch_atributos():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("atributos").select("*").execute()
+        return {row['atributo'].upper(): row for row in resp.data}
+    except Exception:
+        return {}
+
+ATRIBUTOS_DB = fetch_atributos()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
