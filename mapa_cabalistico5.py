@@ -38,6 +38,10 @@ div[data-baseweb="select"] > div {
 div[data-baseweb="select"] span {
     color: #000000 !important;
 }
+/* Cor laranja para a coluna Campo nas tabelas */
+table tbody th {
+    color: #F18617 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -727,7 +731,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     if st.session_state.get('show_mapa'):
         st.success(f"Mapa de **{nome}** calculado com sucesso!")
         df = pd.DataFrame(dados)
-        st.table(df)
+        st.table(df.set_index('Campo'))
 
         st.markdown("---")
         st.subheader("Salvar Resultados do Mapa")
@@ -758,7 +762,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         st.success(f"Perfil Comportamental de **{nome}** calculado com sucesso!")
         
         df_perfil = pd.DataFrame(dados_perfil)
-        st.table(df_perfil)
+        st.table(df_perfil.set_index('Campo'))
         
         st.markdown("---")
         st.subheader("Salvar Perfil Comportamental")
