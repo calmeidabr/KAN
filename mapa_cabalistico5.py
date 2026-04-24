@@ -476,16 +476,22 @@ def check_password():
         else:
             st.session_state["password_correct"] = False
 
+    def render_login_header():
+        if page_icon_img != "🔮":
+            col1, col2, col3 = st.columns([1, 1, 1])
+            with col2:
+                st.image(page_icon_img, use_container_width=True)
+        st.markdown("<h4 style='text-align: center;'>Descubra sua potencialidade</h4>", unsafe_allow_html=True)
+        st.write("")
+
     if "password_correct" not in st.session_state:
-        st.title("🔐 Acesso Restrito")
-        st.markdown("Por favor, faça login para acessar a calculadora.")
+        render_login_header()
         st.text_input("Usuário", key="username")
         st.text_input("Senha", type="password", key="password")
         st.button("Entrar", on_click=password_entered)
         return False
     elif not st.session_state["password_correct"]:
-        st.title("🔐 Acesso Restrito")
-        st.markdown("Por favor, faça login para acessar a calculadora.")
+        render_login_header()
         st.text_input("Usuário", key="username")
         st.text_input("Senha", type="password", key="password")
         st.button("Entrar", on_click=password_entered)
