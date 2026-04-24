@@ -390,7 +390,9 @@ def calcular_numerologia(nome_completo, nascimento, data_atual):
 
 def remover_acentos(texto):
     texto_str = str(texto).replace('º', 'o').replace('ª', 'a')
-    return ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
+    texto_str = texto_str.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'").replace('–', '-').replace('—', '-')
+    norm = ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
+    return norm.encode('latin-1', 'ignore').decode('latin-1')
 
 def gerar_pdf(nome, data_nasc_str, dados, titulo="Mapa Numerologico Cabalistico"):
     from fpdf import FPDF
