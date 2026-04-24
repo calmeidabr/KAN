@@ -150,6 +150,20 @@ def fetch_repeticao():
 
 REPETICAO_DB = fetch_repeticao()
 
+@st.cache_data(ttl=3600)
+def fetch_peso():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("peso").select("*").execute()
+        return {row['campo']: row['peso'] for row in resp.data}
+    except Exception:
+        return {}
+
+PESO_DB = fetch_peso()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
