@@ -806,7 +806,7 @@ col_footer1, col_footer2 = st.columns([1, 8])
 try:
     footer_img = Image.open(os.path.join("images", "logo_mundo_kan_peq.jpg"))
     with col_footer1:
-        st.image(footer_img, use_container_width=True)
+        st.image(footer_img, width=59)
 except Exception:
     pass
 
