@@ -136,6 +136,20 @@ def fetch_atributos():
 
 ATRIBUTOS_DB = fetch_atributos()
 
+@st.cache_data(ttl=3600)
+def fetch_repeticao():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("repeticao").select("*").execute()
+        return {str(int(row['repeticao'])): row for row in resp.data}
+    except Exception:
+        return {}
+
+REPETICAO_DB = fetch_repeticao()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
