@@ -804,7 +804,7 @@ st.markdown("---")
 col_footer1, col_footer2 = st.columns([1, 8])
 
 try:
-    footer_img = Image.open(os.path.join("images", "logo_mundo_kan_peq_neg.png"))
+    footer_img = Image.open(os.path.join("images", "logo_mundo_kan_peq_neg2.png"))
     with col_footer1:
         st.image(footer_img)
 except Exception:
