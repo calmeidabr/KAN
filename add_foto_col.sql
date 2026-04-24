@@ -1,0 +1,1 @@
+ALTER TABLE mapas_salvos ADD COLUMN IF NOT EXISTS foto_base64 TEXT;

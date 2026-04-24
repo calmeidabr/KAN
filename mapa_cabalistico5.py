@@ -561,7 +561,8 @@ try:
         clientes_salvos[row['nome']] = {
             'data_nascimento': row['data_nascimento'],
             'cargo': row.get('cargo', ''),
-            'empresa': row.get('empresa', '')
+            'empresa': row.get('empresa', ''),
+            'foto_base64': row.get('foto_base64', '')
         }
 except Exception:
     pass
@@ -621,9 +622,21 @@ else:
     except:
         data_input = datetime.date.today()
         
-    foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"foto_existente_{nome}")
-    if foto_upload_existente:
-        st.session_state['fotos'][nome] = foto_upload_existente.getvalue()
+    tem_foto = bool(info_cliente.get('foto_base64')) or (nome in st.session_state['fotos'])
+    if not tem_foto:
+        foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"foto_existente_{nome}")
+        if foto_upload_existente:
+            foto_bytes = foto_upload_existente.getvalue()
+            st.session_state['fotos'][nome] = foto_bytes
+            import base64
+            encoded = base64.b64encode(foto_bytes).decode()
+            if supabase_client:
+                try:
+                    supabase_client.table("mapas_salvos").update({"foto_base64": encoded}).eq("nome", nome).execute()
+                    info_cliente['foto_base64'] = encoded
+                    st.rerun()
+                except:
+                    pass
         
     st.session_state['show_mapa'] = True
     st.session_state['show_perfil'] = True
@@ -641,14 +654,17 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         info_parts.append(empresa)
     info_text = " | ".join(info_parts)
     
-    foto_bytes = st.session_state['fotos'].get(nome)
-    
-    if foto_bytes:
+    foto_b64 = None
+    if nome in st.session_state['fotos']:
         import base64
-        encoded = base64.b64encode(foto_bytes).decode()
+        foto_b64 = base64.b64encode(st.session_state['fotos'][nome]).decode()
+    elif clientes_salvos.get(nome) and clientes_salvos[nome].get('foto_base64'):
+        foto_b64 = clientes_salvos[nome]['foto_base64']
+    
+    if foto_b64:
         html = f'''
         <div style="display: flex; align-items: center; margin-bottom: 25px;">
-            <img src="data:image/png;base64,{encoded}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
+            <img src="data:image/png;base64,{foto_b64}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
             <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
         </div>
         '''
@@ -750,7 +766,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             usuario_logado = st.session_state.get("username", "Desconhecido")
             
-            supabase_client.table("mapas_salvos").insert({
+            insert_data = {
                 "nome": nome,
                 "data_nascimento": data_str_to_save,
                 "cargo": cargo,
@@ -759,20 +775,25 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 "data_inclusao": agora_str,
                 "mapa_json": mapa_json,
                 "perfil_json": perfil_json
-            }).execute()
+            }
+            if nome in st.session_state['fotos']:
+                import base64
+                insert_data["foto_base64"] = base64.b64encode(st.session_state['fotos'][nome]).decode()
+                
+            supabase_client.table("mapas_salvos").insert(insert_data).execute()
             st.toast("✅ Cálculos salvos automaticamente na nuvem!")
             
             # Update cache to show in dropdown immediately
             clientes_salvos[nome] = {
                 'data_nascimento': data_str_to_save,
                 'cargo': cargo,
-                'empresa': empresa
+                'empresa': empresa,
+                'foto_base64': insert_data.get('foto_base64', '')
             }
         except Exception as e:
             st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
 
     if st.session_state.get('show_mapa'):
-        st.success(f"Mapa de **{nome}** calculado com sucesso!")
         df = pd.DataFrame(dados)
         st.table(df.set_index('Campo'))
 
@@ -802,8 +823,6 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             )
 
     if st.session_state.get('show_perfil'):
-        st.success(f"Perfil Comportamental de **{nome}** calculado com sucesso!")
-        
         df_perfil = pd.DataFrame(dados_perfil)
         st.table(df_perfil.set_index('Campo'))
         
