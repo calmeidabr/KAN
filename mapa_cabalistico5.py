@@ -569,6 +569,9 @@ except Exception:
 opcoes_clientes = ["-- Novo Cliente --"] + sorted(list(clientes_salvos.keys()))
 cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um novo:", opcoes_clientes)
 
+if 'fotos' not in st.session_state:
+    st.session_state['fotos'] = {}
+
 submit_mapa = False
 submit_perfil = False
 
@@ -583,6 +586,8 @@ if cliente_selecionado == "-- Novo Cliente --":
         with col_empresa:
             empresa = st.text_input("Empresa/Grupo:")
             
+        foto_upload = st.file_uploader("Foto da Pessoa (Opcional)", type=["png", "jpg", "jpeg"])
+        
         col1, col2 = st.columns(2)
         with col1:
             submit_mapa = st.form_submit_button("Calcular Mapa Numerológico")
@@ -593,6 +598,9 @@ if cliente_selecionado == "-- Novo Cliente --":
         try:
             dia, mes, ano = map(int, data_str_input.split('/'))
             data_input = datetime.date(ano, mes, dia)
+            data_str = data_str_input
+            if foto_upload:
+                st.session_state['fotos'][nome] = foto_upload.getvalue()
             if submit_mapa:
                 st.session_state['show_mapa'] = True
             if submit_perfil:
@@ -613,9 +621,10 @@ else:
     except:
         data_input = datetime.date.today()
         
-    cargo_str = f" | Cargo: **{cargo}**" if cargo else ""
-    emp_str = f" | Empresa: **{empresa}**" if empresa else ""
-    st.info(f"📅 Cliente selecionado: **{nome}** | Nascimento: **{data_str}**{cargo_str}{emp_str}")
+    foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key="foto_existente")
+    if foto_upload_existente:
+        st.session_state['fotos'][nome] = foto_upload_existente.getvalue()
+        
     st.session_state['show_mapa'] = True
     st.session_state['show_perfil'] = True
 
@@ -623,6 +632,34 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     hoje = datetime.date.today()
     data_atual = (hoje.day, hoje.month, hoje.year)
     nascimento = (data_input.day, data_input.month, data_input.year)
+    
+    st.markdown("---")
+    info_parts = [nome, data_str]
+    if cargo:
+        info_parts.append(cargo)
+    if empresa:
+        info_parts.append(empresa)
+    info_text = " | ".join(info_parts)
+    
+    foto_bytes = st.session_state['fotos'].get(nome)
+    
+    if foto_bytes:
+        import base64
+        encoded = base64.b64encode(foto_bytes).decode()
+        html = f'''
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <img src="data:image/png;base64,{encoded}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
+            <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
+        </div>
+        '''
+        st.markdown(html, unsafe_allow_html=True)
+    else:
+        html = f'''
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
+        </div>
+        '''
+        st.markdown(html, unsafe_allow_html=True)
 
     resultados = calcular_numerologia(nome, nascimento, data_atual)
     (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
