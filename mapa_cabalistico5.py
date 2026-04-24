@@ -559,8 +559,10 @@ if cliente_selecionado == "-- Novo Cliente --":
         try:
             dia, mes, ano = map(int, data_str_input.split('/'))
             data_input = datetime.date(ano, mes, dia)
-            st.session_state['show_mapa'] = submit_mapa
-            st.session_state['show_perfil'] = submit_perfil
+            if submit_mapa:
+                st.session_state['show_mapa'] = True
+            if submit_perfil:
+                st.session_state['show_perfil'] = True
         except:
             st.error("Formato de data inválido! Use dd/mm/yyyy (ex: 25/12/1980).")
             submit_mapa = False
