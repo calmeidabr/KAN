@@ -488,10 +488,10 @@ if page_icon_img != "🔮":
     with col1:
         st.image(page_icon_img, use_container_width=True)
     with col2:
-        st.title("Calculadora de Numerologia Cabalística")
+        st.title("Mapa e Perfil Comportamental")
 else:
-    st.title("Calculadora de Numerologia Cabalística")
-st.markdown("Descubra os números poderosos que regem sua vida com base na numerologia cabalística.")
+    st.title("Mapa e Perfil Comportamental")
+st.markdown("Descubra a sua potencialidade.")
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
 clientes_salvos = {}
@@ -513,7 +513,7 @@ except Exception:
     pass
 
 opcoes_clientes = ["-- Novo Cliente --"] + sorted(list(clientes_salvos.keys()))
-cliente_selecionado = st.selectbox("Selecione um cliente já cadastrado ou crie um novo:", opcoes_clientes)
+cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um novo:", opcoes_clientes)
 
 submit_mapa = False
 submit_perfil = False
