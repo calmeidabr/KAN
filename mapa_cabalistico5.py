@@ -621,7 +621,7 @@ else:
     except:
         data_input = datetime.date.today()
         
-    foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key="foto_existente")
+    foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"foto_existente_{nome}")
     if foto_upload_existente:
         st.session_state['fotos'][nome] = foto_upload_existente.getvalue()
         
