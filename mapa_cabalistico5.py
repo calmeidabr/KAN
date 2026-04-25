@@ -1024,9 +1024,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     perfil_encontrado = rep_info.get('perfil')
             
             # 3. Aplicar Peso se perfil for válido
-            if perfil_encontrado and perfil_encontrado in score_df.index:
-                peso_val = PESO_DB.get(campo, 0)
-                score_df.at[perfil_encontrado, campo] = int(peso_val)
+            if perfil_encontrado:
+                # Normalizar o perfil encontrado (ex: "EXECUTOR" -> "Executor") para bater com o index
+                perfil_norm = str(perfil_encontrado).strip().capitalize()
+                if perfil_norm in score_df.index:
+                    peso_val = PESO_DB.get(campo, 0)
+                    score_df.at[perfil_norm, campo] = int(peso_val)
         
         score_df['TOTAL'] = score_df.sum(axis=1)
         st.table(score_df)
