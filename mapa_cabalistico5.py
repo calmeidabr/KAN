@@ -1009,7 +1009,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             
             perfil_encontrado = None
             
-            # 1. Lookup via Matriz -> Atributos
+            # 1. Lookup via Matriz -> Atributos (Apenas para campos da Matriz)
             if campo in mapa_col_matriz:
                 col_matriz = mapa_col_matriz[campo]
                 row_matriz = MATRIZ_DB.get(str(val_num))
@@ -1019,9 +1019,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                         attr_info = ATRIBUTOS_DB.get(atributo_texto)
                         if attr_info:
                             perfil_encontrado = attr_info.get('perfil')
-            
-            # 2. Se não encontrou ou é de Repeticao (Estrutural/Repetições/Direcionamento)
-            if not perfil_encontrado:
+            else:
+                # 2. Lookup via Repeticao (Apenas para Estrutural, Direcionamento, Repetições)
                 rep_info = REPETICAO_DB.get(str(val_num))
                 if rep_info:
                     perfil_encontrado = rep_info.get('perfil')
