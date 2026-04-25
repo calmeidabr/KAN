@@ -48,6 +48,23 @@ table thead th {
     color: #401041 !important;
     font-weight: bold !important;
 }
+/* Congelar primeira coluna (Index) das tabelas ao rolar para a direita */
+div[data-testid="stTable"] {
+    overflow-x: auto !important;
+}
+table thead th:first-child {
+    position: sticky !important;
+    left: 0;
+    z-index: 3 !important;
+    background-color: #F18617 !important;
+}
+table tbody th:first-child {
+    position: sticky !important;
+    left: 0;
+    z-index: 2 !important;
+    background-color: #401041 !important; /* Cor roxa do fundo */
+    border-right: 2px solid #F18617 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
