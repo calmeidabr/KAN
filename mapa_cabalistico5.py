@@ -209,6 +209,34 @@ def fetch_perfil_descricao():
 
 PERFIL_DESCRICAO_DB = fetch_perfil_descricao()
 
+@st.cache_data(ttl=3600)
+def fetch_lista_categoria():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("lista_categoria").select("*").execute()
+        return [row['categoria'] for row in resp.data]
+    except Exception:
+        return []
+
+LISTA_CATEGORIA_DB = fetch_lista_categoria()
+
+@st.cache_data(ttl=3600)
+def fetch_peso_categoria():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("peso_categoria").select("*").execute()
+        return {row['campo']: row['peso'] for row in resp.data}
+    except Exception:
+        return {}
+
+PESO_CATEGORIA_DB = fetch_peso_categoria()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -905,7 +933,51 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     
     score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
     
-    # --- FIM DO CÁLCULO DO SCORE PERFIL ---
+    # --- CÁLCULO DO SCORE CATEGORIA ---
+    lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
+    colunas_cat = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento"]
+    
+    score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_cat)
+    
+    for campo_c in colunas_cat:
+        val_c = valores_originais_score[campo_c]
+        if val_c is None: continue
+        
+        cat_encontrada = None
+        # Consulta via Matriz -> Atributos (coluna categoria)
+        col_m_cat = mapa_col_matriz.get(campo_c)
+        if col_m_cat:
+            row_m_cat = MATRIZ_DB.get(str(val_c))
+            if row_m_cat:
+                attr_t_cat = str(row_m_cat.get(col_m_cat, "")).upper()
+                if attr_t_cat:
+                    ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
+                    if ai_cat: cat_encontrada = ai_cat.get('categoria')
+        else:
+            # Estrutural / Direcionamento
+            ri_cat = REPETICAO_DB.get(str(val_c))
+            if ri_cat: cat_encontrada = ri_cat.get('categoria')
+            
+        if cat_encontrada:
+            cn = str(cat_encontrada).strip().capitalize()
+            if cn in score_cat_df.index:
+                pv_cat = PESO_CATEGORIA_DB.get(campo_c, 0)
+                score_cat_df.at[cn, campo_c] = int(pv_cat)
+                
+    score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
+    
+    # Identificar categoria Dia Natalício
+    cat_dia_natalicio = ""
+    val_dia_natalicio = valores_originais_score["Dia Natalício"]
+    row_dia = MATRIZ_DB.get(str(val_dia_natalicio))
+    if row_dia:
+        attr_dia = str(row_dia.get('dia_natalicio', "")).upper()
+        if attr_dia:
+            ai_dia = ATRIBUTOS_DB.get(attr_dia)
+            if ai_dia: cat_dia_natalicio = str(ai_dia.get('categoria', "")).strip().capitalize()
+            
+    # Lógica de seleção de categoria (será finalizada abaixo com o widget)
+    # --- FIM DO CÁLCULO DO SCORE PERFIL E CATEGORIA ---
 
     dados_perfil = []
     def add_row_perfil(campo, valor):
@@ -940,6 +1012,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         perfil_res_final.append(f"{p}: {desc}" if desc else p)
     
     add_row_perfil("Perfil", " | ".join(perfil_res_final))
+    
+    # Novo Campo: Categoria (baseado no Score Categoria)
+    modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
+    if modo_corte_cat == 'Dia Natalicio':
+        categoria_selecionada = cat_dia_natalicio
+    else:
+        # Categoria de maior pontuação
+        totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
+        totais_cat = totais_cat[totais_cat > 0]
+        categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
+        
+    add_row_perfil("Categoria", categoria_selecionada)
     
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     fortaleza_str = f"{f_data['fortaleza']} - {f_data['descricao']}" if f_data['descricao'] else f_data['fortaleza']
@@ -1059,6 +1143,20 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         st.subheader("Resultado Final do Perfil")
         final_res_df = pd.DataFrame([", ".join(perfis_escolhidos)], columns=["Perfis Identificados"], index=["Perfil"])
         st.table(final_res_df)
+
+        # --- SCORE CATEGORIA ---
+        st.markdown("---")
+        st.header("Score Categoria")
+        
+        corte_cat = st.selectbox("Corte (Categoria)", ["Dia Natalicio", "Calculo"], 
+                               index=1 if modo_corte_cat == 'Calculo' else 0,
+                               key="corte_categoria_modo")
+        
+        st.table(score_cat_df)
+        
+        st.subheader("Categoria Selecionada")
+        final_cat_df = pd.DataFrame([categoria_selecionada], columns=["Categoria"], index=["Resultado"])
+        st.table(final_cat_df)
 
 
 elif (submit_mapa or submit_perfil) and not nome:
