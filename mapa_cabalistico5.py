@@ -561,11 +561,12 @@ def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino
     direcionamento = reduce_kan(destino + missao + ciclo2_num + momento3_num)
     kan = reduce_kan(estrutural + direcionamento)
 
-    # Lógica de Repetições
-    num_dia = reduce_number(dia)
+    # Dia Natalício (puro, ex: 21) e No Psiquico (reduzido, ex: 3)
+    num_dia_puro = dia
+    num_dia_reduzido = reduce_number(dia)
+    
     # Campos solicitados: Motivação, Impressão, Expressão, Destino, Missão, Dia Natalício, Triângulo, No Psiquico
-    # Dia Natalício e No Psiquico são baseados no dia reduzido
-    nums = [motivacao, impressao, expressao, destino, missao, num_dia, triangulo_base, num_dia]
+    nums = [motivacao, impressao, expressao, destino, missao, num_dia_puro, triangulo_base, num_dia_reduzido]
     counts = Counter(nums)
     
     # Filtra números que repetem 2 ou mais vezes, ordenando por frequência (maior primeiro)
@@ -976,7 +977,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         }
         
         # Resultados numéricos para consulta
-        num_dia = reduce_number(nascimento[0])
+        num_dia_puro = nascimento[0]
+        num_dia_reduzido = reduce_number(nascimento[0])
+        
         def extract_num(s):
             if not s: return None
             try: return s.split(' - ')[0]
@@ -988,9 +991,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             "Expressão": expressao,
             "Destino": destino,
             "Missão": missao,
-            "Dia Natalício": num_dia,
+            "Dia Natalício": num_dia_puro,
             "Triângulo": triangulo_base,
-            "No Psiquico": num_dia,
+            "No Psiquico": num_dia_reduzido,
             "Estrutural": estrutural,
             "Direcionamento": direcionamento,
             "REPETIÇÃO 1": extract_num(rep1),
