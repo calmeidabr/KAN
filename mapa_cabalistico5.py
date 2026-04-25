@@ -864,6 +864,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
 
     if st.session_state.get('show_mapa'):
+        st.subheader("Mapa")
         df = pd.DataFrame(dados)
         st.table(df.set_index('Campo'))
 
@@ -893,6 +894,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             )
 
     if st.session_state.get('show_perfil'):
+        st.subheader("Perfil Comportamental")
         df_perfil = pd.DataFrame(dados_perfil)
         st.table(df_perfil.set_index('Campo'))
         
