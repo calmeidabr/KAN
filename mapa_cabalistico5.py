@@ -195,6 +195,20 @@ def fetch_perfis():
 
 PERFIS_DB = fetch_perfis()
 
+@st.cache_data(ttl=3600)
+def fetch_perfil_descricao():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("perfil_descricao").select("*").execute()
+        return {row['perfil'].strip().capitalize(): row['descricao'] for row in resp.data}
+    except Exception:
+        return {}
+
+PERFIL_DESCRICAO_DB = fetch_perfil_descricao()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -848,6 +862,51 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     add_row("3º Momento Decisivo", m3)
     add_row("4º Momento Decisivo", m4)
 
+    # --- CÁLCULO DO SCORE PERFIL (Mover para antes das tabelas para incluir no Resultado) ---
+    perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+    colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+    mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
+    
+    num_dia_puro = nascimento[0]
+    num_dia_reduzido = reduce_number(nascimento[0])
+    def extract_num(s):
+        if not s: return None
+        try: return s.split(' - ')[0]
+        except: return str(s)
+        
+    valores_originais_score = {
+        "Motivação": motivacao, "Impressão": impressao, "Expressão": expressao, "Destino": destino, "Missão": missao,
+        "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
+        "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2)
+    }
+    
+    score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
+    for campo_s in colunas_score:
+        val_s = valores_originais_score[campo_s]
+        if val_s is None: continue
+        perfil_enc = None
+        if campo_s in mapa_col_matriz:
+            col_m = mapa_col_matriz[campo_s]
+            row_m = MATRIZ_DB.get(str(val_s))
+            if row_m:
+                attr_t = str(row_m.get(col_m, "")).upper()
+                if attr_t:
+                    ai = ATRIBUTOS_DB.get(attr_t)
+                    if ai: perfil_enc = ai.get('perfil')
+        else:
+            ri = REPETICAO_DB.get(str(val_s))
+            if ri: perfil_enc = ri.get('perfil')
+        
+        if perfil_enc:
+            pn = str(perfil_enc).strip().capitalize()
+            if pn in score_df_calc.index:
+                pv = PESO_DB.get(campo_s, 0)
+                score_df_calc.at[pn, campo_s] = int(pv)
+    
+    score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
+    
+    # --- FIM DO CÁLCULO DO SCORE PERFIL ---
+
     dados_perfil = []
     def add_row_perfil(campo, valor):
         dados_perfil.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
@@ -860,6 +919,27 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     k_data = KAN_DB.get(str(kan), {"kan": "Não Encontrado", "descricao": ""})
     kan_str = f"{kan} - {k_data['kan']} - {k_data['descricao']}" if k_data['descricao'] else f"{kan} - {k_data['kan']}"
     add_row_perfil("KAN", kan_str)
+    
+    # Novo Campo: Perfil (baseado no Score)
+    # Pegamos o slider de corte (precisamos definir um valor padrão se não existir ainda na session_state)
+    val_corte = st.session_state.get('score_perfil_corte_slider', 1.8)
+    totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
+    totais_s = totais_s[totais_s > 0]
+    perfis_escolhidos = []
+    if not totais_s.empty:
+        max_score = totais_s.iloc[0]
+        for p, s in totais_s.items():
+            if max_score / s <= val_corte:
+                perfis_escolhidos.append(p)
+            else:
+                break
+    
+    perfil_res_final = []
+    for p in perfis_escolhidos:
+        desc = PERFIL_DESCRICAO_DB.get(p, "")
+        perfil_res_final.append(f"{p}: {desc}" if desc else p)
+    
+    add_row_perfil("Perfil", " | ".join(perfil_res_final))
     
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     fortaleza_str = f"{f_data['fortaleza']} - {f_data['descricao']}" if f_data['descricao'] else f_data['fortaleza']
@@ -965,109 +1045,19 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 mime="application/pdf",
             )
 
-        # --- SCORE PERFIL ---
+        # --- SCORE PERFIL (Exibição da Tabela) ---
         st.markdown("---")
         st.header("Score Perfil")
         
+        # O slider agora controla o resultado em tempo real (st.rerun acontece no fundo)
         corte = st.slider("Corte", 1.0, 2.0, 1.8, 0.1, key="score_perfil_corte_slider")
         
-        # Perfis do banco de dados (Supabase)
-        perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+        # Usar o DataFrame já calculado anteriormente
+        st.table(score_df_calc)
         
-        # Colunas conforme solicitado (e pesos no banco)
-        colunas_score = [
-            "Motivação", "Impressão", "Expressão", "Destino", "Missão", 
-            "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", 
-            "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"
-        ]
-        
-        # Mapeamento para as colunas da tabela Matriz no banco (sem acentos no DB)
-        mapa_col_matriz = {
-            "Motivação": "motivacao",
-            "Impressão": "impressao",
-            "Expressão": "expressao",
-            "Destino": "destino",
-            "Missão": "missao",
-            "Dia Natalício": "dia_natalicio",
-            "Triângulo": "triangulo",
-            "No Psiquico": "no_psiquico"
-        }
-        
-        # Resultados numéricos para consulta
-        num_dia_puro = nascimento[0]
-        num_dia_reduzido = reduce_number(nascimento[0])
-        
-        def extract_num(s):
-            if not s: return None
-            try: return s.split(' - ')[0]
-            except: return str(s)
-            
-        valores_originais = {
-            "Motivação": motivacao,
-            "Impressão": impressao,
-            "Expressão": expressao,
-            "Destino": destino,
-            "Missão": missao,
-            "Dia Natalício": num_dia_puro,
-            "Triângulo": triangulo_base,
-            "No Psiquico": num_dia_reduzido,
-            "Estrutural": estrutural,
-            "Direcionamento": direcionamento,
-            "REPETIÇÃO 1": extract_num(rep1),
-            "REPETIÇÃO 2": extract_num(rep2)
-        }
-        
-        # Cálculo da Tabela de Score
-        score_df = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
-        
-        for campo in colunas_score:
-            val_num = valores_originais[campo]
-            if val_num is None: continue
-            
-            perfil_encontrado = None
-            
-            # 1. Lookup via Matriz -> Atributos (Apenas para campos da Matriz)
-            if campo in mapa_col_matriz:
-                col_matriz = mapa_col_matriz[campo]
-                row_matriz = MATRIZ_DB.get(str(val_num))
-                if row_matriz:
-                    atributo_texto = str(row_matriz.get(col_matriz, "")).upper()
-                    if atributo_texto:
-                        attr_info = ATRIBUTOS_DB.get(atributo_texto)
-                        if attr_info:
-                            perfil_encontrado = attr_info.get('perfil')
-            else:
-                # 2. Lookup via Repeticao (Apenas para Estrutural, Direcionamento, Repetições)
-                rep_info = REPETICAO_DB.get(str(val_num))
-                if rep_info:
-                    perfil_encontrado = rep_info.get('perfil')
-            
-            # 3. Aplicar Peso se perfil for válido
-            if perfil_encontrado:
-                # Normalizar o perfil encontrado (ex: "EXECUTOR" -> "Executor") para bater com o index
-                perfil_norm = str(perfil_encontrado).strip().capitalize()
-                if perfil_norm in score_df.index:
-                    peso_val = PESO_DB.get(campo, 0)
-                    score_df.at[perfil_norm, campo] = int(peso_val)
-        
-        score_df['TOTAL'] = score_df.sum(axis=1)
-        st.table(score_df)
-        
-        # Resultado e Corte dinâmico
-        totais_score = score_df['TOTAL'].sort_values(ascending=False)
-        totais_score = totais_score[totais_score > 0]
-        
-        perfis_selecionados = []
-        if not totais_score.empty:
-            maior_pont = totais_score.iloc[0]
-            for p, s in totais_score.items():
-                if maior_pont / s <= corte:
-                    perfis_selecionados.append(p)
-                else:
-                    break
-        
+        # Resultado Final (já calculado para a tabela principal, mas exibimos aqui também)
         st.subheader("Resultado Final do Perfil")
-        final_res_df = pd.DataFrame([", ".join(perfis_selecionados)], columns=["Perfis Identificados"], index=["Perfil"])
+        final_res_df = pd.DataFrame([", ".join(perfis_escolhidos)], columns=["Perfis Identificados"], index=["Perfil"])
         st.table(final_res_df)
 
 
