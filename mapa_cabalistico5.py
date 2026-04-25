@@ -935,7 +935,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     
     # --- CÁLCULO DO SCORE CATEGORIA ---
     lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
-    colunas_cat = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento"]
+    colunas_cat = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
     
     score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_cat)
     
