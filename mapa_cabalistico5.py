@@ -1130,6 +1130,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
         nome_limpo = remover_acentos(nome).replace(' ', '_')
         
+        df_perfil = pd.DataFrame(dados_perfil)
         with col1:
             csv_perfil = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
             st.download_button(
