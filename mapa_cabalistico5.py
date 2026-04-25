@@ -181,7 +181,7 @@ PERFIS_DB = fetch_perfis()
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
-    vogais = set('AEIOUÀÁÂÃÄÅÆÉÈÊËÍÎÏÓÒÔÕÖÚÙÛÜ')
+    vogais = set('AEIOUYÀÁÂÃÄÅÆÉÈÊËÍÎÏÓÒÔÕÖÚÙÛÜ')
     motivacao_total = sum(letter_values.get(ch, 0) for ch in nome if ch in vogais)
     consoantes_total = sum(letter_values.get(ch, 0) for ch in nome if ch not in vogais)
 
