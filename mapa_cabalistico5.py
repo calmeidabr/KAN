@@ -947,6 +947,108 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 mime="application/pdf",
             )
 
+        # --- SCORE PERFIL ---
+        st.markdown("---")
+        st.header("Score Perfil")
+        
+        corte = st.slider("Corte", 1.0, 2.0, 1.8, 0.1, key="score_perfil_corte_slider")
+        
+        # Perfis do banco de dados (Supabase)
+        perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+        
+        # Colunas conforme solicitado (e pesos no banco)
+        colunas_score = [
+            "Motivação", "Impressão", "Expressão", "Destino", "Missão", 
+            "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", 
+            "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"
+        ]
+        
+        # Mapeamento para as colunas da tabela Matriz no banco (sem acentos no DB)
+        mapa_col_matriz = {
+            "Motivação": "motivacao",
+            "Impressão": "impressao",
+            "Expressão": "expressao",
+            "Destino": "destino",
+            "Missão": "missao",
+            "Dia Natalício": "dia_natalicio",
+            "Triângulo": "triangulo",
+            "No Psiquico": "no_psiquico"
+        }
+        
+        # Resultados numéricos para consulta
+        num_dia = reduce_number(nascimento[0])
+        def extract_num(s):
+            if not s: return None
+            try: return s.split(' - ')[0]
+            except: return str(s)
+            
+        valores_originais = {
+            "Motivação": motivacao,
+            "Impressão": impressao,
+            "Expressão": expressao,
+            "Destino": destino,
+            "Missão": missao,
+            "Dia Natalício": num_dia,
+            "Triângulo": triangulo_base,
+            "No Psiquico": num_dia,
+            "Estrutural": estrutural,
+            "Direcionamento": direcionamento,
+            "REPETIÇÃO 1": extract_num(rep1),
+            "REPETIÇÃO 2": extract_num(rep2)
+        }
+        
+        # Cálculo da Tabela de Score
+        score_df = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
+        
+        for campo in colunas_score:
+            val_num = valores_originais[campo]
+            if val_num is None: continue
+            
+            perfil_encontrado = None
+            
+            # 1. Lookup via Matriz -> Atributos
+            if campo in mapa_col_matriz:
+                col_matriz = mapa_col_matriz[campo]
+                row_matriz = MATRIZ_DB.get(str(val_num))
+                if row_matriz:
+                    atributo_texto = str(row_matriz.get(col_matriz, "")).upper()
+                    if atributo_texto:
+                        attr_info = ATRIBUTOS_DB.get(atributo_texto)
+                        if attr_info:
+                            perfil_encontrado = attr_info.get('perfil')
+            
+            # 2. Se não encontrou ou é de Repeticao (Estrutural/Repetições/Direcionamento)
+            if not perfil_encontrado:
+                rep_info = REPETICAO_DB.get(str(val_num))
+                if rep_info:
+                    perfil_encontrado = rep_info.get('perfil')
+            
+            # 3. Aplicar Peso se perfil for válido
+            if perfil_encontrado and perfil_encontrado in score_df.index:
+                peso_val = PESO_DB.get(campo, 0)
+                score_df.at[perfil_encontrado, campo] = int(peso_val)
+        
+        score_df['TOTAL'] = score_df.sum(axis=1)
+        st.table(score_df)
+        
+        # Resultado e Corte dinâmico
+        totais_score = score_df['TOTAL'].sort_values(ascending=False)
+        totais_score = totais_score[totais_score > 0]
+        
+        perfis_selecionados = []
+        if not totais_score.empty:
+            maior_pont = totais_score.iloc[0]
+            for p, s in totais_score.items():
+                if maior_pont / s <= corte:
+                    perfis_selecionados.append(p)
+                else:
+                    break
+        
+        st.subheader("Resultado Final do Perfil")
+        final_res_df = pd.DataFrame([", ".join(perfis_selecionados)], columns=["Perfis Identificados"], index=["Perfil"])
+        st.table(final_res_df)
+
+
 elif (submit_mapa or submit_perfil) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
 
