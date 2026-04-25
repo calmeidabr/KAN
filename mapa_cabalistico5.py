@@ -981,10 +981,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
     dados_perfil = []
     def add_row_perfil_split(campo, valor, descricao):
+        # Texto limpo para o PDF (sem HTML)
+        desc_limpa = descricao.replace("<b>", "").replace("</b>", "").replace("<br>", " | ")
         dados_perfil.append({
             "Campo": campo,
             "Valor": valor,
-            "Descricao": descricao
+            "Descricao": descricao,
+            "Resultado": f"{valor} - {desc_limpa}" if desc_limpa else valor
         })
         
     k_data = KAN_DB.get(str(kan), {"kan": "Não Encontrado", "descricao": ""})
