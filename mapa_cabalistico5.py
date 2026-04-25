@@ -551,7 +551,7 @@ def gerar_pdf(nome, data_nasc_str, dados, titulo="Mapa Numerologico Cabalistico"
             return f.read()
 
 # --- CÁLCULOS DO PERFIL COMPORTAMENTAL ---
-def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino, missao, ciclo2_num, momento3_num):
+def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino, missao, ciclo2_num, momento3_num, triangulo_base):
     def reduce_kan(n):
         while n > 9 and n not in [11, 22]:
             n = sum(int(d) for d in str(n))
@@ -560,8 +560,29 @@ def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino
     estrutural = reduce_kan(motivacao + impressao + expressao + reduce_number(dia))
     direcionamento = reduce_kan(destino + missao + ciclo2_num + momento3_num)
     kan = reduce_kan(estrutural + direcionamento)
+
+    # Lógica de Repetições
+    num_dia = reduce_number(dia)
+    # Campos solicitados: Motivação, Impressão, Expressão, Destino, Missão, Dia Natalício, Triângulo, No Psiquico
+    # Dia Natalício e No Psiquico são baseados no dia reduzido
+    nums = [motivacao, impressao, expressao, destino, missao, num_dia, triangulo_base, num_dia]
+    counts = Counter(nums)
     
-    return estrutural, direcionamento, kan
+    # Filtra números que repetem 2 ou mais vezes, ordenando por frequência (maior primeiro)
+    reps = sorted([(num, count) for num, count in counts.items() if count >= 2], key=lambda x: (-x[1], x[0]))
+    
+    def get_rep_info(idx):
+        if idx < len(reps):
+            n = reps[idx][0]
+            r_data = REPETICAO_DB.get(str(n), {"perfil": ""})
+            perfil = r_data.get('perfil', '')
+            return f"{n} - {perfil}" if perfil else str(n)
+        return ""
+
+    rep1 = get_rep_info(0)
+    rep2 = get_rep_info(1)
+    
+    return estrutural, direcionamento, kan, rep1, rep2
 
 # --- SISTEMA DE LOGIN ---
 USUARIOS = {
@@ -754,9 +775,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
      desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
      triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
 
-    estrutural, direcionamento, kan = calcular_perfil_comportamental(
+    estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
         expressao, motivacao, impressao, nascimento[0],
-        destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero']
+        destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+        triangulo_base
     )
 
     dados = []
@@ -814,6 +836,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         
     add_row_perfil("Estrutural", estrutural)
     add_row_perfil("Direcionamento", direcionamento)
+    add_row_perfil("Repeticao 1", rep1)
+    add_row_perfil("Repeticao 2", rep2)
     
     k_data = KAN_DB.get(str(kan), {"kan": "Não Encontrado", "descricao": ""})
     kan_str = f"{kan} - {k_data['kan']} - {k_data['descricao']}" if k_data['descricao'] else f"{kan} - {k_data['kan']}"
