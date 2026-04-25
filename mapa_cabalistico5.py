@@ -980,20 +980,17 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     # --- FIM DO CÁLCULO DO SCORE PERFIL E CATEGORIA ---
 
     dados_perfil = []
-    def add_row_perfil(campo, valor):
-        dados_perfil.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+    def add_row_perfil_split(campo, valor, descricao):
+        dados_perfil.append({
+            "Campo": campo,
+            "Valor": valor,
+            "Descricao": descricao
+        })
         
-    add_row_perfil("Estrutural", estrutural)
-    add_row_perfil("Direcionamento", direcionamento)
-    add_row_perfil("Repeticao 1", rep1)
-    add_row_perfil("Repeticao 2", rep2)
-    
     k_data = KAN_DB.get(str(kan), {"kan": "Não Encontrado", "descricao": ""})
-    kan_str = f"{kan} - {k_data['kan']} - {k_data['descricao']}" if k_data['descricao'] else f"{kan} - {k_data['kan']}"
-    add_row_perfil("KAN", kan_str)
+    add_row_perfil_split("KAN", str(kan), f"{k_data['kan']} - {k_data['descricao']}" if k_data['descricao'] else k_data['kan'])
     
-    # Novo Campo: Perfil (baseado no Score)
-    # Pegamos o slider de corte (precisamos definir um valor padrão se não existir ainda na session_state)
+    # Perfil
     val_corte = st.session_state.get('score_perfil_corte_slider', 1.8)
     totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
     totais_s = totais_s[totais_s > 0]
@@ -1006,32 +1003,30 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             else:
                 break
     
-    perfil_res_final = []
+    perfil_val = ", ".join(perfis_escolhidos)
+    perfil_desc_list = []
     for p in perfis_escolhidos:
-        desc = PERFIL_DESCRICAO_DB.get(p, "")
-        perfil_res_final.append(f"{p}: {desc}" if desc else p)
+        d = PERFIL_DESCRICAO_DB.get(p, "")
+        if d: perfil_desc_list.append(f"<b>{p}</b>: {d}")
     
-    add_row_perfil("Perfil", " | ".join(perfil_res_final))
+    add_row_perfil_split("Perfil", perfil_val, "<br>".join(perfil_desc_list) if perfil_desc_list else "")
     
-    # Novo Campo: Categoria (baseado no Score Categoria)
+    # Categoria
     modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
     if modo_corte_cat == 'Dia Natalicio':
         categoria_selecionada = cat_dia_natalicio
     else:
-        # Categoria de maior pontuação
         totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
         totais_cat = totais_cat[totais_cat > 0]
         categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
         
-    add_row_perfil("Categoria", categoria_selecionada)
+    add_row_perfil_split("Categoria", categoria_selecionada, "")
     
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
-    fortaleza_str = f"{f_data['fortaleza']} - {f_data['descricao']}" if f_data['descricao'] else f_data['fortaleza']
-    add_row_perfil("Fortaleza", fortaleza_str)
+    add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
     
     d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "Não Encontrado", "descricao": ""})
-    desafio_str = f"{d_data['desafio']} - {d_data['descricao']}" if d_data['descricao'] else d_data['desafio']
-    add_row_perfil("Desafio", desafio_str)
+    add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
 
     if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
         try:
@@ -1101,8 +1096,33 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
     if st.session_state.get('show_perfil'):
         st.subheader("Perfil Comportamental")
-        df_perfil = pd.DataFrame(dados_perfil)
-        st.table(df_perfil.set_index('Campo'))
+        
+        # Renderização Customizada com Divisão de Célula (Valor Laranja / Descrição)
+        html_perfil = """
+        <style>
+            .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 10px; text-align: left; }
+            .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+            .p-label { color: #F18617; font-weight: bold; padding: 10px; }
+            .p-value { background-color: #F18617; color: #401041; padding: 5px; font-weight: bold; text-align: center; }
+            .p-desc { padding: 10px; color: white; font-size: 0.95em; line-height: 1.4; }
+        </style>
+        <table class="perfil-custom-table">
+            <thead><tr><th>Campo</th><th>Resultado</th></tr></thead>
+            <tbody>
+        """
+        for item in dados_perfil:
+            html_perfil += f"""
+                <tr>
+                    <td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
+                    <td>
+                        <div class="p-value">{item['Valor']}</div>
+                        <div class="p-desc">{item['Descricao']}</div>
+                    </td>
+                </tr>
+            """
+        html_perfil += "</tbody></table>"
+        st.markdown(html_perfil, unsafe_allow_html=True)
         
         st.markdown("---")
         st.subheader("Salvar Perfil Comportamental")
