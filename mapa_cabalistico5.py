@@ -1115,15 +1115,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             <tbody>
         """
         for item in dados_perfil:
-            html_perfil += f"""
-                <tr>
-                    <td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
-                    <td>
-                        <div class="p-value">{item['Valor']}</div>
-                        <div class="p-desc">{item['Descricao']}</div>
-                    </td>
-                </tr>
-            """
+            html_perfil += f"""<tr>
+<td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
+<td>
+<div class="p-value">{item['Valor']}</div>
+<div class="p-desc">{item['Descricao']}</div>
+</td>
+</tr>"""
         html_perfil += "</tbody></table>"
         st.markdown(html_perfil, unsafe_allow_html=True)
         
