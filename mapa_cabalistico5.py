@@ -224,6 +224,20 @@ def fetch_lista_categoria():
 LISTA_CATEGORIA_DB = fetch_lista_categoria()
 
 @st.cache_data(ttl=3600)
+def fetch_categoria_descricao():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("categoria_descricao").select("*").execute()
+        return {row['categoria'].strip().capitalize(): row['descricao'] for row in resp.data}
+    except Exception:
+        return {}
+
+CATEGORIA_DESCRICAO_DB = fetch_categoria_descricao()
+
+@st.cache_data(ttl=3600)
 def fetch_peso_categoria():
     try:
         from supabase import create_client, Client
@@ -1023,7 +1037,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         totais_cat = totais_cat[totais_cat > 0]
         categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
         
-    add_row_perfil_split("Categoria", categoria_selecionada, "")
+    cat_desc = CATEGORIA_DESCRICAO_DB.get(categoria_selecionada, "")
+    add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
     
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
