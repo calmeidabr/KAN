@@ -1010,9 +1010,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     perfil_desc_list = []
     for p in perfis_escolhidos:
         d = PERFIL_DESCRICAO_DB.get(p, "")
-        if d: perfil_desc_list.append(f"<b>{p}</b>: {d}")
+        if d: perfil_desc_list.append(d)
     
-    add_row_perfil_split("Perfil", perfil_val, "<br>".join(perfil_desc_list) if perfil_desc_list else "")
+    add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(perfil_desc_list) if perfil_desc_list else "")
     
     # Categoria
     modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
