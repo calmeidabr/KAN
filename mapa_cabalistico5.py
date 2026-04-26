@@ -990,8 +990,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             "Resultado": f"{valor} - {desc_limpa}" if desc_limpa else valor
         })
         
-    k_data = KAN_DB.get(str(kan), {"kan": "Não Encontrado", "descricao": ""})
-    add_row_perfil_split("KAN", str(kan), f"{k_data['kan']} - {k_data['descricao']}" if k_data['descricao'] else k_data['kan'])
+    k_data = KAN_DB.get(str(kan), {"kan": str(kan), "descricao": ""})
+    add_row_perfil_split("KAN", k_data['kan'], k_data['descricao'])
     
     # Perfil
     val_corte = st.session_state.get('score_perfil_corte_slider', 1.8)
