@@ -1101,19 +1101,17 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         st.subheader("Perfil Comportamental")
         
         # Renderização Customizada com Divisão de Célula (Valor Laranja / Descrição)
-        html_perfil = """
-        <style>
-            .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 10px; text-align: left; }
-            .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-            .p-label { color: #F18617; font-weight: bold; padding: 10px; }
-            .p-value { background-color: #F18617; color: #401041; padding: 5px; font-weight: bold; text-align: center; }
-            .p-desc { padding: 10px; color: white; font-size: 0.95em; line-height: 1.4; }
-        </style>
-        <table class="perfil-custom-table">
-            <thead><tr><th>Campo</th><th>Resultado</th></tr></thead>
-            <tbody>
-        """
+        html_perfil = """<style>
+.perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.perfil-custom-table th { background-color: #F18617; color: #401041; padding: 10px; text-align: left; }
+.perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+.p-label { color: #F18617; font-weight: bold; padding: 10px; }
+.p-value { background-color: #F18617; color: #401041; padding: 5px; font-weight: bold; text-align: center; }
+.p-desc { padding: 10px; color: white; font-size: 0.95em; line-height: 1.4; }
+</style>
+<table class="perfil-custom-table">
+<thead><tr><th>Campo</th><th>Resultado</th></tr></thead>
+<tbody>"""
         for item in dados_perfil:
             html_perfil += f"""<tr>
 <td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
