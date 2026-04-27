@@ -47,13 +47,18 @@ st.markdown("""
         color: #FFFFFF !important;
     }
     
-    /* Inputs com fundo branco e texto preto (Contraste Total) */
-    div[data-baseweb="input"], div[data-baseweb="textarea"] {
-        background-color: #FFFFFF !important;
+    /* Inputs com fundo semi-transparente e texto BRANCO */
+    div[data-baseweb="input"], div[data-baseweb="textarea"], div[data-baseweb="select"] > div {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(241, 134, 23, 0.5) !important;
         border-radius: 8px !important;
     }
-    input, textarea {
-        color: #000000 !important;
+    input, textarea, span {
+        color: #FFFFFF !important;
+    }
+    /* Cor do cursor (caret) também em branco */
+    input {
+        caret-color: white !important;
     }
     
     /* Labels em branco para leitura sobre o roxo */
