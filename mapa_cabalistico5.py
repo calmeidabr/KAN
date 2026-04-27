@@ -780,6 +780,78 @@ def check_password():
 if not check_password():
     st.stop()
 
+# --- MENU DE NAVEGAÇÃO ---
+menu_opt = st.sidebar.radio("Navegação", ["Mapas Numerológicos", "Painel de Controle"])
+
+if menu_opt == "Painel de Controle":
+    st.title("⚙️ Painel de Controle Administrativo")
+    
+    # Proteção extra: Somente Maria ou Admin com senha da Maria
+    if "admin_authenticated" not in st.session_state:
+        st.session_state["admin_authenticated"] = False
+        
+    if not st.session_state["admin_authenticated"]:
+        st.warning("Área restrita. Por favor, confirme a senha mestre.")
+        pass_admin = st.text_input("Senha de Administrador (Maria)", type="password")
+        if st.button("Validar Acesso"):
+            if pass_admin == USUARIOS.get("maria"):
+                st.session_state["admin_authenticated"] = True
+                st.rerun()
+            else:
+                st.error("Senha incorreta!")
+        st.stop()
+    
+    st.info("Aqui você pode editar as tabelas do banco de dados diretamente. As alterações são salvas no Supabase.")
+    
+    tabelas = [
+        "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
+        "diferenciais_descricao", "peso_categoria", "atributos", "matriz", "qualidades"
+    ]
+    
+    tab_selecionada = st.selectbox("Selecione a Tabela para Editar", tabelas)
+    
+    if supabase_client:
+        try:
+            # Busca dados atuais
+            res = supabase_client.table(tab_selecionada).select("*").execute()
+            df_edit = pd.DataFrame(res.data)
+            
+            if not df_edit.empty:
+                st.write(f"Editando: `{tab_selecionada}`")
+                
+                # Editor de dados
+                edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True)
+                
+                if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
+                    with st.spinner("Sincronizando com Supabase..."):
+                        # No Supabase, o ideal é truncar e reinserir ou fazer upsert
+                        # Para tabelas de configuração, truncate/insert é mais seguro
+                        try:
+                            supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() # Deleta tudo (hack para deletar sem id específico)
+                            # Se não tiver ID numérico, pode dar erro. Vamos tentar deletar tudo de forma segura.
+                            # Para tabelas sem ID fixo, usamos o delete com um filtro que pegue tudo.
+                            
+                            # Converte DataFrame para lista de dicionários
+                            novos_dados = edited_df.to_dict(orient='records')
+                            if novos_dados:
+                                supabase_client.table(tab_selecionada).insert(novos_dados).execute()
+                            st.success(f"Tabela `{tab_selecionada}` atualizada com sucesso!")
+                            st.cache_data.clear() # Limpa cache para refletir no sistema
+                        except Exception as e:
+                            st.error(f"Erro ao salvar: {e}")
+            else:
+                st.warning("Tabela vazia ou não encontrada.")
+        except Exception as e:
+            st.error(f"Erro ao carregar tabela: {e}")
+    
+    if st.sidebar.button("Sair do Painel"):
+        st.session_state["admin_authenticated"] = False
+        st.rerun()
+        
+    st.stop() # Interrompe para não mostrar a parte de Mapas
+
+# --- LOGICA DOS MAPAS (Continua abaixo se não for Painel) ---
+
 if header_img != "🔮":
     col1, col2 = st.columns([1, 5])
     with col1:
