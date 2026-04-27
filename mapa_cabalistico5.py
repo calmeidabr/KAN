@@ -1093,7 +1093,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     perfil_val = ", ".join(perfis_escolhidos)
     perfil_desc_list = []
     for p in perfis_escolhidos:
-        d = PERFIL_DESCRICAO_DB.get(p, "")
+        # Busca insensível para Perfil
+        d = ""
+        pn = remover_acentos(p).upper()
+        for k_desc, v_desc in PERFIL_DESCRICAO_DB.items():
+            if remover_acentos(k_desc).upper() == pn:
+                d = v_desc
+                break
         if d: perfil_desc_list.append(d)
     
     add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(perfil_desc_list) if perfil_desc_list else "")
@@ -1107,7 +1113,14 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         totais_cat = totais_cat[totais_cat > 0]
         categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
         
-    cat_desc = CATEGORIA_DESCRICAO_DB.get(categoria_selecionada, "")
+    # Busca insensível para Categoria
+    cat_desc = ""
+    cn = remover_acentos(categoria_selecionada).upper()
+    for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
+        if remover_acentos(k_desc).upper() == cn:
+            cat_desc = v_desc
+            break
+            
     add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
     
     # Diferenciais (11 e 22)
@@ -1145,7 +1158,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     qual_val = ", ".join(qualidades_escolhidas)
     qual_desc_list = []
     for q in qualidades_escolhidas:
-        d = QUALIDADES_DB.get(q, "")
+        # Busca insensível para Qualidades
+        d = ""
+        qn = remover_acentos(q).upper()
+        for k_desc, v_desc in QUALIDADES_DB.items():
+            if remover_acentos(k_desc).upper() == qn:
+                d = v_desc
+                break
         if d: qual_desc_list.append(f"<b>{q}</b>: {d}")
         
     add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
