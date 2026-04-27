@@ -940,7 +940,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         return None
 
     valores_originais_score = {
-        "Motivação": motivacao, "Impressão": impressao, "Expressão": expressao, "Destino": destino, "Missão": missao,
+        "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
         "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
         "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2)
     }
