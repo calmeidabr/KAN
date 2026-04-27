@@ -774,6 +774,8 @@ try:
             'data_nascimento': row['data_nascimento'],
             'cargo': row.get('cargo', ''),
             'empresa': row.get('empresa', ''),
+            'linkedin_url': row.get('linkedin_url', ''),
+            'experiencias': row.get('experiencias', ''),
             'foto_base64': row.get('foto_base64', ''),
             'ai_diagnosis': row.get('ai_diagnosis', '')
         }
@@ -799,12 +801,18 @@ if cliente_selecionado == "-- Novo Cliente --":
         nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
         data_str_input = st.text_input("Data de Nascimento (dd/mm/yyyy):", placeholder="Ex: 25/12/1980")
         
-        col_cargo, col_empresa = st.columns(2)
+        col_cargo, col_empresa, col_linkedin = st.columns(3)
         with col_cargo:
             cargo = st.text_input("Cargo/Profissão:")
         with col_empresa:
             empresa = st.text_input("Empresa/Grupo:")
+        with col_linkedin:
+            linkedin = st.text_input("LinkedIn (URL):")
             
+        experiencias = st.text_area("Experiências Profissionais / Bio (LinkedIn)", 
+                                  placeholder="Cole aqui o resumo ou experiências para enriquecer o diagnóstico por IA",
+                                  height=100)
+        
         foto_upload = st.file_uploader("Foto da Pessoa (Opcional)", type=["png", "jpg", "jpeg"])
         
         col1, col2 = st.columns(2)
@@ -834,6 +842,8 @@ else:
     data_str = info_cliente['data_nascimento']
     cargo = info_cliente['cargo']
     empresa = info_cliente['empresa']
+    linkedin = info_cliente.get('linkedin_url', '')
+    experiencias = info_cliente.get('experiencias', '')
     try:
         dia, mes, ano = map(int, data_str.split('/'))
         data_input = datetime.date(ano, mes, dia)
@@ -1218,6 +1228,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 "data_nascimento": data_str_to_save,
                 "cargo": cargo,
                 "empresa": empresa,
+                "linkedin_url": linkedin,
+                "experiencias": experiencias,
                 "usuario": usuario_logado,
                 "data_inclusao": agora_str,
                 "mapa_json": mapa_json,
@@ -1304,6 +1316,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 model = genai.GenerativeModel('models/gemini-1.5-flash')
                 
                 # Montar o contexto para a IA
+                info_prof = f"- LinkedIn: {linkedin}\n- Experiências: {experiencias}" if (linkedin or experiencias) else ""
+                
                 contexto = f"""
                 Analise o seguinte perfil numerológico e comportamental de {nome}:
                 - KAN: {k_data['kan']} ({k_data['descricao']})
@@ -1312,8 +1326,11 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 - Qualidades: {qual_val}
                 - Diferenciais: {", ".join(diferenciais_ativos) if diferenciais_ativos else "Nenhum específico"}
                 
-                Com base nisso, escreva um diagnóstico profissional de 2 a 3 parágrafos curtos. 
-                Indique em quais cargos, funções ou áreas essa pessoa teria melhor performance. 
+                HISTÓRICO PROFISSIONAL ADICIONAL:
+                {info_prof}
+                
+                Com base na união do perfil numerológico com a trajetória profissional acima, escreva um diagnóstico profundo de 3 parágrafos. 
+                Indique como a essência dele se manifesta na carreira atual e quais cargos/áreas ele ainda pode explorar para atingir sua máxima performance. 
                 Seja direto, profissional e inspirador. Use HTML <b> para destaques se necessário.
                 """
                 
