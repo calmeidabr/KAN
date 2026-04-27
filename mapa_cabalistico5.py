@@ -768,8 +768,14 @@ try:
             'data_nascimento': row['data_nascimento'],
             'cargo': row.get('cargo', ''),
             'empresa': row.get('empresa', ''),
-            'foto_base64': row.get('foto_base64', '')
+            'foto_base64': row.get('foto_base64', ''),
+            'ai_diagnosis': row.get('ai_diagnosis', '')
         }
+        # Já popula o cache de IA se houver
+        if row.get('ai_diagnosis'):
+            if "ai_diagnosis" not in st.session_state:
+                st.session_state["ai_diagnosis"] = {}
+            st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
 except Exception:
     pass
 
@@ -1176,8 +1182,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
     user_name_key = f"diag_{nome}"
     
-    # Se já existir um diagnóstico salvo para este nome na sessão, usamos ele
-    desc_diag = st.session_state["ai_diagnosis"].get(user_name_key, "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial.")
+    # Se já existir um diagnóstico salvo para este nome na sessão ou no carregamento do banco, usamos ele
+    desc_diag = st.session_state["ai_diagnosis"].get(user_name_key)
+    if not desc_diag and clientes_salvos.get(nome):
+        desc_diag = clientes_salvos[nome].get('ai_diagnosis')
+    
+    if not desc_diag:
+        desc_diag = "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
     
     add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
     
@@ -1302,7 +1313,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 with st.spinner("A Inteligência Artificial está analisando o perfil..."):
                     response = model.generate_content(contexto)
-                    st.session_state["ai_diagnosis"][user_name_key] = response.text.replace("\n", "<br>")
+                    texto_ia = response.text.replace("\n", "<br>")
+                    st.session_state["ai_diagnosis"][user_name_key] = texto_ia
+                    
+                    # Salva no Supabase imediatamente
+                    if supabase_client:
+                        try:
+                            supabase_client.table("mapas_salvos").update({"ai_diagnosis": texto_ia}).eq("nome", nome).execute()
+                            st.toast("✅ Diagnóstico salvo no banco de dados!")
+                        except:
+                            pass
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao acessar a IA: {e}. Verifique se a API Key está correta nos Secrets.")
