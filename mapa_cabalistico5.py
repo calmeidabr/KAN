@@ -41,54 +41,57 @@ st.set_page_config(page_title="Mapa Numerológico Cabalístico KAN", layout="wid
 
 st.markdown("""
 <style>
-    /* Estilização Premium KAN */
+    /* Restaurando Identidade KAN */
     .stApp {
-        background: #f8f9fa;
+        background-color: #401041 !important;
+        color: #FFFFFF !important;
     }
-    /* Inputs limitados para não ficarem muito longos */
-    .stTextInput > div > div > input, .stTextArea > div > div > textarea {
-        max-width: 450px !important;
+    
+    /* Inputs com fundo branco e texto preto (Contraste Total) */
+    div[data-baseweb="input"], div[data-baseweb="textarea"] {
+        background-color: #FFFFFF !important;
         border-radius: 8px !important;
     }
-    /* Botões Arredondados Modernos */
-    .stButton > button, .stFormSubmitButton > button {
-        border-radius: 20px !important;
-        padding: 0.5rem 2.5rem !important;
-        background-color: #1f1f1f !important;
-        color: white !important;
-        border: none !important;
-        transition: all 0.3s ease;
-        width: auto !important; /* Não ocupa largura toda */
+    input, textarea {
+        color: #000000 !important;
     }
-    .stButton > button:hover, .stFormSubmitButton > button:hover {
-        background-color: #F18617 !important; /* Laranja KAN no hover */
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        color: white !important;
+    
+    /* Labels em branco para leitura sobre o roxo */
+    label, .stMarkdown p, h3 {
+        color: #FFFFFF !important;
     }
-    /* Tabelas e Editores estilo Card */
-    .stDataFrame, .stDataEditor {
-        border-radius: 12px !important;
-        overflow: hidden !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+
+    /* Limitar largura dos inputs centrais */
+    .stTextInput, .stTextArea, .stFileUploader {
+        max-width: 500px !important;
     }
-    div[data-testid="stExpander"] {
-        border-radius: 10px !important;
-        border: 1px solid #e0e0e0 !important;
-        background: white !important;
-    }
-    /* Ajuste para inputs dentro de colunas ocuparem a coluna toda */
-    [data-testid="column"] .stTextInput > div > div > input, 
-    [data-testid="column"] .stTextArea > div > div > textarea {
+    /* Em colunas, permite ocupar a largura da coluna */
+    [data-testid="column"] .stTextInput, [data-testid="column"] .stTextArea {
         max-width: 100% !important;
     }
-    /* Cores das tabelas originais preservadas mas refinadas */
+
+    /* Botão Laranja KAN */
+    .stButton > button, .stFormSubmitButton > button {
+        background-color: #F18617 !important;
+        color: #FFFFFF !important;
+        border-radius: 8px !important;
+        border: none !important;
+        font-weight: bold !important;
+    }
+
+    /* Tabelas com as cores originais */
     table thead th {
         background-color: #F18617 !important;
-        color: white !important;
+        color: #401041 !important;
     }
     table tbody th {
         color: #F18617 !important;
+    }
+    
+    /* Ajuste para o expander ficar visível */
+    div[data-testid="stExpander"] {
+        background-color: rgba(255,255,255,0.1) !important;
+        border: 1px solid #F18617 !important;
     }
 </style>
 """, unsafe_allow_html=True)
