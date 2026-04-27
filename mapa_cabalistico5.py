@@ -1361,8 +1361,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 with st.spinner("A Inteligência Artificial está analisando o perfil..."):
                     try:
-                        # Tentar o modelo mais compatível
-                        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+                        # Tentar o modelo de última geração disponível na sua chave
+                        model = genai.GenerativeModel('models/gemini-2.5-flash')
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
                     except Exception as e:
