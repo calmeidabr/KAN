@@ -177,7 +177,7 @@ def fetch_repeticao():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("repeticao").select("*").execute()
-        return {str(int(row['repeticao'])): row for row in resp.data}
+        return {str(int(get_from_row(row, 'repeticao'))): row for row in resp.data}
     except Exception:
         return {}
 
@@ -219,7 +219,7 @@ def fetch_perfil_descricao():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("perfil_descricao").select("*").execute()
-        return {row['perfil'].strip().capitalize(): row['descricao'] for row in resp.data}
+        return {str(get_from_row(row, 'perfil')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
     except Exception:
         return {}
 
@@ -247,7 +247,7 @@ def fetch_lista_categoria():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("lista_categoria").select("*").execute()
-        return [row['categoria'] for row in resp.data]
+        return [get_from_row(row, 'categoria') for row in resp.data]
     except Exception:
         return []
 
@@ -261,7 +261,7 @@ def fetch_categoria_descricao():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("categoria_descricao").select("*").execute()
-        return {row['categoria'].strip().capitalize(): row['descricao'] for row in resp.data}
+        return {str(get_from_row(row, 'categoria')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
     except Exception:
         return {}
 
