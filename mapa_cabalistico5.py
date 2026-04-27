@@ -824,14 +824,22 @@ if menu_opt == "Painel de Controle":
         st.session_state["admin_authenticated"] = False
         
     if not st.session_state["admin_authenticated"]:
-        st.warning("Área restrita. Por favor, confirme a senha mestre.")
-        pass_admin = st.text_input("Senha de Administrador", type="password")
-        if st.button("Validar Acesso"):
-            if pass_admin == USUARIOS.get("adminkan"):
+        st.warning("⚠️ Área restrita. Identifique-se para acessar o Painel.")
+        
+        col_auth1, col_auth2 = st.columns(2)
+        with col_auth1:
+            user_admin = st.text_input("Usuário de Administrador", key="admin_user_input")
+        with col_auth2:
+            pass_admin = st.text_input("Senha de Administrador", type="password", key="admin_pass_input")
+            
+        if st.button("🚀 Validar Acesso Administrativo"):
+            if user_admin == "adminkan" and pass_admin == "K@nAdmin#2026*":
                 st.session_state["admin_authenticated"] = True
+                st.session_state["admin_user"] = user_admin
+                st.success(f"Bem-vindo, {user_admin}!")
                 st.rerun()
             else:
-                st.error("Senha incorreta!")
+                st.error("Usuário ou Senha incorretos!")
         st.stop()
     
     st.info("Aqui você pode editar as tabelas do banco de dados diretamente. As alterações são salvas no Supabase.")
