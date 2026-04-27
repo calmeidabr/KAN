@@ -1295,7 +1295,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             try:
                 api_key = st.secrets["gemini"]["api_key"]
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-pro')
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
                 # Montar o contexto para a IA
                 contexto = f"""
