@@ -1027,16 +1027,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 if attr_t_q:
                     ai_q = ATRIBUTOS_DB.get(attr_t_q)
                     if ai_q:
-                        qual_encontrada = ai_q.get('area de suporte') or ai_q.get('area_de_suporte')
+                        # Agora usa 'qualidade' conforme pedido, mas tenta outros nomes por segurança
+                        qual_encontrada = ai_q.get('qualidade') or ai_q.get('area de suporte') or ai_q.get('area_de_suporte')
         else:
             ri_q = REPETICAO_DB.get(str(val_q))
             if ri_q:
-                qual_encontrada = ri_q.get('area de suporte') or ri_q.get('area_de_suporte')
+                qual_encontrada = ri_q.get('qualidade') or ri_q.get('area de suporte') or ri_q.get('area_de_suporte')
             
         if qual_encontrada:
-            qn = str(qual_encontrada).strip().upper()
+            qn = remover_acentos(str(qual_encontrada).strip()).upper()
+            # Busca insensível a maiúsculas/minúsculas e acentos no index
             for idx_name in score_qual_df.index:
-                if idx_name.upper() == qn:
+                if remover_acentos(idx_name).upper() == qn:
                     score_qual_df.at[idx_name, campo_q] += 50
                     break
                 
