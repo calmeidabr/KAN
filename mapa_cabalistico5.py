@@ -9,6 +9,22 @@ from collections import Counter
 from PIL import Image
 import os
 
+def remover_acentos(texto):
+    if texto is None: return ""
+    texto_str = str(texto).replace('º', 'o').replace('ª', 'a')
+    texto_str = texto_str.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'").replace('–', '-').replace('—', '-')
+    norm = ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
+    return norm.encode('latin-1', 'ignore').decode('latin-1')
+
+def get_from_row(row, key):
+    # Tenta buscar ignorando acentos e case
+    if not row: return None
+    search_key = remover_acentos(key).lower()
+    for k in row.keys():
+        if remover_acentos(k).lower() == search_key:
+            return row[k]
+    return None
+
 try:
     favicon_img = Image.open(os.path.join("images", "ico_k.png"))
 except Exception:
@@ -133,7 +149,7 @@ def fetch_matriz():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("matriz").select("*").execute()
-        return {str(row['resultado']): row for row in resp.data}
+        return {str(get_from_row(row, 'resultado')): row for row in resp.data}
     except Exception:
         return {}
 
@@ -147,7 +163,7 @@ def fetch_atributos():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("atributos").select("*").execute()
-        return {row['atributo'].upper(): row for row in resp.data}
+        return {str(get_from_row(row, 'atributo')).upper(): row for row in resp.data}
     except Exception:
         return {}
 
@@ -217,7 +233,7 @@ def fetch_qualidades():
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("qualidades").select("*").execute()
-        return {row['qualidade'].strip().capitalize(): row['descricao'] for row in resp.data}
+        return {str(get_from_row(row, 'qualidade')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
     except Exception:
         return {}
 
@@ -593,11 +609,6 @@ def calcular_numerologia(nome_completo, nascimento, data_atual):
 
 
 
-def remover_acentos(texto):
-    texto_str = str(texto).replace('º', 'o').replace('ª', 'a')
-    texto_str = texto_str.replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'").replace('–', '-').replace('—', '-')
-    norm = ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
-    return norm.encode('latin-1', 'ignore').decode('latin-1')
 
 def gerar_pdf(nome, data_nasc_str, dados, titulo="Mapa Numerologico Cabalistico"):
     from fpdf import FPDF
@@ -930,14 +941,6 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         try: return s.split(' - ')[0]
         except: return str(s)
         
-    def get_from_row(row, key):
-        # Tenta buscar ignorando acentos e case
-        if not row: return None
-        search_key = remover_acentos(key).lower()
-        for k in row.keys():
-            if remover_acentos(k).lower() == search_key:
-                return row[k]
-        return None
 
     valores_originais_score = {
         "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
@@ -1027,12 +1030,11 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 if attr_t_q:
                     ai_q = ATRIBUTOS_DB.get(attr_t_q)
                     if ai_q:
-                        # Agora usa 'qualidade' conforme pedido, mas tenta outros nomes por segurança
-                        qual_encontrada = ai_q.get('qualidade') or ai_q.get('area de suporte') or ai_q.get('area_de_suporte')
+                        qual_encontrada = get_from_row(ai_q, 'qualidade') or get_from_row(ai_q, 'area de suporte')
         else:
             ri_q = REPETICAO_DB.get(str(val_q))
             if ri_q:
-                qual_encontrada = ri_q.get('qualidade') or ri_q.get('area de suporte') or ri_q.get('area_de_suporte')
+                qual_encontrada = get_from_row(ri_q, 'qualidade') or get_from_row(ri_q, 'area de suporte')
             
         if qual_encontrada:
             qn = remover_acentos(str(qual_encontrada).strip()).upper()
