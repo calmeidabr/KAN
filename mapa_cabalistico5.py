@@ -1368,9 +1368,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 HISTÓRICO PROFISSIONAL ADICIONAL:
                 {info_prof}
                 
-                Com base na união do perfil numerológico com a trajetória profissional acima, escreva um diagnóstico profundo de 3 parágrafos. 
-                Indique como a essência dele se manifesta na carreira atual e quais cargos/áreas ele ainda pode explorar para atingir sua máxima performance. 
-                Seja direto, profissional e inspirador. Use HTML <b> para destaques se necessário.
+                Com base na união do perfil numerológico com a trajetória profissional acima, escreva um diagnóstico técnico e realista de 3 parágrafos curtos:
+                1. Síntese do Perfil: Como a numerologia se une à experiência real de forma pragmática.
+                2. Ponto de Atenção: Identifique um possível desafio comportamental ou "lado sombra" (ex: excesso de dominância, impaciência com processos lentos, etc) e como isso pode impactar o resultado se não for gerido.
+                3. Projeção de Carreira: Cargos e áreas realistas para o próximo nível de senioridade, fugindo de termos excessivamente otimistas.
+                
+                Seja direto, profissional e equilibrado. Use HTML <b> para destaques se necessário.
                 """
                 
                 with st.spinner("A Inteligência Artificial está analisando o perfil..."):
@@ -1406,6 +1409,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao acessar a IA: {e}. Verifique se a API Key está correta nos Secrets.")
+
+        # Exibe o consumo de tokens se houver
+        if "ai_usage" in st.session_state:
+            st.caption(f"📊 {st.session_state['ai_usage']}")
 
         st.markdown("---")
         st.subheader("Salvar Perfil Comportamental")
