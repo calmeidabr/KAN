@@ -1301,7 +1301,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             try:
                 api_key = st.secrets["gemini"]["api_key"]
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-flash')
+                model = genai.GenerativeModel('models/gemini-1.5-flash')
                 
                 # Montar o contexto para a IA
                 contexto = f"""
@@ -1318,8 +1318,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 """
                 
                 with st.spinner("A Inteligência Artificial está analisando o perfil..."):
-                    response = model.generate_content(contexto)
-                    texto_ia = response.text.replace("\n", "<br>")
+                    try:
+                        response = model.generate_content(contexto)
+                        texto_ia = response.text.replace("\n", "<br>")
+                    except Exception as e:
+                        # Log de modelos disponíveis para ajudar no debug
+                        try:
+                            models = [m.name for m in genai.list_models()]
+                            print(f"Modelos disponíveis: {models}")
+                        except:
+                            pass
+                        raise e
+                        
                     st.session_state["ai_diagnosis"][user_name_key] = texto_ia
                     
                     # Salva no Supabase imediatamente
