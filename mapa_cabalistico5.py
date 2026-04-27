@@ -107,7 +107,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Botão para limpar cache (Útil para quando o usuário atualiza o banco de dados)
+# --- INICIALIZAÇÃO DO CLIENTE SUPABASE (GLOBAL) ---
+supabase_client = None
+try:
+    from supabase import create_client, Client
+    url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+    key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+    supabase_client: Client = create_client(url, key)
+except Exception as e:
+    st.error(f"Erro ao conectar ao Supabase: {e}")
+
+# Botão para limpar cache
 if st.sidebar.button("🔄 Recarregar Dados do Banco"):
     st.cache_data.clear()
     st.rerun()
@@ -116,10 +126,6 @@ if st.sidebar.button("🔄 Recarregar Dados do Banco"):
 @st.cache_data(ttl=3600)
 def fetch_arcanos():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("arcanos").select("*").execute()
         return {str(int(row['numero'])): {"nome": row['nome'], "descricao": row['descricao']} for row in resp.data if row.get('numero')}
     except Exception:
@@ -130,10 +136,6 @@ ARCANOS_DB = fetch_arcanos()
 @st.cache_data(ttl=3600)
 def fetch_fortalezas():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("fortalezas").select("*").execute()
         return {str(int(row['triangulo'])): {"fortaleza": row['fortaleza'], "descricao": row['descricao']} for row in resp.data if row.get('triangulo')}
     except Exception:
@@ -144,10 +146,6 @@ FORTALEZAS_DB = fetch_fortalezas()
 @st.cache_data(ttl=3600)
 def fetch_kan():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("kans").select("*").execute()
         return {str(int(row['numero'])): {"kan": row['kan'], "descricao": row['descricao']} for row in resp.data if row.get('numero')}
     except Exception:
@@ -158,10 +156,6 @@ KAN_DB = fetch_kan()
 @st.cache_data(ttl=3600)
 def fetch_desafios():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
         resp = supabase_client.table("desafios").select("*").execute()
         return {str(int(row['dia_nascimento'])): {"desafio": row['desafio'], "descricao": row['descricao']} for row in resp.data if row.get('dia_nascimento')}
     except Exception:
@@ -172,10 +166,10 @@ DESAFIOS_DB = fetch_desafios()
 @st.cache_data(ttl=3600)
 def fetch_matriz():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("matriz").select("*").execute()
+        return {str(row['numero']): row for row in resp.data if row.get('numero')}
+    except Exception:
+        return {}
         resp = supabase_client.table("matriz").select("*").execute()
         return {str(get_from_row(row, 'resultado')): row for row in resp.data}
     except Exception:
@@ -891,31 +885,27 @@ st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Descubra
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
 clientes_salvos = {}
-supabase_client = None
-try:
-    from supabase import create_client, Client
-    url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-    key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-    supabase_client: Client = create_client(url, key)
-    
-    response = supabase_client.table("mapas_salvos").select("*").execute()
-    for row in response.data:
-        clientes_salvos[row['nome']] = {
-            'data_nascimento': row['data_nascimento'],
-            'cargo': row.get('cargo', ''),
-            'empresa': row.get('empresa', ''),
-            'linkedin_url': row.get('linkedin_url', ''),
-            'experiencias': row.get('experiencias', ''),
-            'foto_base64': row.get('foto_base64', ''),
-            'ai_diagnosis': row.get('ai_diagnosis', '')
-        }
-        # Já popula o cache de IA se houver
-        if row.get('ai_diagnosis'):
-            if "ai_diagnosis" not in st.session_state:
-                st.session_state["ai_diagnosis"] = {}
-            st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
-except Exception:
-    pass
+# --- FETCH CLIENTES DO BANCO DE DADOS ---
+clientes_salvos = {}
+if supabase_client:
+    try:
+        response = supabase_client.table("mapas_salvos").select("*").execute()
+        for row in response.data:
+            clientes_salvos[row['nome']] = {
+                'data_nascimento': row['data_nascimento'],
+                'cargo': row.get('cargo', ''),
+                'empresa': row.get('empresa', ''),
+                'linkedin_url': row.get('linkedin_url', ''),
+                'experiencias': row.get('experiencias', ''),
+                'foto_base64': row.get('foto_base64', ''),
+                'ai_diagnosis': row.get('ai_diagnosis', '')
+            }
+            if row.get('ai_diagnosis'):
+                if "ai_diagnosis" not in st.session_state:
+                    st.session_state["ai_diagnosis"] = {}
+                st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
+    except Exception:
+        pass
 
 opcoes_clientes = ["-- Novo Cliente --"] + sorted(list(clientes_salvos.keys()))
 cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um novo:", opcoes_clientes)
