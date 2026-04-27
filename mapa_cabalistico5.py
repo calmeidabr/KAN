@@ -1432,29 +1432,28 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalistico")
                 st.download_button("📄 Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key="dl_mapa_pdf")
 
-        if st.session_state.get('show_perfil'):
-            st.markdown("---")
-            st.subheader("Perfil Comportamental")
-            
-            # Renderização Customizada com Divisão de Célula
-            html_perfil = """<style>
-            .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 10px; text-align: left; }
-            .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-            .p-label { color: #F18617; font-weight: bold; padding: 10px; }
-            .p-value { background-color: #F18617; color: #401041; padding: 5px; font-weight: bold; text-align: center; }
-            .p-desc { padding: 10px; color: white; font-size: 0.95em; line-height: 1.4; }
-            </style>
-            <table class="perfil-custom-table">
-            <thead><tr><th>Campo</th><th>Resultado</th></tr></thead>
-            <tbody>"""
-            for item in dados_perfil:
-                html_perfil += f"""<tr>
-                <td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
-                <td><div class="p-value">{item['Valor']}</div><div class="p-desc">{item['Descricao']}</div></td>
-                </tr>"""
-            html_perfil += "</tbody></table>"
-            st.markdown(html_perfil, unsafe_allow_html=True)
+            if st.session_state.get('show_perfil'):
+                st.markdown("---")
+                st.subheader("Perfil Comportamental")
+                
+                # Injeta Estilo Separado
+                st.markdown("""<style>
+                .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
+                .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 12px; text-align: left; }
+                .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+                .p-label { color: #F18617; font-weight: bold; padding: 12px; }
+                .p-value { background-color: #F18617; color: #401041; padding: 6px; font-weight: bold; text-align: center; }
+                .p-desc { padding: 12px; color: #FFFFFF; font-size: 0.95em; line-height: 1.5; }
+                </style>""", unsafe_allow_html=True)
+                
+                # Constrói Tabela
+                html_table = '<table class="perfil-custom-table"><thead><tr><th>Campo</th><th>Resultado</th></tr></thead><tbody>'
+                for item in dados_perfil:
+                    html_table += f"<tr><td style='width: 25%;'><div class='p-label'>{item['Campo']}</div></td>"
+                    html_table += f"<td><div class='p-value'>{item['Valor']}</div><div class='p-desc'>{item['Descricao']}</div></td></tr>"
+                html_table += "</tbody></table>"
+                
+                st.markdown(html_table, unsafe_allow_html=True)
             
             # Botão para Gerar Diagnóstico com IA
             st.markdown("<br>", unsafe_allow_html=True)
