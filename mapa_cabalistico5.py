@@ -802,8 +802,19 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- MENU DE NAVEGAÇÃO ---
-menu_opt = st.sidebar.radio("Navegação", ["Mapa", "Painel de Controle"])
+# --- CABEÇALHO E NAVEGAÇÃO SUPERIOR ---
+col_logo, col_space, col_nav = st.columns([1.5, 4, 1.5])
+
+with col_logo:
+    if header_img != "🔮":
+        st.image(header_img, use_container_width=True)
+    else:
+        st.markdown("<h2 style='margin:0;'>🔮 KAN</h2>", unsafe_allow_html=True)
+
+with col_nav:
+    st.markdown("<div style='padding-top: 10px;'>", unsafe_allow_html=True)
+    menu_opt = st.selectbox("Menu", ["Mapa", "Painel de Controle"], label_visibility="collapsed", key="top_nav_menu")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 if menu_opt == "Painel de Controle":
     st.title("⚙️ Painel de Controle Administrativo")
@@ -846,19 +857,13 @@ if menu_opt == "Painel de Controle":
                 
                 if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
-                        # No Supabase, o ideal é truncar e reinserir ou fazer upsert
-                        # Para tabelas de configuração, truncate/insert é mais seguro
                         try:
-                            supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() # Deleta tudo (hack para deletar sem id específico)
-                            # Se não tiver ID numérico, pode dar erro. Vamos tentar deletar tudo de forma segura.
-                            # Para tabelas sem ID fixo, usamos o delete com um filtro que pegue tudo.
-                            
-                            # Converte DataFrame para lista de dicionários
+                            supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
                             novos_dados = edited_df.to_dict(orient='records')
                             if novos_dados:
                                 supabase_client.table(tab_selecionada).insert(novos_dados).execute()
                             st.success(f"Tabela `{tab_selecionada}` atualizada com sucesso!")
-                            st.cache_data.clear() # Limpa cache para refletir no sistema
+                            st.cache_data.clear() 
                         except Exception as e:
                             st.error(f"Erro ao salvar: {e}")
             else:
@@ -866,23 +871,15 @@ if menu_opt == "Painel de Controle":
         except Exception as e:
             st.error(f"Erro ao carregar tabela: {e}")
     
-    if st.sidebar.button("Sair do Painel"):
+    if st.button("Sair do Painel"):
         st.session_state["admin_authenticated"] = False
         st.rerun()
         
-    st.stop() # Interrompe para não mostrar a parte de Mapas
+    st.stop() 
 
-# --- LOGICA DOS MAPAS (Continua abaixo se não for Painel) ---
-
-if header_img != "🔮":
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        st.image(header_img, use_container_width=True)
-    with col2:
-        st.title("Mapa e Perfil Comportamental")
-else:
-    st.title("Mapa e Perfil Comportamental")
-st.markdown("Descubra a sua potencialidade.")
+# --- TITULO DA PAGINA DE MAPAS ---
+st.markdown("<h2 style='text-align: left; margin-bottom: 20px;'>Mapa e Perfil Comportamental</h2>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Descubra a sua potencialidade através da numerologia cabalística.</p>", unsafe_allow_html=True)
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
 clientes_salvos = {}
