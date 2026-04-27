@@ -1034,571 +1034,488 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     data_atual = (hoje.day, hoje.month, hoje.year)
     nascimento = (data_input.day, data_input.month, data_input.year)
     
-    st.markdown("---")
-    info_parts = [nome, data_str]
-    if cargo:
-        info_parts.append(cargo)
-    if empresa:
-        info_parts.append(empresa)
-    info_text = " | ".join(info_parts)
-    
-    foto_b64 = None
-    if nome in st.session_state['fotos']:
-        import base64
-        foto_b64 = base64.b64encode(st.session_state['fotos'][nome]).decode()
-    elif clientes_salvos.get(nome) and clientes_salvos[nome].get('foto_base64'):
-        foto_b64 = clientes_salvos[nome]['foto_base64']
-    
-    if foto_b64:
-        html = f'''
-        <div style="display: flex; align-items: center; margin-bottom: 25px;">
-            <img src="data:image/png;base64,{foto_b64}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
-            <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
-        </div>
-        '''
-        st.markdown(html, unsafe_allow_html=True)
-    else:
-        html = f'''
-        <div style="display: flex; align-items: center; margin-bottom: 25px;">
-            <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
-        </div>
-        '''
-        st.markdown(html, unsafe_allow_html=True)
-
-    resultados = calcular_numerologia(nome, nascimento, data_atual)
-    (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
-     ano_pess, missao, dividas_carmicas, licoes_carmicas,
-     tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-     desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
-     triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
-
-    estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
-        expressao, motivacao, impressao, nascimento[0],
-        destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
-        triangulo_base
-    )
-
-    dados = []
-    def add_row(campo, valor):
-        dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
-
-    add_row("Expressão", expressao)
-    add_row("Motivação", motivacao)
-    add_row("Impressão", impressao)
-    add_row("Destino", destino)
-    add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
-    add_row("Triângulo da Vida (Base)", triangulo_base)
-    add_row("Triângulo da Vida (Repetições)", triangulo_reps)
-    add_row("Dia Pessoal", dia_pessoal)
-    add_row("Mês Pessoal", mes_pess)
-    add_row("Ano Pessoal", ano_pess)
-    add_row("Missão", missao)
-
-    dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
-    add_row("Dívidas Cármicas", dividas_str)
-
-    licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
-    add_row("Lições Cármicas", licoes_str)
-
-    tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
-    add_row("Tendências Ocultas", tendencias_str)
-
-    if tendencias_ocultas:
-        add_row("Soma das Tendências Ocultas", soma_tendencias)
-
-    add_row("Resposta Subconsciente", resposta_subconsciente)
-    add_row("1º Desafio", desafio1)
-    add_row("2º Desafio", desafio2)
-    add_row("Desafio Principal", desafio_principal)
-
-    c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
-    c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
-    c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
-    add_row("1º Ciclo de Vida", c1)
-    add_row("2º Ciclo de Vida", c2)
-    add_row("3º Ciclo de Vida", c3)
-
-    m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
-    m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
-    m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
-    m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
-    add_row("1º Momento Decisivo", m1)
-    add_row("2º Momento Decisivo", m2)
-    add_row("3º Momento Decisivo", m3)
-    add_row("4º Momento Decisivo", m4)
-
-    # --- CÁLCULO DO SCORE PERFIL (Mover para antes das tabelas para incluir no Resultado) ---
-    perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
-    colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
-    mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
-    
-    num_dia_puro = nascimento[0]
-    num_dia_reduzido = reduce_number(nascimento[0])
-    def extract_num(s):
-        if not s: return None
-        try: return s.split(' - ')[0]
-        except: return str(s)
-        
-
-    valores_originais_score = {
-        "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
-        "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
-        "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2)
-    }
-    
-    score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
-    for campo_s in colunas_score:
-        val_s = valores_originais_score[campo_s]
-        if val_s is None: continue
-        perfil_enc = None
-        if campo_s in mapa_col_matriz:
-            row_m = MATRIZ_DB.get(str(val_s))
-            if row_m:
-                attr_t = str(get_from_row(row_m, campo_s)).upper()
-                if attr_t:
-                    ai = ATRIBUTOS_DB.get(attr_t)
-                    if ai: perfil_enc = get_from_row(ai, 'perfil')
-        else:
-            ri = REPETICAO_DB.get(str(val_s))
-            if ri: perfil_enc = get_from_row(ri, 'perfil')
-        
-        if perfil_enc:
-            pn = str(perfil_enc).strip().capitalize()
-            if pn in score_df_calc.index:
-                pv = PESO_DB.get(campo_s, 0)
-                score_df_calc.at[pn, campo_s] = int(pv)
-    
-    score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
-    
-    # --- CÁLCULO DO SCORE CATEGORIA ---
-    lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
-    colunas_cat = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
-    
-    score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_cat)
-    
-    for campo_c in colunas_cat:
-        val_c = valores_originais_score[campo_c]
-        if val_c is None: continue
-        
-        cat_encontrada = None
-        if campo_c in mapa_col_matriz:
-            row_m_cat = MATRIZ_DB.get(str(val_c))
-            if row_m_cat:
-                attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
-                if attr_t_cat:
-                    ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
-                    if ai_cat: cat_encontrada = get_from_row(ai_cat, 'categoria')
-        else:
-            ri_cat = REPETICAO_DB.get(str(val_c))
-            if ri_cat: cat_encontrada = get_from_row(ri_cat, 'categoria')
-            
-        if cat_encontrada:
-            cn = str(cat_encontrada).strip().capitalize()
-            if cn in score_cat_df.index:
-                pv_cat = PESO_CATEGORIA_DB.get(campo_c, 0)
-                score_cat_df.at[cn, campo_c] = int(pv_cat)
-                
-    score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
-    
-    # Identificar categoria Dia Natalício
-    cat_dia_natalicio = ""
-    val_dia_natalicio = valores_originais_score["Dia Natalício"]
-    row_dia = MATRIZ_DB.get(str(val_dia_natalicio))
-    if row_dia:
-        attr_dia = str(get_from_row(row_dia, 'Dia Natalício')).upper()
-        if attr_dia:
-            ai_dia = ATRIBUTOS_DB.get(attr_dia)
-            if ai_dia: cat_dia_natalicio = str(get_from_row(ai_dia, 'categoria') or "").strip().capitalize()
-            
-    # --- CÁLCULO DO SCORE QUALIDADES ---
-    lista_qual = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
-    colunas_qual = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
-    
-    score_qual_df = pd.DataFrame(0, index=lista_qual, columns=colunas_qual)
-    
-    for campo_q in colunas_qual:
-        val_q = valores_originais_score[campo_q]
-        if val_q is None: continue
-        
-        qual_encontrada = None
-        if campo_q in mapa_col_matriz:
-            row_m_q = MATRIZ_DB.get(str(val_q))
-            if row_m_q:
-                attr_t_q = str(get_from_row(row_m_q, campo_q)).upper()
-                if attr_t_q:
-                    ai_q = ATRIBUTOS_DB.get(attr_t_q)
-                    if ai_q:
-                        qual_encontrada = get_from_row(ai_q, 'qualidade') or get_from_row(ai_q, 'area de suporte')
-        else:
-            ri_q = REPETICAO_DB.get(str(val_q))
-            if ri_q:
-                qual_encontrada = get_from_row(ri_q, 'qualidade') or get_from_row(ri_q, 'area de suporte')
-            
-        if qual_encontrada:
-            qn = remover_acentos(str(qual_encontrada).strip()).upper()
-            # Busca insensível a maiúsculas/minúsculas e acentos no index
-            for idx_name in score_qual_df.index:
-                if remover_acentos(idx_name).upper() == qn:
-                    score_qual_df.at[idx_name, campo_q] += 50
-                    break
-                
-    score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
-    
-    # --- FIM DO CÁLCULO DO SCORE PERFIL, CATEGORIA E QUALIDADES ---
-
-    dados_perfil = []
-    def add_row_perfil_split(campo, valor, descricao):
-        # Texto limpo para o PDF (sem HTML)
-        desc_limpa = descricao.replace("<b>", "").replace("</b>", "").replace("<br>", " | ")
-        dados_perfil.append({
-            "Campo": campo,
-            "Valor": valor,
-            "Descricao": descricao,
-            "Resultado": f"{valor} - {desc_limpa}" if desc_limpa else valor
-        })
-        
-    k_data = KAN_DB.get(str(kan), {"kan": str(kan), "descricao": ""})
-    add_row_perfil_split("KAN", k_data['kan'], k_data['descricao'])
-    
-    # Perfil
-    val_corte = st.session_state.get('score_perfil_corte_slider', 1.8)
-    totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
-    totais_s = totais_s[totais_s > 0]
-    perfis_escolhidos = []
-    if not totais_s.empty:
-        max_score = totais_s.iloc[0]
-        for p, s in totais_s.items():
-            if max_score / s <= val_corte:
-                perfis_escolhidos.append(p)
-            else:
-                break
-    
-    perfil_val = ", ".join(perfis_escolhidos)
-    perfil_desc_list = []
-    for p in perfis_escolhidos:
-        # Busca insensível para Perfil
-        d = ""
-        pn = remover_acentos(p).upper()
-        for k_desc, v_desc in PERFIL_DESCRICAO_DB.items():
-            if remover_acentos(k_desc).upper() == pn:
-                d = v_desc
-                break
-        if d: perfil_desc_list.append(d)
-    
-    add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(perfil_desc_list) if perfil_desc_list else "")
-    
-    # Categoria
-    modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
-    if modo_corte_cat == 'Dia Natalicio':
-        categoria_selecionada = cat_dia_natalicio
-    else:
-        totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
-        totais_cat = totais_cat[totais_cat > 0]
-        categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
-        
-    # Busca insensível para Categoria
-    cat_desc = ""
-    cn = remover_acentos(categoria_selecionada).upper()
-    for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
-        if remover_acentos(k_desc).upper() == cn:
-            cat_desc = v_desc
-            break
-            
-    add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
-    
-    # Diferenciais (11 e 22)
-    campos_para_dif = [
-        extract_num(motivacao), extract_num(impressao), extract_num(expressao),
-        extract_num(destino), extract_num(missao), str(nascimento[0]),
-        str(triangulo_base), str(num_dia_reduzido)
-    ]
-    
-    diferenciais_ativos = []
-    dif_desc_list = []
-    
-    # Verifica 11
-    if "11" in campos_para_dif:
-        d11 = DIFERENCIAIS_DESC_DB.get("11")
-        if d11:
-            diferenciais_ativos.append(d11['diferencial'])
-            dif_desc_list.append(f"<b>{d11['diferencial']}</b>: {d11['descricao']}")
-    
-    # Verifica 22
-    if "22" in campos_para_dif:
-        d22 = DIFERENCIAIS_DESC_DB.get("22")
-        if d22:
-            diferenciais_ativos.append(d22['diferencial'])
-            dif_desc_list.append(f"<b>{d22['diferencial']}</b>: {d22['descricao']}")
-            
-    if diferenciais_ativos:
-        add_row_perfil_split("Diferenciais", ", ".join(diferenciais_ativos), "<br><br>".join(dif_desc_list))
-    
-    # Novo Campo: Qualidades
-    totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
-    totais_q = totais_q[totais_q > 0]
-    qualidades_escolhidas = list(totais_q.index)
-    
-    qual_val = ", ".join(qualidades_escolhidas)
-    qual_desc_list = []
-    for q in qualidades_escolhidas:
-        # Busca insensível para Qualidades
-        d = ""
-        qn = remover_acentos(q).upper()
-        for k_desc, v_desc in QUALIDADES_DB.items():
-            if remover_acentos(k_desc).upper() == qn:
-                d = v_desc
-                break
-        if d: qual_desc_list.append(f"<b>{q}</b>: {d}")
-        
-    add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
-    
-    # --- NOVO: DIAGNÓSTICO COM IA (GEMINI) ---
-    if "ai_diagnosis" not in st.session_state:
-        st.session_state["ai_diagnosis"] = {}
-
-    user_name_key = f"diag_{nome}"
-    
-    # Se já existir um diagnóstico salvo para este nome na sessão ou no carregamento do banco, usamos ele
-    desc_diag = st.session_state["ai_diagnosis"].get(user_name_key)
-    if not desc_diag and clientes_salvos.get(nome):
-        desc_diag = clientes_salvos[nome].get('ai_diagnosis')
-    
-    if not desc_diag:
-        desc_diag = "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
-    
-    add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
-    
-    f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
-    add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
-    
-    d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "Não Encontrado", "descricao": ""})
-    add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
-
-    if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
-        try:
-            mapa_json = json.dumps(dados, ensure_ascii=False)
-            perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
-            data_str_to_save = data_input.strftime('%d/%m/%Y')
-            
-            agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            usuario_logado = st.session_state.get("username", "Desconhecido")
-            
-            insert_data = {
-                "nome": nome,
-                "data_nascimento": data_str_to_save,
-                "cargo": cargo,
-                "empresa": empresa,
-                "linkedin_url": linkedin,
-                "experiencias": experiencias,
-                "usuario": usuario_logado,
-                "data_inclusao": agora_str,
-                "mapa_json": mapa_json,
-                "perfil_json": perfil_json
-            }
-            if nome in st.session_state['fotos']:
-                import base64
-                insert_data["foto_base64"] = base64.b64encode(st.session_state['fotos'][nome]).decode()
-                
-            supabase_client.table("mapas_salvos").insert(insert_data).execute()
-            st.toast("✅ Cálculos salvos automaticamente na nuvem!")
-            
-            # Update cache to show in dropdown immediately
-            clientes_salvos[nome] = {
-                'data_nascimento': data_str_to_save,
-                'cargo': cargo,
-                'empresa': empresa,
-                'foto_base64': insert_data.get('foto_base64', '')
-            }
-        except Exception as e:
-            st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
-
-    if st.session_state.get('show_mapa'):
-        st.subheader("Mapa")
-        df = pd.DataFrame(dados)
-        st.table(df.set_index('Campo'))
-
+    col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
+    with col_res2:
         st.markdown("---")
-        st.subheader("Salvar Resultados do Mapa")
-        col1, col2 = st.columns(2)
-
-        nome_limpo = remover_acentos(nome).replace(' ', '_')
+        info_parts = [nome, data_str]
+        if cargo:
+            info_parts.append(cargo)
+        if empresa:
+            info_parts.append(empresa)
+        info_text = " | ".join(info_parts)
         
-        with col1:
-            csv = df.to_csv(sep=';', index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Baixar Mapa como CSV",
-                data=csv,
-                file_name=f"mapa_cabalistico_{nome_limpo}.csv",
-                mime="text/csv",
-            )
-
-        with col2:
-            data_str = data_input.strftime('%d/%m/%Y')
-            pdf_bytes = gerar_pdf(nome, data_str, dados, titulo="Mapa Numerologico Cabalistico")
-            st.download_button(
-                label="📄 Baixar Mapa como PDF",
-                data=pdf_bytes,
-                file_name=f"mapa_cabalistico_{nome_limpo}.pdf",
-                mime="application/pdf",
-            )
-
-    if st.session_state.get('show_perfil'):
-        st.subheader("Perfil Comportamental")
+        foto_b64 = None
+        if nome in st.session_state['fotos']:
+            import base64
+            foto_b64 = base64.b64encode(st.session_state['fotos'][nome]).decode()
+        elif clientes_salvos.get(nome) and clientes_salvos[nome].get('foto_base64'):
+            foto_b64 = clientes_salvos[nome]['foto_base64']
         
-        # Renderização Customizada com Divisão de Célula (Valor Laranja / Descrição)
-        html_perfil = """<style>
-.perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-.perfil-custom-table th { background-color: #F18617; color: #401041; padding: 10px; text-align: left; }
-.perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-.p-label { color: #F18617; font-weight: bold; padding: 10px; }
-.p-value { background-color: #F18617; color: #401041; padding: 5px; font-weight: bold; text-align: center; }
-.p-desc { padding: 10px; color: white; font-size: 0.95em; line-height: 1.4; }
-</style>
-<table class="perfil-custom-table">
-<thead><tr><th>Campo</th><th>Resultado</th></tr></thead>
-<tbody>"""
-        for item in dados_perfil:
-            html_perfil += f"""<tr>
-<td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
-<td>
-<div class="p-value">{item['Valor']}</div>
-<div class="p-desc">{item['Descricao']}</div>
-</td>
-</tr>"""
-        html_perfil += "</tbody></table>"
-        st.markdown(html_perfil, unsafe_allow_html=True)
+        if foto_b64:
+            html = f'''
+            <div style="display: flex; align-items: center; margin-bottom: 25px;">
+                <img src="data:image/png;base64,{foto_b64}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
+                <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
+            </div>
+            '''
+            st.markdown(html, unsafe_allow_html=True)
+        else:
+            html = f'''
+            <div style="display: flex; align-items: center; margin-bottom: 25px;">
+                <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
+            </div>
+            '''
+            st.markdown(html, unsafe_allow_html=True)
+
+        resultados = calcular_numerologia(nome, nascimento, data_atual)
+        (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
+         ano_pess, missao, dividas_carmicas, licoes_carmicas,
+         tendencias_ocultas, soma_tendencias, resposta_subconsciente,
+         desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
+         triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
+
+        estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
+            expressao, motivacao, impressao, nascimento[0],
+            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+            triangulo_base
+        )
+
+        dados = []
+        def add_row(campo, valor):
+            dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+
+        add_row("Expressão", expressao)
+        add_row("Motivação", motivacao)
+        add_row("Impressão", impressao)
+        add_row("Destino", destino)
+        add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
+        add_row("Triângulo da Vida (Base)", triangulo_base)
+        add_row("Triângulo da Vida (Repetições)", triangulo_reps)
+        add_row("Dia Pessoal", dia_pessoal)
+        add_row("Mês Pessoal", mes_pess)
+        add_row("Ano Pessoal", ano_pess)
+        add_row("Missão", missao)
+
+        dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
+        add_row("Dívidas Cármicas", dividas_str)
+
+        licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
+        add_row("Lições Cármicas", licoes_str)
+
+        tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
+        add_row("Tendências Ocultas", tendencias_str)
+
+        if tendencias_ocultas:
+            add_row("Soma das Tendências Ocultas", soma_tendencias)
+
+        add_row("Resposta Subconsciente", resposta_subconsciente)
+        add_row("1º Desafio", desafio1)
+        add_row("2º Desafio", desafio2)
+        add_row("Desafio Principal", desafio_principal)
+
+        c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
+        c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
+        c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
+        add_row("1º Ciclo de Vida", c1)
+        add_row("2º Ciclo de Vida", c2)
+        add_row("3º Ciclo de Vida", c3)
+
+        m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
+        m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
+        m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
+        m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
+        add_row("1º Momento Decisivo", m1)
+        add_row("2º Momento Decisivo", m2)
+        add_row("3º Momento Decisivo", m3)
+        add_row("4º Momento Decisivo", m4)
+
+        # --- CÁLCULO DO SCORE PERFIL (Mover para antes das tabelas para incluir no Resultado) ---
+        perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+        colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+        mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
         
-        # Botão para Gerar Diagnóstico com IA
-        if st.button("🪄 Gerar Diagnóstico Profissional com IA"):
+        num_dia_puro = nascimento[0]
+        num_dia_reduzido = reduce_number(nascimento[0])
+        def extract_num(s):
+            if not s: return None
+            try: return s.split(' - ')[0]
+            except: return str(s)
+            
+
+        valores_originais_score = {
+            "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
+            "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
+            "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2)
+        }
+        
+        score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
+        for campo_s in colunas_score:
+            val_s = valores_originais_score[campo_s]
+            if val_s is None: continue
+            perfil_enc = None
+            if campo_s in mapa_col_matriz:
+                row_m = MATRIZ_DB.get(str(val_s))
+                if row_m:
+                    attr_t = str(get_from_row(row_m, campo_s)).upper()
+                    if attr_t:
+                        ai = ATRIBUTOS_DB.get(attr_t)
+                        if ai: perfil_enc = get_from_row(ai, 'perfil')
+            else:
+                ri = REPETICAO_DB.get(str(val_s))
+                if ri: perfil_enc = get_from_row(ri, 'perfil')
+            
+            if perfil_enc:
+                pn = str(perfil_enc).strip().capitalize()
+                if pn in score_df_calc.index:
+                    pv = PESO_DB.get(campo_s, 0)
+                    score_df_calc.at[pn, campo_s] = int(pv)
+        
+        score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
+        
+        # --- CÁLCULO DO SCORE CATEGORIA ---
+        lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
+        colunas_cat = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+        
+        score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_cat)
+        
+        for campo_c in colunas_cat:
+            val_c = valores_originais_score[campo_c]
+            if val_c is None: continue
+            
+            cat_encontrada = None
+            if campo_c in mapa_col_matriz:
+                row_m_cat = MATRIZ_DB.get(str(val_c))
+                if row_m_cat:
+                    attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
+                    if attr_t_cat:
+                        ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
+                        if ai_cat: cat_encontrada = get_from_row(ai_cat, 'categoria')
+            else:
+                ri_cat = REPETICAO_DB.get(str(val_c))
+                if ri_cat: cat_encontrada = get_from_row(ri_cat, 'categoria')
+                
+            if cat_encontrada:
+                cn = str(cat_encontrada).strip().capitalize()
+                if cn in score_cat_df.index:
+                    pv_cat = PESO_CATEGORIA_DB.get(campo_c, 0)
+                    score_cat_df.at[cn, campo_c] = int(pv_cat)
+                    
+        score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
+        
+        # Identificar categoria Dia Natalício
+        cat_dia_natalicio = ""
+        val_dia_natalicio = valores_originais_score["Dia Natalício"]
+        row_dia = MATRIZ_DB.get(str(val_dia_natalicio))
+        if row_dia:
+            attr_dia = str(get_from_row(row_dia, 'Dia Natalício')).upper()
+            if attr_dia:
+                ai_dia = ATRIBUTOS_DB.get(attr_dia)
+                if ai_dia: cat_dia_natalicio = str(get_from_row(ai_dia, 'categoria') or "").strip().capitalize()
+                
+        # --- CÁLCULO DO SCORE QUALIDADES ---
+        lista_qual = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
+        colunas_qual = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+        
+        score_qual_df = pd.DataFrame(0, index=lista_qual, columns=colunas_qual)
+        
+        for campo_q in colunas_qual:
+            val_q = valores_originais_score[campo_q]
+            if val_q is None: continue
+            
+            qual_encontrada = None
+            if campo_q in mapa_col_matriz:
+                row_m_q = MATRIZ_DB.get(str(val_q))
+                if row_m_q:
+                    attr_t_q = str(get_from_row(row_m_q, campo_q)).upper()
+                    if attr_t_q:
+                        ai_q = ATRIBUTOS_DB.get(attr_t_q)
+                        if ai_q:
+                            qual_encontrada = get_from_row(ai_q, 'qualidade') or get_from_row(ai_q, 'area de suporte')
+            else:
+                ri_q = REPETICAO_DB.get(str(val_q))
+                if ri_q:
+                    qual_encontrada = get_from_row(ri_q, 'qualidade') or get_from_row(ri_q, 'area de suporte')
+                
+            if qual_encontrada:
+                qn = remover_acentos(str(qual_encontrada).strip()).upper()
+                # Busca insensível a maiúsculas/minúsculas e acentos no index
+                for idx_name in score_qual_df.index:
+                    if remover_acentos(idx_name).upper() == qn:
+                        score_qual_df.at[idx_name, campo_q] += 50
+                        break
+                    
+        score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
+        
+        # --- FIM DO CÁLCULO DO SCORE PERFIL, CATEGORIA E QUALIDADES ---
+
+        dados_perfil = []
+        def add_row_perfil_split(campo, valor, descricao):
+            # Texto limpo para o PDF (sem HTML)
+            desc_limpa = descricao.replace("<b>", "").replace("</b>", "").replace("<br>", " | ")
+            dados_perfil.append({
+                "Campo": campo,
+                "Valor": valor,
+                "Descricao": descricao,
+                "Resultado": f"{valor} - {desc_limpa}" if desc_limpa else valor
+            })
+            
+        k_data = KAN_DB.get(str(kan), {"kan": str(kan), "descricao": ""})
+        add_row_perfil_split("KAN", k_data['kan'], k_data['descricao'])
+        
+        # Perfil
+        val_corte = st.session_state.get('score_perfil_corte_slider', 1.8)
+        totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
+        totais_s = totais_s[totais_s > 0]
+        perfis_escolhidos = []
+        if not totais_s.empty:
+            max_score = totais_s.iloc[0]
+            for p, s in totais_s.items():
+                if max_score / s <= val_corte:
+                    perfis_escolhidos.append(p)
+                else:
+                    break
+        
+        perfil_val = ", ".join(perfis_escolhidos)
+        perfil_desc_list = []
+        for p in perfis_escolhidos:
+            # Busca insensível para Perfil
+            d = ""
+            pn = remover_acentos(p).upper()
+            for k_desc, v_desc in PERFIL_DESCRICAO_DB.items():
+                if remover_acentos(k_desc).upper() == pn:
+                    d = v_desc
+                    break
+            if d: perfil_desc_list.append(d)
+        
+        add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(perfil_desc_list) if perfil_desc_list else "")
+        
+        # Categoria
+        modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
+        if modo_corte_cat == 'Dia Natalicio':
+            categoria_selecionada = cat_dia_natalicio
+        else:
+            totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
+            totais_cat = totais_cat[totais_cat > 0]
+            categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
+            
+        # Busca insensível para Categoria
+        cat_desc = ""
+        cn = remover_acentos(categoria_selecionada).upper()
+        for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
+            if remover_acentos(k_desc).upper() == cn:
+                cat_desc = v_desc
+                break
+                
+        add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
+        
+        # Diferenciais (11 e 22)
+        campos_para_dif = [
+            extract_num(motivacao), extract_num(impressao), extract_num(expressao),
+            extract_num(destino), extract_num(missao), str(nascimento[0]),
+            str(triangulo_base), str(num_dia_reduzido)
+        ]
+        
+        diferenciais_ativos = []
+        dif_desc_list = []
+        
+        # Verifica 11
+        if "11" in campos_para_dif:
+            d11 = DIFERENCIAIS_DESC_DB.get("11")
+            if d11:
+                diferenciais_ativos.append(d11['diferencial'])
+                dif_desc_list.append(f"<b>{d11['diferencial']}</b>: {d11['descricao']}")
+        
+        # Verifica 22
+        if "22" in campos_para_dif:
+            d22 = DIFERENCIAIS_DESC_DB.get("22")
+            if d22:
+                diferenciais_ativos.append(d22['diferencial'])
+                dif_desc_list.append(f"<b>{d22['diferencial']}</b>: {d22['descricao']}")
+                
+        if diferenciais_ativos:
+            add_row_perfil_split("Diferenciais", ", ".join(diferenciais_ativos), "<br><br>".join(dif_desc_list))
+        
+        # Novo Campo: Qualidades
+        totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
+        totais_q = totais_q[totais_q > 0]
+        qualidades_escolhidas = list(totais_q.index)
+        
+        qual_val = ", ".join(qualidades_escolhidas)
+        qual_desc_list = []
+        for q in qualidades_escolhidas:
+            # Busca insensível para Qualidades
+            d = ""
+            qn = remover_acentos(q).upper()
+            for k_desc, v_desc in QUALIDADES_DB.items():
+                if remover_acentos(k_desc).upper() == qn:
+                    d = v_desc
+                    break
+            if d: qual_desc_list.append(f"<b>{q}</b>: {d}")
+            
+        add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
+        
+        # --- NOVO: DIAGNÓSTICO COM IA (GEMINI) ---
+        if "ai_diagnosis" not in st.session_state:
+            st.session_state["ai_diagnosis"] = {}
+
+        user_name_key = f"diag_{nome}"
+        
+        # Se já existir um diagnóstico salvo para este nome na sessão ou no carregamento do banco, usamos ele
+        desc_diag = st.session_state["ai_diagnosis"].get(user_name_key)
+        if not desc_diag and clientes_salvos.get(nome):
+            desc_diag = clientes_salvos[nome].get('ai_diagnosis')
+        
+        if not desc_diag:
+            desc_diag = "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
+        
+        add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
+        
+        f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
+        add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
+        
+        d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "Não Encontrado", "descricao": ""})
+        add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
+
+        if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
             try:
-                api_key = st.secrets["gemini"]["api_key"]
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('models/gemini-1.5-flash')
+                mapa_json = json.dumps(dados, ensure_ascii=False)
+                perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
+                data_str_to_save = data_input.strftime('%d/%m/%Y')
                 
-                # Montar o contexto para a IA
-                info_prof = f"- LinkedIn: {linkedin}\n- Experiências: {experiencias}" if (linkedin or experiencias) else ""
+                agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                usuario_logado = st.session_state.get("username", "Desconhecido")
                 
-                contexto = f"""
-                Analise o seguinte perfil numerológico e comportamental de {nome}:
-                - KAN: {k_data['kan']} ({k_data['descricao']})
-                - Perfil: {perfil_val}
-                - Categoria: {categoria_selecionada} ({cat_desc})
-                - Qualidades: {qual_val}
-                - Diferenciais: {", ".join(diferenciais_ativos) if diferenciais_ativos else "Nenhum específico"}
+                insert_data = {
+                    "nome": nome,
+                    "data_nascimento": data_str_to_save,
+                    "cargo": cargo,
+                    "empresa": empresa,
+                    "linkedin_url": linkedin,
+                    "experiencias": experiencias,
+                    "usuario": usuario_logado,
+                    "data_inclusao": agora_str,
+                    "mapa_json": mapa_json,
+                    "perfil_json": perfil_json
+                }
+                if nome in st.session_state['fotos']:
+                    import base64
+                    insert_data["foto_base64"] = base64.b64encode(st.session_state['fotos'][nome]).decode()
+                    
+                supabase_client.table("mapas_salvos").insert(insert_data).execute()
+                st.toast("✅ Cálculos salvos automaticamente na nuvem!")
                 
-                HISTÓRICO PROFISSIONAL ADICIONAL:
-                {info_prof}
-                
-                Com base na união do perfil numerológico com a trajetória profissional acima, escreva um diagnóstico técnico e realista de 3 parágrafos curtos:
-                1. Síntese do Perfil: Como a numerologia se une à experiência real de forma pragmática.
-                2. Ponto de Atenção: Identifique um possível desafio comportamental ou "lado sombra" (ex: excesso de dominância, impaciência com processos lentos, etc) e como isso pode impactar o resultado se não for gerido.
-                3. Projeção de Carreira: Cargos e áreas realistas para o próximo nível de senioridade, fugindo de termos excessivamente otimistas.
-                
-                Seja direto, profissional e equilibrado. Use HTML <b> para destaques se necessário.
-                """
-                
-                with st.spinner("A Inteligência Artificial está analisando o perfil..."):
-                    try:
-                        # Tentar o modelo de última geração disponível na sua chave
+                clientes_salvos[nome] = {
+                    'data_nascimento': data_str_to_save,
+                    'cargo': cargo,
+                    'empresa': empresa,
+                    'foto_base64': insert_data.get('foto_base64', '')
+                }
+            except Exception as e:
+                st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
+
+        # --- EXIBIÇÃO DOS RESULTADOS ---
+        if st.session_state.get('show_mapa'):
+            st.subheader("Mapa")
+            df = pd.DataFrame(dados)
+            st.table(df.set_index('Campo'))
+
+            st.markdown("---")
+            st.subheader("Salvar Resultados do Mapa")
+            col1, col2 = st.columns(2)
+            nome_limpo = remover_acentos(nome).replace(' ', '_')
+            
+            with col1:
+                csv = df.to_csv(sep=';', index=False).encode('utf-8')
+                st.download_button("📥 Baixar Mapa como CSV", data=csv, file_name=f"mapa_{nome_limpo}.csv", mime="text/csv", key="dl_mapa_csv")
+            with col2:
+                data_str_pdf = data_input.strftime('%d/%m/%Y')
+                pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalistico")
+                st.download_button("📄 Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key="dl_mapa_pdf")
+
+        if st.session_state.get('show_perfil'):
+            st.markdown("---")
+            st.subheader("Perfil Comportamental")
+            
+            # Renderização Customizada com Divisão de Célula
+            html_perfil = """<style>
+            .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 10px; text-align: left; }
+            .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+            .p-label { color: #F18617; font-weight: bold; padding: 10px; }
+            .p-value { background-color: #F18617; color: #401041; padding: 5px; font-weight: bold; text-align: center; }
+            .p-desc { padding: 10px; color: white; font-size: 0.95em; line-height: 1.4; }
+            </style>
+            <table class="perfil-custom-table">
+            <thead><tr><th>Campo</th><th>Resultado</th></tr></thead>
+            <tbody>"""
+            for item in dados_perfil:
+                html_perfil += f"""<tr>
+                <td style="width: 25%;"><div class="p-label">{item['Campo']}</div></td>
+                <td><div class="p-value">{item['Valor']}</div><div class="p-desc">{item['Descricao']}</div></td>
+                </tr>"""
+            html_perfil += "</tbody></table>"
+            st.markdown(html_perfil, unsafe_allow_html=True)
+            
+            # Botão para Gerar Diagnóstico com IA
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🪄 Gerar Diagnóstico Profissional com IA"):
+                try:
+                    api_key = st.secrets["gemini"]["api_key"]
+                    genai.configure(api_key=api_key)
+                    
+                    # Montar o contexto para a IA
+                    info_prof = f"- LinkedIn: {linkedin}\n- Experiências: {experiencias}" if (linkedin or experiencias) else ""
+                    contexto = f"""
+                    Analise o perfil de {nome}:
+                    - KAN: {k_data['kan']} ({k_data['descricao']})
+                    - Perfil: {perfil_val}
+                    - Categoria: {categoria_selecionada} ({cat_desc})
+                    - Qualidades: {qual_val}
+                    {info_prof}
+                    
+                    Gere um diagnóstico realista e direto em 3 parágrafos curtos.
+                    """
+                    
+                    with st.spinner("Analisando perfil..."):
                         model = genai.GenerativeModel('models/gemini-2.5-flash')
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
+                        st.session_state["ai_diagnosis"][user_name_key] = texto_ia
                         
-                        # Captura consumo de tokens
-                        uso = response.usage_metadata
-                        info_consumo = f"Consumo: {uso.prompt_token_count} (input) + {uso.candidates_token_count} (output) = {uso.total_token_count} tokens."
-                        st.session_state["ai_usage"] = info_consumo
-                    except Exception as e:
-                        # Tenta listar os modelos para mostrar ao usuário o que está disponível
-                        try:
-                            models_list = [m.name for m in genai.list_models()]
-                            st.error(f"Modelos que sua chave permite: {models_list}")
-                        except:
-                            pass
-                        raise e
-                        
-                    st.session_state["ai_diagnosis"][user_name_key] = texto_ia
-                    
-                    # Salva no Supabase imediatamente
-                    if supabase_client:
-                        try:
+                        if supabase_client:
                             supabase_client.table("mapas_salvos").update({"ai_diagnosis": texto_ia}).eq("nome", nome).execute()
-                            consumo_msg = st.session_state.get("ai_usage", "")
-                            st.toast(f"✅ Diagnóstico salvo! {consumo_msg}")
-                        except:
-                            pass
-                st.rerun()
-            except Exception as e:
-                st.error(f"Erro ao acessar a IA: {e}. Verifique se a API Key está correta nos Secrets.")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Erro na IA: {e}")
 
-        # Exibe o consumo de tokens se houver
-        if "ai_usage" in st.session_state:
-            st.caption(f"📊 {st.session_state['ai_usage']}")
+            # Exibe o consumo de tokens se houver
+            if "ai_usage" in st.session_state:
+                st.caption(f"📊 {st.session_state['ai_usage']}")
 
-        st.markdown("---")
-        st.subheader("Salvar Perfil Comportamental")
-        col1, col2 = st.columns(2)
+            st.markdown("---")
+            st.subheader("Salvar Perfil Comportamental")
+            col_p1, col_p2 = st.columns(2)
+            df_perfil = pd.DataFrame(dados_perfil)
+            nome_limpo_p = remover_acentos(nome).replace(' ', '_')
+            with col_p1:
+                csv_p = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
+                st.download_button("📥 Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key="dl_p_csv")
+            with col_p2:
+                pdf_p = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
+                st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key="dl_p_pdf")
 
-        nome_limpo = remover_acentos(nome).replace(' ', '_')
-        
-        df_perfil = pd.DataFrame(dados_perfil)
-        with col1:
-            csv_perfil = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
-            st.download_button(
-                label="📥 Baixar Perfil como CSV",
-                data=csv_perfil,
-                file_name=f"perfil_comportamental_{nome_limpo}.csv",
-                mime="text/csv",
-            )
-
-        with col2:
-            data_str = data_input.strftime('%d/%m/%Y')
-            pdf_bytes_perfil = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
-            st.download_button(
-                label="📄 Baixar Perfil como PDF",
-                data=pdf_bytes_perfil,
-                file_name=f"perfil_comportamental_{nome_limpo}.pdf",
-                mime="application/pdf",
-            )
-
-        # --- SCORE PERFIL (Exibição da Tabela) ---
-        st.markdown("---")
-        st.header("Score Perfil")
-        
-        # O slider agora controla o resultado em tempo real (st.rerun acontece no fundo)
-        corte = st.slider("Corte", 1.0, 2.0, 1.8, 0.1, key="score_perfil_corte_slider")
-        
-        # Usar o DataFrame já calculado anteriormente
-        st.table(score_df_calc)
-        
-        # Resultado Final (já calculado para a tabela principal, mas exibimos aqui também)
-        st.subheader("Resultado Final do Perfil")
-        final_res_df = pd.DataFrame([", ".join(perfis_escolhidos)], columns=["Perfis Identificados"], index=["Perfil"])
-        st.table(final_res_df)
-
-        # --- SCORE CATEGORIA ---
-        st.markdown("---")
-        st.header("Score Categoria")
-        
-        corte_cat = st.selectbox("Corte (Categoria)", ["Dia Natalicio", "Calculo"], 
-                               index=1 if modo_corte_cat == 'Calculo' else 0,
-                               key="corte_categoria_modo")
-        
-        st.table(score_cat_df)
-        
-        st.subheader("Categoria Selecionada")
-        final_cat_df = pd.DataFrame([categoria_selecionada], columns=["Categoria"], index=["Resultado"])
-        st.table(final_cat_df)
-
-        # --- SCORE QUALIDADES ---
-        st.markdown("---")
-        st.header("Score Qualidades")
-        
-        st.table(score_qual_df)
-        
-        st.subheader("Qualidades Selecionadas")
-        final_qual_df = pd.DataFrame([", ".join(qualidades_escolhidas)], columns=["Qualidades Pontuadas"], index=["Resultado"])
-        st.table(final_qual_df)
+            # --- EXIBIÇÃO DOS SCORES TÉCNICOS ---
+            with st.expander("📊 Ver Scores Técnicos (Auditoria)", expanded=False):
+                st.header("Score Perfil")
+                st.slider("Corte Perfil", 1.0, 2.0, 1.8, 0.1, key="score_perfil_corte_slider")
+                st.table(score_df_calc)
+                
+                st.header("Score Categoria")
+                st.selectbox("Corte Categoria", ["Dia Natalicio", "Calculo"], index=1 if modo_corte_cat == 'Calculo' else 0, key="corte_categoria_modo")
+                st.table(score_cat_df)
+                
+                st.header("Score Qualidades")
+                st.table(score_qual_df)
 
 
 elif (submit_mapa or submit_perfil) and not nome:
