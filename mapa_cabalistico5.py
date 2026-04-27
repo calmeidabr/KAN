@@ -807,6 +807,10 @@ cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um 
 if 'fotos' not in st.session_state:
     st.session_state['fotos'] = {}
 
+# --- INICIALIZAÇÃO DE VARIÁVEIS ---
+nome = ""
+data_str = ""
+data_input = datetime.date.today()
 submit_mapa = False
 submit_perfil = False
 
