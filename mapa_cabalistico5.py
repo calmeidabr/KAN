@@ -36,7 +36,13 @@ try:
 except Exception:
     header_img = "🔮"
 
-st.set_page_config(page_title="Mapa Cabalístico", page_icon=favicon_img, layout="centered")
+# --- CONFIGURAÇÃO DA PÁGINA ---
+st.set_page_config(page_title="Mapa Numerológico Cabalístico KAN", layout="wide", page_icon=favicon_img)
+
+# Botão para limpar cache (Útil para quando o usuário atualiza o banco de dados)
+if st.sidebar.button("🔄 Recarregar Dados do Banco"):
+    st.cache_data.clear()
+    st.rerun()
 
 st.markdown("""
 <style>
