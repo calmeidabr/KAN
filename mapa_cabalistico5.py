@@ -820,8 +820,8 @@ if menu_opt == "Painel de Controle":
             if not df_edit.empty:
                 st.write(f"Editando: `{tab_selecionada}`")
                 
-                # Editor de dados
-                edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True)
+                # Editor de dados com altura limitada
+                edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True, height=450)
                 
                 if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
@@ -906,28 +906,33 @@ submit_perfil = False
 
 if cliente_selecionado == "-- Novo Cliente --":
     with st.form("numerologia_form"):
-        nome = st.text_input("Digite o seu nome completo, como se escreve, idêntico ao que consta na sua certidão de nascimento (incluir acentos e números se houver).")
-        data_str_input = st.text_input("Data de Nascimento (dd/mm/yyyy):", placeholder="Ex: 25/12/1980")
+        st.markdown("### 👤 Novo Cadastro")
+        nome = st.text_input("Nome Completo (Conforme certidão):")
         
-        col_cargo, col_empresa, col_linkedin = st.columns(3)
-        with col_cargo:
+        col_f1, col_f2 = st.columns([1, 1])
+        with col_f1:
+            data_str_input = st.text_input("Data de Nascimento:", placeholder="dd/mm/yyyy")
+        with col_f2:
+            foto_upload = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"])
+
+        col_f3, col_f4, col_f5 = st.columns([1, 1, 1])
+        with col_f3:
             cargo = st.text_input("Cargo/Profissão:")
-        with col_empresa:
+        with col_f4:
             empresa = st.text_input("Empresa/Grupo:")
-        with col_linkedin:
+        with col_f5:
             linkedin = st.text_input("LinkedIn (URL):")
             
-        experiencias = st.text_area("Experiências Profissionais / Bio (LinkedIn)", 
-                                  placeholder="Cole aqui o resumo ou experiências para enriquecer o diagnóstico por IA",
-                                  height=100)
+        experiencias = st.text_area("Experiências Profissionais / Bio", 
+                                  placeholder="Resumo profissional para a IA...",
+                                  height=80)
         
-        foto_upload = st.file_uploader("Foto da Pessoa (Opcional)", type=["png", "jpg", "jpeg"])
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            submit_mapa = st.form_submit_button("Calcular Mapa Numerológico")
-        with col2:
-            submit_perfil = st.form_submit_button("Calcular Perfil Comportamental")
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
+        with col_btn1:
+            submit_mapa = st.form_submit_button("🏁 Gerar Mapa")
+        with col_btn2:
+            submit_perfil = st.form_submit_button("🧠 Gerar Perfil")
             
     if submit_mapa or submit_perfil:
         try:
@@ -975,28 +980,27 @@ else:
                     pass
         
     # --- CAMPOS DE EDIÇÃO PARA CLIENTE EXISTENTE ---
-    st.markdown("### 📝 Informações Adicionais (Profissional)")
-    col_edit1, col_edit2 = st.columns([2, 1])
-    with col_edit1:
-        new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin, key=f"edit_link_{nome}")
-        new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias, key=f"edit_exp_{nome}", height=100)
-    
-    with col_edit2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("💾 Salvar Alterações"):
-            if supabase_client:
-                try:
-                    supabase_client.table("mapas_salvos").update({
-                        "linkedin_url": new_linkedin,
-                        "experiencias": new_experiencias
-                    }).eq("nome", nome).execute()
-                    st.toast("✅ Informações profissionais atualizadas!")
-                    # Atualiza cache local
-                    clientes_salvos[nome]['linkedin_url'] = new_linkedin
-                    clientes_salvos[nome]['experiencias'] = new_experiencias
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro ao atualizar: {e}")
+    with st.expander("📝 Editar Informações Profissionais", expanded=False):
+        col_edit1, col_edit2 = st.columns([2, 1])
+        with col_edit1:
+            new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin, key=f"edit_link_{nome}")
+            new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias, key=f"edit_exp_{nome}", height=100)
+        
+        with col_edit2:
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            if st.button("💾 Salvar Alterações"):
+                if supabase_client:
+                    try:
+                        supabase_client.table("mapas_salvos").update({
+                            "linkedin_url": new_linkedin,
+                            "experiencias": new_experiencias
+                        }).eq("nome", nome).execute()
+                        st.toast("✅ Informações atualizadas!")
+                        clientes_salvos[nome]['linkedin_url'] = new_linkedin
+                        clientes_salvos[nome]['experiencias'] = new_experiencias
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao atualizar: {e}")
 
     st.markdown("---")
     st.session_state['show_mapa'] = True
