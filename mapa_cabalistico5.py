@@ -930,6 +930,15 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         try: return s.split(' - ')[0]
         except: return str(s)
         
+    def get_from_row(row, key):
+        # Tenta buscar ignorando acentos e case
+        if not row: return None
+        search_key = remover_acentos(key).lower()
+        for k in row.keys():
+            if remover_acentos(k).lower() == search_key:
+                return row[k]
+        return None
+
     valores_originais_score = {
         "Motivação": motivacao, "Impressão": impressao, "Expressão": expressao, "Destino": destino, "Missão": missao,
         "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
@@ -942,10 +951,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         if val_s is None: continue
         perfil_enc = None
         if campo_s in mapa_col_matriz:
-            col_m = mapa_col_matriz[campo_s]
             row_m = MATRIZ_DB.get(str(val_s))
             if row_m:
-                attr_t = str(row_m.get(col_m, "")).upper()
+                attr_t = str(get_from_row(row_m, campo_s)).upper()
                 if attr_t:
                     ai = ATRIBUTOS_DB.get(attr_t)
                     if ai: perfil_enc = ai.get('perfil')
@@ -972,17 +980,14 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         if val_c is None: continue
         
         cat_encontrada = None
-        # Consulta via Matriz -> Atributos (coluna categoria)
-        col_m_cat = mapa_col_matriz.get(campo_c)
-        if col_m_cat:
+        if campo_c in mapa_col_matriz:
             row_m_cat = MATRIZ_DB.get(str(val_c))
             if row_m_cat:
-                attr_t_cat = str(row_m_cat.get(col_m_cat, "")).upper()
+                attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
                 if attr_t_cat:
                     ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
                     if ai_cat: cat_encontrada = ai_cat.get('categoria')
         else:
-            # Estrutural / Direcionamento
             ri_cat = REPETICAO_DB.get(str(val_c))
             if ri_cat: cat_encontrada = ri_cat.get('categoria')
             
@@ -999,7 +1004,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     val_dia_natalicio = valores_originais_score["Dia Natalício"]
     row_dia = MATRIZ_DB.get(str(val_dia_natalicio))
     if row_dia:
-        attr_dia = str(row_dia.get('dia_natalicio', "")).upper()
+        attr_dia = str(get_from_row(row_dia, 'Dia Natalício')).upper()
         if attr_dia:
             ai_dia = ATRIBUTOS_DB.get(attr_dia)
             if ai_dia: cat_dia_natalicio = str(ai_dia.get('categoria', "")).strip().capitalize()
@@ -1015,26 +1020,21 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         if val_q is None: continue
         
         qual_encontrada = None
-        # Consulta via Matriz -> Atributos (coluna area de suporte)
-        col_m_q = mapa_col_matriz.get(campo_q)
-        if col_m_q:
+        if campo_q in mapa_col_matriz:
             row_m_q = MATRIZ_DB.get(str(val_q))
             if row_m_q:
-                attr_t_q = str(row_m_q.get(col_m_q, "")).upper()
+                attr_t_q = str(get_from_row(row_m_q, campo_q)).upper()
                 if attr_t_q:
                     ai_q = ATRIBUTOS_DB.get(attr_t_q)
                     if ai_q:
-                        # Tenta com espaço e com underscore
                         qual_encontrada = ai_q.get('area de suporte') or ai_q.get('area_de_suporte')
         else:
-            # Estrutural / Direcionamento / Repetições
             ri_q = REPETICAO_DB.get(str(val_q))
             if ri_q:
                 qual_encontrada = ri_q.get('area de suporte') or ri_q.get('area_de_suporte')
             
         if qual_encontrada:
             qn = str(qual_encontrada).strip().upper()
-            # Busca insensível a maiúsculas/minúsculas no index
             for idx_name in score_qual_df.index:
                 if idx_name.upper() == qn:
                     score_qual_df.at[idx_name, campo_q] += 50
