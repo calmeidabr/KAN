@@ -1,0 +1,19 @@
+
+CREATE TABLE IF NOT EXISTS qualidades (
+    id SERIAL PRIMARY KEY,
+    qualidade TEXT,
+    descricao TEXT
+);
+
+INSERT INTO qualidades (qualidade, descricao) VALUES
+('Relacionamento', 'Foca na construção de vínculos, empatia e harmonia, facilitando o trabalho em equipe.'),
+('Execução', 'Orientado a resultados, transforma ideias em ações concretas com agilidade e eficácia.'),
+('Análise', 'Investiga dados, detalhes e cenários para embasar decisões lógicas e minimizar riscos.'),
+('Coletividade', 'Prioriza o sucesso do grupo sobre o individual, promovendo colaboração e senso de unidade.'),
+('Justiça', 'Atua com imparcialidade, ética e transparência, buscando o tratamento justo para todos.'),
+('Praticidade e Disciplina', 'Resolve problemas de forma direta e metódica, mantendo a ordem e o cumprimento de metas.'),
+('Comunicação', 'Transmite informações com clareza e escuta atentamente, garantindo o alinhamento da equipe.'),
+('Versatilidade', 'Adapta-se rapidamente a novas funções, tecnologias ou cenários, sendo resiliente às mudanças.'),
+('Intuição', 'Identifica padrões e oportunidades por insights, antecipando soluções em situações complexas.'),
+('Organização', 'Estrutura fluxos, gerencia prioridades e otimiza processos para maximizar a produtividade.'),
+('Serviço', 'Possui espírito colaborativo e prestativo, sempre disposto a apoiar as necessidades alheias.');

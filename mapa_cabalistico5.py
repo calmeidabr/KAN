@@ -210,6 +210,20 @@ def fetch_perfil_descricao():
 PERFIL_DESCRICAO_DB = fetch_perfil_descricao()
 
 @st.cache_data(ttl=3600)
+def fetch_qualidades():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("qualidades").select("*").execute()
+        return {row['qualidade'].strip().capitalize(): row['descricao'] for row in resp.data}
+    except Exception:
+        return {}
+
+QUALIDADES_DB = fetch_qualidades()
+
+@st.cache_data(ttl=3600)
 def fetch_lista_categoria():
     try:
         from supabase import create_client, Client
@@ -990,8 +1004,39 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             ai_dia = ATRIBUTOS_DB.get(attr_dia)
             if ai_dia: cat_dia_natalicio = str(ai_dia.get('categoria', "")).strip().capitalize()
             
-    # Lógica de seleção de categoria (será finalizada abaixo com o widget)
-    # --- FIM DO CÁLCULO DO SCORE PERFIL E CATEGORIA ---
+    # --- CÁLCULO DO SCORE QUALIDADES ---
+    lista_qual = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
+    colunas_qual = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+    
+    score_qual_df = pd.DataFrame(0, index=lista_qual, columns=colunas_qual)
+    
+    for campo_q in colunas_qual:
+        val_q = valores_originais_score[campo_q]
+        if val_q is None: continue
+        
+        qual_encontrada = None
+        # Consulta via Matriz -> Atributos (coluna area de suporte)
+        col_m_q = mapa_col_matriz.get(campo_q)
+        if col_m_q:
+            row_m_q = MATRIZ_DB.get(str(val_q))
+            if row_m_q:
+                attr_t_q = str(row_m_q.get(col_m_q, "")).upper()
+                if attr_t_q:
+                    ai_q = ATRIBUTOS_DB.get(attr_t_q)
+                    if ai_q: qual_encontrada = ai_q.get('area de suporte')
+        else:
+            # Estrutural / Direcionamento / Repetições
+            ri_q = REPETICAO_DB.get(str(val_q))
+            if ri_q: qual_encontrada = ri_q.get('area de suporte')
+            
+        if qual_encontrada:
+            qn = str(qual_encontrada).strip().capitalize()
+            if qn in score_qual_df.index:
+                score_qual_df.at[qn, campo_q] += 50
+                
+    score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
+    
+    # --- FIM DO CÁLCULO DO SCORE PERFIL, CATEGORIA E QUALIDADES ---
 
     dados_perfil = []
     def add_row_perfil_split(campo, valor, descricao):
@@ -1039,6 +1084,19 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         
     cat_desc = CATEGORIA_DESCRICAO_DB.get(categoria_selecionada, "")
     add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
+    
+    # Novo Campo: Qualidades (baseado no Score Qualidades)
+    totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
+    totais_q = totais_q[totais_q > 0]
+    qualidades_escolhidas = list(totais_q.index)
+    
+    qual_val = ", ".join(qualidades_escolhidas)
+    qual_desc_list = []
+    for q in qualidades_escolhidas:
+        d = QUALIDADES_DB.get(q, "")
+        if d: qual_desc_list.append(f"<b>{q}</b>: {d}")
+        
+    add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
     
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
@@ -1192,6 +1250,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         st.subheader("Categoria Selecionada")
         final_cat_df = pd.DataFrame([categoria_selecionada], columns=["Categoria"], index=["Resultado"])
         st.table(final_cat_df)
+
+        # --- SCORE QUALIDADES ---
+        st.markdown("---")
+        st.header("Score Qualidades")
+        
+        st.table(score_qual_df)
+        
+        st.subheader("Qualidades Selecionadas")
+        final_qual_df = pd.DataFrame([", ".join(qualidades_escolhidas)], columns=["Qualidades Pontuadas"], index=["Resultado"])
+        st.table(final_qual_df)
 
 
 elif (submit_mapa or submit_perfil) and not nome:
