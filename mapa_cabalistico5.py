@@ -739,6 +739,7 @@ def calcular_perfil_comportamental(expressao, motivacao, impressao, dia, destino
 # --- SISTEMA DE LOGIN ---
 USUARIOS = {
     "admin": "admin123",
+    "adminkan": "K@nAdmin#2026*",
     "cristiano": "kan2026",
     "maria": "maria2026"
 }
@@ -781,20 +782,20 @@ if not check_password():
     st.stop()
 
 # --- MENU DE NAVEGAÇÃO ---
-menu_opt = st.sidebar.radio("Navegação", ["Mapas Numerológicos", "Painel de Controle"])
+menu_opt = st.sidebar.radio("Navegação", ["Mapa", "Painel de Controle"])
 
 if menu_opt == "Painel de Controle":
     st.title("⚙️ Painel de Controle Administrativo")
     
-    # Proteção extra: Somente Maria ou Admin com senha da Maria
+    # Proteção extra: Somente adminkan
     if "admin_authenticated" not in st.session_state:
         st.session_state["admin_authenticated"] = False
         
     if not st.session_state["admin_authenticated"]:
         st.warning("Área restrita. Por favor, confirme a senha mestre.")
-        pass_admin = st.text_input("Senha de Administrador (Maria)", type="password")
+        pass_admin = st.text_input("Senha de Administrador", type="password")
         if st.button("Validar Acesso"):
-            if pass_admin == USUARIOS.get("maria"):
+            if pass_admin == USUARIOS.get("adminkan"):
                 st.session_state["admin_authenticated"] = True
                 st.rerun()
             else:
