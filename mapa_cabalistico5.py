@@ -61,9 +61,15 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Limitar largura dos inputs centrais */
-    .stTextInput, .stTextArea, .stFileUploader {
+    /* Inputs limitados para não ficarem muito longos e centralizados */
+    .stTextInput, .stTextArea, .stFileUploader, .stSelectbox {
         max-width: 500px !important;
+    }
+    /* Forçar o alinhamento dentro das colunas */
+    [data-testid="stForm"] {
+        max-width: 800px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
     /* Em colunas, permite ocupar a largura da coluna */
     [data-testid="column"] .stTextInput, [data-testid="column"] .stTextArea {
@@ -915,34 +921,36 @@ submit_mapa = False
 submit_perfil = False
 
 if cliente_selecionado == "-- Novo Cliente --":
-    with st.form("numerologia_form"):
-        st.markdown("### 👤 Novo Cadastro")
-        nome = st.text_input("Nome Completo (Conforme certidão):")
-        
-        col_f1, col_f2 = st.columns([1, 1])
-        with col_f1:
-            data_str_input = st.text_input("Data de Nascimento:", placeholder="dd/mm/yyyy")
-        with col_f2:
-            foto_upload = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"])
-
-        col_f3, col_f4, col_f5 = st.columns([1, 1, 1])
-        with col_f3:
-            cargo = st.text_input("Cargo/Profissão:")
-        with col_f4:
-            empresa = st.text_input("Empresa/Grupo:")
-        with col_f5:
-            linkedin = st.text_input("LinkedIn (URL):")
+    col_c1, col_c2, col_c3 = st.columns([1, 6, 1])
+    with col_c2:
+        with st.form("numerologia_form"):
+            st.markdown("### 👤 Novo Cadastro")
+            nome = st.text_input("Nome Completo (Conforme certidão):")
             
-        experiencias = st.text_area("Experiências Profissionais / Bio", 
-                                  placeholder="Resumo profissional para a IA...",
-                                  height=80)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
-        with col_btn1:
-            submit_mapa = st.form_submit_button("🏁 Gerar Mapa")
-        with col_btn2:
-            submit_perfil = st.form_submit_button("🧠 Gerar Perfil")
+            col_f1, col_f2 = st.columns([1, 1])
+            with col_f1:
+                data_str_input = st.text_input("Data de Nascimento:", placeholder="dd/mm/yyyy")
+            with col_f2:
+                foto_upload = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"])
+
+            col_f3, col_f4, col_f5 = st.columns([1, 1, 1])
+            with col_f3:
+                cargo = st.text_input("Cargo/Profissão:")
+            with col_f4:
+                empresa = st.text_input("Empresa/Grupo:")
+            with col_f5:
+                linkedin = st.text_input("LinkedIn (URL):")
+                
+            experiencias = st.text_area("Experiências Profissionais / Bio", 
+                                    placeholder="Resumo profissional para a IA...",
+                                    height=80)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
+            with col_btn1:
+                submit_mapa = st.form_submit_button("🏁 Gerar Mapa")
+            with col_btn2:
+                submit_perfil = st.form_submit_button("🧠 Gerar Perfil")
             
     if submit_mapa or submit_perfil:
         try:
