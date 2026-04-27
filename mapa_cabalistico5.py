@@ -281,6 +281,21 @@ def fetch_peso_categoria():
 
 PESO_CATEGORIA_DB = fetch_peso_categoria()
 
+@st.cache_data(ttl=3600)
+def fetch_diferenciais_descricao():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        supabase_client: Client = create_client(url, key)
+        resp = supabase_client.table("diferenciais_descricao").select("*").execute()
+        # Retorna dicionário { '11': {diferencial, descricao}, '22': ... }
+        return {str(get_from_row(row, 'no')): {'diferencial': get_from_row(row, 'diferencial'), 'descricao': get_from_row(row, 'descricao')} for row in resp.data}
+    except Exception:
+        return {}
+
+DIFERENCIAIS_DESC_DB = fetch_diferenciais_descricao()
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -1095,7 +1110,34 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     cat_desc = CATEGORIA_DESCRICAO_DB.get(categoria_selecionada, "")
     add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
     
-    # Novo Campo: Qualidades (baseado no Score Qualidades)
+    # Diferenciais (11 e 22)
+    campos_para_dif = [
+        extract_num(motivacao), extract_num(impressao), extract_num(expressao),
+        extract_num(destino), extract_num(missao), str(nascimento[0]),
+        str(triangulo_base), str(num_dia_reduzido)
+    ]
+    
+    diferenciais_ativos = []
+    dif_desc_list = []
+    
+    # Verifica 11
+    if "11" in campos_para_dif:
+        d11 = DIFERENCIAIS_DESC_DB.get("11")
+        if d11:
+            diferenciais_ativos.append(d11['diferencial'])
+            dif_desc_list.append(f"<b>{d11['diferencial']}</b>: {d11['descricao']}")
+    
+    # Verifica 22
+    if "22" in campos_para_dif:
+        d22 = DIFERENCIAIS_DESC_DB.get("22")
+        if d22:
+            diferenciais_ativos.append(d22['diferencial'])
+            dif_desc_list.append(f"<b>{d22['diferencial']}</b>: {d22['descricao']}")
+            
+    if diferenciais_ativos:
+        add_row_perfil_split("Diferenciais", ", ".join(diferenciais_ativos), "<br><br>".join(dif_desc_list))
+    
+    # Novo Campo: Qualidades
     totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
     totais_q = totais_q[totais_q > 0]
     qualidades_escolhidas = list(totais_q.index)
