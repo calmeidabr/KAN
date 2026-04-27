@@ -8,6 +8,7 @@ import tempfile
 from collections import Counter
 from PIL import Image
 import os
+import google.generativeai as genai
 
 def remover_acentos(texto):
     if texto is None: return ""
@@ -1169,28 +1170,14 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         
     add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
     
-    # --- NOVO: DIAGNÓSTICO (SÍNTESE) ---
-    sugestoes_cargos = []
-    p_upper = perfil_val.upper()
-    c_upper = categoria_selecionada.upper()
+    # --- NOVO: DIAGNÓSTICO COM IA (GEMINI) ---
+    if "ai_diagnosis" not in st.session_state:
+        st.session_state["ai_diagnosis"] = {}
+
+    user_name_key = f"diag_{nome}"
     
-    if "EXECUTOR" in p_upper: sugestoes_cargos.extend(["Gerência Operacional", "Gestão de Projetos", "Liderança de Equipes de Entrega"])
-    if "COMUNICADOR" in p_upper or "VENDEDOR" in p_upper: sugestoes_cargos.extend(["Área Comercial", "Relações Públicas", "Customer Success"])
-    if "ANALÍTICO" in c_upper or "ORGANIZADO" in c_upper: sugestoes_cargos.extend(["Análise de Dados", "Controladoria", "Planejamento Estratégico"])
-    if "LIDER" in p_upper: sugestoes_cargos.extend(["Direção Executiva", "Empreendedorismo", "Gestão de Pessoas"])
-    if "CRIATIVO" in p_upper: sugestoes_cargos.extend(["Marketing", "Desenvolvimento de Produtos", "Inovação"])
-    
-    # Limitar e formatar sugestões
-    cargos_final = list(set(sugestoes_cargos))[:4]
-    
-    qual_resumo = ", ".join(qualidades_escolhidas[:3])
-    desc_diag = f"""
-    Este diagnóstico aponta que o profissional possui diferenciais competitivos em <b>{qual_resumo}</b>. 
-    Sua performance tende a ser superior em funções que exijam <b>{c_upper}</b> e perfil <b>{p_upper}</b>.
-    <br><br>
-    <b>Sugestões de funções/cargos:</b><br>
-    • {"<br>• ".join(cargos_final) if cargos_final else "Consultoria Especializada, Gestão de Processos."}
-    """
+    # Se já existir um diagnóstico salvo para este nome na sessão, usamos ele
+    desc_diag = st.session_state["ai_diagnosis"].get(user_name_key, "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial.")
     
     add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
     
@@ -1292,6 +1279,34 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         html_perfil += "</tbody></table>"
         st.markdown(html_perfil, unsafe_allow_html=True)
         
+        # Botão para Gerar Diagnóstico com IA
+        if st.button("🪄 Gerar Diagnóstico Profissional com IA"):
+            try:
+                api_key = st.secrets["gemini"]["api_key"]
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-pro')
+                
+                # Montar o contexto para a IA
+                contexto = f"""
+                Analise o seguinte perfil numerológico e comportamental de {nome}:
+                - KAN: {k_data['kan']} ({k_data['descricao']})
+                - Perfil: {perfil_val}
+                - Categoria: {categoria_selecionada} ({cat_desc})
+                - Qualidades: {qual_val}
+                - Diferenciais: {", ".join(diferenciais_ativos) if diferenciais_ativos else "Nenhum específico"}
+                
+                Com base nisso, escreva um diagnóstico profissional de 2 a 3 parágrafos curtos. 
+                Indique em quais cargos, funções ou áreas essa pessoa teria melhor performance. 
+                Seja direto, profissional e inspirador. Use HTML <b> para destaques se necessário.
+                """
+                
+                with st.spinner("A Inteligência Artificial está analisando o perfil..."):
+                    response = model.generate_content(contexto)
+                    st.session_state["ai_diagnosis"][user_name_key] = response.text.replace("\n", "<br>")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao acessar a IA: {e}. Verifique se a API Key está correta nos Secrets.")
+
         st.markdown("---")
         st.subheader("Salvar Perfil Comportamental")
         col1, col2 = st.columns(2)

@@ -3,3 +3,4 @@ pandas
 fpdf
 supabase
 st-supabase-connection
+google-generativeai
