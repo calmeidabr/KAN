@@ -1365,6 +1365,11 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                         model = genai.GenerativeModel('models/gemini-2.5-flash')
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
+                        
+                        # Captura consumo de tokens
+                        uso = response.usage_metadata
+                        info_consumo = f"Consumo: {uso.prompt_token_count} (input) + {uso.candidates_token_count} (output) = {uso.total_token_count} tokens."
+                        st.session_state["ai_usage"] = info_consumo
                     except Exception as e:
                         # Tenta listar os modelos para mostrar ao usuário o que está disponível
                         try:
@@ -1380,7 +1385,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     if supabase_client:
                         try:
                             supabase_client.table("mapas_salvos").update({"ai_diagnosis": texto_ia}).eq("nome", nome).execute()
-                            st.toast("✅ Diagnóstico salvo no banco de dados!")
+                            consumo_msg = st.session_state.get("ai_usage", "")
+                            st.toast(f"✅ Diagnóstico salvo! {consumo_msg}")
                         except:
                             pass
                 st.rerun()
