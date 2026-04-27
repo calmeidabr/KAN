@@ -1361,13 +1361,15 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 with st.spinner("A Inteligência Artificial está analisando o perfil..."):
                     try:
+                        # Tentar o modelo mais compatível
+                        model = genai.GenerativeModel('gemini-1.5-flash-latest')
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
                     except Exception as e:
-                        # Log de modelos disponíveis para ajudar no debug
+                        # Tenta listar os modelos para mostrar ao usuário o que está disponível
                         try:
-                            models = [m.name for m in genai.list_models()]
-                            print(f"Modelos disponíveis: {models}")
+                            models_list = [m.name for m in genai.list_models()]
+                            st.error(f"Modelos que sua chave permite: {models_list}")
                         except:
                             pass
                         raise e
