@@ -39,57 +39,64 @@ except Exception:
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="Mapa Numerológico Cabalístico KAN", layout="wide", page_icon=favicon_img)
 
+st.markdown("""
+<style>
+    /* Estilização Premium KAN */
+    .stApp {
+        background: #f8f9fa;
+    }
+    /* Inputs limitados para não ficarem muito longos */
+    .stTextInput > div > div > input, .stTextArea > div > div > textarea {
+        max-width: 450px !important;
+        border-radius: 8px !important;
+    }
+    /* Botões Arredondados Modernos */
+    .stButton > button, .stFormSubmitButton > button {
+        border-radius: 20px !important;
+        padding: 0.5rem 2.5rem !important;
+        background-color: #1f1f1f !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.3s ease;
+        width: auto !important; /* Não ocupa largura toda */
+    }
+    .stButton > button:hover, .stFormSubmitButton > button:hover {
+        background-color: #F18617 !important; /* Laranja KAN no hover */
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        color: white !important;
+    }
+    /* Tabelas e Editores estilo Card */
+    .stDataFrame, .stDataEditor {
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    }
+    div[data-testid="stExpander"] {
+        border-radius: 10px !important;
+        border: 1px solid #e0e0e0 !important;
+        background: white !important;
+    }
+    /* Ajuste para inputs dentro de colunas ocuparem a coluna toda */
+    [data-testid="column"] .stTextInput > div > div > input, 
+    [data-testid="column"] .stTextArea > div > div > textarea {
+        max-width: 100% !important;
+    }
+    /* Cores das tabelas originais preservadas mas refinadas */
+    table thead th {
+        background-color: #F18617 !important;
+        color: white !important;
+    }
+    table tbody th {
+        color: #F18617 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Botão para limpar cache (Útil para quando o usuário atualiza o banco de dados)
 if st.sidebar.button("🔄 Recarregar Dados do Banco"):
     st.cache_data.clear()
     st.rerun()
-
-st.markdown("""
-<style>
-/* Força o fundo branco e texto escuro nos inputs para bater com a arte */
-div[data-baseweb="input"] > div {
-    background-color: #FFFFFF !important;
-    border-radius: 6px !important;
-}
-div[data-baseweb="input"] input {
-    color: #000000 !important;
-}
-div[data-baseweb="select"] > div {
-    background-color: #FFFFFF !important;
-    border-radius: 6px !important;
-}
-div[data-baseweb="select"] span {
-    color: #000000 !important;
-}
-/* Cor laranja para a coluna Campo nas tabelas */
-table tbody th {
-    color: #F18617 !important;
-}
-/* Cabeçalho das tabelas com fundo laranja e texto lilás/roxo */
-table thead th {
-    background-color: #F18617 !important;
-    color: #401041 !important;
-    font-weight: bold !important;
-}
-/* Congelar primeira coluna (Index) das tabelas ao rolar para a direita */
-div[data-testid="stTable"] {
-    overflow-x: auto !important;
-}
-table thead th:first-child {
-    position: sticky !important;
-    left: 0;
-    z-index: 3 !important;
-    background-color: #F18617 !important;
-}
-table tbody th:first-child {
-    position: sticky !important;
-    left: 0;
-    z-index: 2 !important;
-    background-color: #401041 !important; /* Cor roxa do fundo */
-    border-right: 2px solid #F18617 !important;
-}
-</style>
-""", unsafe_allow_html=True)
 
 # --- CACHED FETCH ---
 @st.cache_data(ttl=3600)
