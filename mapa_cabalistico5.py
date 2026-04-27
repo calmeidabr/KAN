@@ -634,36 +634,50 @@ def calcular_numerologia(nome_completo, nascimento, data_atual):
 
 def gerar_pdf(nome, data_nasc_str, dados, titulo="Mapa Numerologico Cabalistico"):
     from fpdf import FPDF
+    import tempfile
+    
+    def clean_text(s):
+        if not s: return ""
+        # Substitui caracteres comuns que quebram o latin-1 do FPDF
+        s = str(s).replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'").replace('–', '-').replace('—', '-')
+        # Remove tags HTML básicas se houver
+        s = s.replace("<b>", "").replace("</b>", "").replace("<br>", "\n")
+        # Força conversão para latin-1 ignorando o que não couber
+        return s.encode('latin-1', 'replace').decode('latin-1')
+
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, remover_acentos(titulo), ln=True, align='C')
+    pdf.cell(190, 10, clean_text(titulo), ln=True, align='C')
     pdf.ln(10)
     
     pdf.set_font("Arial", 'B', 12)
-    pdf.cell(190, 8, f"Nome: {remover_acentos(nome)}", ln=True)
+    pdf.cell(190, 8, f"Nome: {clean_text(nome)}", ln=True)
     pdf.cell(190, 8, f"Data de Nascimento: {data_nasc_str}", ln=True)
     pdf.ln(5)
     
-    col1 = 65
-    col2 = 125
+    col1 = 50
+    col2 = 140
     pdf.set_font("Arial", 'B', 10)
-    pdf.cell(col1, 8, "Campo", 1)
-    pdf.cell(col2, 8, "Resultado", 1, 1)
+    pdf.cell(col1, 8, clean_text("Campo"), 1)
+    pdf.cell(col2, 8, clean_text("Resultado"), 1, 1)
     
+    pdf.set_font("Arial", '', 9)
     for row in dados:
-        campo = str(row['Campo'])
-        resultado = str(row['Resultado'])
+        campo = clean_text(row['Campo'])
+        resultado = clean_text(row['Resultado'])
         
-        if len(resultado) > 55:
-            pdf.set_font("Arial", '', 7)
-        elif len(resultado) > 40:
-            pdf.set_font("Arial", '', 8)
-        else:
-            pdf.set_font("Arial", '', 10)
-            
-        pdf.cell(col1, 8, campo, 1)
-        pdf.cell(col2, 8, resultado, 1, 1)
+        # Calcula altura necessária (multi_cell)
+        # multi_cell permite quebra de linha automática
+        start_y = pdf.get_y()
+        pdf.multi_cell(col2, 8, resultado, 1)
+        end_y = pdf.get_y()
+        diff_y = end_y - start_y
+        
+        # Volta para desenhar o nome do campo com a mesma altura
+        pdf.set_y(start_y)
+        pdf.multi_cell(col1, diff_y, campo, 1)
+        pdf.set_y(end_y)
         
     with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
         pdf.output(tmp.name)
