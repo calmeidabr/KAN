@@ -777,18 +777,15 @@ def check_password():
         st.markdown("<h4 style='text-align: center;'>Descubra sua potencialidade</h4>", unsafe_allow_html=True)
         st.write("")
 
-    if "password_correct" not in st.session_state:
+    if "password_correct" not in st.session_state or not st.session_state["password_correct"]:
         render_login_header()
-        st.text_input("Usuário", key="username")
-        st.text_input("Senha", type="password", key="password")
-        st.button("Entrar", on_click=password_entered)
-        return False
-    elif not st.session_state["password_correct"]:
-        render_login_header()
-        st.text_input("Usuário", key="username")
-        st.text_input("Senha", type="password", key="password")
-        st.button("Entrar", on_click=password_entered)
-        st.error("Usuário ou senha incorretos. Tente novamente.")
+        col_l1, col_l2, col_l3 = st.columns([1, 1.5, 1])
+        with col_l2:
+            st.text_input("Usuário", key="username")
+            st.text_input("Senha", type="password", key="password")
+            st.button("Entrar", on_click=password_entered)
+            if st.session_state.get("password_correct") == False:
+                st.error("Usuário ou senha incorretos. Tente novamente.")
         return False
     else:
         return True
