@@ -1169,6 +1169,31 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         
     add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
     
+    # --- NOVO: DIAGNÓSTICO (SÍNTESE) ---
+    sugestoes_cargos = []
+    p_upper = perfil_val.upper()
+    c_upper = categoria_selecionada.upper()
+    
+    if "EXECUTOR" in p_upper: sugestoes_cargos.extend(["Gerência Operacional", "Gestão de Projetos", "Liderança de Equipes de Entrega"])
+    if "COMUNICADOR" in p_upper or "VENDEDOR" in p_upper: sugestoes_cargos.extend(["Área Comercial", "Relações Públicas", "Customer Success"])
+    if "ANALÍTICO" in c_upper or "ORGANIZADO" in c_upper: sugestoes_cargos.extend(["Análise de Dados", "Controladoria", "Planejamento Estratégico"])
+    if "LIDER" in p_upper: sugestoes_cargos.extend(["Direção Executiva", "Empreendedorismo", "Gestão de Pessoas"])
+    if "CRIATIVO" in p_upper: sugestoes_cargos.extend(["Marketing", "Desenvolvimento de Produtos", "Inovação"])
+    
+    # Limitar e formatar sugestões
+    cargos_final = list(set(sugestoes_cargos))[:4]
+    
+    qual_resumo = ", ".join(qualidades_escolhidas[:3])
+    desc_diag = f"""
+    Este diagnóstico aponta que o profissional possui diferenciais competitivos em <b>{qual_resumo}</b>. 
+    Sua performance tende a ser superior em funções que exijam <b>{c_upper}</b> e perfil <b>{p_upper}</b>.
+    <br><br>
+    <b>Sugestões de funções/cargos:</b><br>
+    • {"<br>• ".join(cargos_final) if cargos_final else "Consultoria Especializada, Gestão de Processos."}
+    """
+    
+    add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
+    
     f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
     add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
     
