@@ -638,45 +638,62 @@ def gerar_pdf(nome, data_nasc_str, dados, titulo="Mapa Numerologico Cabalistico"
     
     def clean_text(s):
         if not s: return ""
-        # Substitui caracteres comuns que quebram o latin-1 do FPDF
         s = str(s).replace('“', '"').replace('”', '"').replace('‘', "'").replace('’', "'").replace('–', '-').replace('—', '-')
-        # Remove tags HTML básicas se houver
         s = s.replace("<b>", "").replace("</b>", "").replace("<br>", "\n")
-        # Força conversão para latin-1 ignorando o que não couber
         return s.encode('latin-1', 'replace').decode('latin-1')
 
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
+    
+    # Cabeçalho
     pdf.set_font("Arial", 'B', 16)
     pdf.cell(190, 10, clean_text(titulo), ln=True, align='C')
-    pdf.ln(10)
-    
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(190, 8, f"Nome: {clean_text(nome)}", ln=True)
-    pdf.cell(190, 8, f"Data de Nascimento: {data_nasc_str}", ln=True)
+    pdf.ln(5)
+    pdf.set_font("Arial", 'B', 11)
+    pdf.cell(190, 7, f"Nome: {clean_text(nome)}", ln=True)
+    pdf.cell(190, 7, f"Data de Nascimento: {data_nasc_str}", ln=True)
     pdf.ln(5)
     
-    col1 = 50
-    col2 = 140
+    col1 = 60
+    col2 = 130
+    
+    # Cabeçalho da Tabela
+    pdf.set_fill_color(240, 240, 240)
     pdf.set_font("Arial", 'B', 10)
-    pdf.cell(col1, 8, clean_text("Campo"), 1)
-    pdf.cell(col2, 8, clean_text("Resultado"), 1, 1)
+    pdf.cell(col1, 8, clean_text("Campo"), 1, 0, 'L', True)
+    pdf.cell(col2, 8, clean_text("Resultado"), 1, 1, 'L', True)
     
     pdf.set_font("Arial", '', 9)
     for row in dados:
         campo = clean_text(row['Campo'])
         resultado = clean_text(row['Resultado'])
         
-        # Calcula altura necessária (multi_cell)
-        # multi_cell permite quebra de linha automática
-        start_y = pdf.get_y()
-        pdf.multi_cell(col2, 8, resultado, 1)
-        end_y = pdf.get_y()
-        diff_y = end_y - start_y
+        # Estimar altura (aproximada) para decidir se pula de página
+        # Cada linha no multi_cell tem ~5mm de altura. 
+        # Calculamos quantas linhas o texto vai ocupar (130mm de largura / ~2mm por char)
+        linhas_estimadas = max(1, (len(resultado) // 80) + 1)
+        altura_linha = linhas_estimadas * 6
         
-        # Volta para desenhar o nome do campo com a mesma altura
+        # Se não houver espaço na página (A4 tem ~297mm, deixamos margem)
+        if pdf.get_y() + altura_linha > 275:
+            pdf.add_page()
+            # Repete cabeçalho da tabela na nova página
+            pdf.set_font("Arial", 'B', 10)
+            pdf.cell(col1, 8, clean_text("Campo"), 1, 0, 'L', True)
+            pdf.cell(col2, 8, clean_text("Resultado"), 1, 1, 'L', True)
+            pdf.set_font("Arial", '', 9)
+
+        start_y = pdf.get_y()
+        # Desenha a coluna do Resultado primeiro para saber a altura real
+        pdf.set_x(col1 + 10) # 10 é a margem padrão esquerda
+        pdf.multi_cell(col2, 6, resultado, 1)
+        end_y = pdf.get_y()
+        altura_final = end_y - start_y
+        
+        # Volta para desenhar o Campo com a mesma altura
         pdf.set_y(start_y)
-        pdf.multi_cell(col1, diff_y, campo, 1)
+        pdf.multi_cell(col1, altura_final, campo, 1)
         pdf.set_y(end_y)
         
     with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp:
