@@ -974,10 +974,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 attr_t = str(get_from_row(row_m, campo_s)).upper()
                 if attr_t:
                     ai = ATRIBUTOS_DB.get(attr_t)
-                    if ai: perfil_enc = ai.get('perfil')
+                    if ai: perfil_enc = get_from_row(ai, 'perfil')
         else:
             ri = REPETICAO_DB.get(str(val_s))
-            if ri: perfil_enc = ri.get('perfil')
+            if ri: perfil_enc = get_from_row(ri, 'perfil')
         
         if perfil_enc:
             pn = str(perfil_enc).strip().capitalize()
@@ -1004,10 +1004,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
                 if attr_t_cat:
                     ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
-                    if ai_cat: cat_encontrada = ai_cat.get('categoria')
+                    if ai_cat: cat_encontrada = get_from_row(ai_cat, 'categoria')
         else:
             ri_cat = REPETICAO_DB.get(str(val_c))
-            if ri_cat: cat_encontrada = ri_cat.get('categoria')
+            if ri_cat: cat_encontrada = get_from_row(ri_cat, 'categoria')
             
         if cat_encontrada:
             cn = str(cat_encontrada).strip().capitalize()
@@ -1025,7 +1025,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         attr_dia = str(get_from_row(row_dia, 'Dia Natalício')).upper()
         if attr_dia:
             ai_dia = ATRIBUTOS_DB.get(attr_dia)
-            if ai_dia: cat_dia_natalicio = str(ai_dia.get('categoria', "")).strip().capitalize()
+            if ai_dia: cat_dia_natalicio = str(get_from_row(ai_dia, 'categoria') or "").strip().capitalize()
             
     # --- CÁLCULO DO SCORE QUALIDADES ---
     lista_qual = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
