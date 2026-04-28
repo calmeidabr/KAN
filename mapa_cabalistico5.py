@@ -1385,7 +1385,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             
             dados_auditoria_qual.append({
                 "Campo": campo_q,
-                "Atributo": attr_t_q if attr_t_q else "N/A"
+                "Valor": val_q,
+                "Atributo": attr_t_q if attr_t_q else "N/A",
+                "Qualidade": qual_encontrada if qual_encontrada else "N/A"
             })
                     
         score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
