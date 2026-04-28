@@ -1136,62 +1136,79 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
         # Dívidas Cármicas com descrições
         if dividas_carmicas:
+            dividas_str = ', '.join(str(d) for d in dividas_carmicas)
             dividas_parts = []
             for d in dividas_carmicas:
                 desc_d = get_desc_mapa("Divida Carmica", str(d))
-                dividas_parts.append(f"{d}: {desc_d}" if desc_d else str(d))
-            add_row("Dívidas Cármicas", ' | '.join(dividas_parts))
+                dividas_parts.append(f"<b>{d}</b>: {desc_d}" if desc_d else str(d))
+            add_row(f"Dívidas Cármicas - {dividas_str}", ' | '.join(dividas_parts))
         else:
             add_row("Dívidas Cármicas", "Não há")
 
         # Lições Cármicas com descrições
         if licoes_carmicas:
+            licoes_str = ', '.join(str(l) for l in licoes_carmicas)
             licoes_parts = []
             for l in licoes_carmicas:
                 desc_l = get_desc_mapa("Licao Carmica", str(l))
-                licoes_parts.append(f"{l}: {desc_l}" if desc_l else str(l))
-            add_row("Lições Cármicas", ' | '.join(licoes_parts))
+                licoes_parts.append(f"<b>{l}</b>: {desc_l}" if desc_l else str(l))
+            add_row(f"Lições Cármicas - {licoes_str}", ' | '.join(licoes_parts))
         else:
             add_row("Lições Cármicas", "Não há")
 
         # Tendências Ocultas com descrições
         if tendencias_ocultas:
+            tend_str = ', '.join(str(t) for t in tendencias_ocultas)
             tend_parts = []
             for t in tendencias_ocultas:
                 desc_t = get_desc_mapa("Tendencia Oculta", str(t))
-                tend_parts.append(f"{t}: {desc_t}" if desc_t else str(t))
-            add_row("Tendências Ocultas", ' | '.join(tend_parts))
+                tend_parts.append(f"<b>{t}</b>: {desc_t}" if desc_t else str(t))
+            add_row(f"Tendências Ocultas - {tend_str}", ' | '.join(tend_parts))
             add_row("Soma das Tendências Ocultas", soma_tendencias)
         else:
             add_row("Tendências Ocultas", "Não há")
 
         # Resposta Subconsciente com descrição
         desc_resp = get_desc_mapa("Resposta Subconsciente", str(extract_num(resposta_subconsciente) if resposta_subconsciente else ""))
-        add_row("Resposta Subconsciente", f"{resposta_subconsciente} | {desc_resp}" if desc_resp else resposta_subconsciente)
+        add_row(f"Resposta Subconsciente - {resposta_subconsciente}", desc_resp if desc_resp else "")
 
         # Dia Natalício com descrição (usa o dia bruto 1-31)
         desc_dia_nat = get_desc_mapa("Dia Natalicio", str(nascimento[0]))
-        add_row("Dia Natalício", f"{nascimento[0]} | {desc_dia_nat}" if desc_dia_nat else str(nascimento[0]))
+        add_row(f"Dia Natalício - {nascimento[0]}", desc_dia_nat if desc_dia_nat else "")
 
-        add_row("1º Desafio", desafio1)
-        add_row("2º Desafio", desafio2)
-        add_row("Desafio Principal", desafio_principal)
+        add_row(f"1º Desafio - {desafio1}", "")
+        add_row(f"2º Desafio - {desafio2}", "")
+        add_row(f"Desafio Principal - {desafio_principal}", "")
 
-        c1 = f"Nº {ciclos_vida['ciclo1']['numero']} ({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
-        c2 = f"Nº {ciclos_vida['ciclo2']['numero']} ({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
-        c3 = f"Nº {ciclos_vida['ciclo3']['numero']} (a partir de {ciclos_vida['ciclo3']['inicio']})"
-        add_row("1º Ciclo de Vida", c1)
-        add_row("2º Ciclo de Vida", c2)
-        add_row("3º Ciclo de Vida", c3)
+        # Ciclos de Vida
+        c1_num = ciclos_vida['ciclo1']['numero']
+        c1_periodo = f"{ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']}"
+        add_row(f"1º Ciclo de Vida - {c1_num}", c1_periodo)
 
-        m1 = f"Nº {momentos_decisivos['momento1']['numero']} ({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
-        m2 = f"Nº {momentos_decisivos['momento2']['numero']} ({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
-        m3 = f"Nº {momentos_decisivos['momento3']['numero']} ({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
-        m4 = f"Nº {momentos_decisivos['momento4']['numero']} (a partir de {momentos_decisivos['momento4']['inicio']})"
-        add_row("1º Momento Decisivo", m1)
-        add_row("2º Momento Decisivo", m2)
-        add_row("3º Momento Decisivo", m3)
-        add_row("4º Momento Decisivo", m4)
+        c2_num = ciclos_vida['ciclo2']['numero']
+        c2_periodo = f"{ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']}"
+        add_row(f"2º Ciclo de Vida - {c2_num}", c2_periodo)
+
+        c3_num = ciclos_vida['ciclo3']['numero']
+        c3_periodo = f"A partir de {ciclos_vida['ciclo3']['inicio']}"
+        add_row(f"3º Ciclo de Vida - {c3_num}", c3_periodo)
+
+        # Momentos Decisivos
+        m1_num = momentos_decisivos['momento1']['numero']
+        m1_periodo = f"{momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']}"
+        add_row(f"1º Momento Decisivo - {m1_num}", m1_periodo)
+
+        m2_num = momentos_decisivos['momento2']['numero']
+        m2_periodo = f"{momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']}"
+        add_row(f"2º Momento Decisivo - {m2_num}", m2_periodo)
+
+        m3_num = momentos_decisivos['momento3']['numero']
+        m3_periodo = f"{momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']}"
+        add_row(f"3º Momento Decisivo - {m3_num}", m3_periodo)
+
+        m4_num = momentos_decisivos['momento4']['numero']
+        m4_periodo = f"A partir de {momentos_decisivos['momento4']['inicio']}"
+        add_row(f"4º Momento Decisivo - {m4_num}", m4_periodo)
 
         # --- CÁLCULO DO SCORE PERFIL (Mover para antes das tabelas para incluir no Resultado) ---
         perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
