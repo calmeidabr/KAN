@@ -1470,7 +1470,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             except Exception as e:
                 st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
 
-            # --- Tabela do Mapa em HTML customizado ---
+        # --- EXIBIÇÃO DOS RESULTADOS DO MAPA ---
+        if st.session_state.get('show_mapa'):
+            st.subheader("Mapa")
             st.markdown("""
             <style>
             .mapa-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
