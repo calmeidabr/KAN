@@ -891,7 +891,8 @@ if menu_opt == "Painel de Controle":
     
     tabelas = [
         "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
-        "diferenciais_descricao", "peso_categoria", "atributos", "matriz", "qualidades"
+        "diferenciais_descricao", "peso_categoria", "atributos", "matriz", "qualidades",
+        "descricoes_mapa"
     ]
     
     tab_selecionada = st.selectbox("Selecione a Tabela para Editar", tabelas)
@@ -902,8 +903,21 @@ if menu_opt == "Painel de Controle":
             res = supabase_client.table(tab_selecionada).select("*").execute()
             df_edit = pd.DataFrame(res.data)
             
-            if not df_edit.empty:
+            # Se descricoes_mapa estiver vazia no banco, puxa os dados do fallback local
+            if df_edit.empty and tab_selecionada == "descricoes_mapa":
+                dict_mapa = fetch_descricoes_mapa()
+                flat_data = []
+                for cat, subdict in dict_mapa.items():
+                    for val, desc in subdict.items():
+                        flat_data.append({"categoria": cat, "valor": val, "descricao": desc})
+                df_edit = pd.DataFrame(flat_data)
+            
+            if not df_edit.empty or tab_selecionada == "descricoes_mapa":
                 st.write(f"Editando: `{tab_selecionada}`")
+                
+                # Garante colunas mínimas caso venha vazio
+                if df_edit.empty:
+                    df_edit = pd.DataFrame(columns=["categoria", "valor", "descricao"])
                 
                 # Editor de dados com altura limitada
                 edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True, height=450)
@@ -911,10 +925,18 @@ if menu_opt == "Painel de Controle":
                 if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
                         try:
+                            # Tenta deletar se houver RLS permissivo ou ignorar
                             supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
                             novos_dados = edited_df.to_dict(orient='records')
-                            if novos_dados:
-                                supabase_client.table(tab_selecionada).insert(novos_dados).execute()
+                            
+                            # Limpa campos nulos de ID para não quebrar no banco
+                            cleaned_dados = []
+                            for d in novos_dados:
+                                d_clean = {k: v for k, v in d.items() if not (k == 'id' and pd.isna(v))}
+                                cleaned_dados.append(d_clean)
+                                
+                            if cleaned_dados:
+                                supabase_client.table(tab_selecionada).insert(cleaned_dados).execute()
                             st.success(f"Tabela `{tab_selecionada}` atualizada com sucesso!")
                             st.cache_data.clear() 
                         except Exception as e:
