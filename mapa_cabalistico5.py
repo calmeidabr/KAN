@@ -1353,12 +1353,14 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         colunas_qual = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
         
         score_qual_df = pd.DataFrame(0, index=lista_qual, columns=colunas_qual)
+        dados_auditoria_qual = []
         
         for campo_q in colunas_qual:
             val_q = valores_originais_score[campo_q]
             if val_q is None: continue
             
             qual_encontrada = None
+            attr_t_q = None
             if campo_q in mapa_col_matriz:
                 row_m_q = MATRIZ_DB.get(str(val_q))
                 if row_m_q:
@@ -1371,6 +1373,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 ri_q = REPETICAO_DB.get(str(val_q))
                 if ri_q:
                     qual_encontrada = get_from_row(ri_q, 'qualidade') or get_from_row(ri_q, 'area de suporte')
+                    attr_t_q = "Tabela Repetição"
                 
             if qual_encontrada:
                 qn = remover_acentos(str(qual_encontrada).strip()).upper()
@@ -1379,8 +1382,14 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     if remover_acentos(idx_name).upper() == qn:
                         score_qual_df.at[idx_name, campo_q] += 50
                         break
+            
+            dados_auditoria_qual.append({
+                "Campo": campo_q,
+                "Atributo": attr_t_q if attr_t_q else "N/A"
+            })
                     
         score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
+        auditoria_qual_df = pd.DataFrame(dados_auditoria_qual)
         
         # --- FIM DO CÁLCULO DO SCORE PERFIL, CATEGORIA E QUALIDADES ---
 
@@ -1693,6 +1702,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Score Qualidades")
                 st.table(score_qual_df)
+                
+                st.header("Detalhamento dos Atributos")
+                st.table(auditoria_qual_df)
 
 
 elif (submit_mapa or submit_perfil) and not nome:
