@@ -1368,6 +1368,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
         m2_num = momentos_decisivos['momento2']['numero']
         m2_periodo = f"{momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']}"
+
         desc_m2 = get_desc_mapa("Momento Decisivo", str(m2_num))
         add_row(f"2º Momento Decisivo - {m2_num}", f"<b>Período: {m2_periodo}</b><br>{desc_m2}" if desc_m2 else m2_periodo)
 
@@ -1381,13 +1382,17 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         desc_m4 = get_desc_mapa("Momento Decisivo", str(m4_num))
         add_row(f"4º Momento Decisivo - {m4_num}", f"<b>Período: {m4_periodo}</b><br>{desc_m4}" if desc_m4 else m4_periodo)
 
+        # Recarrega configurações dinamicamente
+        MATRIZ_DB = fetch_matriz()
+        ATRIBUTOS_DB = fetch_atributos()
+        REPETICAO_DB = fetch_repeticao()
+        PESO_DB = fetch_peso()
 
         # --- CÁLCULO DO SCORE PERFIL (Mover para antes das tabelas para incluir no Resultado) ---
         perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
         colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
         mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
         
-
         valores_originais_score = {
             "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
             "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
@@ -1402,8 +1407,15 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             if campo_s in mapa_col_matriz:
                 row_m = MATRIZ_DB.get(str(val_s))
                 if row_m:
-                    attr_t = str(get_from_row(row_m, campo_s)).upper()
-                    if attr_t:
+                    attr_t = str(get_from_row(row_m, campo_s) or "").upper()
+                    
+                    if (not attr_t or attr_t == "NAN") and str(val_s).isdigit() and int(val_s) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_s))
+                        row_m_reduz = MATRIZ_DB.get(str(num_reduz))
+                        if row_m_reduz:
+                            attr_t = str(get_from_row(row_m_reduz, campo_s) or "").upper()
+                            
+                    if attr_t and attr_t != "NAN":
                         ai = ATRIBUTOS_DB.get(attr_t)
                         if ai: perfil_enc = get_from_row(ai, 'perfil')
             else:
