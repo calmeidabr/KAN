@@ -1142,38 +1142,45 @@ if cliente_selecionado == "-- Novo Cliente --":
             
     with col_c2:
         st.markdown("### 📸 Leitura Automática (RG/CNH)")
-        foto_doc = st.camera_input("Tire uma foto legível do seu documento")
-        if foto_doc:
-            with st.spinner("Extraindo dados do documento..."):
-                try:
-                    api_key = st.secrets["gemini"]["api_key"]
-                    genai.configure(api_key=api_key)
-                    
-                    imagem_pil = Image.open(foto_doc)
-                    model = genai.GenerativeModel('models/gemini-2.5-flash')
-                    
-                    prompt = """
-                    Você é um especialista em OCR. Extraia as seguintes informações deste documento de identidade brasileiro:
-                    1. Nome completo (campo Nome).
-                    2. Data de nascimento (campo Data de Nascimento).
-                    
-                    Retorne EXCLUSIVAMENTE um objeto JSON válido no padrão a seguir, sem textos adicionais, formatações markdown ou comentários:
-                    {"nome": "NOME COMPLETO", "data_nascimento": "DD/MM/AAAA"}
-                    """
-                    
-                    resposta_ia = model.generate_content([prompt, imagem_pil])
-                    texto_ia = resposta_ia.text.strip().replace("```json", "").replace("```", "")
-                    
-                    dados_json = json.loads(texto_ia)
-                    if "nome" in dados_json:
-                        st.session_state['ocr_nome'] = str(dados_json['nome']).upper().strip()
-                    if "data_nascimento" in dados_json:
-                        st.session_state['ocr_data_nascimento'] = str(dados_json['data_nascimento']).strip()
+        
+        if st.button("📷 Ativar Câmera"):
+            st.session_state['camera_aberta'] = True
+            
+        if st.session_state.get('camera_aberta', False):
+            foto_doc = st.camera_input("Tire uma foto legível do seu documento")
+            if foto_doc:
+                with st.spinner("Extraindo dados do documento..."):
+                    try:
+                        api_key = st.secrets["gemini"]["api_key"]
+                        genai.configure(api_key=api_key)
                         
-                    st.success("Dados preenchidos! Atualizando formulário.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro na leitura: {e}")
+                        imagem_pil = Image.open(foto_doc)
+                        model = genai.GenerativeModel('models/gemini-2.5-flash')
+                        
+                        prompt = """
+                        Você é um especialista em OCR. Extraia as seguintes informações deste documento de identidade brasileiro:
+                        1. Nome completo (campo Nome).
+                        2. Data de nascimento (campo Data de Nascimento).
+                        
+                        Retorne EXCLUSIVAMENTE um objeto JSON válido no padrão a seguir, sem textos adicionais, formatações markdown ou comentários:
+                        {"nome": "NOME COMPLETO", "data_nascimento": "DD/MM/AAAA"}
+                        """
+                        
+                        resposta_ia = model.generate_content([prompt, imagem_pil])
+                        texto_ia = resposta_ia.text.strip().replace("```json", "").replace("```", "")
+                        
+                        dados_json = json.loads(texto_ia)
+                        if "nome" in dados_json:
+                            st.session_state['ocr_nome'] = str(dados_json['nome']).upper().strip()
+                        if "data_nascimento" in dados_json:
+                            st.session_state['ocr_data_nascimento'] = str(dados_json['data_nascimento']).strip()
+                            
+                        # Desliga a câmera após a leitura bem-sucedida
+                        st.session_state['camera_aberta'] = False
+                        st.success("Dados preenchidos! Atualizando formulário.")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro na leitura: {e}")
             
     if submit_mapa or submit_perfil:
         try:
