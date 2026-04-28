@@ -190,11 +190,16 @@ def fetch_matriz():
         resultado = {}
         for _, row in df.iterrows():
             row_dict = row.to_dict()
-            num_val = str(row_dict.get('Resultado', row_dict.get('numero', '')))
-            if num_val:
-                # Remove acentos das chaves
-                cleaned_row = {remover_acentos(k): v for k, v in row_dict.items()}
-                resultado[num_val] = cleaned_row
+            num_val = row_dict.get('Resultado', row_dict.get('numero', ''))
+            if pd.notna(num_val):
+                try:
+                    num_val_str = str(int(float(num_val)))
+                except:
+                    num_val_str = str(num_val).strip()
+                
+                if num_val_str:
+                    cleaned_row = {remover_acentos(k): v for k, v in row_dict.items()}
+                    resultado[num_val_str] = cleaned_row
         return resultado
     except Exception:
         return {}
@@ -1469,8 +1474,15 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             if campo_q in mapa_col_matriz:
                 row_m_q = MATRIZ_DB.get(str(val_q))
                 if row_m_q:
-                    attr_t_q = str(get_from_row(row_m_q, campo_q)).upper()
-                    if attr_t_q:
+                    attr_t_q = str(get_from_row(row_m_q, campo_q) or "").upper()
+                    
+                    if (not attr_t_q or attr_t_q == "NAN") and str(val_q).isdigit() and int(val_q) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_q))
+                        row_m_reduz = MATRIZ_DB.get(str(num_reduz))
+                        if row_m_reduz:
+                            attr_t_q = str(get_from_row(row_m_reduz, campo_q) or "").upper()
+                            
+                    if attr_t_q and attr_t_q != "NAN":
                         ai_q = ATRIBUTOS_DB.get(attr_t_q)
                         if ai_q:
                             qual_encontrada = get_from_row(ai_q, 'qualidade') or get_from_row(ai_q, 'area de suporte')
