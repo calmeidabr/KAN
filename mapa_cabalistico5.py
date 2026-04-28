@@ -1113,11 +1113,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             try: return s.split(' - ')[0]
             except: return str(s)
 
-        # Helper: formata campo com descrição numerológica se disponível
+        # Helper: campo com número no label + descrição separada
         def add_row_com_desc(campo, valor_str, categoria_mapa, valor_num):
             desc = get_desc_mapa(categoria_mapa, str(valor_num))
             if desc:
-                add_row(campo, f"{valor_str} | {desc}")
+                # Campo recebe "NomeCampo - NUMERO" e Resultado recebe apenas a descrição
+                add_row(f"{campo} - {valor_num}", desc)
             else:
                 add_row(campo, valor_str)
 
@@ -1469,16 +1470,56 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             except Exception as e:
                 st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
 
-        # --- EXIBIÇÃO DOS RESULTADOS ---
-        if st.session_state.get('show_mapa'):
-            st.subheader("Mapa")
-            df = pd.DataFrame(dados)
-            st.table(df.set_index('Campo'))
+            # --- Tabela do Mapa em HTML customizado ---
+            st.markdown("""
+            <style>
+            .mapa-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
+            .mapa-table th { background-color: #F18617; color: #401041; padding: 10px 14px; text-align: left; font-size: 0.95em; }
+            .mapa-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+            .mapa-campo { color: #F18617; font-weight: bold; padding: 10px 14px; white-space: nowrap; font-size: 0.9em; }
+            .mapa-numero { display: inline-block; background: #F18617; color: #401041;
+                           font-weight: bold; font-size: 1.1em; padding: 1px 8px;
+                           border-radius: 4px; margin-left: 6px; }
+            .mapa-desc { padding: 10px 14px; color: #FFFFFF; font-size: 0.88em;
+                         line-height: 1.45; text-align: justify; }
+            .mapa-valor { padding: 10px 14px; color: #FFFFFF; font-size: 0.95em; }
+            </style>
+            """, unsafe_allow_html=True)
+
+            html_mapa = '<table class="mapa-table"><thead><tr><th style="width:18%">Campo</th><th>Resultado</th></tr></thead><tbody>'
+            for item in dados:
+                campo_raw = item['Campo']
+                resultado_raw = item['Resultado']
+
+                # Detecta se o campo tem número embutido (ex: "Expressao - 1")
+                if ' - ' in campo_raw:
+                    partes_campo = campo_raw.rsplit(' - ', 1)
+                    label_campo = partes_campo[0]
+                    numero_badge = f"<span class='mapa-numero'>{partes_campo[1]}</span>"
+                else:
+                    label_campo = campo_raw
+                    numero_badge = ""
+
+                # Célula da descrição
+                if resultado_raw:
+                    cel_resultado = f"<div class='mapa-desc'>{resultado_raw}</div>"
+                else:
+                    cel_resultado = "<div class='mapa-valor'></div>"
+
+                html_mapa += (
+                    f"<tr>"
+                    f"<td><div class='mapa-campo'>{label_campo}{numero_badge}</div></td>"
+                    f"<td>{cel_resultado}</td>"
+                    f"</tr>"
+                )
+            html_mapa += "</tbody></table>"
+            st.markdown(html_mapa, unsafe_allow_html=True)
 
             st.markdown("---")
             st.subheader("Salvar Resultados do Mapa")
             col1, col2 = st.columns(2)
             nome_limpo = remover_acentos(nome).replace(' ', '_')
+            df = pd.DataFrame(dados)
             
             with col1:
                 csv = df.to_csv(sep=';', index=False).encode('utf-8')
