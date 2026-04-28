@@ -1109,15 +1109,15 @@ submit_mapa = False
 submit_perfil = False
 
 if cliente_selecionado == "-- Novo Cliente --":
-    col_c1, col_c2, col_c3 = st.columns([1, 6, 1])
-    with col_c2:
+    col_c1, col_c2 = st.columns([1, 1])
+    with col_c1:
         with st.form("numerologia_form"):
             st.markdown("### 👤 Novo Cadastro")
-            nome = st.text_input("Nome Completo (Conforme certidão):")
+            nome = st.text_input("Nome Completo (Conforme certidão):", value=st.session_state.get('ocr_nome', ''))
             
             col_f1, col_f2 = st.columns([1, 1])
             with col_f1:
-                data_str_input = st.text_input("Data de Nascimento:", placeholder="dd/mm/yyyy")
+                data_str_input = st.text_input("Data de Nascimento:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''))
             with col_f2:
                 foto_upload = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"])
 
@@ -1139,6 +1139,41 @@ if cliente_selecionado == "-- Novo Cliente --":
                 submit_mapa = st.form_submit_button("🏁 Gerar Mapa")
             with col_btn2:
                 submit_perfil = st.form_submit_button("🧠 Gerar Perfil")
+            
+    with col_c2:
+        st.markdown("### 📸 Leitura Automática (RG/CNH)")
+        foto_doc = st.camera_input("Tire uma foto legível do seu documento")
+        if foto_doc:
+            with st.spinner("Extraindo dados do documento..."):
+                try:
+                    api_key = st.secrets["gemini"]["api_key"]
+                    genai.configure(api_key=api_key)
+                    
+                    imagem_pil = Image.open(foto_doc)
+                    model = genai.GenerativeModel('models/gemini-2.5-flash')
+                    
+                    prompt = """
+                    Você é um especialista em OCR. Extraia as seguintes informações deste documento de identidade brasileiro:
+                    1. Nome completo (campo Nome).
+                    2. Data de nascimento (campo Data de Nascimento).
+                    
+                    Retorne EXCLUSIVAMENTE um objeto JSON válido no padrão a seguir, sem textos adicionais, formatações markdown ou comentários:
+                    {"nome": "NOME COMPLETO", "data_nascimento": "DD/MM/AAAA"}
+                    """
+                    
+                    resposta_ia = model.generate_content([prompt, imagem_pil])
+                    texto_ia = resposta_ia.text.strip().replace("```json", "").replace("```", "")
+                    
+                    dados_json = json.loads(texto_ia)
+                    if "nome" in dados_json:
+                        st.session_state['ocr_nome'] = str(dados_json['nome']).upper().strip()
+                    if "data_nascimento" in dados_json:
+                        st.session_state['ocr_data_nascimento'] = str(dados_json['data_nascimento']).strip()
+                        
+                    st.success("Dados preenchidos! Atualizando formulário.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro na leitura: {e}")
             
     if submit_mapa or submit_perfil:
         try:
