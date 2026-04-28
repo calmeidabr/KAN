@@ -318,6 +318,34 @@ def fetch_diferenciais_descricao():
 
 DIFERENCIAIS_DESC_DB = fetch_diferenciais_descricao()
 
+@st.cache_data(ttl=3600)
+def fetch_descricoes_mapa():
+    """Busca o dicionário de descrições numerológicas da tabela descricoes_mapa."""
+    try:
+        resp = supabase_client.table("descricoes_mapa").select("*").execute()
+        # Retorna dict aninhado: {categoria: {valor: descricao}}
+        resultado = {}
+        for row in resp.data:
+            cat = row.get('categoria', '')
+            val = str(row.get('valor', ''))
+            desc = row.get('descricao', '')
+            if cat not in resultado:
+                resultado[cat] = {}
+            resultado[cat][val] = desc
+        return resultado
+    except Exception:
+        return {}
+
+DESCRICOES_MAPA_DB = fetch_descricoes_mapa()
+
+def get_desc_mapa(categoria, valor):
+    """Retorna a descrição numerológica para uma categoria e valor."""
+    if not DESCRICOES_MAPA_DB:
+        return ""
+    cat_data = DESCRICOES_MAPA_DB.get(categoria, {})
+    return cat_data.get(str(valor), "")
+
+
 def calcular_numeros_nome(nome_completo):
     nome = nome_completo.upper().replace(' ', '')
     expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
@@ -1076,31 +1104,74 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         def add_row(campo, valor):
             dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
 
-        add_row("Expressão", expressao)
-        add_row("Motivação", motivacao)
-        add_row("Impressão", impressao)
-        add_row("Destino", destino)
+        # Helpers de extração e descrição
+        num_dia_puro = nascimento[0]
+        num_dia_reduzido = reduce_number(nascimento[0])
+
+        def extract_num(s):
+            if not s: return None
+            try: return s.split(' - ')[0]
+            except: return str(s)
+
+        # Helper: formata campo com descrição numerológica se disponível
+        def add_row_com_desc(campo, valor_str, categoria_mapa, valor_num):
+            desc = get_desc_mapa(categoria_mapa, str(valor_num))
+            if desc:
+                add_row(campo, f"{valor_str} | {desc}")
+            else:
+                add_row(campo, valor_str)
+
+        add_row_com_desc("Expressão", expressao, "Expressao", extract_num(expressao) if expressao else expressao)
+        add_row_com_desc("Motivação", motivacao, "Motivacao", extract_num(motivacao) if motivacao else motivacao)
+        add_row_com_desc("Impressão", impressao, "Impressao", extract_num(impressao) if impressao else impressao)
+        add_row_com_desc("Destino", destino, "Destino", extract_num(destino) if destino else destino)
         add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
         add_row("Triângulo da Vida (Base)", triangulo_base)
         add_row("Triângulo da Vida (Repetições)", triangulo_reps)
-        add_row("Dia Pessoal", dia_pessoal)
-        add_row("Mês Pessoal", mes_pess)
-        add_row("Ano Pessoal", ano_pess)
-        add_row("Missão", missao)
+        add_row_com_desc("Dia Pessoal", dia_pessoal, "Dia Pessoal", extract_num(dia_pessoal) if dia_pessoal else dia_pessoal)
+        add_row_com_desc("Mês Pessoal", mes_pess, "Mes Pessoal", extract_num(mes_pess) if mes_pess else mes_pess)
+        add_row_com_desc("Ano Pessoal", ano_pess, "Ano Pessoal", extract_num(ano_pess) if ano_pess else ano_pess)
+        add_row_com_desc("Missão", missao, "Missao", extract_num(missao) if missao else missao)
 
-        dividas_str = ', '.join(str(d) for d in dividas_carmicas) if dividas_carmicas else "Não há"
-        add_row("Dívidas Cármicas", dividas_str)
+        # Dívidas Cármicas com descrições
+        if dividas_carmicas:
+            dividas_parts = []
+            for d in dividas_carmicas:
+                desc_d = get_desc_mapa("Divida Carmica", str(d))
+                dividas_parts.append(f"{d}: {desc_d}" if desc_d else str(d))
+            add_row("Dívidas Cármicas", ' | '.join(dividas_parts))
+        else:
+            add_row("Dívidas Cármicas", "Não há")
 
-        licoes_str = ', '.join(str(l) for l in licoes_carmicas) if licoes_carmicas else "Não há"
-        add_row("Lições Cármicas", licoes_str)
+        # Lições Cármicas com descrições
+        if licoes_carmicas:
+            licoes_parts = []
+            for l in licoes_carmicas:
+                desc_l = get_desc_mapa("Licao Carmica", str(l))
+                licoes_parts.append(f"{l}: {desc_l}" if desc_l else str(l))
+            add_row("Lições Cármicas", ' | '.join(licoes_parts))
+        else:
+            add_row("Lições Cármicas", "Não há")
 
-        tendencias_str = ', '.join(str(t) for t in tendencias_ocultas) if tendencias_ocultas else "Não há"
-        add_row("Tendências Ocultas", tendencias_str)
-
+        # Tendências Ocultas com descrições
         if tendencias_ocultas:
+            tend_parts = []
+            for t in tendencias_ocultas:
+                desc_t = get_desc_mapa("Tendencia Oculta", str(t))
+                tend_parts.append(f"{t}: {desc_t}" if desc_t else str(t))
+            add_row("Tendências Ocultas", ' | '.join(tend_parts))
             add_row("Soma das Tendências Ocultas", soma_tendencias)
+        else:
+            add_row("Tendências Ocultas", "Não há")
 
-        add_row("Resposta Subconsciente", resposta_subconsciente)
+        # Resposta Subconsciente com descrição
+        desc_resp = get_desc_mapa("Resposta Subconsciente", str(extract_num(resposta_subconsciente) if resposta_subconsciente else ""))
+        add_row("Resposta Subconsciente", f"{resposta_subconsciente} | {desc_resp}" if desc_resp else resposta_subconsciente)
+
+        # Dia Natalício com descrição (usa o dia bruto 1-31)
+        desc_dia_nat = get_desc_mapa("Dia Natalicio", str(nascimento[0]))
+        add_row("Dia Natalício", f"{nascimento[0]} | {desc_dia_nat}" if desc_dia_nat else str(nascimento[0]))
+
         add_row("1º Desafio", desafio1)
         add_row("2º Desafio", desafio2)
         add_row("Desafio Principal", desafio_principal)
@@ -1126,13 +1197,6 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
         mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
         
-        num_dia_puro = nascimento[0]
-        num_dia_reduzido = reduce_number(nascimento[0])
-        def extract_num(s):
-            if not s: return None
-            try: return s.split(' - ')[0]
-            except: return str(s)
-            
 
         valores_originais_score = {
             "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
