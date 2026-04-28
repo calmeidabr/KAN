@@ -178,7 +178,9 @@ def fetch_matriz():
         if client:
             resp = client.table("matriz").select("*").execute()
             if resp.data:
-                return {str(row['numero']): row for row in resp.data if row.get('numero')}
+                res_dict = {str(row['numero']): row for row in resp.data if row.get('numero')}
+                if res_dict:
+                    return res_dict
     except Exception:
         pass
         
@@ -211,7 +213,9 @@ def fetch_atributos():
         if client:
             resp = client.table("atributos").select("*").execute()
             if resp.data:
-                return {str(get_from_row(row, 'atributo')).upper(): row for row in resp.data}
+                res_dict = {str(get_from_row(row, 'atributo')).upper(): row for row in resp.data}
+                if res_dict:
+                    return res_dict
     except Exception:
         pass
         
@@ -237,7 +241,9 @@ def fetch_repeticao():
         if client:
             resp = client.table("repeticao").select("*").execute()
             if resp.data:
-                return {str(int(get_from_row(row, 'repeticao'))): row for row in resp.data}
+                res_dict = {str(int(get_from_row(row, 'repeticao'))): row for row in resp.data}
+                if res_dict:
+                    return res_dict
     except Exception:
         pass
         
@@ -264,7 +270,9 @@ def fetch_peso():
         if client:
             resp = client.table("peso").select("*").execute()
             if resp.data:
-                return {row['campo']: row['peso'] for row in resp.data}
+                res_dict = {row['campo']: row['peso'] for row in resp.data}
+                if res_dict:
+                    return res_dict
     except Exception:
         pass
         
