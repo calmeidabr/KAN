@@ -163,15 +163,39 @@ def fetch_desafios():
 
 DESAFIOS_DB = fetch_desafios()
 
+def get_supabase():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        return create_client(url, key)
+    except Exception:
+        return None
+
 @st.cache_data(ttl=3600)
 def fetch_matriz():
     try:
-        resp = supabase_client.table("matriz").select("*").execute()
-        return {str(row['numero']): row for row in resp.data if row.get('numero')}
+        client = get_supabase()
+        if client:
+            resp = client.table("matriz").select("*").execute()
+            if resp.data:
+                return {str(row['numero']): row for row in resp.data if row.get('numero')}
     except Exception:
-        return {}
-        resp = supabase_client.table("matriz").select("*").execute()
-        return {str(get_from_row(row, 'resultado')): row for row in resp.data}
+        pass
+        
+    try:
+        df = pd.read_csv("Tabela Matriz.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("Tabela Matriz.csv", sep=",")
+        resultado = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            num_val = str(row_dict.get('Resultado', row_dict.get('numero', '')))
+            if num_val:
+                # Remove acentos das chaves
+                cleaned_row = {remover_acentos(k): v for k, v in row_dict.items()}
+                resultado[num_val] = cleaned_row
+        return resultado
     except Exception:
         return {}
 
@@ -180,12 +204,25 @@ MATRIZ_DB = fetch_matriz()
 @st.cache_data(ttl=3600)
 def fetch_atributos():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("atributos").select("*").execute()
-        return {str(get_from_row(row, 'atributo')).upper(): row for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("atributos").select("*").execute()
+            if resp.data:
+                return {str(get_from_row(row, 'atributo')).upper(): row for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("Atributos.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("Atributos.csv", sep=",")
+        resultado = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            attr_val = str(get_from_row(row_dict, 'atributo') or get_from_row(row_dict, 'ATRIBUTOS') or '').upper()
+            if attr_val:
+                resultado[attr_val] = row_dict
+        return resultado
     except Exception:
         return {}
 
@@ -194,12 +231,25 @@ ATRIBUTOS_DB = fetch_atributos()
 @st.cache_data(ttl=3600)
 def fetch_repeticao():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("repeticao").select("*").execute()
-        return {str(int(get_from_row(row, 'repeticao'))): row for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("repeticao").select("*").execute()
+            if resp.data:
+                return {str(int(get_from_row(row, 'repeticao'))): row for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("Repeticao.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("Repeticao.csv", sep=",")
+        resultado = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            rep_val = str(int(float(get_from_row(row_dict, 'repeticao')))) if get_from_row(row_dict, 'repeticao') else ''
+            if rep_val:
+                resultado[rep_val] = row_dict
+        return resultado
     except Exception:
         return {}
 
@@ -208,12 +258,19 @@ REPETICAO_DB = fetch_repeticao()
 @st.cache_data(ttl=3600)
 def fetch_peso():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("peso").select("*").execute()
-        return {row['campo']: row['peso'] for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("peso").select("*").execute()
+            if resp.data:
+                return {row['campo']: row['peso'] for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("peso.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("peso.csv", sep=",")
+        return {row['campo']: row['peso'] for _, row in df.iterrows()}
     except Exception:
         return {}
 
@@ -222,26 +279,40 @@ PESO_DB = fetch_peso()
 @st.cache_data(ttl=3600)
 def fetch_perfis():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("perfis").select("*").execute()
-        return [row['perfil'] for row in resp.data]
+        client = get_supabase()
+        if client:
+            resp = client.table("perfis").select("*").execute()
+            if resp.data:
+                return [row['perfil'] for row in resp.data]
     except Exception:
-        return []
+        pass
+        
+    try:
+        df = pd.read_csv("perfil.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("perfil.csv", sep=",")
+        return [row['perfil'] for _, row in df.iterrows() if 'perfil' in row]
+    except Exception:
+        return ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
 
 PERFIS_DB = fetch_perfis()
 
 @st.cache_data(ttl=3600)
 def fetch_perfil_descricao():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("perfil_descricao").select("*").execute()
-        return {str(get_from_row(row, 'perfil')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("perfil_descricao").select("*").execute()
+            if resp.data:
+                return {str(get_from_row(row, 'perfil')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("perfil_descricao.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("perfil_descricao.csv", sep=",")
+        return {str(get_from_row(row.to_dict(), 'perfil')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
     except Exception:
         return {}
 
@@ -250,12 +321,19 @@ PERFIL_DESCRICAO_DB = fetch_perfil_descricao()
 @st.cache_data(ttl=3600)
 def fetch_qualidades():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("qualidades").select("*").execute()
-        return {str(get_from_row(row, 'qualidade')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("qualidades").select("*").execute()
+            if resp.data:
+                return {str(get_from_row(row, 'qualidade')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("Qualidades.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("Qualidades.csv", sep=",")
+        return {str(get_from_row(row.to_dict(), 'qualidade')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
     except Exception:
         return {}
 
@@ -264,12 +342,19 @@ QUALIDADES_DB = fetch_qualidades()
 @st.cache_data(ttl=3600)
 def fetch_lista_categoria():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("lista_categoria").select("*").execute()
-        return [get_from_row(row, 'categoria') for row in resp.data]
+        client = get_supabase()
+        if client:
+            resp = client.table("lista_categoria").select("*").execute()
+            if resp.data:
+                return [get_from_row(row, 'categoria') for row in resp.data]
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("lista_categoria.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("lista_categoria.csv", sep=",")
+        return [get_from_row(row.to_dict(), 'categoria') for _, row in df.iterrows()]
     except Exception:
         return []
 
@@ -278,12 +363,19 @@ LISTA_CATEGORIA_DB = fetch_lista_categoria()
 @st.cache_data(ttl=3600)
 def fetch_categoria_descricao():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("categoria_descricao").select("*").execute()
-        return {str(get_from_row(row, 'categoria')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("categoria_descricao").select("*").execute()
+            if resp.data:
+                return {str(get_from_row(row, 'categoria')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("categoria_descricao.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("categoria_descricao.csv", sep=",")
+        return {str(get_from_row(row.to_dict(), 'categoria')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
     except Exception:
         return {}
 
@@ -292,12 +384,19 @@ CATEGORIA_DESCRICAO_DB = fetch_categoria_descricao()
 @st.cache_data(ttl=3600)
 def fetch_peso_categoria():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("peso_categoria").select("*").execute()
-        return {row['campo']: row['peso'] for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("peso_categoria").select("*").execute()
+            if resp.data:
+                return {row['campo']: row['peso'] for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("peso_categoria.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("peso_categoria.csv", sep=",")
+        return {row['campo']: row['peso'] for _, row in df.iterrows()}
     except Exception:
         return {}
 
@@ -306,13 +405,19 @@ PESO_CATEGORIA_DB = fetch_peso_categoria()
 @st.cache_data(ttl=3600)
 def fetch_diferenciais_descricao():
     try:
-        from supabase import create_client, Client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        supabase_client: Client = create_client(url, key)
-        resp = supabase_client.table("diferenciais_descricao").select("*").execute()
-        # Retorna dicionário { '11': {diferencial, descricao}, '22': ... }
-        return {str(get_from_row(row, 'no')): {'diferencial': get_from_row(row, 'diferencial'), 'descricao': get_from_row(row, 'descricao')} for row in resp.data}
+        client = get_supabase()
+        if client:
+            resp = client.table("diferenciais_descricao").select("*").execute()
+            if resp.data:
+                return {str(get_from_row(row, 'no')): {'diferencial': get_from_row(row, 'diferencial'), 'descricao': get_from_row(row, 'descricao')} for row in resp.data}
+    except Exception:
+        pass
+        
+    try:
+        df = pd.read_csv("diferenciais_descricao.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("diferenciais_descricao.csv", sep=",")
+        return {str(get_from_row(row.to_dict(), 'no')): {'diferencial': get_from_row(row.to_dict(), 'diferencial'), 'descricao': get_from_row(row.to_dict(), 'descricao')} for _, row in df.iterrows()}
     except Exception:
         return {}
 
