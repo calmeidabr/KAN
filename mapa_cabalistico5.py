@@ -1514,7 +1514,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 # Busca insensível a maiúsculas/minúsculas e acentos no index
                 for idx_name in score_qual_df.index:
                     if remover_acentos(idx_name).upper() == qn:
-                        score_qual_df.at[idx_name, campo_q] += 50
+                        pv_qual = PESO_DB.get(campo_q, 0)
+                        score_qual_df.at[idx_name, campo_q] += int(pv_qual)
                         break
             
             dados_auditoria_qual.append({
