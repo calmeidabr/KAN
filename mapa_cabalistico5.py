@@ -172,7 +172,6 @@ def get_supabase():
     except Exception:
         return None
 
-@st.cache_data(ttl=3600)
 def fetch_matriz():
     try:
         client = get_supabase()
@@ -206,7 +205,6 @@ def fetch_matriz():
 
 MATRIZ_DB = fetch_matriz()
 
-@st.cache_data(ttl=3600)
 def fetch_atributos():
     try:
         client = get_supabase()
@@ -233,7 +231,6 @@ def fetch_atributos():
 
 ATRIBUTOS_DB = fetch_atributos()
 
-@st.cache_data(ttl=3600)
 def fetch_repeticao():
     try:
         client = get_supabase()
