@@ -1619,7 +1619,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         # Novo Campo: Qualidades
         totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
         totais_q = totais_q[totais_q > 0]
-        qualidades_escolhidas = list(totais_q.index)
+        qualidades_escolhidas = list(totais_q.index)[:2]
         
         qual_val = ", ".join(qualidades_escolhidas)
         qual_desc_list = []
