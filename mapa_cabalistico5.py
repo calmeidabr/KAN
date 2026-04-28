@@ -1386,7 +1386,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             dados_auditoria_qual.append({
                 "Campo": campo_q,
                 "Valor": val_q,
-                "Atributo": attr_t_q if attr_t_q else "N/A",
+                "Matriz": attr_t_q if attr_t_q else "N/A",
                 "Qualidade": qual_encontrada if qual_encontrada else "N/A"
             })
                     
