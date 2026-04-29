@@ -1955,47 +1955,27 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 r3_val = clean_val(rep3)
                 r4_val = clean_val(rep4)
                 
-                vertices = [
+                todos_campos = [
                     {"campo": "KAN", "valor": k_val},
                     {"campo": "ESTRUTURAL", "valor": e_val},
-                    {"campo": "DIRECIONAMENTO", "valor": d_val}
+                    {"campo": "DIRECIONAMENTO", "valor": d_val},
+                    {"campo": "REPETIÇÃO 1", "valor": r1_val},
+                    {"campo": "REPETICAO MAPA", "valor": r2_val},
+                    {"campo": "REPETICAO 2 MAPA", "valor": r3_val},
+                    {"campo": "REPETICAO 3 MAPA", "valor": r4_val}
                 ]
                 
-                pool = []
-                if r1_val is not None and r1_val not in [11, 22]:
-                    pool.append({"campo": "REPETIÇÃO 1", "valor": r1_val})
-                if r2_val is not None and r2_val not in [11, 22]:
-                    pool.append({"campo": "REPETICAO MAPA", "valor": r2_val})
-                if r3_val is not None and r3_val not in [11, 22]:
-                    pool.append({"campo": "REPETICAO 2 MAPA", "valor": r3_val})
-                if r4_val is not None and r4_val not in [11, 22]:
-                    pool.append({"campo": "REPETICAO 3 MAPA", "valor": r4_val})
-                    
-                # Passo 1: Invalidar 11 e 22
-                for i in range(3):
-                    if vertices[i]["valor"] in [11, 22, None]:
-                        if pool:
-                            sub = pool.pop(0)
-                            vertices[i]["campo"] = f"{vertices[i]['campo']} ({sub['campo']})"
-                            vertices[i]["valor"] = sub["valor"]
-                        else:
-                            vertices[i]["valor"] = None
-                            
-                # Passo 2: Duplicatas
-                valores_atuais = [v["valor"] for v in vertices]
-                if len(set([v for v in valores_atuais if v is not None])) < len([v for v in valores_atuais if v is not None]):
-                    counts = Counter(valores_atuais)
-                    for i in range(3):
-                        val = vertices[i]["valor"]
-                        if val is not None and counts[val] > 1:
-                            if pool:
-                                sub = pool.pop(0)
-                                vertices[i]["campo"] = f"{vertices[i]['campo']} ({sub['campo']})"
-                                vertices[i]["valor"] = sub["valor"]
-                                counts = Counter([v["valor"] for v in vertices])
-                            else:
-                                break
-                            
+                vertices = []
+                valores_adicionados = set()
+                
+                for item in todos_campos:
+                    val = item["valor"]
+                    if val is not None and val not in [11, 22] and val not in valores_adicionados:
+                        vertices.append(item)
+                        valores_adicionados.add(val)
+                    if len(vertices) == 3:
+                        break
+                        
                 valores_finais = [v["valor"] for v in vertices]
                 df_triangulo = pd.DataFrame({
                     "Vértice": [v["campo"] for v in vertices],
@@ -2107,43 +2087,28 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                         d_v = clean_val(direcionamento)
                                         r1_v = clean_val(rep1)
                                         
-                                        v_list = [
+                                        todos_comp = [
                                             {"campo": "KAN", "valor": k_v},
                                             {"campo": "ESTRUTURAL", "valor": e_v},
-                                            {"campo": "DIRECIONAMENTO", "valor": d_v}
+                                            {"campo": "DIRECIONAMENTO", "valor": d_v},
+                                            {"campo": "REPETIÇÃO 1", "valor": r1_v},
+                                            {"campo": "REPETICAO MAPA", "valor": r2_v},
+                                            {"campo": "REPETICAO 2 MAPA", "valor": r3_v},
+                                            {"campo": "REPETICAO 3 MAPA", "valor": r4_v}
                                         ]
                                         
-                                        pool_comp = []
-                                        if r1_v is not None and r1_v not in [11, 22]:
-                                            pool_comp.append(r1_v)
-                                        if r2_v is not None and r2_v not in [11, 22]:
-                                            pool_comp.append(r2_v)
-                                        if r3_v is not None and r3_v not in [11, 22]:
-                                            pool_comp.append(r3_v)
-                                        if r4_v is not None and r4_v not in [11, 22]:
-                                            pool_comp.append(r4_v)
-                                            
-                                        for i in range(3):
-                                            if v_list[i]["valor"] in [11, 22, None]:
-                                                if pool_comp:
-                                                    v_list[i]["valor"] = pool_comp.pop(0)
-                                                else:
-                                                    v_list[i]["valor"] = None
-                                                    
-                                        valores_atuais = [v["valor"] for v in v_list]
-                                        if len(set([v for v in valores_atuais if v is not None])) < len([v for v in valores_atuais if v is not None]):
-                                            counts = Counter(valores_atuais)
-                                            for i in range(3):
-                                                val = v_list[i]["valor"]
-                                                if val is not None and counts[val] > 1:
-                                                    if pool_comp:
-                                                        v_list[i]["valor"] = pool_comp.pop(0)
-                                                        counts = Counter([v["valor"] for v in v_list])
-                                                    else:
-                                                        break
-                                                    
-                                        if len(set([v["valor"] for v in v_list])) == 3:
-                                            return [v["valor"] for v in v_list]
+                                        vertices_comp = []
+                                        vals_comp = set()
+                                        for it in todos_comp:
+                                            v_it = it["valor"]
+                                            if v_it is not None and v_it not in [11, 22] and v_it not in vals_comp:
+                                                vertices_comp.append(v_it)
+                                                vals_comp.add(v_it)
+                                            if len(vertices_comp) == 3:
+                                                break
+                                                
+                                        if len(vertices_comp) == 3:
+                                            return vertices_comp
                                     except Exception as ex:
                                         st.error(f"Erro ao processar {nome_comp}: {ex}")
                                     return None
