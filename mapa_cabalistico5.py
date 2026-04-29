@@ -2152,12 +2152,31 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 perfis_selecionados = st.multiselect("Pesquise e selecione os perfis:", options=perfis_disp)
                                 
                                 if perfis_selecionados:
+                                    from PIL import ImageFont
+                                    try:
+                                        font_label = ImageFont.truetype("arial.ttf", 22)
+                                    except:
+                                        font_label = ImageFont.load_default()
+
                                     # Camada para o triângulo original
                                     layer_base = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
                                     draw_base = ImageDraw.Draw(layer_base)
                                     draw_base.polygon(poly_points, fill=(255, 255, 255, 140))
                                     
                                     img_multi_final = Image.alpha_composite(fundo_img, layer_base)
+                                    
+                                    # Camada para anotações (nomes e vértices KAN)
+                                    layer_notes = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                    draw_notes = ImageDraw.Draw(layer_notes)
+                                    
+                                    # Anotações do perfil principal
+                                    if len(poly_points) == 3:
+                                        k_base = poly_points[0]
+                                        draw_notes.ellipse((k_base[0]-8, k_base[1]-8, k_base[0]+8, k_base[1]+8), fill=(255, 0, 0))
+                                        
+                                        cx_b = sum(p[0] for p in poly_points) // 3
+                                        cy_b = sum(p[1] for p in poly_points) // 3
+                                        draw_notes.text((cx_b - 15, cy_b - 10), str(nome).split()[0], fill=(255, 255, 255), font=font_label)
                                     
                                     for idx, p_nome in enumerate(perfis_selecionados):
                                         p_dados = clientes_salvos[p_nome]
@@ -2178,6 +2197,15 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                                 
                                                 img_multi_final = Image.alpha_composite(img_multi_final, layer_comp)
                                                 
+                                                # Anotações do perfil comparado
+                                                k_comp = p_points[0]
+                                                draw_notes.ellipse((k_comp[0]-8, k_comp[1]-8, k_comp[0]+8, k_comp[1]+8), fill=(255, 0, 0))
+                                                
+                                                cx_c = sum(p[0] for p in p_points) // 3
+                                                cy_c = sum(p[1] for p in p_points) // 3
+                                                draw_notes.text((cx_c - 15, cy_c - 10), str(p_nome).split()[0], fill=(255, 255, 255), font=font_label)
+                                                
+                                    img_multi_final = Image.alpha_composite(img_multi_final, layer_notes)
                                     st.image(img_multi_final.convert("RGB"), caption="Comparativo de Triângulos Harmônicos", use_container_width=True)
                                     
                     except Exception as e:
