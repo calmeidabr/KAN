@@ -1124,6 +1124,7 @@ if cliente_selecionado == "-- Novo Cliente --":
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                 if st.button("📷 Ativar Câmera", use_container_width=True):
                     st.session_state['camera_aberta'] = True
+                st.caption("Leitura de Documento")
             
             if st.session_state.get('camera_aberta', False):
                 foto_doc = st.camera_input("Tire uma foto legível do seu documento")
