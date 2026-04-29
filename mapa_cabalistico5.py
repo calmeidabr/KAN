@@ -1984,8 +1984,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 # Helper para extrair vértices de outro perfil
                                 def obter_vertices_triangulo(nome_comp, data_nasc_str):
                                     try:
-                                        from datetime import datetime
-                                        nasc_dt = datetime.strptime(data_nasc_str, "%d/%m/%Y")
+                                        from datetime import datetime, date
+                                        if isinstance(data_nasc_str, (datetime, date)):
+                                            nasc_dt = data_nasc_str
+                                        elif isinstance(data_nasc_str, str):
+                                            try:
+                                                nasc_dt = datetime.strptime(data_nasc_str, "%d/%m/%Y")
+                                            except ValueError:
+                                                nasc_dt = datetime.strptime(data_nasc_str, "%Y-%m-%d")
+                                        else:
+                                            raise ValueError("Data em formato desconhecido")
                                         nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
                                         data_at = datetime.now()
                                         
@@ -2033,8 +2041,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                                     
                                         if len(set([v["valor"] for v in v_list])) == 3:
                                             return [v["valor"] for v in v_list]
-                                    except:
-                                        pass
+                                    except Exception as ex:
+                                        st.error(f"Erro ao processar {nome_comp}: {ex}")
                                     return None
 
                                 perfis_disp = sorted([n for n in clientes_salvos.keys() if n != nome])
