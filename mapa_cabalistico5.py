@@ -1978,6 +1978,99 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 draw.polygon(poly_points, fill=(255, 255, 255, 140))
                                 img_final = Image.alpha_composite(fundo_img, draw_layer)
                                 st.image(img_final.convert("RGB"), caption="Visualização do Triângulo Harmônico", use_container_width=True)
+                                
+                                st.markdown("### 👥 Adicionar perfil para comparação")
+                                
+                                # Helper para extrair vértices de outro perfil
+                                def obter_vertices_triangulo(nome_comp, data_nasc_str):
+                                    try:
+                                        from datetime import datetime
+                                        nasc_dt = datetime.strptime(data_nasc_str, "%d/%m/%Y")
+                                        nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
+                                        data_at = datetime.now()
+                                        
+                                        res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
+                                        (expressao, motivacao, impressao, destino, _, _, _, missao, _, _, 
+                                         _, _, _, _, _, _, ciclos_vida, momentos_decisivos, triangulo_base, _, _, _) = res
+                                        
+                                        estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
+                                            expressao, motivacao, impressao, nasc_tuple[0],
+                                            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+                                            triangulo_base
+                                        )
+                                        
+                                        k_v = int(str(kan).split(" - ")[0]) if str(kan).split(" - ")[0].isdigit() else kan
+                                        e_v = int(str(estrutural).split(" - ")[0]) if str(estrutural).split(" - ")[0].isdigit() else estrutural
+                                        d_v = int(str(direcionamento).split(" - ")[0]) if str(direcionamento).split(" - ")[0].isdigit() else direcionamento
+                                        
+                                        r1_v = str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1)
+                                        r1_v = int(r1_v) if str(r1_v).isdigit() else None
+                                        
+                                        r2_v = str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2)
+                                        r2_v = int(r2_v) if str(r2_v).isdigit() else None
+                                        
+                                        v_list = [
+                                            {"campo": "KAN", "valor": k_v},
+                                            {"campo": "ESTRUTURAL", "valor": e_v},
+                                            {"campo": "DIRECIONAMENTO", "valor": d_v}
+                                        ]
+                                        
+                                        val_atuais = [v["valor"] for v in v_list]
+                                        if len(set(val_atuais)) < 3 and r1_v is not None:
+                                            counts = Counter(val_atuais)
+                                            for v in v_list:
+                                                if counts[v["valor"]] > 1:
+                                                    v["valor"] = r1_v
+                                                    break
+                                                    
+                                        val_atuais = [v["valor"] for v in v_list]
+                                        if len(set(val_atuais)) < 3 and r2_v is not None:
+                                            counts = Counter(val_atuais)
+                                            for v in v_list:
+                                                if counts[v["valor"]] > 1:
+                                                    v["valor"] = r2_v
+                                                    break
+                                                    
+                                        if len(set([v["valor"] for v in v_list])) == 3:
+                                            return [v["valor"] for v in v_list]
+                                    except:
+                                        pass
+                                    return None
+
+                                perfis_disp = sorted([n for n in clientes_salvos.keys() if n != nome])
+                                perfis_selecionados = st.multiselect("Pesquise e selecione os perfis:", options=perfis_disp)
+                                
+                                if perfis_selecionados:
+                                    layer_multi = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                    draw_multi = ImageDraw.Draw(layer_multi)
+                                    draw_multi.polygon(poly_points, fill=(255, 255, 255, 120))
+                                    
+                                    cores_comp = [
+                                        (241, 134, 23, 130), # Laranja
+                                        (30, 144, 255, 130), # Azul
+                                        (50, 205, 50, 130),  # Verde
+                                        (255, 20, 147, 130)  # Rosa
+                                    ]
+                                    
+                                    for idx, p_nome in enumerate(perfis_selecionados):
+                                        p_dados = clientes_salvos[p_nome]
+                                        p_vertices = obter_vertices_triangulo(p_nome, p_dados['data_nascimento'])
+                                        if p_vertices and len(p_vertices) == 3:
+                                            p_points = []
+                                            for val in p_vertices:
+                                                if int(val) in coords_map:
+                                                    p_points.append(coords_map[int(val)])
+                                                else:
+                                                    val_red = sum(int(d) for d in str(val))
+                                                    if val_red in coords_map:
+                                                        p_points.append(coords_map[val_red])
+                                            if len(p_points) == 3:
+                                                cor_atual = cores_comp[idx % len(cores_comp)]
+                                                draw_multi.polygon(p_points, fill=cor_atual)
+                                                
+                                    img_multi_final = Image.alpha_composite(fundo_img, layer_multi)
+                                    st.image(img_multi_final.convert("RGB"), caption="Comparativo de Triângulos Harmônicos", use_container_width=True)
+                                    
                     except Exception as e:
                         st.error(f"Erro ao gerar triângulo visual: {e}")
                 else:
