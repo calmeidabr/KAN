@@ -1930,21 +1930,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Triângulo Harmônico")
                 
-                def red_to_9(n):
-                    if n is None: return None
-                    val_s = str(n).split(" - ")[0]
-                    if val_s.isdigit():
-                        v_int = int(val_s)
-                        while v_int > 9:
-                            v_int = sum(int(d) for d in str(v_int))
-                        return v_int
-                    return None
+                def clean_val(v):
+                    if v is None: return None
+                    s = str(v).split(" - ")[0]
+                    return int(s) if s.isdigit() else None
 
-                k_val = red_to_9(kan)
-                e_val = red_to_9(estrutural)
-                d_val = red_to_9(direcionamento)
-                r1_val = red_to_9(rep1)
-                r2_val = red_to_9(rep2)
+                k_val = clean_val(kan)
+                e_val = clean_val(estrutural)
+                d_val = clean_val(direcionamento)
+                r1_val = clean_val(rep1)
+                r2_val = clean_val(rep2)
                 
                 vertices = [
                     {"campo": "KAN", "valor": k_val},
@@ -1952,23 +1947,36 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     {"campo": "DIRECIONAMENTO", "valor": d_val}
                 ]
                 
-                valores_atuais = [v["valor"] for v in vertices]
-                if len(set(valores_atuais)) < 3 and r1_val is not None:
-                    counts = Counter(valores_atuais)
-                    for v in vertices:
-                        if counts[v["valor"]] > 1:
-                            v["campo"] = f"{v['campo']} (REPETIÇÃO 1)"
-                            v["valor"] = r1_val
-                            break
+                pool = []
+                if r1_val is not None and r1_val not in [11, 22]:
+                    pool.append({"campo": "REPETIÇÃO 1", "valor": r1_val})
+                if r2_val is not None and r2_val not in [11, 22]:
+                    pool.append({"campo": "REPETICAO MAPA", "valor": r2_val})
+                    
+                # Passo 1: Invalidar 11 e 22
+                for i in range(3):
+                    if vertices[i]["valor"] in [11, 22, None]:
+                        if pool:
+                            sub = pool.pop(0)
+                            vertices[i]["campo"] = f"{vertices[i]['campo']} ({sub['campo']})"
+                            vertices[i]["valor"] = sub["valor"]
+                        else:
+                            vertices[i]["valor"] = None
                             
+                # Passo 2: Duplicatas
                 valores_atuais = [v["valor"] for v in vertices]
-                if len(set(valores_atuais)) < 3 and r2_val is not None:
+                if len(set([v for v in valores_atuais if v is not None])) < len([v for v in valores_atuais if v is not None]):
                     counts = Counter(valores_atuais)
-                    for v in vertices:
-                        if counts[v["valor"]] > 1:
-                            v["campo"] = f"{v['campo']} (REPETICAO MAPA)"
-                            v["valor"] = r2_val
-                            break
+                    for i in range(3):
+                        val = vertices[i]["valor"]
+                        if val is not None and counts[val] > 1:
+                            if pool:
+                                sub = pool.pop(0)
+                                vertices[i]["campo"] = f"{vertices[i]['campo']} ({sub['campo']})"
+                                vertices[i]["valor"] = sub["valor"]
+                                counts = Counter([v["valor"] for v in vertices])
+                            else:
+                                break
                             
                 valores_finais = [v["valor"] for v in vertices]
                 df_triangulo = pd.DataFrame({
@@ -2022,6 +2030,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 
                                 # Helper para extrair vértices de outro perfil
                                 def obter_vertices_triangulo(nome_comp, data_nasc_str):
+                                    def clean_val(v):
+                                        if v is None: return None
+                                        s = str(v).split(" - ")[0]
+                                        return int(s) if s.isdigit() else None
                                     try:
                                         from datetime import datetime, date
                                         if isinstance(data_nasc_str, (datetime, date)):
@@ -2046,11 +2058,11 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             triangulo_base
                                         )
                                         
-                                        k_v = red_to_9(kan)
-                                        e_v = red_to_9(estrutural)
-                                        d_v = red_to_9(direcionamento)
-                                        r1_v = red_to_9(rep1)
-                                        r2_v = red_to_9(rep2)
+                                        k_v = clean_val(kan)
+                                        e_v = clean_val(estrutural)
+                                        d_v = clean_val(direcionamento)
+                                        r1_v = clean_val(rep1)
+                                        r2_v = clean_val(rep2)
                                         
                                         v_list = [
                                             {"campo": "KAN", "valor": k_v},
@@ -2058,21 +2070,30 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             {"campo": "DIRECIONAMENTO", "valor": d_v}
                                         ]
                                         
-                                        val_atuais = [v["valor"] for v in v_list]
-                                        if len(set(val_atuais)) < 3 and r1_v is not None:
-                                            counts = Counter(val_atuais)
-                                            for v in v_list:
-                                                if counts[v["valor"]] > 1:
-                                                    v["valor"] = r1_v
-                                                    break
+                                        pool_comp = []
+                                        if r1_v is not None and r1_v not in [11, 22]:
+                                            pool_comp.append(r1_v)
+                                        if r2_v is not None and r2_v not in [11, 22]:
+                                            pool_comp.append(r2_v)
+                                            
+                                        for i in range(3):
+                                            if v_list[i]["valor"] in [11, 22, None]:
+                                                if pool_comp:
+                                                    v_list[i]["valor"] = pool_comp.pop(0)
+                                                else:
+                                                    v_list[i]["valor"] = None
                                                     
-                                        val_atuais = [v["valor"] for v in v_list]
-                                        if len(set(val_atuais)) < 3 and r2_v is not None:
-                                            counts = Counter(val_atuais)
-                                            for v in v_list:
-                                                if counts[v["valor"]] > 1:
-                                                    v["valor"] = r2_v
-                                                    break
+                                        valores_atuais = [v["valor"] for v in v_list]
+                                        if len(set([v for v in valores_atuais if v is not None])) < len([v for v in valores_atuais if v is not None]):
+                                            counts = Counter(valores_atuais)
+                                            for i in range(3):
+                                                val = v_list[i]["valor"]
+                                                if val is not None and counts[val] > 1:
+                                                    if pool_comp:
+                                                        v_list[i]["valor"] = pool_comp.pop(0)
+                                                        counts = Counter([v["valor"] for v in v_list])
+                                                    else:
+                                                        break
                                                     
                                         if len(set([v["valor"] for v in v_list])) == 3:
                                             return [v["valor"] for v in v_list]
