@@ -1975,7 +1975,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                         poly_points.append(coords_map[val_reduz])
                                         
                             if len(poly_points) == 3:
-                                draw.polygon(poly_points, fill=(241, 134, 23, 120), outline=(241, 134, 23, 220), width=5)
+                                draw.polygon(poly_points, fill=(255, 255, 255, 140))
                                 img_final = Image.alpha_composite(fundo_img, draw_layer)
                                 st.image(img_final.convert("RGB"), caption="Visualização do Triângulo Harmônico", use_container_width=True)
                     except Exception as e:
