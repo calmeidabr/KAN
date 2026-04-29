@@ -1004,6 +1004,62 @@ if menu_opt == "Painel de Controle":
     
     st.info("Aqui você pode editar as tabelas do banco de dados diretamente. As alterações são salvas no Supabase.")
     
+    with st.expander("📥 Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
+        st.markdown("""
+        **Instruções:** Carregue um arquivo CSV com as seguintes colunas:
+        `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Empresa/Grupo`.
+        """)
+        arquivo_csv = st.file_uploader("Escolha o arquivo CSV:", type=["csv"])
+        if arquivo_csv is not None:
+            try:
+                df_lote = pd.read_csv(arquivo_csv, sep=";")
+                if df_lote.shape[1] <= 1:
+                    df_lote = pd.read_csv(arquivo_csv, sep=",")
+                
+                colunas_obrigatorias = ["Nome completo", "Data de Nascimento", "Cargo/Profissao", "Empresa/Grupo"]
+                colunas_validas = True
+                for col in colunas_obrigatorias:
+                    if col not in df_lote.columns:
+                        colunas_validas = False
+                        st.error(f"Coluna obrigatória ausente no CSV: `{col}`")
+                
+                if colunas_validas:
+                    st.dataframe(df_lote, use_container_width=True)
+                    if st.button("💾 Confirmar Inserção em Lote"):
+                        with st.spinner("Gravando perfis no Supabase..."):
+                            sucessos = 0
+                            for _, row in df_lote.iterrows():
+                                n_nome = str(row["Nome completo"]).strip()
+                                n_data = str(row["Data de Nascimento"]).strip()
+                                n_cargo = str(row["Cargo/Profissao"]).strip()
+                                n_empresa = str(row["Empresa/Grupo"]).strip()
+                                
+                                if n_nome and n_data:
+                                    try:
+                                        if supabase_client:
+                                            resp_chk = supabase_client.table("mapas_salvos").select("id").eq("nome", n_nome).execute()
+                                            if resp_chk.data:
+                                                supabase_client.table("mapas_salvos").update({
+                                                    "data_nascimento": n_data,
+                                                    "cargo": n_cargo,
+                                                    "empresa": n_empresa
+                                                }).eq("nome", n_nome).execute()
+                                            else:
+                                                supabase_client.table("mapas_salvos").insert({
+                                                    "nome": n_nome,
+                                                    "data_nascimento": n_data,
+                                                    "cargo": n_cargo,
+                                                    "empresa": n_empresa
+                                                }).execute()
+                                            sucessos += 1
+                                    except Exception as ex:
+                                        st.error(f"Erro ao inserir `{n_nome}`: {ex}")
+                            
+                            st.success(f"Processamento concluído! {sucessos} perfis integrados.")
+                            st.cache_data.clear()
+            except Exception as e:
+                st.error(f"Erro ao ler CSV: {e}")
+                
     tabelas = [
         "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
         "diferenciais_descricao", "peso_categoria", "atributos", "matriz", "qualidades",
