@@ -1999,16 +1999,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                             # Coordenadas conhecidas dos números (ajustadas ao centro das áreas)
                             coords_map = {
                                 1: (794, 176),
-                                2: (876, 318),
-                                3: (848, 480),
-                                4: (722, 585),
+                                2: (1037, 243),
+                                3: (1037, 477),
+                                4: (794, 585),
                                 5: (558, 585),
-                                6: (432, 480),
-                                7: (320, 240),
+                                6: (243, 579),
+                                7: (243, 360),
                                 8: (486, 176),
                                 9: (640, 120),
-                                11: (876, 318),
-                                22: (722, 585)
+                                11: (1037, 243),
+                                22: (794, 585)
                             }
                             
                             poly_points = []
