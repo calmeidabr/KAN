@@ -2106,16 +2106,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 perfis_selecionados = st.multiselect("Pesquise e selecione os perfis:", options=perfis_disp)
                                 
                                 if perfis_selecionados:
-                                    layer_multi = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                                    draw_multi = ImageDraw.Draw(layer_multi)
-                                    draw_multi.polygon(poly_points, fill=(255, 255, 255, 120))
+                                    # Camada para o triângulo original
+                                    layer_base = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                    draw_base = ImageDraw.Draw(layer_base)
+                                    draw_base.polygon(poly_points, fill=(255, 255, 255, 140))
                                     
-                                    cores_comp = [
-                                        (241, 134, 23, 130), # Laranja
-                                        (30, 144, 255, 130), # Azul
-                                        (50, 205, 50, 130),  # Verde
-                                        (255, 20, 147, 130)  # Rosa
-                                    ]
+                                    img_multi_final = Image.alpha_composite(fundo_img, layer_base)
                                     
                                     for idx, p_nome in enumerate(perfis_selecionados):
                                         p_dados = clientes_salvos[p_nome]
@@ -2130,10 +2126,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                                     if val_red in coords_map:
                                                         p_points.append(coords_map[val_red])
                                             if len(p_points) == 3:
-                                                cor_atual = cores_comp[idx % len(cores_comp)]
-                                                draw_multi.polygon(p_points, fill=cor_atual)
+                                                layer_comp = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                                draw_comp = ImageDraw.Draw(layer_comp)
+                                                draw_comp.polygon(p_points, fill=(255, 255, 255, 140))
                                                 
-                                    img_multi_final = Image.alpha_composite(fundo_img, layer_multi)
+                                                img_multi_final = Image.alpha_composite(img_multi_final, layer_comp)
+                                                
                                     st.image(img_multi_final.convert("RGB"), caption="Comparativo de Triângulos Harmônicos", use_container_width=True)
                                     
                     except Exception as e:
