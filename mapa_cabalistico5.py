@@ -1938,6 +1938,48 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                         "Valor": [v["valor"] for v in vertices]
                     })
                     st.table(df_triangulo)
+                    
+                    try:
+                        from PIL import Image, ImageDraw
+                        import os
+                        
+                        path_fundo = os.path.join("images", "plano_kan_fundo.jpg")
+                        if os.path.exists(path_fundo):
+                            fundo_img = Image.open(path_fundo).convert("RGBA")
+                            draw_layer = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                            draw = ImageDraw.Draw(draw_layer)
+                            
+                            # Coordenadas conhecidas dos números (ajustadas ao centro das áreas)
+                            coords_map = {
+                                1: (526, 310),
+                                2: (475, 412),
+                                3: (382, 458),
+                                4: (283, 413),
+                                5: (230, 310),
+                                6: (280, 206),
+                                7: (380, 161),
+                                8: (476, 207),
+                                9: (380, 310),
+                                11: (475, 412),
+                                22: (283, 413)
+                            }
+                            
+                            poly_points = []
+                            for v in vertices:
+                                val_num = int(v["valor"])
+                                if val_num in coords_map:
+                                    poly_points.append(coords_map[val_num])
+                                else:
+                                    val_reduz = sum(int(d) for d in str(val_num))
+                                    if val_reduz in coords_map:
+                                        poly_points.append(coords_map[val_reduz])
+                                        
+                            if len(poly_points) == 3:
+                                draw.polygon(poly_points, fill=(241, 134, 23, 120), outline=(241, 134, 23, 220), width=5)
+                                img_final = Image.alpha_composite(fundo_img, draw_layer)
+                                st.image(img_final.convert("RGB"), caption="Visualização do Triângulo Harmônico", use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Erro ao gerar triângulo visual: {e}")
                 else:
                     st.warning("⚠️ O Triângulo Harmônico não é possível (não há 3 números distintos disponíveis).")
 
