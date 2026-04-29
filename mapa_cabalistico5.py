@@ -2046,7 +2046,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                         else:
                                             raise ValueError("Data em formato desconhecido")
                                         nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
-                                        data_at = datetime.now()
+                                        now_dt = datetime.now()
+                                        data_at = (now_dt.day, now_dt.month, now_dt.year)
                                         
                                         res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
                                         (expressao, motivacao, impressao, destino, _, _, _, missao, _, _, 
