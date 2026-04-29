@@ -1333,7 +1333,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         perfil_rep_mapa = REPETICAO_DB.get(str(num_repeticao_mapa), {"perfil": ""}).get("perfil", "")
         repeticao_mapa = f"{num_repeticao_mapa} - {perfil_rep_mapa}" if perfil_rep_mapa else str(num_repeticao_mapa)
         
+        num_repeticao_2_mapa = r_totais[1][0] if len(r_totais) > 1 else 0
+        perfil_rep_2_mapa = REPETICAO_DB.get(str(num_repeticao_2_mapa), {"perfil": ""}).get("perfil", "")
+        repeticao_2_mapa = f"{num_repeticao_2_mapa} - {perfil_rep_2_mapa}" if perfil_rep_2_mapa else str(num_repeticao_2_mapa)
+        
         rep2 = repeticao_mapa
+        rep3 = repeticao_2_mapa
 
         dados = []
         def add_row(campo, valor):
@@ -1917,13 +1922,14 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Plano KAN")
                 df_plano_kan = pd.DataFrame({
-                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA"],
+                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA", "REPETICAO 2 MAPA"],
                     "Valor": [
                         kan, 
                         estrutural, 
                         direcionamento, 
                         str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1), 
-                        str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2)
+                        str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2),
+                        str(rep3).split(" - ")[0] if " - " in str(rep3) else str(rep3)
                     ]
                 })
                 st.table(df_plano_kan)
@@ -1940,6 +1946,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 d_val = clean_val(direcionamento)
                 r1_val = clean_val(rep1)
                 r2_val = clean_val(rep2)
+                r3_val = clean_val(rep3)
                 
                 vertices = [
                     {"campo": "KAN", "valor": k_val},
@@ -1952,6 +1959,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     pool.append({"campo": "REPETIÇÃO 1", "valor": r1_val})
                 if r2_val is not None and r2_val not in [11, 22]:
                     pool.append({"campo": "REPETICAO MAPA", "valor": r2_val})
+                if r3_val is not None and r3_val not in [11, 22]:
+                    pool.append({"campo": "REPETICAO 2 MAPA", "valor": r3_val})
                     
                 # Passo 1: Invalidar 11 e 22
                 for i in range(3):
@@ -2059,11 +2068,34 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             triangulo_base
                                         )
                                         
+                                        todos_num = []
+                                        for v_it in [expressao, motivacao, impressao, destino, missao, nasc_tuple[0]]:
+                                            if isinstance(v_it, int): todos_num.append(v_it)
+                                            elif isinstance(v_it, str) and str(v_it).isdigit(): todos_num.append(int(v_it))
+                                            
+                                        for c_key in ciclos_vida:
+                                            num_c = ciclos_vida[c_key].get('numero')
+                                            if isinstance(num_c, int): todos_num.append(num_c)
+                                            
+                                        for m_key in momentos_decisivos:
+                                            num_m = momentos_decisivos[m_key].get('numero')
+                                            if isinstance(num_m, int): todos_num.append(num_m)
+                                            
+                                        num_ps = reduce_number(nasc_tuple[0])
+                                        todos_num.append(num_ps)
+                                        
+                                        if isinstance(triangulo_base, int): todos_num.append(triangulo_base)
+                                        
+                                        c_tot = Counter(todos_num)
+                                        r_tot = sorted([(n, c) for n, c in c_tot.items()], key=lambda x: (-x[1], x[0]))
+                                        
+                                        r2_v = r_tot[0][0] if r_tot else 0
+                                        r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
+                                        
                                         k_v = clean_val(kan)
                                         e_v = clean_val(estrutural)
                                         d_v = clean_val(direcionamento)
                                         r1_v = clean_val(rep1)
-                                        r2_v = clean_val(rep2)
                                         
                                         v_list = [
                                             {"campo": "KAN", "valor": k_v},
@@ -2076,6 +2108,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             pool_comp.append(r1_v)
                                         if r2_v is not None and r2_v not in [11, 22]:
                                             pool_comp.append(r2_v)
+                                        if r3_v is not None and r3_v not in [11, 22]:
+                                            pool_comp.append(r3_v)
                                             
                                         for i in range(3):
                                             if v_list[i]["valor"] in [11, 22, None]:
