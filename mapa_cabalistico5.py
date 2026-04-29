@@ -2021,7 +2021,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 3: (960, 380),
                                 4: (794, 585),
                                 5: (558, 585),
-                                6: (243, 579),
+                                6: (320, 480),
                                 7: (243, 360),
                                 8: (486, 176),
                                 9: (640, 120),
