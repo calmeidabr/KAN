@@ -1885,8 +1885,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Plano KAN")
                 df_plano_kan = pd.DataFrame({
-                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO"],
-                    "Valor": [kan, estrutural, direcionamento]
+                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETIÇÃO 2"],
+                    "Valor": [kan, estrutural, direcionamento, rep1, rep2]
                 })
                 st.table(df_plano_kan)
 
