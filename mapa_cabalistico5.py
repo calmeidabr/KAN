@@ -2000,7 +2000,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                             coords_map = {
                                 1: (794, 176),
                                 2: (1037, 243),
-                                3: (1037, 477),
+                                3: (960, 380),
                                 4: (794, 585),
                                 5: (558, 585),
                                 6: (243, 579),
