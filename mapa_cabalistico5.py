@@ -1895,6 +1895,51 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     ]
                 })
                 st.table(df_plano_kan)
+                
+                st.header("Triângulo Harmônico")
+                k_val = kan
+                e_val = estrutural
+                d_val = direcionamento
+                
+                r1_val = str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1)
+                r1_val = int(r1_val) if str(r1_val).isdigit() else None
+                
+                r2_val = str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2)
+                r2_val = int(r2_val) if str(r2_val).isdigit() else None
+                
+                vertices = [
+                    {"campo": "KAN", "valor": k_val},
+                    {"campo": "ESTRUTURAL", "valor": e_val},
+                    {"campo": "DIRECIONAMENTO", "valor": d_val}
+                ]
+                
+                valores_atuais = [v["valor"] for v in vertices]
+                if len(set(valores_atuais)) < 3 and r1_val is not None:
+                    counts = Counter(valores_atuais)
+                    for v in vertices:
+                        if counts[v["valor"]] > 1:
+                            v["campo"] = f"{v['campo']} (REPETIÇÃO 1)"
+                            v["valor"] = r1_val
+                            break
+                            
+                valores_atuais = [v["valor"] for v in vertices]
+                if len(set(valores_atuais)) < 3 and r2_val is not None:
+                    counts = Counter(valores_atuais)
+                    for v in vertices:
+                        if counts[v["valor"]] > 1:
+                            v["campo"] = f"{v['campo']} (REPETIÇÃO 2)"
+                            v["valor"] = r2_val
+                            break
+                            
+                valores_finais = [v["valor"] for v in vertices]
+                if len(set(valores_finais)) == 3:
+                    df_triangulo = pd.DataFrame({
+                        "Vértice": [v["campo"] for v in vertices],
+                        "Valor": [v["valor"] for v in vertices]
+                    })
+                    st.table(df_triangulo)
+                else:
+                    st.warning("⚠️ O Triângulo Harmônico não é possível (não há 3 números distintos disponíveis).")
 
 
 elif (submit_mapa or submit_perfil) and not nome:
