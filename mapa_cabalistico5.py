@@ -2154,7 +2154,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 if perfis_selecionados:
                                     from PIL import ImageFont
                                     try:
-                                        font_label = ImageFont.truetype("arial.ttf", 28)
+                                        font_label = ImageFont.truetype("arial.ttf", 34)
                                     except:
                                         font_label = ImageFont.load_default()
 
@@ -2172,7 +2172,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                     # Anotações do perfil principal
                                     if len(poly_points) == 3:
                                         k_base = poly_points[0]
-                                        draw_notes.ellipse((k_base[0]-8, k_base[1]-8, k_base[0]+8, k_base[1]+8), fill=(255, 0, 0))
+                                        draw_notes.ellipse((k_base[0]-8, k_base[1]-8, k_base[0]+8, k_base[1]+8), fill=(60, 60, 60))
                                         
                                         cx_b = sum(p[0] for p in poly_points) // 3
                                         cy_b = sum(p[1] for p in poly_points) // 3
@@ -2199,7 +2199,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                                 
                                                 # Anotações do perfil comparado
                                                 k_comp = p_points[0]
-                                                draw_notes.ellipse((k_comp[0]-8, k_comp[1]-8, k_comp[0]+8, k_comp[1]+8), fill=(255, 0, 0))
+                                                draw_notes.ellipse((k_comp[0]-8, k_comp[1]-8, k_comp[0]+8, k_comp[1]+8), fill=(60, 60, 60))
                                                 
                                                 cx_c = sum(p[0] for p in p_points) // 3
                                                 cy_c = sum(p[1] for p in p_points) // 3
