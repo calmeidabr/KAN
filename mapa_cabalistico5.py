@@ -1882,6 +1882,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Detalhamento dos Atributos")
                 st.table(auditoria_qual_df)
+                
+                st.header("Plano KAN")
+                df_plano_kan = pd.DataFrame({
+                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO"],
+                    "Valor": [kan, estrutural, direcionamento]
+                })
+                st.table(df_plano_kan)
 
 
 elif (submit_mapa or submit_perfil) and not nome:
