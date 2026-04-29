@@ -1337,8 +1337,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         perfil_rep_2_mapa = REPETICAO_DB.get(str(num_repeticao_2_mapa), {"perfil": ""}).get("perfil", "")
         repeticao_2_mapa = f"{num_repeticao_2_mapa} - {perfil_rep_2_mapa}" if perfil_rep_2_mapa else str(num_repeticao_2_mapa)
         
+        num_repeticao_3_mapa = r_totais[2][0] if len(r_totais) > 2 else 0
+        perfil_rep_3_mapa = REPETICAO_DB.get(str(num_repeticao_3_mapa), {"perfil": ""}).get("perfil", "")
+        repeticao_3_mapa = f"{num_repeticao_3_mapa} - {perfil_rep_3_mapa}" if perfil_rep_3_mapa else str(num_repeticao_3_mapa)
+        
         rep2 = repeticao_mapa
         rep3 = repeticao_2_mapa
+        rep4 = repeticao_3_mapa
 
         dados = []
         def add_row(campo, valor):
@@ -1922,14 +1927,15 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Plano KAN")
                 df_plano_kan = pd.DataFrame({
-                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA", "REPETICAO 2 MAPA"],
+                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA", "REPETICAO 2 MAPA", "REPETICAO 3 MAPA"],
                     "Valor": [
                         kan, 
                         estrutural, 
                         direcionamento, 
                         str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1), 
                         str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2),
-                        str(rep3).split(" - ")[0] if " - " in str(rep3) else str(rep3)
+                        str(rep3).split(" - ")[0] if " - " in str(rep3) else str(rep3),
+                        str(rep4).split(" - ")[0] if " - " in str(rep4) else str(rep4)
                     ]
                 })
                 st.table(df_plano_kan)
@@ -1947,6 +1953,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 r1_val = clean_val(rep1)
                 r2_val = clean_val(rep2)
                 r3_val = clean_val(rep3)
+                r4_val = clean_val(rep4)
                 
                 vertices = [
                     {"campo": "KAN", "valor": k_val},
@@ -1961,6 +1968,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     pool.append({"campo": "REPETICAO MAPA", "valor": r2_val})
                 if r3_val is not None and r3_val not in [11, 22]:
                     pool.append({"campo": "REPETICAO 2 MAPA", "valor": r3_val})
+                if r4_val is not None and r4_val not in [11, 22]:
+                    pool.append({"campo": "REPETICAO 3 MAPA", "valor": r4_val})
                     
                 # Passo 1: Invalidar 11 e 22
                 for i in range(3):
@@ -2091,6 +2100,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                         
                                         r2_v = r_tot[0][0] if r_tot else 0
                                         r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
+                                        r4_v = r_tot[2][0] if len(r_tot) > 2 else 0
                                         
                                         k_v = clean_val(kan)
                                         e_v = clean_val(estrutural)
@@ -2110,6 +2120,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             pool_comp.append(r2_v)
                                         if r3_v is not None and r3_v not in [11, 22]:
                                             pool_comp.append(r3_v)
+                                        if r4_v is not None and r4_v not in [11, 22]:
+                                            pool_comp.append(r4_v)
                                             
                                         for i in range(3):
                                             if v_list[i]["valor"] in [11, 22, None]:
