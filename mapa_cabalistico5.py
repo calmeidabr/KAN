@@ -2154,7 +2154,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 if perfis_selecionados:
                                     from PIL import ImageFont
                                     try:
-                                        font_label = ImageFont.truetype("arial.ttf", 22)
+                                        font_label = ImageFont.truetype("arial.ttf", 28)
                                     except:
                                         font_label = ImageFont.load_default()
 
@@ -2176,7 +2176,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                         
                                         cx_b = sum(p[0] for p in poly_points) // 3
                                         cy_b = sum(p[1] for p in poly_points) // 3
-                                        draw_notes.text((cx_b - 15, cy_b - 10), str(nome).split()[0], fill=(255, 255, 255), font=font_label)
+                                        draw_notes.text((cx_b - 15, cy_b - 10), str(nome).split()[0], fill=(60, 60, 60), font=font_label)
                                     
                                     for idx, p_nome in enumerate(perfis_selecionados):
                                         p_dados = clientes_salvos[p_nome]
@@ -2203,7 +2203,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                                 
                                                 cx_c = sum(p[0] for p in p_points) // 3
                                                 cy_c = sum(p[1] for p in p_points) // 3
-                                                draw_notes.text((cx_c - 15, cy_c - 10), str(p_nome).split()[0], fill=(255, 255, 255), font=font_label)
+                                                draw_notes.text((cx_c - 15, cy_c - 10), str(p_nome).split()[0], fill=(60, 60, 60), font=font_label)
                                                 
                                     img_multi_final = Image.alpha_composite(img_multi_final, layer_notes)
                                     st.image(img_multi_final.convert("RGB"), caption="Comparativo de Triângulos Harmônicos", use_container_width=True)
