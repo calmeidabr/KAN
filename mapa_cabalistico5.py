@@ -1302,6 +1302,38 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
             triangulo_base
         )
+        
+        # Substitui REPETIÇÃO 2 por REPETICAO MAPA
+        todos_numeros_mapa = []
+        for v in [expressao, motivacao, impressao, destino, missao, nascimento[0]]:
+            if isinstance(v, int): todos_numeros_mapa.append(v)
+            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
+            
+        for v in [desafio1, desafio2, desafio_principal]:
+            if isinstance(v, int): todos_numeros_mapa.append(v)
+            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
+            
+        for c_key in ciclos_vida:
+            num_c = ciclos_vida[c_key].get('numero')
+            if isinstance(num_c, int): todos_numeros_mapa.append(num_c)
+            
+        for m_key in momentos_decisivos:
+            num_m = momentos_decisivos[m_key].get('numero')
+            if isinstance(num_m, int): todos_numeros_mapa.append(num_m)
+            
+        num_psiquico = reduce_number(nascimento[0])
+        todos_numeros_mapa.append(num_psiquico)
+        
+        if isinstance(triangulo_base, int): todos_numeros_mapa.append(triangulo_base)
+        
+        c_total = Counter(todos_numeros_mapa)
+        r_totais = sorted([(n, c) for n, c in c_total.items()], key=lambda x: (-x[1], x[0]))
+        
+        num_repeticao_mapa = r_totais[0][0] if r_totais else 0
+        perfil_rep_mapa = REPETICAO_DB.get(str(num_repeticao_mapa), {"perfil": ""}).get("perfil", "")
+        repeticao_mapa = f"{num_repeticao_mapa} - {perfil_rep_mapa}" if perfil_rep_mapa else str(num_repeticao_mapa)
+        
+        rep2 = repeticao_mapa
 
         dados = []
         def add_row(campo, valor):
@@ -1885,7 +1917,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 st.header("Plano KAN")
                 df_plano_kan = pd.DataFrame({
-                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETIÇÃO 2"],
+                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA"],
                     "Valor": [
                         kan, 
                         estrutural, 
@@ -1897,15 +1929,22 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 st.table(df_plano_kan)
                 
                 st.header("Triângulo Harmônico")
-                k_val = kan
-                e_val = estrutural
-                d_val = direcionamento
                 
-                r1_val = str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1)
-                r1_val = int(r1_val) if str(r1_val).isdigit() else None
-                
-                r2_val = str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2)
-                r2_val = int(r2_val) if str(r2_val).isdigit() else None
+                def red_to_9(n):
+                    if n is None: return None
+                    val_s = str(n).split(" - ")[0]
+                    if val_s.isdigit():
+                        v_int = int(val_s)
+                        while v_int > 9:
+                            v_int = sum(int(d) for d in str(v_int))
+                        return v_int
+                    return None
+
+                k_val = red_to_9(kan)
+                e_val = red_to_9(estrutural)
+                d_val = red_to_9(direcionamento)
+                r1_val = red_to_9(rep1)
+                r2_val = red_to_9(rep2)
                 
                 vertices = [
                     {"campo": "KAN", "valor": k_val},
@@ -1927,18 +1966,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     counts = Counter(valores_atuais)
                     for v in vertices:
                         if counts[v["valor"]] > 1:
-                            v["campo"] = f"{v['campo']} (REPETIÇÃO 2)"
+                            v["campo"] = f"{v['campo']} (REPETICAO MAPA)"
                             v["valor"] = r2_val
                             break
                             
                 valores_finais = [v["valor"] for v in vertices]
+                df_triangulo = pd.DataFrame({
+                    "Vértice": [v["campo"] for v in vertices],
+                    "Valor": [v["valor"] for v in vertices]
+                })
+                st.table(df_triangulo)
+                
                 if len(set(valores_finais)) == 3:
-                    df_triangulo = pd.DataFrame({
-                        "Vértice": [v["campo"] for v in vertices],
-                        "Valor": [v["valor"] for v in vertices]
-                    })
-                    st.table(df_triangulo)
-                    
                     try:
                         from PIL import Image, ImageDraw
                         import os
@@ -2007,15 +2046,11 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             triangulo_base
                                         )
                                         
-                                        k_v = int(str(kan).split(" - ")[0]) if str(kan).split(" - ")[0].isdigit() else kan
-                                        e_v = int(str(estrutural).split(" - ")[0]) if str(estrutural).split(" - ")[0].isdigit() else estrutural
-                                        d_v = int(str(direcionamento).split(" - ")[0]) if str(direcionamento).split(" - ")[0].isdigit() else direcionamento
-                                        
-                                        r1_v = str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1)
-                                        r1_v = int(r1_v) if str(r1_v).isdigit() else None
-                                        
-                                        r2_v = str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2)
-                                        r2_v = int(r2_v) if str(r2_v).isdigit() else None
+                                        k_v = red_to_9(kan)
+                                        e_v = red_to_9(estrutural)
+                                        d_v = red_to_9(direcionamento)
+                                        r1_v = red_to_9(rep1)
+                                        r2_v = red_to_9(rep2)
                                         
                                         v_list = [
                                             {"campo": "KAN", "valor": k_v},
@@ -2082,7 +2117,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     except Exception as e:
                         st.error(f"Erro ao gerar triângulo visual: {e}")
                 else:
-                    st.warning("⚠️ O Triângulo Harmônico não é possível (não há 3 números distintos disponíveis).")
+                    st.warning("⚠️ O triângulo harmônico não foi formado.")
 
 
 elif (submit_mapa or submit_perfil) and not nome:
