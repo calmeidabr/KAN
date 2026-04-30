@@ -127,7 +127,7 @@ if st.sidebar.button("🔄 Recarregar Dados do Banco"):
 def fetch_arcanos():
     try:
         resp = supabase_client.table("arcanos").select("*").execute()
-        return {str(int(row['numero'])): {"nome": row['nome'], "descricao": row['descricao']} for row in resp.data if row.get('numero')}
+        return {str(int(get_from_row(row, 'numero'))): {"nome": get_from_row(row, 'nome'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
     except Exception:
         return {}
 
@@ -137,7 +137,7 @@ ARCANOS_DB = fetch_arcanos()
 def fetch_fortalezas():
     try:
         resp = supabase_client.table("fortalezas").select("*").execute()
-        return {str(int(row['triangulo'])): {"fortaleza": row['fortaleza'], "descricao": row['descricao']} for row in resp.data if row.get('triangulo')}
+        return {str(int(get_from_row(row, 'triangulo'))): {"fortaleza": get_from_row(row, 'fortaleza'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'triangulo') is not None}
     except Exception:
         return {}
 
@@ -147,7 +147,7 @@ FORTALEZAS_DB = fetch_fortalezas()
 def fetch_kan():
     try:
         resp = supabase_client.table("kans").select("*").execute()
-        return {str(int(row['numero'])): {"kan": row['kan'], "descricao": row['descricao']} for row in resp.data if row.get('numero')}
+        return {str(int(get_from_row(row, 'numero'))): {"kan": get_from_row(row, 'kan'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
     except Exception:
         return {}
 
@@ -157,7 +157,7 @@ KAN_DB = fetch_kan()
 def fetch_desafios():
     try:
         resp = supabase_client.table("desafios").select("*").execute()
-        return {str(int(row['dia_nascimento'])): {"desafio": row['desafio'], "descricao": row['descricao']} for row in resp.data if row.get('dia_nascimento')}
+        return {str(int(get_from_row(row, 'dia_nascimento'))): {"desafio": get_from_row(row, 'desafio'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'dia_nascimento') is not None}
     except Exception:
         return {}
 
@@ -178,7 +178,11 @@ def fetch_matriz():
         if client:
             resp = client.table("matriz").select("*").execute()
             if resp.data:
-                res_dict = {str(row['numero']): row for row in resp.data if row.get('numero')}
+                res_dict = {}
+                for row in resp.data:
+                    num_val = get_from_row(row, 'numero') or get_from_row(row, 'Resultado')
+                    if num_val is not None:
+                        res_dict[str(num_val)] = row
                 if res_dict:
                     return res_dict
     except Exception:
@@ -239,9 +243,18 @@ def fetch_repeticao():
     try:
         client = get_supabase()
         if client:
-            resp = client.table("repeticao").select("*").execute()
-            if resp.data:
-                res_dict = {str(int(get_from_row(row, 'repeticao'))): row for row in resp.data}
+            resp = None
+            try:
+                resp = client.table("repeticao").select("*").execute()
+            except:
+                resp = client.table("repeticao_descricao").select("*").execute()
+            
+            if resp and resp.data:
+                res_dict = {}
+                for row in resp.data:
+                    rep_val = get_from_row(row, 'repeticao')
+                    if rep_val is not None:
+                        res_dict[str(int(float(rep_val)))] = row
                 if res_dict:
                     return res_dict
     except Exception:
@@ -466,12 +479,13 @@ def fetch_descricoes_mapa():
         # Sobrescreve com o que está no banco de dados
         resp = supabase_client.table("descricoes_mapa").select("*").execute()
         for row in resp.data:
-            cat = row.get('categoria', '')
-            val = str(row.get('valor', ''))
-            desc = row.get('descricao', '')
-            if cat not in resultado:
-                resultado[cat] = {}
-            resultado[cat][val] = desc
+            cat = get_from_row(row, 'categoria') or ""
+            val = str(get_from_row(row, 'valor') or "")
+            desc = get_from_row(row, 'descricao') or ""
+            if cat:
+                if cat not in resultado:
+                    resultado[cat] = {}
+                resultado[cat][val] = desc
     except Exception:
         pass
         
