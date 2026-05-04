@@ -516,7 +516,7 @@ def calcular_numeros_nome(nome_completo):
             expressao_total, motivacao_total, consoantes_total)
 
 def soma_numeros(n):
-    while n > 9 and n not in [11, 22, 33]:
+    while n > 9 and n not in [11, 22]:
         n = sum(int(d) for d in str(n))
     return n
 
@@ -528,7 +528,7 @@ letter_values = {
 }
 
 def reduce_number(n):
-    while n > 9 and n not in (11, 22, 33):
+    while n > 9 and n not in (11, 22):
         n = sum(int(i) for i in str(n))
     return n
 
