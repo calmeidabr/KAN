@@ -1105,7 +1105,12 @@ if menu_opt == "Painel de Controle":
                     df_edit = pd.DataFrame(columns=["categoria", "valor", "descricao"])
                 
                 # Editor de dados com altura limitada
-                edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True, height=450)
+                disabled_cols = []
+                if tab_selecionada == "descricoes_mapa":
+                    # Impede edição de categorias e valores para evitar corrupção de chaves
+                    disabled_cols = [c for c in ["categoria", "valor"] if c in df_edit.columns]
+                
+                edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True, height=450, disabled=disabled_cols)
                 
                 if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
