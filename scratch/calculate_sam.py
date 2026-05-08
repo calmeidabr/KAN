@@ -1,7 +1,7 @@
 import sys
 sys.path.append(".")
 
-from mapa_cabalistico5 import calcular_numerologia, calcular_perfil_comportamental, reduce_number
+from kan import calcular_numerologia, calcular_perfil_comportamental, reduce_number
 
 def extract_num(s):
     if not s: return None
