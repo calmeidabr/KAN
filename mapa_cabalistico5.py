@@ -17,12 +17,16 @@ def remover_acentos(texto):
     norm = ''.join(c for c in unicodedata.normalize('NFD', texto_str) if unicodedata.category(c) != 'Mn')
     return norm.encode('latin-1', 'ignore').decode('latin-1')
 
+def normalize_key(k):
+    if k is None: return ""
+    return remover_acentos(k).lower().replace(' ', '').replace('_', '').replace('-', '')
+
 def get_from_row(row, key):
-    # Tenta buscar ignorando acentos e case
+    # Busca ultra-robusta: ignora case, acentos, espaços, underscores e hífens
     if not row: return None
-    search_key = remover_acentos(key).lower()
+    search_key = normalize_key(key)
     for k in row.keys():
-        if remover_acentos(k).lower() == search_key:
+        if normalize_key(k) == search_key:
             return row[k]
     return None
 
@@ -1668,11 +1672,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     if attr_t_q and attr_t_q != "NAN":
                         ai_q = ATRIBUTOS_DB.get(attr_t_q)
                         if ai_q:
-                            qual_encontrada = get_from_row(ai_q, 'qualidade') or get_from_row(ai_q, 'area de suporte')
+                            # Tenta qualidade, depois area de suporte, depois categoria, depois perfil
+                            qual_encontrada = (get_from_row(ai_q, 'qualidade') or 
+                                               get_from_row(ai_q, 'area de suporte') or 
+                                               get_from_row(ai_q, 'categoria') or 
+                                               get_from_row(ai_q, 'perfil'))
             else:
                 ri_q = REPETICAO_DB.get(str(val_q))
                 if ri_q:
-                    qual_encontrada = get_from_row(ri_q, 'qualidade') or get_from_row(ri_q, 'area de suporte')
+                    qual_encontrada = (get_from_row(ri_q, 'qualidade') or 
+                                       get_from_row(ri_q, 'area de suporte') or 
+                                       get_from_row(ri_q, 'categoria') or 
+                                       get_from_row(ri_q, 'perfil'))
                     attr_t_q = "Tabela Repetição"
                 
             if qual_encontrada:
