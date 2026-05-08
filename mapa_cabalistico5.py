@@ -182,7 +182,12 @@ def fetch_matriz():
                 for row in resp.data:
                     num_val = get_from_row(row, 'numero') or get_from_row(row, 'Resultado')
                     if num_val is not None:
-                        res_dict[str(num_val)] = row
+                        try:
+                            # Tenta normalizar para string de inteiro (ex: "29.0" -> "29")
+                            key_str = str(int(float(num_val)))
+                        except:
+                            key_str = str(num_val).strip()
+                        res_dict[key_str] = row
                 if res_dict:
                     return res_dict
     except Exception:
@@ -217,7 +222,11 @@ def fetch_atributos():
         if client:
             resp = client.table("atributos").select("*").execute()
             if resp.data:
-                res_dict = {str(get_from_row(row, 'atributo')).upper(): row for row in resp.data}
+                res_dict = {}
+                for row in resp.data:
+                    attr_val = str(get_from_row(row, 'atributo') or get_from_row(row, 'ATRIBUTOS') or '').upper()
+                    if attr_val:
+                        res_dict[attr_val] = row
                 if res_dict:
                     return res_dict
     except Exception:
