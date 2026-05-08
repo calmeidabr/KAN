@@ -41,7 +41,7 @@ except Exception:
     header_img = "🔮"
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
-st.set_page_config(page_title="Mapa Numerológico Cabalístico KAN", layout="wide", page_icon=favicon_img)
+st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_icon=favicon_img)
 
 st.markdown("""
 <style>
