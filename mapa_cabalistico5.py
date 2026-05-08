@@ -1658,6 +1658,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             
             qual_encontrada = None
             attr_t_q = None
+            perfil_val = "N/A"
+            categoria_val = "N/A"
             if campo_q in mapa_col_matriz:
                 row_m_q = MATRIZ_DB.get(str(val_q))
                 if row_m_q:
@@ -1672,6 +1674,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     if attr_t_q and attr_t_q != "NAN":
                         ai_q = ATRIBUTOS_DB.get(attr_t_q)
                         if ai_q:
+                            perfil_val = get_from_row(ai_q, 'perfil') or "N/A"
+                            categoria_val = get_from_row(ai_q, 'categoria') or "N/A"
                             # Tenta qualidade, depois area de suporte, depois categoria, depois perfil
                             qual_encontrada = (get_from_row(ai_q, 'qualidade') or 
                                                get_from_row(ai_q, 'area de suporte') or 
@@ -1680,6 +1684,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             else:
                 ri_q = REPETICAO_DB.get(str(val_q))
                 if ri_q:
+                    perfil_val = get_from_row(ri_q, 'perfil') or "N/A"
+                    categoria_val = get_from_row(ri_q, 'categoria') or "N/A"
                     qual_encontrada = (get_from_row(ri_q, 'qualidade') or 
                                        get_from_row(ri_q, 'area de suporte') or 
                                        get_from_row(ri_q, 'categoria') or 
@@ -1699,6 +1705,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 "Campo": campo_q,
                 "Valor": val_q,
                 "Matriz": attr_t_q if attr_t_q else "N/A",
+                "Perfil": perfil_val,
+                "Categoria": categoria_val,
                 "Qualidade": qual_encontrada if qual_encontrada else "N/A"
             })
                     
