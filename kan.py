@@ -1544,6 +1544,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
         dados = []
         def add_row(campo, valor_str, explicacao=""):
+            # Se não passar explicação, tenta buscar automaticamente pelo nome do campo
+            if not explicacao or str(explicacao).strip() == "":
+                explicacao = get_expl(campo)
+            
             dados.append({
                 "Campo": campo, 
                 "Resultado": valor_str,
