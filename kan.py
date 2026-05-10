@@ -1098,6 +1098,34 @@ if menu_opt == "Painel de Controle":
                             st.cache_data.clear()
             except Exception as e:
                 st.error(f"Erro ao ler CSV: {e}")
+        
+        st.markdown("---")
+        st.subheader("🛠️ Manutenção do Banco")
+        if st.button("🚀 Inserir Descrições de Número Psíquico no Supabase"):
+            with st.spinner("Gravando..."):
+                data_psiquico = [
+                    {'categoria': 'Numero Psiquico', 'valor': '1', 'descricao': 'Independência, pioneirismo, liderança e coragem.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '2', 'descricao': 'Diplomacia, cooperação, união, intuição e sensibilidade.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '3', 'descricao': 'Comunicação, expressão, criatividade e natureza artística.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '4', 'descricao': 'Determinação, persistência, organização, resistência e trabalho.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '5', 'descricao': 'Adaptação, liberdade, movimento, curiosidade e progresso.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '6', 'descricao': 'Sensibilidade, harmonia, cuidado, responsabilidade e vínculos.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '7', 'descricao': 'Perfeccionismo, introspecção, inspiração, intuição e conhecimento.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '8', 'descricao': 'Liderança, gestão, força prática, autoridade e foco em resultados.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '9', 'descricao': 'Altruísmo, compaixão, generosidade, intuição e carisma.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '11', 'descricao': 'Intuição elevada, visão, inspiração e sensibilidade espiritual.'},
+                    {'categoria': 'Numero Psiquico', 'valor': '22', 'descricao': 'Construção em grande escala, realização, liderança prática e potencial de impacto coletivo.'}
+                ]
+                sucessos_p = 0
+                for item in data_psiquico:
+                    try:
+                        if supabase_client:
+                            supabase_client.table("descricoes_mapa").insert(item).execute()
+                            sucessos_p += 1
+                    except Exception as e:
+                        st.error(f"Erro ao inserir valor {item['valor']}: {e}")
+                st.success(f"Concluído! {sucessos_p} descrições inseridas com sucesso.")
+                st.cache_data.clear()
                 
     tabelas = [
         "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
