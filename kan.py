@@ -1497,7 +1497,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 desc_t = get_desc_mapa("Tendencia Oculta", str(t))
                 tend_parts.append(f"<b>{t}</b>: {desc_t}" if desc_t else str(t))
             add_row(f"Tendências Ocultas - {tend_str}", ' | '.join(tend_parts))
-            add_row("Soma das Tendências Ocultas", soma_tendencias)
+
         else:
             add_row("Tendências Ocultas", "Não há")
 
