@@ -1152,29 +1152,46 @@ if menu_opt == "Painel de Controle":
         if st.button("🚀 Migrar campo_definicao.csv para Supabase"):
             with st.spinner("Migrando..."):
                 try:
-                    df_def = pd.read_csv("campo_definicao.csv", sep=";")
-                    if df_def.shape[1] <= 1: df_def = pd.read_csv("campo_definicao.csv", sep=",")
+                    # Tenta ler com diferentes encodings e garantindo suporte a multi-line quotes
+                    try:
+                        df_def = pd.read_csv("campo_definicao.csv", sep=";", encoding='utf-8-sig', quotechar='"')
+                    except:
+                        df_def = pd.read_csv("campo_definicao.csv", sep=";", encoding='latin-1', quotechar='"')
+                    
+                    if df_def.shape[1] <= 1: 
+                        try:
+                            df_def = pd.read_csv("campo_definicao.csv", sep=",", encoding='utf-8-sig', quotechar='"')
+                        except:
+                            df_def = pd.read_csv("campo_definicao.csv", sep=",", encoding='latin-1', quotechar='"')
                     
                     rows = df_def.to_dict(orient='records')
                     cleaned_rows = []
                     for r in rows:
-                        # Normaliza para colunas em minúsculo no banco
-                        c_val = r.get("CAMPO", r.get("campo"))
-                        e_val = r.get("EXPLICACAO", r.get("explicacao"))
-                        if c_val:
-                            cleaned_rows.append({"campo": str(c_val), "explicacao": str(e_val) if e_val else ""})
+                        # Pega as chaves independente de maiúscula/minúscula
+                        c_key = next((k for k in r.keys() if k.lower() == 'campo'), None)
+                        e_key = next((k for k in r.keys() if k.lower() == 'explicacao'), None)
+                        
+                        c_val = r.get(c_key) if c_key else None
+                        e_val = r.get(e_key) if e_key else ""
+                        
+                        if c_val and str(c_val).strip():
+                            cleaned_rows.append({
+                                "campo": str(c_val).strip(), 
+                                "explicacao": str(e_val).strip() if pd.notna(e_val) else ""
+                            })
                     
                     if supabase_client and cleaned_rows:
-                        # Tenta limpar a tabela antes (opcional, dependendo de IDs)
-                        try:
-                            supabase_client.table("campo_definicao").delete().neq("campo", "xyz_fake").execute()
-                        except: pass
+                        # Limpa a tabela de forma segura
+                        supabase_client.table("campo_definicao").delete().neq("campo", "___fake___").execute()
                         
+                        # Insere os dados
                         supabase_client.table("campo_definicao").insert(cleaned_rows).execute()
-                        st.success("Tabela campo_definicao atualizada no Supabase!")
+                        st.success(f"Sucesso! {len(cleaned_rows)} definições foram migradas para o Supabase.")
                         st.cache_data.clear()
+                    else:
+                        st.warning("Nenhum dado válido encontrado no CSV para migrar.")
                 except Exception as e:
-                    st.error(f"Erro na migração: {e}")
+                    st.error(f"Erro detalhado na migração: {e}")
                 
     tabelas = [
         "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
