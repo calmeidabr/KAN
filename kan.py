@@ -19,7 +19,11 @@ def remover_acentos(texto):
 
 def normalize_key(k):
     if k is None: return ""
-    return remover_acentos(k).lower().replace(' ', '').replace('_', '').replace('-', '')
+    # Remove acentos, espaços, underscores, hífens, parênteses e pontos
+    n = remover_acentos(k).lower()
+    for char in [' ', '_', '-', '(', ')', '.', 'º', 'o', 'ª', 'a']:
+        n = n.replace(char, '')
+    return n
 
 def get_from_row(row, key):
     # Busca ultra-robusta: ignora case, acentos, espaços, underscores e hífens
@@ -1556,17 +1560,25 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             except: return str(s)
 
         def get_expl(campo_nome):
-            # Normaliza para busca
-            search = normalize_key(campo_nome.split(" - ")[0])
-            # Tratamentos especiais para bater com CSV
-            if search == "numeropsiquico": search = "nopsiquico"
-            if "desafio" in search: search = search.replace("1", "1o").replace("2", "2o")
-            if "ciclodevida" in search: search = search.replace("1", "1o").replace("2", "2o").replace("3", "3o")
-            if "momentodecisivo" in search: search = search.replace("1", "1o").replace("2", "2o").replace("3", "3o").replace("4", "4o")
+            # Normaliza o campo vindo do app (remove números após o hifen se houver)
+            base_name = campo_nome.split(" - ")[0]
+            search = normalize_key(base_name)
             
+            # Sinônimos e mapeamentos manuais para bater com as chaves do CSV/Banco
+            if "psiquico" in search: search = "nopsiquico"
+            if "triangulodavida" in search and "repeticao" not in search: search = "triangulodavida"
+            if "repeticao" in search: search = "triangulodavidarepeticoes"
+            
+            # Tenta busca exata normalizada
             for k, v in CAMPO_DEFINICAO_DB.items():
                 if normalize_key(k) == search:
                     return v
+            
+            # Tenta busca parcial (se a chave do banco está contida no nome do campo)
+            for k, v in CAMPO_DEFINICAO_DB.items():
+                if normalize_key(k) in search or search in normalize_key(k):
+                    if len(normalize_key(k)) > 3: # Evita matches muito curtos
+                        return v
             return ""
 
         # Helper: campo com número no label + descrição separada
