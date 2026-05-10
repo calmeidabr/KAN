@@ -1349,10 +1349,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
     with col_res2:
         st.markdown("---")
         info_parts = [nome, data_str]
-        if cargo:
-            info_parts.append(cargo)
-        if empresa:
-            info_parts.append(empresa)
+        for p in [cargo, empresa]:
+            if p and str(p).lower() != "nan" and str(p).strip() != "":
+                info_parts.append(str(p))
         info_text = " | ".join(info_parts)
         
         foto_b64 = None
