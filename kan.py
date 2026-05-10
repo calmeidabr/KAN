@@ -1498,7 +1498,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         add_row_com_desc("Motivação", motivacao, "Motivacao", extract_num(motivacao) if motivacao else motivacao)
         add_row_com_desc("Impressão", impressao, "Impressao", extract_num(impressao) if impressao else impressao)
         add_row_com_desc("Destino", destino, "Destino", extract_num(destino) if destino else destino)
-        add_row_com_desc(f"Número Psíquico - {num_dia_reduzido}", num_dia_reduzido, "Numero Psiquico", num_dia_reduzido)
+        add_row_com_desc("Número Psíquico", num_dia_reduzido, "Numero Psiquico", num_dia_reduzido)
         add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
         add_row("Triângulo da Vida (Base)", triangulo_base)
         add_row("Triângulo da Vida (Repetições)", triangulo_reps)
