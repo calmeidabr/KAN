@@ -436,6 +436,28 @@ def fetch_peso_categoria():
     except Exception:
         return {}
 
+@st.cache_data(ttl=3600)
+def fetch_campo_definicao():
+    """Busca as definições conceituais dos campos na tabela campo_definicao."""
+    try:
+        client = get_supabase()
+        if client:
+            resp = client.table("campo_definicao").select("*").execute()
+            if resp.data:
+                # Retorna dicionário {campo: explicacao}
+                return {str(get_from_row(row, 'campo')): get_from_row(row, 'explicacao') for row in resp.data}
+    except Exception:
+        pass
+
+    try:
+        df = pd.read_csv("campo_definicao.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("campo_definicao.csv", sep=",")
+        return {row['CAMPO']: row['EXPLICACAO'] for _, row in df.iterrows()}
+    except Exception:
+        return {}
+
+CAMPO_DEFINICAO_DB = fetch_campo_definicao()
 PESO_CATEGORIA_DB = fetch_peso_categoria()
 
 @st.cache_data(ttl=3600)
@@ -1126,11 +1148,38 @@ if menu_opt == "Painel de Controle":
                         st.error(f"Erro ao inserir valor {item['valor']}: {e}")
                 st.success(f"Concluído! {sucessos_p} descrições inseridas com sucesso.")
                 st.cache_data.clear()
+        
+        if st.button("🚀 Migrar campo_definicao.csv para Supabase"):
+            with st.spinner("Migrando..."):
+                try:
+                    df_def = pd.read_csv("campo_definicao.csv", sep=";")
+                    if df_def.shape[1] <= 1: df_def = pd.read_csv("campo_definicao.csv", sep=",")
+                    
+                    rows = df_def.to_dict(orient='records')
+                    cleaned_rows = []
+                    for r in rows:
+                        # Normaliza para colunas em minúsculo no banco
+                        c_val = r.get("CAMPO", r.get("campo"))
+                        e_val = r.get("EXPLICACAO", r.get("explicacao"))
+                        if c_val:
+                            cleaned_rows.append({"campo": str(c_val), "explicacao": str(e_val) if e_val else ""})
+                    
+                    if supabase_client and cleaned_rows:
+                        # Tenta limpar a tabela antes (opcional, dependendo de IDs)
+                        try:
+                            supabase_client.table("campo_definicao").delete().neq("campo", "xyz_fake").execute()
+                        except: pass
+                        
+                        supabase_client.table("campo_definicao").insert(cleaned_rows).execute()
+                        st.success("Tabela campo_definicao atualizada no Supabase!")
+                        st.cache_data.clear()
+                except Exception as e:
+                    st.error(f"Erro na migração: {e}")
                 
     tabelas = [
         "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
         "diferenciais_descricao", "peso_categoria", "atributos", "matriz", "qualidades",
-        "descricoes_mapa"
+        "descricoes_mapa", "campo_definicao"
     ]
     
     tab_selecionada = st.selectbox("Selecione a Tabela para Editar", tabelas)
@@ -1473,8 +1522,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
         rep4 = repeticao_3_mapa
 
         dados = []
-        def add_row(campo, valor):
-            dados.append({"Campo": remover_acentos(campo), "Resultado": remover_acentos(valor)})
+        def add_row(campo, valor_str, explicacao=""):
+            dados.append({
+                "Campo": campo, 
+                "Resultado": valor_str,
+                "Explicacao": explicacao
+            })
 
         # Helpers de extração e descrição
         num_dia_puro = nascimento[0]
@@ -1485,14 +1538,28 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             try: return s.split(' - ')[0]
             except: return str(s)
 
+        def get_expl(campo_nome):
+            # Normaliza para busca
+            search = normalize_key(campo_nome.split(" - ")[0])
+            # Tratamentos especiais para bater com CSV
+            if search == "numeropsiquico": search = "nopsiquico"
+            if "desafio" in search: search = search.replace("1", "1o").replace("2", "2o")
+            if "ciclodevida" in search: search = search.replace("1", "1o").replace("2", "2o").replace("3", "3o")
+            if "momentodecisivo" in search: search = search.replace("1", "1o").replace("2", "2o").replace("3", "3o").replace("4", "4o")
+            
+            for k, v in CAMPO_DEFINICAO_DB.items():
+                if normalize_key(k) == search:
+                    return v
+            return ""
+
         # Helper: campo com número no label + descrição separada
         def add_row_com_desc(campo, valor_str, categoria_mapa, valor_num):
             desc = get_desc_mapa(categoria_mapa, str(valor_num))
+            expl = get_expl(campo)
             if desc:
-                # Campo recebe "NomeCampo - NUMERO" e Resultado recebe apenas a descrição
-                add_row(f"{campo} - {valor_num}", desc)
+                add_row(f"{campo} - {valor_num}", desc, expl)
             else:
-                add_row(campo, valor_str)
+                add_row(campo, valor_str, expl)
 
         add_row_com_desc("Expressão", expressao, "Expressao", extract_num(expressao) if expressao else expressao)
         add_row_com_desc("Motivação", motivacao, "Motivacao", extract_num(motivacao) if motivacao else motivacao)
@@ -1958,9 +2025,13 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 else:
                     cel_resultado = "<div class='mapa-valor'></div>"
 
+                explicacao_html = ""
+                if item.get("Explicacao"):
+                    explicacao_html = f"<div style='font-size: 0.78em; color: rgba(255,255,255,0.6); padding: 0 14px 10px 14px; font-style: italic;'>{item['Explicacao']}</div>"
+
                 html_mapa += (
                     f"<tr>"
-                    f"<td><div class='mapa-campo'>{label_campo}{numero_badge}</div></td>"
+                    f"<td><div class='mapa-campo'>{label_campo}{numero_badge}</div>{explicacao_html}</td>"
                     f"<td>{cel_resultado}</td>"
                     f"</tr>"
                 )
