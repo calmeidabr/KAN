@@ -1001,11 +1001,12 @@ USUARIOS = {
 
 def check_password():
     def password_entered():
-        user = st.session_state["username"]
-        pwd = st.session_state["password"]
+        user = st.session_state.get("username", "")
+        pwd = st.session_state.get("password", "")
         if user in USUARIOS and USUARIOS[user] == pwd:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]
+            if "password" in st.session_state:
+                del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
