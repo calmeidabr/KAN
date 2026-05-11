@@ -1340,6 +1340,11 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
             triangulo_base
         )
         
+        def extract_num(s):
+            if not s: return None
+            try: return str(s).split(' - ')[0]
+            except: return str(s)
+        
         todos_numeros_mapa = []
         for v in [expressao, motivacao, impressao, destino, missao, dia]:
             if isinstance(v, int): todos_numeros_mapa.append(v)
