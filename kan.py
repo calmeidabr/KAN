@@ -1338,12 +1338,12 @@ if supabase_client:
                 try:
                     p_json = json.loads(p_json_str)
                     for item in p_json:
-                        if item.get('Campo') == 'KAN': kan_val = item.get('Valor', '')
-                        elif item.get('Campo') == 'Perfil': perfil_val = item.get('Valor', '')
-                        elif item.get('Campo') == 'Categoria': categoria_val = item.get('Valor', '')
-                        elif item.get('Campo') == 'Qualidades': qualidades_val = item.get('Valor', '')
-                        elif item.get('Campo') == 'Fortaleza': fortaleza_val = item.get('Valor', '')
-                        elif item.get('Campo') == 'Desafio': desafio_val = item.get('Valor', '')
+                        if item.get('Campo') == 'KAN': kan_val = item.get('Resultado', '')
+                        elif item.get('Campo') == 'Perfil': perfil_val = item.get('Resultado', '')
+                        elif item.get('Campo') == 'Categoria': categoria_val = item.get('Resultado', '')
+                        elif item.get('Campo') == 'Qualidades': qualidades_val = item.get('Resultado', '')
+                        elif item.get('Campo') == 'Fortaleza': fortaleza_val = item.get('Resultado', '')
+                        elif item.get('Campo') == 'Desafio': desafio_val = item.get('Resultado', '')
                 except:
                     pass
 
