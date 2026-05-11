@@ -2190,26 +2190,27 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     4. O texto deve ser formatado em exatamente 3 parágrafos curtos e objetivos.
                     """
                     
-                    with st.spinner("IA analisando perfil com visão de RH..."):
-                        # Lógica robusta com captura e debug
+                    with st.spinner("IA analisando perfil com visão de RH (Alta Performance)..."):
+                        # Usando os modelos modernos disponíveis na chave do usuário (2026)
                         texto_ia = ""
                         try:
-                            model = genai.GenerativeModel('gemini-1.5-flash')
+                            # Tenta o modelo ultra-rápido moderno
+                            model = genai.GenerativeModel('models/gemini-2.5-flash')
                             response = model.generate_content(contexto)
                             texto_ia = response.text.replace("\n", "<br>")
                         except Exception as e1:
                             try:
-                                model = genai.GenerativeModel('gemini-1.0-pro')
+                                # Fallback para o modelo Pro 3.1 de última geração
+                                model = genai.GenerativeModel('models/gemini-3.1-pro-preview')
                                 response = model.generate_content(contexto)
                                 texto_ia = response.text.replace("\n", "<br>")
                             except Exception as e2:
                                 try:
-                                    # Se ambos falharem, consulta o Google para ver quais modelos esta chave tem acesso
                                     modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
                                     modelos_str = ", ".join(modelos)
-                                    texto_ia = f"<b>Aviso de Sistema:</b> Não foi possível acessar o modelo de IA.<br>Erro: {e1}<br><br><b>Modelos disponíveis na sua chave:</b> {modelos_str}"
+                                    texto_ia = f"<b>Aviso de Sistema:</b> Não foi possível acessar os modelos de IA modernos.<br>Erro: {e1}<br><br><b>Modelos disponíveis na sua chave:</b> {modelos_str}"
                                 except Exception as e3:
-                                    texto_ia = f"<b>Erro na IA:</b> Não foi possível conectar ao Google Gemini. Verifique se a chave da API em st.secrets é válida e possui créditos/cotas disponíveis.<br>Erro original: {e1}"
+                                    texto_ia = f"<b>Erro na IA:</b> Não foi possível conectar ao Google Gemini. Verifique se a chave da API em st.secrets é válida.<br>Erro original: {e1}"
                         
                         st.session_state["ai_diagnosis"][user_name_key] = texto_ia
                         
