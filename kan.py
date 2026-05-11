@@ -2268,24 +2268,24 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 st.markdown("### Selecione os filtros desejados")
                 st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
                 
-                all_kans = sorted(list(set(str(c.get('kan')) for c in clientes_salvos.values() if c.get('kan'))))
-                all_perfis = set()
-                all_cats = set()
-                all_quals = set()
+                # Puxa todas as opções possíveis dos bancos de dados (não apenas os que já foram usados)
+                all_kans = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
                 
-                for c in clientes_salvos.values():
-                    if c.get('perfil'):
-                        for p in str(c['perfil']).split(','):
-                            all_perfis.add(p.strip())
-                    if c.get('categoria'):
-                        all_cats.add(str(c['categoria']).strip())
-                    if c.get('qualidades'):
-                        for q in str(c['qualidades']).split(','):
-                            all_quals.add(q.strip())
+                # Normaliza e remove vazios
+                def limpa_lista(lst):
+                    return sorted(list(set(str(x).strip() for x in lst if x and str(x).strip())))
                 
-                all_perfis = sorted(list(filter(None, all_perfis)))
-                all_cats = sorted(list(filter(None, all_cats)))
-                all_quals = sorted(list(filter(None, all_quals)))
+                # Perfis
+                perfis_db_lista = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+                all_perfis = limpa_lista(perfis_db_lista)
+                
+                # Categorias
+                cats_db_lista = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
+                all_cats = limpa_lista(cats_db_lista)
+                
+                # Qualidades
+                quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
+                all_quals = limpa_lista(quals_db_lista)
                 
                 col_b1, col_b2, col_b3, col_b4 = st.columns(4)
                 with col_b1:
