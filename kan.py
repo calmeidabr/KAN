@@ -2165,21 +2165,34 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     api_key = st.secrets["gemini"]["api_key"]
                     genai.configure(api_key=api_key)
                     
-                    # Montar o contexto para a IA
+                    # Montar o contexto para a IA (Extraindo dados do Mapa e Perfil)
+                    mapa_texto = "\n".join([f"- {item['Campo']}: {item['Resultado']}" for item in dados])
+                    perfil_texto = "\n".join([f"- {item['Campo']}: {item['Resultado']}" for item in dados_perfil if item['Campo'] != "Diagnóstico"])
                     info_prof = f"- LinkedIn: {linkedin}\n- Experiências: {experiencias}" if (linkedin or experiencias) else ""
+                    
                     contexto = f"""
-                    Analise o perfil de {nome}:
-                    - KAN: {k_data['kan']} ({k_data['descricao']})
-                    - Perfil: {perfil_val}
-                    - Categoria: {categoria_selecionada} ({cat_desc})
-                    - Qualidades: {qual_val}
+                    Você é um Especialista em Recrutamento e Seleção (RH) de alta performance e Consultor de Carreira.
+                    Sua tarefa é analisar o perfil completo de {nome} e gerar um Diagnóstico de Performance com foco em contratação.
+                    
+                    DADOS DO MAPA NUMEROLÓGICO (Personalidade, Destino e Desafios):
+                    {mapa_texto}
+                    
+                    DADOS DO PERFIL COMPORTAMENTAL KAN (Comportamento, Forças e Qualidades):
+                    {perfil_texto}
+                    
+                    INFORMAÇÕES PROFISSIONAIS ADICIONAIS:
                     {info_prof}
                     
-                    Gere um diagnóstico realista e direto em 3 parágrafos curtos.
+                    DIRETRIZES PARA O DIAGNÓSTICO:
+                    1. Use uma visão técnica de RH: identifique fit cultural, competências predominantes e pontos de atenção para uma contratação.
+                    2. Seja realista, direto e profissional.
+                    3. Analise como os números do mapa se traduzem em comportamento profissional.
+                    4. O texto deve ser formatado em exatamente 3 parágrafos curtos e objetivos.
                     """
                     
-                    with st.spinner("Analisando perfil..."):
-                        model = genai.GenerativeModel('models/gemini-2.5-flash')
+                    with st.spinner("IA analisando perfil com visão de RH..."):
+                        # Mantendo a versão do modelo que já estava no código do usuário
+                        model = genai.GenerativeModel('models/gemini-1.5-flash')
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
                         st.session_state["ai_diagnosis"][user_name_key] = texto_ia
