@@ -1320,10 +1320,124 @@ st.markdown("<h2 style='text-align: left; margin-bottom: 20px;'>Mapa e Perfil Co
 st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Descubra a sua potencialidade através da numerologia cabalística.</p>", unsafe_allow_html=True)
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
-# --- FETCH CLIENTES DO BANCO DE DADOS ---
+@st.cache_data(ttl=3600)
+def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _peso, _perfis, _lista_cat, _qualidades):
+    try:
+        partes_data = str(data_str).split('/')
+        if len(partes_data) != 3: return "", "", "", ""
+        dia, mes, ano = int(partes_data[0]), int(partes_data[1]), int(partes_data[2])
+        nascimento = (dia, mes, ano)
+        data_atual = (datetime.date.today().day, datetime.date.today().month, datetime.date.today().year)
+        
+        resultados = calcular_numerologia(nome, nascimento, data_atual)
+        expressao, motivacao, impressao, destino = resultados[0], resultados[1], resultados[2], resultados[3]
+        missao, desafio1, desafio2, desafio_principal = resultados[7], resultados[13], resultados[14], resultados[15]
+        ciclos_vida, momentos_decisivos, triangulo_base = resultados[16], resultados[17], resultados[18]
+        
+        estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
+            expressao, motivacao, impressao, dia,
+            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+            triangulo_base
+        )
+        
+        todos_numeros_mapa = []
+        for v in [expressao, motivacao, impressao, destino, missao, dia]:
+            if isinstance(v, int): todos_numeros_mapa.append(v)
+            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
+        for v in [desafio1, desafio2, desafio_principal]:
+            if isinstance(v, int): todos_numeros_mapa.append(v)
+            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
+        for c_key in ciclos_vida:
+            num_c = ciclos_vida[c_key].get('numero')
+            if isinstance(num_c, int): todos_numeros_mapa.append(num_c)
+        for m_key in momentos_decisivos:
+            num_m = momentos_decisivos[m_key].get('numero')
+            if isinstance(num_m, int): todos_numeros_mapa.append(num_m)
+        num_psiquico = reduce_number(dia)
+        todos_numeros_mapa.append(num_psiquico)
+        if isinstance(triangulo_base, int): todos_numeros_mapa.append(triangulo_base)
+        
+        c_total = Counter(todos_numeros_mapa)
+        r_totais = sorted([(num, ct) for num, ct in c_total.items()], key=lambda x: (-x[1], x[0]))
+        num_repeticao_mapa = r_totais[0][0] if r_totais else 0
+        rep2_val = str(num_repeticao_mapa)
+        
+        perfis_list = _perfis if _perfis else ["Lider"]
+        score_df_calc = pd.DataFrame(0, index=perfis_list, columns=["TOTAL"])
+        valores_originais_score = {
+            "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
+            "Dia Natalício": dia, "Triângulo": triangulo_base, "No Psiquico": num_psiquico,
+            "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2_val)
+        }
+        
+        def seguro_int(val):
+            try: return int(float(val)) if str(val).lower() != 'nan' else 0
+            except: return 0
+        
+        for _, m_row in pd.DataFrame(_matriz).iterrows():
+            p_val = m_row.get('perfil', '')
+            if not p_val or p_val not in score_df_calc.index: continue
+            c_val = m_row.get('campo')
+            num_val = m_row.get('valor')
+            val_mapa = valores_originais_score.get(c_val)
+            if str(val_mapa) == str(num_val):
+                peso = seguro_int(_peso.get(c_val, 0))
+                score_df_calc.at[p_val, 'TOTAL'] += peso
+                
+        totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
+        totais_s = totais_s[totais_s > 0]
+        perfis_escolhidos = []
+        if not totais_s.empty:
+            max_score = totais_s.iloc[0]
+            for p, s in totais_s.items():
+                if max_score / s <= 1.8: perfis_escolhidos.append(p)
+                else: break
+        perfil_val = ", ".join(perfis_escolhidos)
+        
+        lista_cat = _lista_cat if _lista_cat else ["Justo"]
+        score_cat_df = pd.DataFrame(0, index=lista_cat, columns=["TOTAL"])
+        for _, a_row in pd.DataFrame(_atributos).iterrows():
+            c_val = a_row.get('categoria', '')
+            if not c_val or c_val not in score_cat_df.index: continue
+            c_campo = a_row.get('campo')
+            num_val = a_row.get('valor')
+            val_mapa = valores_originais_score.get(c_campo)
+            if str(val_mapa) == str(num_val):
+                peso = seguro_int(_peso.get(c_campo, 0))
+                score_cat_df.at[c_val, 'TOTAL'] += peso
+        totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
+        categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
+        
+        lista_quals = list(_qualidades.keys()) if _qualidades else ["Relacionamento"]
+        score_qual_df = pd.DataFrame(0, index=lista_quals, columns=["TOTAL"])
+        for val_q in [extract_num(rep1), extract_num(rep2_val)]:
+            ri_q = _repeticao.get(str(val_q))
+            if ri_q:
+                q_enc = ri_q.get('qualidade')
+                if q_enc:
+                    qn = remover_acentos(str(q_enc).strip()).upper()
+                    for idx_name in score_qual_df.index:
+                        if remover_acentos(idx_name).upper() == qn:
+                            score_qual_df.at[idx_name, 'TOTAL'] += 1
+        totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
+        totais_q = totais_q[totais_q > 0]
+        qual_val = ", ".join(list(totais_q.index)[:2])
+        
+        return perfil_val, categoria_selecionada, qual_val, str(kan)
+    except:
+        return "", "", "", ""
+
 clientes_salvos = {}
 if supabase_client:
     try:
+        MATRIZ_DB_CACHE = fetch_matriz()
+        ATRIBUTOS_DB_CACHE = fetch_atributos()
+        REPETICAO_DB_CACHE = fetch_repeticao()
+        PESO_DB_CACHE = fetch_peso()
+        PERFIS_DB_CACHE = fetch_perfis()
+        QUALIDADES_DB_CACHE = fetch_qualidades()
+        LISTA_CATEGORIA_DB_CACHE = fetch_lista_categoria()
+        
         response = supabase_client.table("mapas_salvos").select("*").execute()
         for row in response.data:
             kan_val = ""
@@ -1361,6 +1475,12 @@ if supabase_client:
                             elif campo_norm == 'qualidades': qualidades_val = raw_val
                             elif campo_norm == 'fortaleza': fortaleza_val = raw_val
                             elif campo_norm == 'desafio': desafio_val = raw_val
+
+            if not perfil_val or not kan_val:
+                perfil_val, categoria_val, qualidades_val, kan_val = calcular_perfil_faltante(
+                    row['nome'], row['data_nascimento'],
+                    MATRIZ_DB_CACHE, ATRIBUTOS_DB_CACHE, REPETICAO_DB_CACHE, PESO_DB_CACHE, PERFIS_DB_CACHE, LISTA_CATEGORIA_DB_CACHE, QUALIDADES_DB_CACHE
+                )
 
             clientes_salvos[row['nome']] = {
                 'data_nascimento': row['data_nascimento'],
@@ -2302,161 +2422,21 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
                 all_quals = limpa_lista(quals_db_lista)
                 
-                clientes_sem_perfil = sum(1 for c in clientes_salvos.values() if not c.get('perfil'))
-                st.caption(f"🔧 **DEBUG do Sistema:** De {len(clientes_salvos)} clientes totais, {clientes_sem_perfil} estão sem o campo Perfil no banco de dados. Isso significa que eles foram salvos em uma versão antiga do sistema.")
+                # Normaliza e remove vazios
+                def limpa_lista(lst):
+                    return sorted(list(set(str(x).strip() for x in lst if x and str(x).strip())))
                 
-                if clientes_sem_perfil > 0:
-                    if st.button("⚠️ Clique Aqui para Sincronizar Perfis Antigos"):
-                        with st.spinner("Atualizando banco de dados... Isso pode levar um minuto."):
-                            try:
-                                MATRIZ_DB = fetch_matriz()
-                                ATRIBUTOS_DB = fetch_atributos()
-                                REPETICAO_DB = fetch_repeticao()
-                                PESO_DB = fetch_peso()
-                                PERFIS_DB = fetch_perfis()
-                                QUALIDADES_DB = fetch_qualidades()
-                                LISTA_CATEGORIA_DB = fetch_lista_categoria()
-                                
-                                count_updated = 0
-                                count_errors = 0
-                                for n, c in clientes_salvos.items():
-                                    if not c.get('perfil'):
-                                        try:
-                                            # 1. Numerologia
-                                            partes_data = str(c.get('data_nascimento', '')).split('/')
-                                            if len(partes_data) != 3:
-                                                continue
-                                            
-                                            dia, mes, ano = int(partes_data[0]), int(partes_data[1]), int(partes_data[2])
-                                            nascimento = (dia, mes, ano)
-                                            data_atual = (datetime.date.today().day, datetime.date.today().month, datetime.date.today().year)
-                                            
-                                            resultados = calcular_numerologia(n, nascimento, data_atual)
-                                            expressao, motivacao, impressao, destino = resultados[0], resultados[1], resultados[2], resultados[3]
-                                            missao, desafio1, desafio2, desafio_principal = resultados[7], resultados[13], resultados[14], resultados[15]
-                                            ciclos_vida, momentos_decisivos, triangulo_base = resultados[16], resultados[17], resultados[18]
-                                            
-                                            estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
-                                                expressao, motivacao, impressao, dia,
-                                                destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
-                                                triangulo_base
-                                            )
-                                            
-                                            # Repeticao Mapa
-                                            todos_numeros_mapa = []
-                                            for v in [expressao, motivacao, impressao, destino, missao, dia]:
-                                                if isinstance(v, int): todos_numeros_mapa.append(v)
-                                                elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
-                                            for v in [desafio1, desafio2, desafio_principal]:
-                                                if isinstance(v, int): todos_numeros_mapa.append(v)
-                                                elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
-                                            for c_key in ciclos_vida:
-                                                num_c = ciclos_vida[c_key].get('numero')
-                                                if isinstance(num_c, int): todos_numeros_mapa.append(num_c)
-                                            for m_key in momentos_decisivos:
-                                                num_m = momentos_decisivos[m_key].get('numero')
-                                                if isinstance(num_m, int): todos_numeros_mapa.append(num_m)
-                                            num_psiquico = reduce_number(dia)
-                                            todos_numeros_mapa.append(num_psiquico)
-                                            if isinstance(triangulo_base, int): todos_numeros_mapa.append(triangulo_base)
-                                            
-                                            c_total = Counter(todos_numeros_mapa)
-                                            r_totais = sorted([(num, ct) for num, ct in c_total.items()], key=lambda x: (-x[1], x[0]))
-                                            num_repeticao_mapa = r_totais[0][0] if r_totais else 0
-                                            rep2_val = str(num_repeticao_mapa)
-                                            
-                                            # SCORE PERFIL
-                                            perfis_list = PERFIS_DB if PERFIS_DB else ["Lider"]
-                                            score_df_calc = pd.DataFrame(0, index=perfis_list, columns=["TOTAL"])
-                                            valores_originais_score = {
-                                                "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
-                                                "Dia Natalício": dia, "Triângulo": triangulo_base, "No Psiquico": num_psiquico,
-                                                "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2_val)
-                                            }
-                                            
-                                            def seguro_int(val):
-                                                try: return int(float(val)) if str(val).lower() != 'nan' else 0
-                                                except: return 0
-                                            
-                                            for _, m_row in pd.DataFrame(MATRIZ_DB).iterrows():
-                                                p_val = m_row.get('perfil', '')
-                                                if not p_val or p_val not in score_df_calc.index: continue
-                                                c_val = m_row.get('campo')
-                                                num_val = m_row.get('valor')
-                                                val_mapa = valores_originais_score.get(c_val)
-                                                if str(val_mapa) == str(num_val):
-                                                    peso = seguro_int(PESO_DB.get(c_val, 0))
-                                                    score_df_calc.at[p_val, 'TOTAL'] += peso
-                                                    
-                                            totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
-                                            totais_s = totais_s[totais_s > 0]
-                                            perfis_escolhidos = []
-                                            if not totais_s.empty:
-                                                max_score = totais_s.iloc[0]
-                                                for p, s in totais_s.items():
-                                                    if max_score / s <= 1.8: perfis_escolhidos.append(p)
-                                                    else: break
-                                            perfil_val = ", ".join(perfis_escolhidos)
-                                            
-                                            # SCORE CATEGORIA
-                                            lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo"]
-                                            score_cat_df = pd.DataFrame(0, index=lista_cat, columns=["TOTAL"])
-                                            for _, a_row in pd.DataFrame(ATRIBUTOS_DB).iterrows():
-                                                c_val = a_row.get('categoria', '')
-                                                if not c_val or c_val not in score_cat_df.index: continue
-                                                c_campo = a_row.get('campo')
-                                                num_val = a_row.get('valor')
-                                                val_mapa = valores_originais_score.get(c_campo)
-                                                if str(val_mapa) == str(num_val):
-                                                    peso = seguro_int(PESO_DB.get(c_campo, 0))
-                                                    score_cat_df.at[c_val, 'TOTAL'] += peso
-                                            totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
-                                            totais_cat = totais_cat[totais_cat > 0]
-                                            categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
-                                            
-                                            # QUALIDADES
-                                            lista_quals = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento"]
-                                            score_qual_df = pd.DataFrame(0, index=lista_quals, columns=["TOTAL"])
-                                            for val_q in [extract_num(rep1), extract_num(rep2_val)]:
-                                                ri_q = REPETICAO_DB.get(str(val_q))
-                                                if ri_q:
-                                                    q_enc = ri_q.get('qualidade')
-                                                    if q_enc:
-                                                        qn = remover_acentos(str(q_enc).strip()).upper()
-                                                        for idx_name in score_qual_df.index:
-                                                            if remover_acentos(idx_name).upper() == qn:
-                                                                score_qual_df.at[idx_name, 'TOTAL'] += 1
-                                            totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
-                                            totais_q = totais_q[totais_q > 0]
-                                            qualidades_escolhidas = list(totais_q.index)[:2]
-                                            qual_val = ", ".join(qualidades_escolhidas)
-                                            
-                                            # CREATE PERFIL JSON
-                                            dados_perfil = [
-                                                {"Campo": "KAN", "Valor": str(kan), "Resultado": str(kan)},
-                                                {"Campo": "Perfil", "Valor": perfil_val, "Resultado": perfil_val},
-                                                {"Campo": "Categoria", "Valor": categoria_selecionada, "Resultado": categoria_selecionada},
-                                                {"Campo": "Qualidades", "Valor": qual_val, "Resultado": qual_val}
-                                            ]
-                                            
-                                            perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
-                                            supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json}).eq("nome", n).execute()
-                                            count_updated += 1
-                                        except Exception as err:
-                                            count_errors += 1
-                                            if count_errors <= 3:
-                                                st.error(f"Erro no perfil {n}: {str(err)}")
-                                            continue
-                                        
-                                if count_errors > 0:
-                                    st.warning(f"Sincronização concluída! {count_updated} perfis atualizados. Foram ignorados {count_errors} perfis. Se houver erros, eles aparecerão acima. Recarregando em 5s.")
-                                else:
-                                    st.success(f"{count_updated} perfis antigos foram atualizados perfeitamente! A página será recarregada.")
-                                import time
-                                time.sleep(5)
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Erro durante a sincronização: {e}")
+                # Perfis
+                perfis_db_lista = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+                all_perfis = limpa_lista(perfis_db_lista)
+                
+                # Categorias
+                cats_db_lista = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
+                all_cats = limpa_lista(cats_db_lista)
+                
+                # Qualidades
+                quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
+                all_quals = limpa_lista(quals_db_lista)
                 
                 col_b1, col_b2, col_b3, col_b4 = st.columns(4)
                 with col_b1:
