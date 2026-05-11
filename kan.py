@@ -1381,34 +1381,29 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
         for campo_s in colunas_score:
             val_s = valores_originais_score.get(campo_s)
             if val_s is None: continue
-            
             perfil_enc = None
             if campo_s in mapa_col_matriz:
                 row_m = _matriz.get(str(val_s))
                 if row_m:
-                    attr_t = str(get_from_row(row_m, mapa_col_matriz[campo_s]) or "").upper()
+                    attr_t = str(get_from_row(row_m, campo_s) or "").upper()
                     if (not attr_t or attr_t == "NAN") and str(val_s).isdigit() and int(val_s) in (11, 22, 33):
                         num_reduz = sum(int(d) for d in str(val_s))
                         row_m_reduz = _matriz.get(str(num_reduz))
                         if row_m_reduz:
-                            attr_t = str(get_from_row(row_m_reduz, mapa_col_matriz[campo_s]) or "").upper()
-                    
+                            attr_t = str(get_from_row(row_m_reduz, campo_s) or "").upper()
+                            
                     if attr_t and attr_t != "NAN":
-                        for p in perfis_list:
-                            if remover_acentos(p).upper() == attr_t:
-                                perfil_enc = p
-                                break
+                        ai = _atributos.get(attr_t)
+                        if ai: perfil_enc = get_from_row(ai, 'perfil')
             else:
-                perfil_enc = val_s if val_s in perfis_list else None
-                
-            if perfil_enc and perfil_enc in score_df_calc.index:
-                peso = 0
-                row_p = _peso.get(campo_s.upper()) if isinstance(_peso, dict) else None
-                if row_p:
-                    peso_val = get_from_row(row_p, 'peso')
-                    try: peso = int(float(peso_val))
-                    except: peso = 0
-                score_df_calc.at[perfil_enc, campo_s] = peso
+                ri = _repeticao.get(str(val_s))
+                if ri: perfil_enc = get_from_row(ri, 'perfil')
+            
+            if perfil_enc:
+                pn = str(perfil_enc).strip().capitalize()
+                if pn in score_df_calc.index:
+                    pv = _peso.get(campo_s, 0)
+                    score_df_calc.at[pn, campo_s] = int(pv)
 
         score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
         totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
@@ -1423,36 +1418,29 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
         
         lista_cat = _lista_cat if _lista_cat else ["Justo"]
         score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_score)
+        
         for campo_c in colunas_score:
             val_c = valores_originais_score.get(campo_c)
             if val_c is None: continue
             
-            cat_enc = None
+            cat_encontrada = None
             if campo_c in mapa_col_matriz:
-                row_a = _atributos.get(str(val_c))
-                if row_a:
-                    attr_c = str(get_from_row(row_a, mapa_col_matriz[campo_c]) or "").upper()
-                    if (not attr_c or attr_c == "NAN") and str(val_c).isdigit() and int(val_c) in (11, 22, 33):
-                        num_reduz = sum(int(d) for d in str(val_c))
-                        row_a_reduz = _atributos.get(str(num_reduz))
-                        if row_a_reduz:
-                            attr_c = str(get_from_row(row_a_reduz, mapa_col_matriz[campo_c]) or "").upper()
-                    if attr_c and attr_c != "NAN":
-                        for c_item in lista_cat:
-                            if remover_acentos(c_item).upper() == attr_c:
-                                cat_enc = c_item
-                                break
+                row_m_cat = _matriz.get(str(val_c))
+                if row_m_cat:
+                    attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
+                    if attr_t_cat and attr_t_cat != "NAN":
+                        ai_cat = _atributos.get(attr_t_cat)
+                        if ai_cat: cat_encontrada = get_from_row(ai_cat, 'categoria')
             else:
-                cat_enc = val_c if val_c in lista_cat else None
+                ri_cat = _repeticao.get(str(val_c))
+                if ri_cat: cat_encontrada = get_from_row(ri_cat, 'categoria')
                 
-            if cat_enc and cat_enc in score_cat_df.index:
-                peso = 0
-                row_p = _peso.get(campo_c.upper()) if isinstance(_peso, dict) else None
-                if row_p:
-                    peso_val = get_from_row(row_p, 'peso')
-                    try: peso = int(float(peso_val))
-                    except: peso = 0
-                score_cat_df.at[cat_enc, campo_c] = peso
+            if cat_encontrada:
+                cn = str(cat_encontrada).strip().capitalize()
+                if cn in score_cat_df.index:
+                    # Usar _peso pois não tem PESO_CATEGORIA_DB_CACHE no escopo
+                    pv_cat = _peso.get(campo_c, 0)
+                    score_cat_df.at[cn, campo_c] = int(pv_cat)
 
         score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
         totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
@@ -1465,20 +1453,24 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
             val_q = valores_originais_score.get(campo_q)
             if val_q is None: continue
             
+            qual_encontrada = None
             if campo_q in mapa_col_matriz:
-                row_q = _repeticao.get(str(val_q))
-                if row_q:
-                    attr_q = str(get_from_row(row_q, mapa_col_matriz[campo_q]) or "").upper()
-                    if (not attr_q or attr_q == "NAN") and str(val_q).isdigit() and int(val_q) in (11, 22, 33):
-                        num_reduz = sum(int(d) for d in str(val_q))
-                        row_q_reduz = _repeticao.get(str(num_reduz))
-                        if row_q_reduz:
-                            attr_q = str(get_from_row(row_q_reduz, mapa_col_matriz[campo_q]) or "").upper()
-                    if attr_q and attr_q != "NAN":
-                        for q_item in lista_quals:
-                            if remover_acentos(q_item).upper() == attr_q:
-                                score_qual_df.at[q_item, campo_q] = 1
-                                break
+                row_m_q = _matriz.get(str(val_q))
+                if row_m_q:
+                    attr_t_q = str(get_from_row(row_m_q, campo_q) or "").upper()
+                    if attr_t_q and attr_t_q != "NAN":
+                        ai_q = _atributos.get(attr_t_q)
+                        if ai_q: qual_encontrada = get_from_row(ai_q, 'qualidades')
+            else:
+                ri_q = _repeticao.get(str(val_q))
+                if ri_q: qual_encontrada = get_from_row(ri_q, 'qualidade')
+
+            if qual_encontrada:
+                # qualidades can be comma separated
+                quals = [x.strip().capitalize() for x in str(qual_encontrada).split(',')]
+                for q_name in quals:
+                    if q_name in score_qual_df.index:
+                        score_qual_df.at[q_name, campo_q] = 1
 
         score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
         totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
