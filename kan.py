@@ -1482,7 +1482,8 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
         
         return perfil_val, categoria_selecionada, qual_val, str(kan)
     except Exception as e:
-        return "", "", "", ""
+        import traceback
+        return f"ERRO: {e} | {traceback.format_exc()}", "ERRO", "ERRO", "ERRO"
 
 clientes_salvos = {}
 if supabase_client:
