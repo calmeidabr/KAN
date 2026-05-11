@@ -1164,15 +1164,15 @@ if menu_opt == "Painel de Controle":
                 try:
                     # Tenta ler o arquivo com suporte a resumo
                     try:
-                        df_dm = pd.read_csv("descricao_mapa.csv", sep=";", encoding='utf-8-sig')
+                        df_dm = pd.read_csv("descricoes_mapa.csv", sep=";", encoding='utf-8-sig')
                     except:
-                        df_dm = pd.read_csv("descricao_mapa.csv", sep=";", encoding='latin-1')
+                        df_dm = pd.read_csv("descricoes_mapa.csv", sep=";", encoding='latin-1')
                     
                     if df_dm.shape[1] <= 1:
                         try:
-                            df_dm = pd.read_csv("descricao_mapa.csv", sep=",", encoding='utf-8-sig')
+                            df_dm = pd.read_csv("descricoes_mapa.csv", sep=",", encoding='utf-8-sig')
                         except:
-                            df_dm = pd.read_csv("descricao_mapa.csv", sep=",", encoding='latin-1')
+                            df_dm = pd.read_csv("descricoes_mapa.csv", sep=",", encoding='latin-1')
                     
                     rows_dm = df_dm.to_dict(orient='records')
                     cleaned_dm = []
