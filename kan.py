@@ -1344,12 +1344,17 @@ if supabase_client:
                 if isinstance(p_json, list):
                     for item in p_json:
                         if isinstance(item, dict):
-                            if item.get('Campo') == 'KAN': kan_val = item.get('Valor', '')
-                            elif item.get('Campo') == 'Perfil': perfil_val = item.get('Valor', '')
-                            elif item.get('Campo') == 'Categoria': categoria_val = item.get('Valor', '')
-                            elif item.get('Campo') == 'Qualidades': qualidades_val = item.get('Valor', '')
-                            elif item.get('Campo') == 'Fortaleza': fortaleza_val = item.get('Valor', '')
-                            elif item.get('Campo') == 'Desafio': desafio_val = item.get('Valor', '')
+                            raw_val = item.get('Valor')
+                            if raw_val is None or raw_val == "":
+                                res_str = str(item.get('Resultado', ''))
+                                raw_val = res_str.split(' - ')[0] if ' - ' in res_str else res_str
+                            
+                            if item.get('Campo') == 'KAN': kan_val = raw_val
+                            elif item.get('Campo') == 'Perfil': perfil_val = raw_val
+                            elif item.get('Campo') == 'Categoria': categoria_val = raw_val
+                            elif item.get('Campo') == 'Qualidades': qualidades_val = raw_val
+                            elif item.get('Campo') == 'Fortaleza': fortaleza_val = raw_val
+                            elif item.get('Campo') == 'Desafio': desafio_val = raw_val
 
             clientes_salvos[row['nome']] = {
                 'data_nascimento': row['data_nascimento'],
