@@ -1690,27 +1690,34 @@ else:
                     pass
         
     # --- CAMPOS DE EDIÇÃO PARA CLIENTE EXISTENTE ---
-    with st.expander("📝 Editar Informações Profissionais", expanded=False):
-        col_edit1, col_edit2 = st.columns([2, 1])
+    with st.expander("📝 Editar dados", expanded=False):
+        col_edit1, col_edit2 = st.columns(2)
         with col_edit1:
-            new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin, key=f"edit_link_{nome}")
-            new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias, key=f"edit_exp_{nome}", height=100)
-        
+            new_nome = st.text_input("Nome", value=nome, key=f"edit_nome_{nome}")
+            new_data = st.text_input("Data de Nascimento (dd/mm/yyyy)", value=data_str, key=f"edit_data_{nome}")
+            new_cargo = st.text_input("Cargo/Profissão", value=cargo if pd.notna(cargo) and str(cargo) != 'nan' else "", key=f"edit_cargo_{nome}")
         with col_edit2:
-            st.markdown("<br><br>", unsafe_allow_html=True)
-            if st.button("💾 Salvar Alterações"):
-                if supabase_client:
-                    try:
-                        supabase_client.table("mapas_salvos").update({
-                            "linkedin_url": new_linkedin,
-                            "experiencias": new_experiencias
-                        }).eq("nome", nome).execute()
-                        st.toast("✅ Informações atualizadas!")
-                        clientes_salvos[nome]['linkedin_url'] = new_linkedin
-                        clientes_salvos[nome]['experiencias'] = new_experiencias
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Erro ao atualizar: {e}")
+            new_empresa = st.text_input("Empresa/Grupo", value=empresa if pd.notna(empresa) and str(empresa) != 'nan' else "", key=f"edit_emp_{nome}")
+            new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin if pd.notna(linkedin) and str(linkedin) != 'nan' else "", key=f"edit_link_{nome}")
+            new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias if pd.notna(experiencias) and str(experiencias) != 'nan' else "", key=f"edit_exp_{nome}", height=68)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("💾 Salvar Alterações", key=f"btn_save_edit_{nome}"):
+            if supabase_client:
+                try:
+                    supabase_client.table("mapas_salvos").update({
+                        "nome": new_nome,
+                        "data_nascimento": new_data,
+                        "cargo": new_cargo,
+                        "empresa": new_empresa,
+                        "linkedin_url": new_linkedin,
+                        "experiencias": new_experiencias
+                    }).eq("nome", nome).execute()
+                    st.toast("✅ Informações atualizadas!")
+                    st.cache_data.clear()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao atualizar: {e}")
 
     st.markdown("---")
     st.session_state['show_mapa'] = True
