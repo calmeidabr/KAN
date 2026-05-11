@@ -2302,6 +2302,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
                 all_quals = limpa_lista(quals_db_lista)
                 
+                clientes_sem_perfil = sum(1 for c in clientes_salvos.values() if not c.get('perfil'))
+                st.caption(f"🔧 **DEBUG do Sistema:** De {len(clientes_salvos)} clientes totais, {clientes_sem_perfil} estão sem o campo Perfil no banco de dados. Isso significa que eles foram salvos em uma versão antiga do sistema.")
+                
                 col_b1, col_b2, col_b3, col_b4 = st.columns(4)
                 with col_b1:
                     filtro_kan = st.multiselect("KAN", options=all_kans)
