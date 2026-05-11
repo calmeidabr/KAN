@@ -1347,14 +1347,20 @@ if supabase_client:
                             raw_val = item.get('Valor')
                             if raw_val is None or raw_val == "":
                                 res_str = str(item.get('Resultado', ''))
-                                raw_val = res_str.split(' - ')[0] if ' - ' in res_str else res_str
+                                if ' - ' in res_str:
+                                    raw_val = res_str.split(' - ')[0].strip()
+                                elif ':' in res_str:
+                                    raw_val = res_str.split(':')[0].strip()
+                                else:
+                                    raw_val = res_str.strip()
                             
-                            if item.get('Campo') == 'KAN': kan_val = raw_val
-                            elif item.get('Campo') == 'Perfil': perfil_val = raw_val
-                            elif item.get('Campo') == 'Categoria': categoria_val = raw_val
-                            elif item.get('Campo') == 'Qualidades': qualidades_val = raw_val
-                            elif item.get('Campo') == 'Fortaleza': fortaleza_val = raw_val
-                            elif item.get('Campo') == 'Desafio': desafio_val = raw_val
+                            campo_norm = remover_acentos(str(item.get('Campo', ''))).lower().strip()
+                            if campo_norm == 'kan': kan_val = raw_val
+                            elif campo_norm == 'perfil': perfil_val = raw_val
+                            elif campo_norm == 'categoria': categoria_val = raw_val
+                            elif campo_norm == 'qualidades': qualidades_val = raw_val
+                            elif campo_norm == 'fortaleza': fortaleza_val = raw_val
+                            elif campo_norm == 'desafio': desafio_val = raw_val
 
             clientes_salvos[row['nome']] = {
                 'data_nascimento': row['data_nascimento'],
@@ -2309,19 +2315,28 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 if st.button("🔎 Realizar Busca de Perfis"):
                     resultados_busca = []
                     for n, c in clientes_salvos.items():
-                        match_kan = not filtro_kan or str(c.get('kan')) in filtro_kan
+                        match_kan = True
+                        if filtro_kan:
+                            f_kan_norm = [str(f).strip() for f in filtro_kan]
+                            match_kan = str(c.get('kan')).strip() in f_kan_norm
                         
                         match_perfil = True
                         if filtro_perfil:
-                            c_perfis = [p.strip() for p in str(c.get('perfil', '')).split(',')]
-                            match_perfil = any(p in filtro_perfil for p in c_perfis)
+                            f_perfis_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_perfil]
+                            c_perfis = [remover_acentos(str(p)).upper().strip() for p in str(c.get('perfil', '')).split(',')]
+                            match_perfil = any(p in f_perfis_norm for p in c_perfis)
                             
-                        match_cat = not filtro_cat or str(c.get('categoria')) in filtro_cat
-                        
+                        match_cat = True
+                        if filtro_cat:
+                            f_cats_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_cat]
+                            c_cats = [remover_acentos(str(p)).upper().strip() for p in str(c.get('categoria', '')).split(',')]
+                            match_cat = any(p in f_cats_norm for p in c_cats)
+                            
                         match_qual = True
                         if filtro_qual:
-                            c_quals = [q.strip() for q in str(c.get('qualidades', '')).split(',')]
-                            match_qual = any(q in filtro_qual for q in c_quals)
+                            f_quals_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_qual]
+                            c_quals = [remover_acentos(str(q)).upper().strip() for q in str(c.get('qualidades', '')).split(',')]
+                            match_qual = any(q in f_quals_norm for q in c_quals)
                             
                         if match_kan and match_perfil and match_cat and match_qual:
                             resultados_busca.append({
