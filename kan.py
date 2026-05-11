@@ -2444,14 +2444,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                             count_updated += 1
                                         except Exception as err:
                                             count_errors += 1
+                                            if count_errors <= 3:
+                                                st.error(f"Erro no perfil {n}: {str(err)}")
                                             continue
                                         
                                 if count_errors > 0:
-                                    st.warning(f"Sincronização concluída! {count_updated} perfis atualizados. Foram ignorados {count_errors} perfis que continham dados corrompidos (ex: data inválida). A página será recarregada em 3s.")
+                                    st.warning(f"Sincronização concluída! {count_updated} perfis atualizados. Foram ignorados {count_errors} perfis. Se houver erros, eles aparecerão acima. Recarregando em 5s.")
                                 else:
                                     st.success(f"{count_updated} perfis antigos foram atualizados perfeitamente! A página será recarregada.")
                                 import time
-                                time.sleep(3)
+                                time.sleep(5)
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Erro durante a sincronização: {e}")
