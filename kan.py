@@ -533,10 +533,11 @@ def fetch_descricoes_mapa():
             cat = get_from_row(row, 'categoria') or ""
             val = str(get_from_row(row, 'valor') or "")
             desc = get_from_row(row, 'descricao') or ""
+            res = get_from_row(row, 'resumo') or ""
             if cat:
                 if cat not in resultado:
                     resultado[cat] = {}
-                resultado[cat][val] = desc
+                resultado[cat][val] = {"descricao": desc, "resumo": res}
     except Exception:
         pass
         
@@ -545,11 +546,16 @@ def fetch_descricoes_mapa():
 DESCRICOES_MAPA_DB = fetch_descricoes_mapa()
 
 def get_desc_mapa(categoria, valor):
-    """Retorna a descrição numerológica para uma categoria e valor."""
+    """Retorna a descrição resumida (ou completa se o resumo não existir)."""
     if not DESCRICOES_MAPA_DB:
         return ""
     cat_data = DESCRICOES_MAPA_DB.get(categoria, {})
-    return cat_data.get(str(valor), "")
+    entry = cat_data.get(str(valor), "")
+    
+    if isinstance(entry, dict):
+        # Prioriza o resumo, se não houver, usa a descrição
+        return entry.get("resumo") if str(entry.get("resumo")).strip() else entry.get("descricao", "")
+    return entry
 
 
 def calcular_numeros_nome(nome_completo):
@@ -1152,6 +1158,46 @@ if menu_opt == "Painel de Controle":
                         st.error(f"Erro ao inserir valor {item['valor']}: {e}")
                 st.success(f"Concluído! {sucessos_p} descrições inseridas com sucesso.")
                 st.cache_data.clear()
+
+        if st.button("🚀 Migrar descricoes_mapa.csv (com Resumo) para Supabase"):
+            with st.spinner("Migrando descrições..."):
+                try:
+                    # Tenta ler o arquivo com suporte a resumo
+                    try:
+                        df_dm = pd.read_csv("descricao_mapa.csv", sep=";", encoding='utf-8-sig')
+                    except:
+                        df_dm = pd.read_csv("descricao_mapa.csv", sep=";", encoding='latin-1')
+                    
+                    if df_dm.shape[1] <= 1:
+                        try:
+                            df_dm = pd.read_csv("descricao_mapa.csv", sep=",", encoding='utf-8-sig')
+                        except:
+                            df_dm = pd.read_csv("descricao_mapa.csv", sep=",", encoding='latin-1')
+                    
+                    rows_dm = df_dm.to_dict(orient='records')
+                    cleaned_dm = []
+                    for r in rows_dm:
+                        cat = get_from_row(r, 'categoria')
+                        val = get_from_row(r, 'valor')
+                        desc = get_from_row(r, 'descricao')
+                        res = get_from_row(r, 'resumo')
+                        
+                        if cat and val:
+                            cleaned_dm.append({
+                                "categoria": str(cat).strip(),
+                                "valor": str(val).strip(),
+                                "descricao": str(desc).strip() if desc else "",
+                                "resumo": str(res).strip() if res else ""
+                            })
+                    
+                    if supabase_client and cleaned_dm:
+                        # Limpa tabela principal (o backup já deve ter sido feito pelo usuário via SQL)
+                        supabase_client.table("descricoes_mapa").delete().neq("categoria", "___fake___").execute()
+                        supabase_client.table("descricoes_mapa").insert(cleaned_dm).execute()
+                        st.success(f"Sucesso! {len(cleaned_dm)} descrições e resumos migrados.")
+                        st.cache_data.clear()
+                except Exception as e:
+                    st.error(f"Erro na migração de descrições: {e}")
         
         if st.button("🚀 Migrar campo_definicao.csv para Supabase"):
             with st.spinner("Migrando..."):
@@ -1230,10 +1276,13 @@ if menu_opt == "Painel de Controle":
                 # Editor de dados com altura limitada
                 disabled_cols = []
                 if tab_selecionada == "descricoes_mapa":
-                    # Impede edição de categorias e valores para evitar corrupção de chaves
-                    disabled_cols = [c for c in ["categoria", "valor"] if c in df_edit.columns]
-                
-                edited_df = st.data_editor(df_edit, num_rows="dynamic", use_container_width=True, hide_index=True, height=450, disabled=disabled_cols)
+                    # Permite editar apenas descricao e resumo
+                    disabled_cols = [c for c in df_edit.columns if c not in ["descricao", "resumo"]]
+                elif tab_selecionada == "campo_definicao":
+                    disabled_cols = [c for c in df_edit.columns if c not in ["explicacao"]]
+                else:
+                    # Padrão: bloqueia id e campos sensíveis em tabelas config
+                    disabled_cols = [c for c in ["id", "categoria", "valor", "campo"] if c in df_edit.columns]
                 
                 if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
