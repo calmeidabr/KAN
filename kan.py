@@ -1333,19 +1333,23 @@ if supabase_client:
             fortaleza_val = ""
             desafio_val = ""
             
-            p_json_str = row.get('perfil_json')
-            if p_json_str:
-                try:
-                    p_json = json.loads(p_json_str)
+            p_json = row.get('perfil_json')
+            if p_json:
+                if isinstance(p_json, str):
+                    try:
+                        p_json = json.loads(p_json)
+                    except:
+                        p_json = []
+                        
+                if isinstance(p_json, list):
                     for item in p_json:
-                        if item.get('Campo') == 'KAN': kan_val = item.get('Resultado', '')
-                        elif item.get('Campo') == 'Perfil': perfil_val = item.get('Resultado', '')
-                        elif item.get('Campo') == 'Categoria': categoria_val = item.get('Resultado', '')
-                        elif item.get('Campo') == 'Qualidades': qualidades_val = item.get('Resultado', '')
-                        elif item.get('Campo') == 'Fortaleza': fortaleza_val = item.get('Resultado', '')
-                        elif item.get('Campo') == 'Desafio': desafio_val = item.get('Resultado', '')
-                except:
-                    pass
+                        if isinstance(item, dict):
+                            if item.get('Campo') == 'KAN': kan_val = item.get('Valor', '')
+                            elif item.get('Campo') == 'Perfil': perfil_val = item.get('Valor', '')
+                            elif item.get('Campo') == 'Categoria': categoria_val = item.get('Valor', '')
+                            elif item.get('Campo') == 'Qualidades': qualidades_val = item.get('Valor', '')
+                            elif item.get('Campo') == 'Fortaleza': fortaleza_val = item.get('Valor', '')
+                            elif item.get('Campo') == 'Desafio': desafio_val = item.get('Valor', '')
 
             clientes_salvos[row['nome']] = {
                 'data_nascimento': row['data_nascimento'],
