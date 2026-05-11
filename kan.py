@@ -1320,13 +1320,33 @@ st.markdown("<h2 style='text-align: left; margin-bottom: 20px;'>Mapa e Perfil Co
 st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Descubra a sua potencialidade através da numerologia cabalística.</p>", unsafe_allow_html=True)
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
-clientes_salvos = {}
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
 clientes_salvos = {}
 if supabase_client:
     try:
         response = supabase_client.table("mapas_salvos").select("*").execute()
         for row in response.data:
+            kan_val = ""
+            perfil_val = ""
+            categoria_val = ""
+            qualidades_val = ""
+            fortaleza_val = ""
+            desafio_val = ""
+            
+            p_json_str = row.get('perfil_json')
+            if p_json_str:
+                try:
+                    p_json = json.loads(p_json_str)
+                    for item in p_json:
+                        if item.get('Campo') == 'KAN': kan_val = item.get('Valor', '')
+                        elif item.get('Campo') == 'Perfil': perfil_val = item.get('Valor', '')
+                        elif item.get('Campo') == 'Categoria': categoria_val = item.get('Valor', '')
+                        elif item.get('Campo') == 'Qualidades': qualidades_val = item.get('Valor', '')
+                        elif item.get('Campo') == 'Fortaleza': fortaleza_val = item.get('Valor', '')
+                        elif item.get('Campo') == 'Desafio': desafio_val = item.get('Valor', '')
+                except:
+                    pass
+
             clientes_salvos[row['nome']] = {
                 'data_nascimento': row['data_nascimento'],
                 'cargo': row.get('cargo', ''),
@@ -1334,7 +1354,13 @@ if supabase_client:
                 'linkedin_url': row.get('linkedin_url', ''),
                 'experiencias': row.get('experiencias', ''),
                 'foto_base64': row.get('foto_base64', ''),
-                'ai_diagnosis': row.get('ai_diagnosis', '')
+                'ai_diagnosis': row.get('ai_diagnosis', ''),
+                'kan': kan_val,
+                'perfil': perfil_val,
+                'categoria': categoria_val,
+                'qualidades': qualidades_val,
+                'fortaleza': fortaleza_val,
+                'desafio': desafio_val
             }
             if row.get('ai_diagnosis'):
                 if "ai_diagnosis" not in st.session_state:
@@ -2236,6 +2262,75 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             with col_p2:
                 pdf_p = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
                 st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key="dl_p_pdf")
+
+            # --- BUSCA DE PERFIS (AUDITORIA) ---
+            with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
+                st.markdown("### Selecione os filtros desejados")
+                st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
+                
+                all_kans = sorted(list(set(str(c.get('kan')) for c in clientes_salvos.values() if c.get('kan'))))
+                all_perfis = set()
+                all_cats = set()
+                all_quals = set()
+                
+                for c in clientes_salvos.values():
+                    if c.get('perfil'):
+                        for p in str(c['perfil']).split(','):
+                            all_perfis.add(p.strip())
+                    if c.get('categoria'):
+                        all_cats.add(str(c['categoria']).strip())
+                    if c.get('qualidades'):
+                        for q in str(c['qualidades']).split(','):
+                            all_quals.add(q.strip())
+                
+                all_perfis = sorted(list(filter(None, all_perfis)))
+                all_cats = sorted(list(filter(None, all_cats)))
+                all_quals = sorted(list(filter(None, all_quals)))
+                
+                col_b1, col_b2, col_b3, col_b4 = st.columns(4)
+                with col_b1:
+                    filtro_kan = st.multiselect("KAN", options=all_kans)
+                with col_b2:
+                    filtro_perfil = st.multiselect("Tipo de Líder (Perfil)", options=all_perfis)
+                with col_b3:
+                    filtro_cat = st.multiselect("Categoria", options=all_cats)
+                with col_b4:
+                    filtro_qual = st.multiselect("Qualidades", options=all_quals)
+                
+                if st.button("🔎 Realizar Busca de Perfis"):
+                    resultados_busca = []
+                    for n, c in clientes_salvos.items():
+                        match_kan = not filtro_kan or str(c.get('kan')) in filtro_kan
+                        
+                        match_perfil = True
+                        if filtro_perfil:
+                            c_perfis = [p.strip() for p in str(c.get('perfil', '')).split(',')]
+                            match_perfil = any(p in filtro_perfil for p in c_perfis)
+                            
+                        match_cat = not filtro_cat or str(c.get('categoria')) in filtro_cat
+                        
+                        match_qual = True
+                        if filtro_qual:
+                            c_quals = [q.strip() for q in str(c.get('qualidades', '')).split(',')]
+                            match_qual = any(q in filtro_qual for q in c_quals)
+                            
+                        if match_kan and match_perfil and match_cat and match_qual:
+                            resultados_busca.append({
+                                "Nome": n,
+                                "Data Nasc.": c.get('data_nascimento', ''),
+                                "KAN": c.get('kan', ''),
+                                "Perfil": c.get('perfil', ''),
+                                "Categoria": c.get('categoria', ''),
+                                "Qualidades": c.get('qualidades', ''),
+                                "Fortaleza": c.get('fortaleza', ''),
+                                "Desafio": c.get('desafio', '')
+                            })
+                    
+                    if resultados_busca:
+                        st.success(f"{len(resultados_busca)} perfil(is) encontrado(s)!")
+                        st.dataframe(pd.DataFrame(resultados_busca), use_container_width=True)
+                    else:
+                        st.warning("Nenhum perfil encontrado com os critérios selecionados.")
 
             # --- EXIBIÇÃO DOS SCORES TÉCNICOS ---
             with st.expander("📊 Ver Scores Técnicos (Auditoria)", expanded=False):
