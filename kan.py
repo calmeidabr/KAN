@@ -2191,8 +2191,27 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     """
                     
                     with st.spinner("IA analisando perfil com visão de RH..."):
-                        # Mudado para gemini-pro para garantir compatibilidade máxima
-                        model = genai.GenerativeModel('gemini-pro')
+                        # Lógica robusta: tenta o modelo mais recente, depois o estável
+                        model_to_use = 'gemini-1.5-flash'
+                        try:
+                            model = genai.GenerativeModel(model_to_use)
+                            response = model.generate_content(contexto)
+                        except Exception as e:
+                            # Tenta fallback para o modelo clássico
+                            try:
+                                model_to_use = 'gemini-pro'
+                                model = genai.GenerativeModel(model_to_use)
+                                response = model.generate_content(contexto)
+                            except:
+                                # Se falhar, tenta o modelo com sufixo 'latest'
+                                try:
+                                    model_to_use = 'gemini-1.5-flash-latest'
+                                    model = genai.GenerativeModel(model_to_use)
+                                    response = model.generate_content(contexto)
+                                except:
+                                    # Se nada funcionar, mostra o erro original
+                                    raise e
+                        
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
                         st.session_state["ai_diagnosis"][user_name_key] = texto_ia
