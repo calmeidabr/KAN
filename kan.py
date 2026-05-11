@@ -1362,28 +1362,50 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
         num_repeticao_mapa = r_totais[0][0] if r_totais else 0
         rep2_val = str(num_repeticao_mapa)
         
-        perfis_list = _perfis if _perfis else ["Lider"]
-        score_df_calc = pd.DataFrame(0, index=perfis_list, columns=["TOTAL"])
+        perfis_list = _perfis if _perfis else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+        colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+        mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
+        
         valores_originais_score = {
             "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
             "Dia Natalício": dia, "Triângulo": triangulo_base, "No Psiquico": num_psiquico,
-            "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2_val)
+            "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": int(rep2_val) if str(rep2_val).isdigit() else 0
         }
         
-        def seguro_int(val):
-            try: return int(float(val)) if str(val).lower() != 'nan' else 0
-            except: return 0
-        
-        for _, m_row in pd.DataFrame(_matriz).iterrows():
-            p_val = m_row.get('perfil', '')
-            if not p_val or p_val not in score_df_calc.index: continue
-            c_val = m_row.get('campo')
-            num_val = m_row.get('valor')
-            val_mapa = valores_originais_score.get(c_val)
-            if str(val_mapa) == str(num_val):
-                peso = seguro_int(_peso.get(c_val, 0))
-                score_df_calc.at[p_val, 'TOTAL'] += peso
+        score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
+        for campo_s in colunas_score:
+            val_s = valores_originais_score.get(campo_s)
+            if val_s is None: continue
+            
+            perfil_enc = None
+            if campo_s in mapa_col_matriz:
+                row_m = _matriz.get(str(val_s))
+                if row_m:
+                    attr_t = str(get_from_row(row_m, mapa_col_matriz[campo_s]) or "").upper()
+                    if (not attr_t or attr_t == "NAN") and str(val_s).isdigit() and int(val_s) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_s))
+                        row_m_reduz = _matriz.get(str(num_reduz))
+                        if row_m_reduz:
+                            attr_t = str(get_from_row(row_m_reduz, mapa_col_matriz[campo_s]) or "").upper()
+                    
+                    if attr_t and attr_t != "NAN":
+                        for p in perfis_list:
+                            if remover_acentos(p).upper() == attr_t:
+                                perfil_enc = p
+                                break
+            else:
+                perfil_enc = val_s if val_s in perfis_list else None
                 
+            if perfil_enc and perfil_enc in score_df_calc.index:
+                peso = 0
+                row_p = _peso.get(campo_s.upper()) if isinstance(_peso, dict) else None
+                if row_p:
+                    peso_val = get_from_row(row_p, 'peso')
+                    try: peso = int(float(peso_val))
+                    except: peso = 0
+                score_df_calc.at[perfil_enc, campo_s] = peso
+
+        score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
         totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
         totais_s = totais_s[totais_s > 0]
         perfis_escolhidos = []
@@ -1395,36 +1417,71 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
         perfil_val = ", ".join(perfis_escolhidos)
         
         lista_cat = _lista_cat if _lista_cat else ["Justo"]
-        score_cat_df = pd.DataFrame(0, index=lista_cat, columns=["TOTAL"])
-        for _, a_row in pd.DataFrame(_atributos).iterrows():
-            c_val = a_row.get('categoria', '')
-            if not c_val or c_val not in score_cat_df.index: continue
-            c_campo = a_row.get('campo')
-            num_val = a_row.get('valor')
-            val_mapa = valores_originais_score.get(c_campo)
-            if str(val_mapa) == str(num_val):
-                peso = seguro_int(_peso.get(c_campo, 0))
-                score_cat_df.at[c_val, 'TOTAL'] += peso
+        score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_score)
+        for campo_c in colunas_score:
+            val_c = valores_originais_score.get(campo_c)
+            if val_c is None: continue
+            
+            cat_enc = None
+            if campo_c in mapa_col_matriz:
+                row_a = _atributos.get(str(val_c))
+                if row_a:
+                    attr_c = str(get_from_row(row_a, mapa_col_matriz[campo_c]) or "").upper()
+                    if (not attr_c or attr_c == "NAN") and str(val_c).isdigit() and int(val_c) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_c))
+                        row_a_reduz = _atributos.get(str(num_reduz))
+                        if row_a_reduz:
+                            attr_c = str(get_from_row(row_a_reduz, mapa_col_matriz[campo_c]) or "").upper()
+                    if attr_c and attr_c != "NAN":
+                        for c_item in lista_cat:
+                            if remover_acentos(c_item).upper() == attr_c:
+                                cat_enc = c_item
+                                break
+            else:
+                cat_enc = val_c if val_c in lista_cat else None
+                
+            if cat_enc and cat_enc in score_cat_df.index:
+                peso = 0
+                row_p = _peso.get(campo_c.upper()) if isinstance(_peso, dict) else None
+                if row_p:
+                    peso_val = get_from_row(row_p, 'peso')
+                    try: peso = int(float(peso_val))
+                    except: peso = 0
+                score_cat_df.at[cat_enc, campo_c] = peso
+
+        score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
         totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
+        totais_cat = totais_cat[totais_cat > 0]
         categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
         
         lista_quals = list(_qualidades.keys()) if _qualidades else ["Relacionamento"]
-        score_qual_df = pd.DataFrame(0, index=lista_quals, columns=["TOTAL"])
-        for val_q in [extract_num(rep1), extract_num(rep2_val)]:
-            ri_q = _repeticao.get(str(val_q))
-            if ri_q:
-                q_enc = ri_q.get('qualidade')
-                if q_enc:
-                    qn = remover_acentos(str(q_enc).strip()).upper()
-                    for idx_name in score_qual_df.index:
-                        if remover_acentos(idx_name).upper() == qn:
-                            score_qual_df.at[idx_name, 'TOTAL'] += 1
+        score_qual_df = pd.DataFrame(0, index=lista_quals, columns=colunas_score)
+        for campo_q in colunas_score:
+            val_q = valores_originais_score.get(campo_q)
+            if val_q is None: continue
+            
+            if campo_q in mapa_col_matriz:
+                row_q = _repeticao.get(str(val_q))
+                if row_q:
+                    attr_q = str(get_from_row(row_q, mapa_col_matriz[campo_q]) or "").upper()
+                    if (not attr_q or attr_q == "NAN") and str(val_q).isdigit() and int(val_q) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_q))
+                        row_q_reduz = _repeticao.get(str(num_reduz))
+                        if row_q_reduz:
+                            attr_q = str(get_from_row(row_q_reduz, mapa_col_matriz[campo_q]) or "").upper()
+                    if attr_q and attr_q != "NAN":
+                        for q_item in lista_quals:
+                            if remover_acentos(q_item).upper() == attr_q:
+                                score_qual_df.at[q_item, campo_q] = 1
+                                break
+
+        score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
         totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
         totais_q = totais_q[totais_q > 0]
         qual_val = ", ".join(list(totais_q.index)[:2])
         
         return perfil_val, categoria_selecionada, qual_val, str(kan)
-    except:
+    except Exception as e:
         return "", "", "", ""
 
 clientes_salvos = {}
