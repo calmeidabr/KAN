@@ -2191,29 +2191,26 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     """
                     
                     with st.spinner("IA analisando perfil com visão de RH..."):
-                        # Lógica robusta: tenta o modelo mais recente, depois o estável
-                        model_to_use = 'gemini-1.5-flash'
+                        # Lógica robusta com captura e debug
+                        texto_ia = ""
                         try:
-                            model = genai.GenerativeModel(model_to_use)
+                            model = genai.GenerativeModel('gemini-1.5-flash')
                             response = model.generate_content(contexto)
-                        except Exception as e:
-                            # Tenta fallback para o modelo clássico
+                            texto_ia = response.text.replace("\n", "<br>")
+                        except Exception as e1:
                             try:
-                                model_to_use = 'gemini-pro'
-                                model = genai.GenerativeModel(model_to_use)
+                                model = genai.GenerativeModel('gemini-1.0-pro')
                                 response = model.generate_content(contexto)
-                            except:
-                                # Se falhar, tenta o modelo com sufixo 'latest'
+                                texto_ia = response.text.replace("\n", "<br>")
+                            except Exception as e2:
                                 try:
-                                    model_to_use = 'gemini-1.5-flash-latest'
-                                    model = genai.GenerativeModel(model_to_use)
-                                    response = model.generate_content(contexto)
-                                except:
-                                    # Se nada funcionar, mostra o erro original
-                                    raise e
+                                    # Se ambos falharem, consulta o Google para ver quais modelos esta chave tem acesso
+                                    modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                                    modelos_str = ", ".join(modelos)
+                                    texto_ia = f"<b>Aviso de Sistema:</b> Não foi possível acessar o modelo de IA.<br>Erro: {e1}<br><br><b>Modelos disponíveis na sua chave:</b> {modelos_str}"
+                                except Exception as e3:
+                                    texto_ia = f"<b>Erro na IA:</b> Não foi possível conectar ao Google Gemini. Verifique se a chave da API em st.secrets é válida e possui créditos/cotas disponíveis.<br>Erro original: {e1}"
                         
-                        response = model.generate_content(contexto)
-                        texto_ia = response.text.replace("\n", "<br>")
                         st.session_state["ai_diagnosis"][user_name_key] = texto_ia
                         
                         if supabase_client:
