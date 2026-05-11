@@ -1550,7 +1550,8 @@ if supabase_client:
                 'categoria': categoria_val,
                 'qualidades': qualidades_val,
                 'fortaleza': fortaleza_val,
-                'desafio': desafio_val
+                'desafio': desafio_val,
+                'has_json': True if p_json else False
             }
             if row.get('ai_diagnosis'):
                 if "ai_diagnosis" not in st.session_state:
@@ -2477,6 +2478,38 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                         st.error("Conexão com o banco de dados indisponível.")
 
             # --- BUSCA DE PERFIS (AUDITORIA) ---
+            # --- ESTATÍSTICAS DA BASE (DEBUG) ---
+            with st.expander("📊 Estatísticas da Base (Sincronização)", expanded=True):
+                if clientes_salvos:
+                    stats = {}
+                    for n, c in clientes_salvos.items():
+                        letra = n[0].upper() if n else "?"
+                        if letra not in stats: stats[letra] = {"total": 0, "com_mapa": 0}
+                        stats[letra]["total"] += 1
+                        # Se veio do perfil_json (não foi calculado on-the-fly), consideramos 'com mapa'
+                        # Na carga, se p_json era nulo, calcular_perfil_faltante foi chamado.
+                        # Podemos checar se os dados batem com o esperado.
+                        if c.get('perfil') and "ERRO" not in str(c.get('perfil')):
+                             # Verificamos se o registro no banco tinha o campo perfil_json preenchido
+                             # No carregamento (linha 1505), p_json = row.get('perfil_json')
+                             # Vamos adicionar essa info no dict clientes_salvos
+                             if c.get('has_json'):
+                                 stats[letra]["com_mapa"] += 1
+                    
+                    st.write("### Resumo por Letra Inicial")
+                    cols_stats = st.columns(4)
+                    sorted_letras = sorted(stats.keys())
+                    for i, letra in enumerate(sorted_letras):
+                        with cols_stats[i % 4]:
+                            total = stats[letra]['total']
+                            com = stats[letra]['com_mapa']
+                            cor = "🟢" if total == com else "🟡"
+                            st.markdown(f"**{letra}**: {com}/{total} {cor}")
+                    
+                    st.info("🟢 = Todos salvos | 🟡 = Alguns pendentes (precisam ser abertos e salvos)")
+                else:
+                    st.warning("Nenhum dado carregado para estatísticas.")
+
             with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
                 st.markdown("### Selecione os filtros desejados")
                 st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
