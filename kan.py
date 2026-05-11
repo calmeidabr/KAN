@@ -2443,7 +2443,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
             st.markdown("---")
             st.subheader("Salvar Perfil Comportamental")
-            col_p1, col_p2 = st.columns(2)
+            col_p1, col_p2, col_p3 = st.columns(3)
             df_perfil = pd.DataFrame(dados_perfil)
             nome_limpo_p = remover_acentos(nome).replace(' ', '_')
             with col_p1:
@@ -2452,6 +2452,22 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             with col_p2:
                 pdf_p = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
                 st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key="dl_p_pdf")
+            with col_p3:
+                if st.button("💾 Salvar na Base de Dados", key=f"save_db_{nome_limpo_p}"):
+                    if supabase_client:
+                        try:
+                            import json
+                            perfil_json_str = json.dumps(dados_perfil, ensure_ascii=False)
+                            resp = supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
+                            if resp and hasattr(resp, 'data') and resp.data:
+                                st.success("Perfil salvo e atualizado na base com sucesso!")
+                                st.cache_data.clear() # clear cache to ensure search is updated
+                            else:
+                                st.warning("Atualização enviada, mas nenhuma linha foi modificada (verifique se o nome exato já existe na base).")
+                        except Exception as e:
+                            st.error(f"Erro ao salvar na base: {e}")
+                    else:
+                        st.error("Conexão com o banco de dados indisponível.")
 
             # --- BUSCA DE PERFIS (AUDITORIA) ---
             with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
