@@ -2191,8 +2191,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     """
                     
                     with st.spinner("IA analisando perfil com visão de RH..."):
-                        # Alterado para o nome padrão que resolve o erro 404 em algumas regiões/versões
-                        model = genai.GenerativeModel('gemini-1.5-flash')
+                        # Mudado para gemini-pro para garantir compatibilidade máxima
+                        model = genai.GenerativeModel('gemini-pro')
                         response = model.generate_content(contexto)
                         texto_ia = response.text.replace("\n", "<br>")
                         st.session_state["ai_diagnosis"][user_name_key] = texto_ia
