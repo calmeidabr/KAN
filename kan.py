@@ -2172,22 +2172,23 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     
                     contexto = f"""
                     Você é um Especialista em Recrutamento e Seleção (RH) de alta performance e Consultor de Carreira.
-                    Sua tarefa é analisar o perfil completo de {nome} e gerar um Diagnóstico de Performance com foco em contratação.
+                    Sua tarefa é analisar o perfil completo de {nome} e gerar um Diagnóstico de Performance com foco em contratação corporativa.
                     
-                    DADOS DO MAPA NUMEROLÓGICO (Personalidade, Destino e Desafios):
+                    DADOS BRUTOS DO PERFIL E TENDÊNCIAS COMPORTAMENTAIS:
                     {mapa_texto}
                     
-                    DADOS DO PERFIL COMPORTAMENTAL KAN (Comportamento, Forças e Qualidades):
+                    DADOS DO PERFIL KAN (Forças, Estilo de Trabalho e Qualidades):
                     {perfil_texto}
                     
                     INFORMAÇÕES PROFISSIONAIS ADICIONAIS:
                     {info_prof}
                     
-                    DIRETRIZES PARA O DIAGNÓSTICO:
-                    1. Use uma visão técnica de RH: identifique fit cultural, competências predominantes e pontos de atenção para uma contratação.
-                    2. Seja realista, direto e profissional.
-                    3. Analise como os números do mapa se traduzem em comportamento profissional.
-                    4. O texto deve ser formatado em exatamente 3 parágrafos curtos e objetivos.
+                    DIRETRIZES ESTRITAS PARA A REDAÇÃO:
+                    1. Use puramente linguagem corporativa, psicológica e de RH (Foco em soft skills, competências, fit cultural e desafios de gestão).
+                    2. PROIBIDO MENCIONAR TERMOS NUMEROLÓGICOS: NUNCA escreva palavras como "Mapa", "Numerologia", "Expressão 1", "Destino 8", "Motivação", "Dívidas Cármicas", etc. Você deve APENAS absorver o significado psicológico desses itens e transformá-los em análise de competência profissional.
+                    3. NUNCA use a expressão "tendências numerológicas". Se precisar, use "tendências comportamentais", "análise de perfil" ou "mapeamento".
+                    4. O texto não pode, em hipótese alguma, parecer uma consulta esotérica. Deve soar como uma avaliação técnica, profunda e baseada em dados analíticos de RH.
+                    5. O texto deve ser formatado em exatamente 3 parágrafos curtos, diretos e objetivos.
                     """
                     
                     with st.spinner("IA analisando perfil com visão de RH (Alta Performance)..."):
