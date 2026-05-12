@@ -2548,6 +2548,8 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 st.table(auditoria_qual_df)
                 
                 st.header("Plano KAN")
+                rep3 = ""
+                rep4 = ""
                 df_plano_kan = pd.DataFrame({
                     "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA", "REPETICAO 2 MAPA", "REPETICAO 3 MAPA"],
                     "Valor": [
