@@ -2528,19 +2528,21 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
 
             # --- EXIBIÇÃO DOS SCORES TÉCNICOS ---
             with st.expander("📊 Ver Scores Técnicos (Auditoria)", expanded=False):
+                p_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Perfil'), '')
+                c_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Categoria'), '')
+                q_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Qualidades'), '')
+
                 st.header("Score Perfil")
-                st.slider("Corte Perfil", 1.0, 2.0, 1.8, 0.1, key="score_perfil_corte_slider")
                 st.table(score_df_calc)
-                st.info(f"**Perfil Selecionado:** {', '.join(perfis_escolhidos)}")
+                st.info(f"**Perfil Selecionado:** {p_val}")
                 
                 st.header("Score Categoria")
-                st.selectbox("Corte Categoria", ["Dia Natalicio", "Calculo"], index=1 if modo_corte_cat == 'Calculo' else 0, key="corte_categoria_modo")
                 st.table(score_cat_df)
-                st.info(f"**Categoria Selecionada:** {categoria_selecionada}")
+                st.info(f"**Categoria Selecionada:** {c_val}")
                 
                 st.header("Score Qualidades")
                 st.table(score_qual_df)
-                st.info(f"**Qualidades Selecionadas:** {', '.join(qualidades_escolhidas)}")
+                st.info(f"**Qualidades Selecionadas:** {q_val}")
                 
                 st.header("Detalhamento dos Atributos")
                 st.table(auditoria_qual_df)
