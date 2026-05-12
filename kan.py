@@ -1495,6 +1495,355 @@ def calcular_perfil_faltante(nome, data_str, _matriz, _atributos, _repeticao, _p
         import traceback
         return f"ERRO: {e} | {traceback.format_exc()}", "ERRO", "ERRO", "ERRO"
 
+def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
+    try:
+        # Re-importações necessárias para dentro do escopo se necessário ou usar globais
+        import json
+        from collections import Counter
+        
+        resultados = calcular_numerologia(nome, nascimento, data_atual)
+        (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
+         ano_pess, missao, dividas_carmicas, licoes_carmicas,
+         tendencias_ocultas, soma_tendencias, resposta_subconsciente,
+         desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
+         triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
+
+        estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
+            expressao, motivacao, impressao, nascimento[0],
+            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+            triangulo_base
+        )
+        
+        # Substitui REPETIÇÃO 2 por REPETICAO MAPA
+        todos_numeros_mapa = []
+        for v in [expressao, motivacao, impressao, destino, missao, nascimento[0]]:
+            if isinstance(v, int): todos_numeros_mapa.append(v)
+            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
+            
+        for v in [desafio1, desafio2, desafio_principal]:
+            if isinstance(v, int): todos_numeros_mapa.append(v)
+            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
+            
+        for c_key in ciclos_vida:
+            num_c = ciclos_vida[c_key].get('numero')
+            if isinstance(num_c, int): todos_numeros_mapa.append(num_c)
+            
+        for m_key in momentos_decisivos:
+            num_m = momentos_decisivos[m_key].get('numero')
+            if isinstance(num_m, int): todos_numeros_mapa.append(num_m)
+            
+        num_psiquico = reduce_number(nascimento[0])
+        todos_numeros_mapa.append(num_psiquico)
+        
+        if isinstance(triangulo_base, int): todos_numeros_mapa.append(triangulo_base)
+        
+        c_total = Counter(todos_numeros_mapa)
+        r_totais = sorted([(n, c) for n, c in c_total.items()], key=lambda x: (-x[1], x[0]))
+        
+        num_repeticao_mapa = r_totais[0][0] if r_totais else 0
+        perfil_rep_mapa = REPETICAO_DB.get(str(num_repeticao_mapa), {"perfil": ""}).get("perfil", "")
+        repeticao_mapa = f"{num_repeticao_mapa} - {perfil_rep_mapa}" if perfil_rep_mapa else str(num_repeticao_mapa)
+        
+        num_repeticao_2_mapa = r_totais[1][0] if len(r_totais) > 1 else 0
+        perfil_rep_2_mapa = REPETICAO_DB.get(str(num_repeticao_2_mapa), {"perfil": ""}).get("perfil", "")
+        repeticao_2_mapa = f"{num_repeticao_2_mapa} - {perfil_rep_2_mapa}" if perfil_rep_2_mapa else str(num_repeticao_2_mapa)
+        
+        num_repeticao_3_mapa = r_totais[2][0] if len(r_totais) > 2 else 0
+        perfil_rep_3_mapa = REPETICAO_DB.get(str(num_repeticao_3_mapa), {"perfil": ""}).get("perfil", "")
+        repeticao_3_mapa = f"{num_repeticao_3_mapa} - {perfil_rep_3_mapa}" if perfil_rep_3_mapa else str(num_repeticao_3_mapa)
+        
+        rep2 = repeticao_mapa
+        rep3 = repeticao_2_mapa
+        rep4 = repeticao_3_mapa
+
+        dados = []
+        def add_row(campo, valor_str, explicacao=""):
+            if not explicacao or str(explicacao).strip() == "":
+                explicacao = get_expl(campo)
+            dados.append({"Campo": campo, "Resultado": valor_str, "Explicacao": explicacao})
+
+        num_dia_puro = nascimento[0]
+        num_dia_reduzido = reduce_number(nascimento[0])
+
+        def extract_num(s):
+            if not s: return None
+            try: return s.split(' - ')[0]
+            except: return str(s)
+
+        def get_expl(campo_nome):
+            base_name = campo_nome.split(" - ")[0]
+            search = normalize_key(base_name)
+            if "psiquico" in search: search = "nopsiquico"
+            if "triangulodavida" in search and "repeticao" not in search: search = "triangulodavida"
+            if "repeticao" in search: search = "triangulodavidarepeticoes"
+            for k, v in CAMPO_DEFINICAO_DB.items():
+                if normalize_key(k) == search: return v
+            for k, v in CAMPO_DEFINICAO_DB.items():
+                if normalize_key(k) in search or search in normalize_key(k):
+                    if len(normalize_key(k)) > 3: return v
+            return ""
+
+        def add_row_com_desc(campo, valor_str, categoria_mapa, valor_num):
+            desc = get_desc_mapa(categoria_mapa, str(valor_num))
+            expl = get_expl(campo)
+            if desc: add_row(f"{campo} - {valor_num}", desc, expl)
+            else: add_row(campo, valor_str, expl)
+
+        add_row_com_desc("Expressão", expressao, "Expressao", extract_num(expressao) if expressao else expressao)
+        add_row_com_desc("Motivação", motivacao, "Motivacao", extract_num(motivacao) if motivacao else motivacao)
+        add_row_com_desc("Impressão", impressao, "Impressao", extract_num(impressao) if impressao else impressao)
+        add_row_com_desc("Destino", destino, "Destino", extract_num(destino) if destino else destino)
+        add_row_com_desc("Número Psíquico", num_dia_reduzido, "Numero Psiquico", num_dia_reduzido)
+        add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
+        add_row("Triângulo da Vida (Base)", triangulo_base)
+        add_row("Triângulo da Vida (Repetições)", triangulo_reps)
+        add_row_com_desc("Dia Pessoal", dia_pessoal, "Dia Pessoal", extract_num(dia_pessoal) if dia_pessoal else dia_pessoal)
+        add_row_com_desc("Mês Pessoal", mes_pess, "Mes Pessoal", extract_num(mes_pess) if mes_pess else mes_pess)
+        add_row_com_desc("Ano Pessoal", ano_pess, "Ano Pessoal", extract_num(ano_pess) if ano_pess else ano_pess)
+        add_row_com_desc("Missão", missao, "Missao", extract_num(missao) if missao else missao)
+
+        if dividas_carmicas:
+            dividas_str = ', '.join(str(d) for d in dividas_carmicas)
+            dividas_parts = []
+            for d in dividas_carmicas:
+                desc_d = get_desc_mapa("Divida Carmica", str(d))
+                dividas_parts.append(f"<b>{d}</b>: {desc_d}" if desc_d else str(d))
+            add_row(f"Dívidas Cármicas - {dividas_str}", ' | '.join(dividas_parts))
+        else: add_row("Dívidas Cármicas", "Não há")
+
+        if licoes_carmicas:
+            licoes_str = ', '.join(str(l) for l in licoes_carmicas)
+            licoes_parts = []
+            for l in licoes_carmicas:
+                desc_l = get_desc_mapa("Licao Carmica", str(l))
+                licoes_parts.append(f"<b>{l}</b>: {desc_l}" if desc_l else str(l))
+            add_row(f"Lições Cármicas - {licoes_str}", ' | '.join(licoes_parts))
+        else: add_row("Lições Cármicas", "Não há")
+
+        if tendencias_ocultas:
+            tend_str = ', '.join(str(t) for t in tendencias_ocultas)
+            tend_parts = []
+            for t in tendencias_ocultas:
+                desc_t = get_desc_mapa("Tendencia Oculta", str(t))
+                tend_parts.append(f"<b>{t}</b>: {desc_t}" if desc_t else str(t))
+            add_row(f"Tendências Ocultas - {tend_str}", ' | '.join(tend_parts))
+        else: add_row("Tendências Ocultas", "Não há")
+
+        desc_resp = get_desc_mapa("Resposta Subconsciente", str(extract_num(resposta_subconsciente) if resposta_subconsciente else ""))
+        add_row(f"Resposta Subconsciente - {resposta_subconsciente}", desc_resp if desc_resp else "")
+        desc_dia_nat = get_desc_mapa("Dia Natalicio", str(nascimento[0]))
+        add_row(f"Dia Natalício - {nascimento[0]}", desc_dia_nat if desc_dia_nat else "")
+        desc_des1 = get_desc_mapa("Desafio", str(desafio1))
+        add_row(f"1º Desafio - {desafio1}", desc_des1 if desc_des1 else "")
+        desc_des2 = get_desc_mapa("Desafio", str(desafio2))
+        add_row(f"2º Desafio - {desafio2}", desc_des2 if desc_des2 else "")
+        desc_des_princ = get_desc_mapa("Desafio", str(desafio_principal))
+        add_row(f"Desafio Principal - {desafio_principal}", desc_des_princ if desc_des_princ else "")
+
+        c1_num = ciclos_vida['ciclo1']['numero']
+        c1_periodo = f"{ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']}"
+        desc_c1 = get_desc_mapa("1º Ciclo de Vida", str(c1_num))
+        add_row(f"1º Ciclo de Vida - {c1_num}", f"<b>Período: {c1_periodo}</b><br>{desc_c1}" if desc_c1 else c1_periodo)
+        c2_num = ciclos_vida['ciclo2']['numero']
+        c2_periodo = f"{ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']}"
+        desc_c2 = get_desc_mapa("2º Ciclo de Vida", str(c2_num))
+        add_row(f"2º Ciclo de Vida - {c2_num}", f"<b>Período: {c2_periodo}</b><br>{desc_c2}" if desc_c2 else c2_periodo)
+        c3_num = ciclos_vida['ciclo3']['numero']
+        c3_periodo = f"A partir de {ciclos_vida['ciclo3']['inicio']}"
+        desc_c3 = get_desc_mapa("3º Ciclo de Vida", str(c3_num))
+        add_row(f"3º Ciclo de Vida - {c3_num}", f"<b>Período: {c3_periodo}</b><br>{desc_c3}" if desc_c3 else c3_periodo)
+
+        m1_num = momentos_decisivos['momento1']['numero']
+        m1_periodo = f"{momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']}"
+        desc_m1 = get_desc_mapa("Momento Decisivo", str(m1_num))
+        add_row(f"1º Momento Decisivo - {m1_num}", f"<b>Período: {m1_periodo}</b><br>{desc_m1}" if desc_m1 else m1_periodo)
+        m2_num = momentos_decisivos['momento2']['numero']
+        m2_periodo = f"{momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']}"
+        desc_m2 = get_desc_mapa("Momento Decisivo", str(m2_num))
+        add_row(f"2º Momento Decisivo - {m2_num}", f"<b>Período: {m2_periodo}</b><br>{desc_m2}" if desc_m2 else m2_periodo)
+        m3_num = momentos_decisivos['momento3']['numero']
+        m3_periodo = f"{momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']}"
+        desc_m3 = get_desc_mapa("Momento Decisivo", str(m3_num))
+        add_row(f"3º Momento Decisivo - {m3_num}", f"<b>Período: {m3_periodo}</b><br>{desc_m3}" if desc_m3 else m3_periodo)
+        m4_num = momentos_decisivos['momento4']['numero']
+        m4_periodo = f"A partir de {momentos_decisivos['momento4']['inicio']}"
+        desc_m4 = get_desc_mapa("Momento Decisivo", str(m4_num))
+        add_row(f"4º Momento Decisivo - {m4_num}", f"<b>Período: {m4_periodo}</b><br>{desc_m4}" if desc_m4 else m4_periodo)
+
+        perfis_list = PERFIS_DB if PERFIS_DB else ["Lider"]
+        colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
+        mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
+        valores_originais_score = {"Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao), "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido, "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2)}
+        score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
+        for campo_s in colunas_score:
+            val_s = valores_originais_score[campo_s]
+            if val_s is None: continue
+            perfil_enc = None
+            if campo_s in mapa_col_matriz:
+                row_m = MATRIZ_DB.get(str(val_s))
+                if row_m:
+                    attr_t = str(get_from_row(row_m, campo_s) or "").upper()
+                    if (not attr_t or attr_t == "NAN") and str(val_s).isdigit() and int(val_s) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_s)); row_m_reduz = MATRIZ_DB.get(str(num_reduz))
+                        if row_m_reduz: attr_t = str(get_from_row(row_m_reduz, campo_s) or "").upper()
+                    if attr_t and attr_t != "NAN":
+                        ai = ATRIBUTOS_DB.get(attr_t)
+                        if ai: perfil_enc = get_from_row(ai, 'perfil')
+            else:
+                ri = REPETICAO_DB.get(str(val_s))
+                if ri: perfil_enc = get_from_row(ri, 'perfil')
+            if perfil_enc:
+                pn = str(perfil_enc).strip().capitalize()
+                if pn in score_df_calc.index: score_df_calc.at[pn, campo_s] = int(PESO_DB.get(campo_s, 0))
+        score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
+
+        lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo"]
+        score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_score)
+        for campo_c in colunas_score:
+            val_c = valores_originais_score[campo_c]
+            if val_c is None: continue
+            cat_en = None
+            if campo_c in mapa_col_matriz:
+                row_m_cat = MATRIZ_DB.get(str(val_c))
+                if row_m_cat:
+                    attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
+                    if attr_t_cat:
+                        ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
+                        if ai_cat: cat_en = get_from_row(ai_cat, 'categoria')
+            else:
+                ri_cat = REPETICAO_DB.get(str(val_c))
+                if ri_cat: cat_en = get_from_row(ri_cat, 'categoria')
+            if cat_en:
+                cn = str(cat_en).strip().capitalize()
+                if cn in score_cat_df.index: score_cat_df.at[cn, campo_c] = int(PESO_CATEGORIA_DB.get(campo_c, 0))
+        score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
+        
+        cat_dia_natalicio = ""
+        row_dia = MATRIZ_DB.get(str(valores_originais_score["Dia Natalício"]))
+        if row_dia:
+            attr_dia = str(get_from_row(row_dia, 'Dia Natalício')).upper()
+            if attr_dia:
+                ai_dia = ATRIBUTOS_DB.get(attr_dia)
+                if ai_dia: cat_dia_natalicio = str(get_from_row(ai_dia, 'categoria') or "").strip().capitalize()
+
+        lista_qual = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento"]
+        score_qual_df = pd.DataFrame(0, index=lista_qual, columns=colunas_score)
+        dados_auditoria_qual = []
+        for campo_q in colunas_score:
+            val_q = valores_originais_score[campo_q]; qual_en = None; attr_t_q = None; p_v = "N/A"; c_v = "N/A"
+            if campo_q in mapa_col_matriz:
+                row_m_q = MATRIZ_DB.get(str(val_q))
+                if row_m_q:
+                    attr_t_q = str(get_from_row(row_m_q, campo_q) or "").upper()
+                    if (not attr_t_q or attr_t_q == "NAN") and str(val_q).isdigit() and int(val_q) in (11, 22, 33):
+                        num_reduz = sum(int(d) for d in str(val_q)); row_m_reduz = MATRIZ_DB.get(str(num_reduz))
+                        if row_m_reduz: attr_t_q = str(get_from_row(row_m_reduz, campo_q) or "").upper()
+                    if attr_t_q and attr_t_q != "NAN":
+                        ai_q = ATRIBUTOS_DB.get(attr_t_q)
+                        if ai_q:
+                            p_v = get_from_row(ai_q, 'perfil') or "N/A"; c_v = get_from_row(ai_q, 'categoria') or "N/A"
+                            qual_en = (get_from_row(ai_q, 'qualidade') or get_from_row(ai_q, 'area de suporte') or get_from_row(ai_q, 'categoria') or get_from_row(ai_q, 'perfil'))
+            else:
+                ri_q = REPETICAO_DB.get(str(val_q))
+                if ri_q:
+                    p_v = get_from_row(ri_q, 'perfil') or "N/A"; c_v = get_from_row(ri_q, 'categoria') or "N/A"
+                    qual_en = (get_from_row(ri_q, 'qualidade') or get_from_row(ri_q, 'area de suporte') or get_from_row(ri_q, 'categoria') or get_from_row(ri_q, 'perfil'))
+                    attr_t_q = "Tabela Repetição"
+            if qual_en:
+                qn = remover_acentos(str(qual_en).strip()).upper()
+                for idx_name in score_qual_df.index:
+                    if remover_acentos(idx_name).upper() == qn: score_qual_df.at[idx_name, campo_q] += int(PESO_DB.get(campo_q, 0)); break
+            dados_auditoria_qual.append({"Campo": campo_q, "Valor": val_q, "Matriz": attr_t_q if attr_t_q else "N/A", "Perfil": p_v, "Categoria": c_v, "Qualidade": qual_en if qual_en else "N/A"})
+        score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
+
+        dados_perfil = []
+        def add_row_perfil_split(campo, valor, descricao):
+            desc_limpa = descricao.replace("<b>", "").replace("</b>", "").replace("<br>", " | ")
+            dados_perfil.append({"Campo": campo, "Valor": valor, "Descricao": descricao, "Resultado": f"{valor} - {desc_limpa}" if desc_limpa else valor})
+        
+        k_data = KAN_DB.get(str(kan), {"kan": str(kan), "descricao": ""})
+        add_row_perfil_split("KAN", k_data['kan'], k_data['descricao'])
+        
+        totais_s = score_df_calc['TOTAL'].sort_values(ascending=False); perfis_escolhidos = []
+        if not totais_s[totais_s > 0].empty:
+            max_s = totais_s.iloc[0]
+            for p, s in totais_s[totais_s > 0].items():
+                if max_s / s <= st.session_state.get('score_perfil_corte_slider', 1.8): perfis_escolhidos.append(p)
+                else: break
+        perfil_val = ", ".join(perfis_escolhidos); p_desc_list = []
+        for p in perfis_escolhidos:
+            d = ""; pn = remover_acentos(p).upper()
+            for k_desc, v_desc in PERFIL_DESCRICAO_DB.items():
+                if remover_acentos(k_desc).upper() == pn: d = v_desc; break
+            if d: p_desc_list.append(d)
+        add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(p_desc_list) if p_desc_list else "")
+        
+        modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
+        cat_sel = cat_dia_natalicio if modo_corte_cat == 'Dia Natalicio' else (score_cat_df['TOTAL'].sort_values(ascending=False).index[0] if not score_cat_df['TOTAL'].empty else "")
+        cat_d = ""; cn = remover_acentos(cat_sel).upper()
+        for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
+            if remover_acentos(k_desc).upper() == cn: cat_d = v_desc; break
+        add_row_perfil_split("Categoria", cat_sel, cat_d)
+        
+        campos_para_dif = [extract_num(motivacao), extract_num(impressao), extract_num(expressao), extract_num(destino), extract_num(missao), str(nascimento[0]), str(triangulo_base), str(num_dia_reduzido)]
+        dif_ativos = []; dif_d_list = []
+        for v_dif in ["11", "22"]:
+            if v_dif in campos_para_dif:
+                d_dif = DIFERENCIAIS_DESC_DB.get(v_dif)
+                if d_dif: dif_ativos.append(d_dif['diferencial']); dif_d_list.append(f"<b>{d_dif['diferencial']}</b>: {d_dif['descricao']}")
+        if dif_ativos: add_row_perfil_split("Diferenciais", ", ".join(dif_ativos), "<br><br>".join(dif_d_list))
+        
+        totais_q = score_qual_df['TOTAL'].sort_values(ascending=False); q_escolhidas = list(totais_q[totais_q > 0].index)[:2]; q_d_list = []
+        for q in q_escolhidas:
+            d = ""; qn = remover_acentos(q).upper()
+            for k_desc, v_desc in QUALIDADES_DB.items():
+                if remover_acentos(k_desc).upper() == qn: d = v_desc; break
+            if d: q_d_list.append(f"<b>{q}</b>: {d}")
+        add_row_perfil_split("Qualidades", ", ".join(q_escolhidas), "<br>".join(q_d_list) if q_d_list else "")
+        
+        user_name_key = f"diag_{nome}"
+        desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (clientes_salvos.get(nome, {}).get('ai_diagnosis')) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
+        add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
+        f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "N/E", "descricao": ""}); add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
+        d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "N/E", "descricao": ""}); add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
+        
+        return dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, pd.DataFrame(dados_auditoria_qual)
+    except Exception as e:
+        st.error(f"Erro nos cálculos: {e}"); return [], [], None, None, None, None, None, None, None, None, None
+
+def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2):
+    if not supabase_client:
+        st.error("Erro: Cliente Supabase não inicializado.")
+        return
+    try:
+        import json
+        dados_para_salvar = list(dados_perfil)
+        campos_extra = [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
+                       ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]
+        for label, val in campos_extra:
+            if not any(item['Campo'] == label for item in dados_para_salvar):
+                dados_para_salvar.append({"Campo": label, "Valor": str(val), "Descricao": "", "Resultado": str(val)})
+        for item in dados:
+            campo_full = item.get('Campo', '')
+            if ' - ' in campo_full:
+                partes = campo_full.split(' - ')
+                campo_simples = partes[0]
+                valor_simples = partes[1]
+            else:
+                campo_simples = campo_full
+                valor_simples = item.get('Resultado', '')
+            if not any(it['Campo'] == f"Mapa: {campo_simples}" for it in dados_para_salvar):
+                if len(str(valor_simples)) > 50: valor_simples = "Ver Mapa"
+                dados_para_salvar.append({"Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples})
+
+        perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
+        supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
+        st.toast("✅ Dados sincronizados com sucesso!")
+        st.cache_data.clear()
+    except Exception as e:
+        st.error(f"Erro ao salvar: {e}")
+
+
 clientes_salvos = {}
 if supabase_client:
     try:
@@ -1588,10 +1937,11 @@ if supabase_client:
         pass
 
 opcoes_clientes = ["-- Novo Cliente --"] + sorted(list(clientes_salvos.keys()))
-cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um novo:", opcoes_clientes)
 
-if 'fotos' not in st.session_state:
-    st.session_state['fotos'] = {}
+col_top1, col_top2_area = st.columns([3, 1])
+with col_top1:
+    cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um novo:", opcoes_clientes)
+col_top2 = col_top2_area.empty()
 
 # --- INICIALIZAÇÃO DE VARIÁVEIS ---
 nome = ""
@@ -1599,6 +1949,39 @@ data_str = ""
 data_input = datetime.date.today()
 submit_mapa = False
 submit_perfil = False
+dados_perfil = []
+dados = []
+
+# --- PRÉ-CÁLCULO PARA CLIENTE EXISTENTE (para permitir botão no topo) ---
+if cliente_selecionado != "-- Novo Cliente --":
+    nome = cliente_selecionado
+    info_cliente = clientes_salvos[nome]
+    data_str = info_cliente['data_nascimento']
+    cargo = info_cliente['cargo']
+    empresa = info_cliente['empresa']
+    linkedin = info_cliente.get('linkedin_url', '')
+    experiencias = info_cliente.get('experiencias', '')
+    try:
+        dia, mes, ano = map(int, data_str.split('/'))
+        data_input = datetime.date(ano, mes, dia)
+    except:
+        data_input = datetime.date.today()
+    
+    # Realiza cálculos básicos silenciosamente para o botão de salvar
+    hoje = datetime.date.today()
+    data_atual_tup = (hoje.day, hoje.month, hoje.year)
+    nascimento_tup = (data_input.day, data_input.month, data_input.year)
+    
+    # Executa cálculos completos para ter os dados prontos para o botão
+    res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
+    dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
+    
+    st.session_state['last_calc_results'] = res_calc # Cache para evitar re-calculo imediato no mesmo loop
+    
+    # O botão de salvar será renderizado mais abaixo, após o processamento de todos os casos (Novo/Existente)
+    pass
+if 'fotos' not in st.session_state:
+    st.session_state['fotos'] = {}
 
 if cliente_selecionado == "-- Novo Cliente --":
     col_c1, col_c2, col_c3 = st.columns([1, 6, 1])
@@ -1679,11 +2062,21 @@ if cliente_selecionado == "-- Novo Cliente --":
             data_str = data_str_input
             if foto_upload:
                 st.session_state['fotos'][nome] = foto_upload.getvalue()
-            if submit_mapa:
-                st.session_state['show_mapa'] = True
-            if submit_perfil:
-                st.session_state['show_perfil'] = True
+            if submit_mapa or submit_perfil:
+                st.session_state['show_mapa'] = submit_mapa
+                st.session_state['show_perfil'] = submit_perfil
+                nascimento_tup = (data_input.day, data_input.month, data_input.year)
+                hoje = datetime.date.today()
+                data_atual_tup = (hoje.day, hoje.month, hoje.year)
+                
+                # Executa cálculos para novo cliente
+                res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
+                dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
+                st.session_state['last_calc_results'] = res_calc
         except:
+            st.error("Formato de data inválido! Use dd/mm/yyyy (ex: 25/12/1980).")
+            submit_mapa = False
+            submit_perfil = False
             st.error("Formato de data inválido! Use dd/mm/yyyy (ex: 25/12/1980).")
             submit_mapa = False
             submit_perfil = False
@@ -1717,7 +2110,13 @@ else:
                 except:
                     pass
         
-    # --- CAMPOS DE EDIÇÃO PARA CLIENTE EXISTENTE ---
+    # --- RENDERIZAÇÃO DO BOTÃO DE SALVAR NO TOPO (Pós-processamento) ---
+if nome and dados_perfil:
+    with col_top2:
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+        if st.button("💾 Salvar na Base de Dados", key=f"save_top_{nome}", use_container_width=True):
+            salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
+
     with st.expander("📝 Editar dados", expanded=False):
         col_edit1, col_edit2 = st.columns(2)
         with col_edit1:
@@ -1750,11 +2149,15 @@ else:
     st.markdown("---")
     st.session_state['show_mapa'] = True
     st.session_state['show_perfil'] = True
+    
+    # Executa cálculos completos imediatamente para carregar dados
+    res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
+    dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
 
 if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) and nome:
-    hoje = datetime.date.today()
-    data_atual = (hoje.day, hoje.month, hoje.year)
-    nascimento = (data_input.day, data_input.month, data_input.year)
+    # Recupera resultados calculados anteriormente no loop
+    if 'last_calc_results' in st.session_state:
+        dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = st.session_state['last_calc_results']
     
     col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
     with col_res2:
@@ -1788,508 +2191,35 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             '''
             st.markdown(html, unsafe_allow_html=True)
 
-        resultados = calcular_numerologia(nome, nascimento, data_atual)
-        (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
-         ano_pess, missao, dividas_carmicas, licoes_carmicas,
-         tendencias_ocultas, soma_tendencias, resposta_subconsciente,
-         desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
-         triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo) = resultados
-
-        estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
-            expressao, motivacao, impressao, nascimento[0],
-            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
-            triangulo_base
-        )
-        
-        # Substitui REPETIÇÃO 2 por REPETICAO MAPA
-        todos_numeros_mapa = []
-        for v in [expressao, motivacao, impressao, destino, missao, nascimento[0]]:
-            if isinstance(v, int): todos_numeros_mapa.append(v)
-            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
-            
-        for v in [desafio1, desafio2, desafio_principal]:
-            if isinstance(v, int): todos_numeros_mapa.append(v)
-            elif isinstance(v, str) and str(v).isdigit(): todos_numeros_mapa.append(int(v))
-            
-        for c_key in ciclos_vida:
-            num_c = ciclos_vida[c_key].get('numero')
-            if isinstance(num_c, int): todos_numeros_mapa.append(num_c)
-            
-        for m_key in momentos_decisivos:
-            num_m = momentos_decisivos[m_key].get('numero')
-            if isinstance(num_m, int): todos_numeros_mapa.append(num_m)
-            
-        num_psiquico = reduce_number(nascimento[0])
-        todos_numeros_mapa.append(num_psiquico)
-        
-        if isinstance(triangulo_base, int): todos_numeros_mapa.append(triangulo_base)
-        
-        c_total = Counter(todos_numeros_mapa)
-        r_totais = sorted([(n, c) for n, c in c_total.items()], key=lambda x: (-x[1], x[0]))
-        
-        num_repeticao_mapa = r_totais[0][0] if r_totais else 0
-        perfil_rep_mapa = REPETICAO_DB.get(str(num_repeticao_mapa), {"perfil": ""}).get("perfil", "")
-        repeticao_mapa = f"{num_repeticao_mapa} - {perfil_rep_mapa}" if perfil_rep_mapa else str(num_repeticao_mapa)
-        
-        num_repeticao_2_mapa = r_totais[1][0] if len(r_totais) > 1 else 0
-        perfil_rep_2_mapa = REPETICAO_DB.get(str(num_repeticao_2_mapa), {"perfil": ""}).get("perfil", "")
-        repeticao_2_mapa = f"{num_repeticao_2_mapa} - {perfil_rep_2_mapa}" if perfil_rep_2_mapa else str(num_repeticao_2_mapa)
-        
-        num_repeticao_3_mapa = r_totais[2][0] if len(r_totais) > 2 else 0
-        perfil_rep_3_mapa = REPETICAO_DB.get(str(num_repeticao_3_mapa), {"perfil": ""}).get("perfil", "")
-        repeticao_3_mapa = f"{num_repeticao_3_mapa} - {perfil_rep_3_mapa}" if perfil_rep_3_mapa else str(num_repeticao_3_mapa)
-        
-        rep2 = repeticao_mapa
-        rep3 = repeticao_2_mapa
-        rep4 = repeticao_3_mapa
-
-        dados = []
-        def add_row(campo, valor_str, explicacao=""):
-            # Se não passar explicação, tenta buscar automaticamente pelo nome do campo
-            if not explicacao or str(explicacao).strip() == "":
-                explicacao = get_expl(campo)
-            
-            dados.append({
-                "Campo": campo, 
-                "Resultado": valor_str,
-                "Explicacao": explicacao
-            })
-
-        # Helpers de extração e descrição
-        num_dia_puro = nascimento[0]
-        num_dia_reduzido = reduce_number(nascimento[0])
-
-        def extract_num(s):
-            if not s: return None
-            try: return s.split(' - ')[0]
-            except: return str(s)
-
-        def get_expl(campo_nome):
-            # Normaliza o campo vindo do app (remove números após o hifen se houver)
-            base_name = campo_nome.split(" - ")[0]
-            search = normalize_key(base_name)
-            
-            # Sinônimos e mapeamentos manuais para bater com as chaves do CSV/Banco
-            if "psiquico" in search: search = "nopsiquico"
-            if "triangulodavida" in search and "repeticao" not in search: search = "triangulodavida"
-            if "repeticao" in search: search = "triangulodavidarepeticoes"
-            
-            # Tenta busca exata normalizada
-            for k, v in CAMPO_DEFINICAO_DB.items():
-                if normalize_key(k) == search:
-                    return v
-            
-            # Tenta busca parcial (se a chave do banco está contida no nome do campo)
-            for k, v in CAMPO_DEFINICAO_DB.items():
-                if normalize_key(k) in search or search in normalize_key(k):
-                    if len(normalize_key(k)) > 3: # Evita matches muito curtos
-                        return v
-            return ""
-
-        # Helper: campo com número no label + descrição separada
-        def add_row_com_desc(campo, valor_str, categoria_mapa, valor_num):
-            desc = get_desc_mapa(categoria_mapa, str(valor_num))
-            expl = get_expl(campo)
-            if desc:
-                add_row(f"{campo} - {valor_num}", desc, expl)
-            else:
-                add_row(campo, valor_str, expl)
-
-        add_row_com_desc("Expressão", expressao, "Expressao", extract_num(expressao) if expressao else expressao)
-        add_row_com_desc("Motivação", motivacao, "Motivacao", extract_num(motivacao) if motivacao else motivacao)
-        add_row_com_desc("Impressão", impressao, "Impressao", extract_num(impressao) if impressao else impressao)
-        add_row_com_desc("Destino", destino, "Destino", extract_num(destino) if destino else destino)
-        add_row_com_desc("Número Psíquico", num_dia_reduzido, "Numero Psiquico", num_dia_reduzido)
-        add_row("Arcano Atual", f"{arcano_atual_res} | Período: {arcano_atual_periodo}")
-        add_row("Triângulo da Vida (Base)", triangulo_base)
-        add_row("Triângulo da Vida (Repetições)", triangulo_reps)
-        add_row_com_desc("Dia Pessoal", dia_pessoal, "Dia Pessoal", extract_num(dia_pessoal) if dia_pessoal else dia_pessoal)
-        add_row_com_desc("Mês Pessoal", mes_pess, "Mes Pessoal", extract_num(mes_pess) if mes_pess else mes_pess)
-        add_row_com_desc("Ano Pessoal", ano_pess, "Ano Pessoal", extract_num(ano_pess) if ano_pess else ano_pess)
-        add_row_com_desc("Missão", missao, "Missao", extract_num(missao) if missao else missao)
-
-        # Dívidas Cármicas com descrições
-        if dividas_carmicas:
-            dividas_str = ', '.join(str(d) for d in dividas_carmicas)
-            dividas_parts = []
-            for d in dividas_carmicas:
-                desc_d = get_desc_mapa("Divida Carmica", str(d))
-                dividas_parts.append(f"<b>{d}</b>: {desc_d}" if desc_d else str(d))
-            add_row(f"Dívidas Cármicas - {dividas_str}", ' | '.join(dividas_parts))
-        else:
-            add_row("Dívidas Cármicas", "Não há")
-
-        # Lições Cármicas com descrições
-        if licoes_carmicas:
-            licoes_str = ', '.join(str(l) for l in licoes_carmicas)
-            licoes_parts = []
-            for l in licoes_carmicas:
-                desc_l = get_desc_mapa("Licao Carmica", str(l))
-                licoes_parts.append(f"<b>{l}</b>: {desc_l}" if desc_l else str(l))
-            add_row(f"Lições Cármicas - {licoes_str}", ' | '.join(licoes_parts))
-        else:
-            add_row("Lições Cármicas", "Não há")
-
-        # Tendências Ocultas com descrições
-        if tendencias_ocultas:
-            tend_str = ', '.join(str(t) for t in tendencias_ocultas)
-            tend_parts = []
-            for t in tendencias_ocultas:
-                desc_t = get_desc_mapa("Tendencia Oculta", str(t))
-                tend_parts.append(f"<b>{t}</b>: {desc_t}" if desc_t else str(t))
-            add_row(f"Tendências Ocultas - {tend_str}", ' | '.join(tend_parts))
-
-        else:
-            add_row("Tendências Ocultas", "Não há")
-
-        # Resposta Subconsciente com descrição
-        desc_resp = get_desc_mapa("Resposta Subconsciente", str(extract_num(resposta_subconsciente) if resposta_subconsciente else ""))
-        add_row(f"Resposta Subconsciente - {resposta_subconsciente}", desc_resp if desc_resp else "")
-
-        # Dia Natalício com descrição (usa o dia bruto 1-31)
-        desc_dia_nat = get_desc_mapa("Dia Natalicio", str(nascimento[0]))
-        add_row(f"Dia Natalício - {nascimento[0]}", desc_dia_nat if desc_dia_nat else "")
-
-        # Desafios com descrição
-        desc_des1 = get_desc_mapa("Desafio", str(desafio1))
-        add_row(f"1º Desafio - {desafio1}", desc_des1 if desc_des1 else "")
-
-        desc_des2 = get_desc_mapa("Desafio", str(desafio2))
-        add_row(f"2º Desafio - {desafio2}", desc_des2 if desc_des2 else "")
-
-        desc_des_princ = get_desc_mapa("Desafio", str(desafio_principal))
-        add_row(f"Desafio Principal - {desafio_principal}", desc_des_princ if desc_des_princ else "")
-
-        # Ciclos de Vida
-        c1_num = ciclos_vida['ciclo1']['numero']
-        c1_periodo = f"{ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']}"
-        desc_c1 = get_desc_mapa("1º Ciclo de Vida", str(c1_num))
-        add_row(f"1º Ciclo de Vida - {c1_num}", f"<b>Período: {c1_periodo}</b><br>{desc_c1}" if desc_c1 else c1_periodo)
-
-        c2_num = ciclos_vida['ciclo2']['numero']
-        c2_periodo = f"{ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']}"
-        desc_c2 = get_desc_mapa("2º Ciclo de Vida", str(c2_num))
-        add_row(f"2º Ciclo de Vida - {c2_num}", f"<b>Período: {c2_periodo}</b><br>{desc_c2}" if desc_c2 else c2_periodo)
-
-        c3_num = ciclos_vida['ciclo3']['numero']
-        c3_periodo = f"A partir de {ciclos_vida['ciclo3']['inicio']}"
-        desc_c3 = get_desc_mapa("3º Ciclo de Vida", str(c3_num))
-        add_row(f"3º Ciclo de Vida - {c3_num}", f"<b>Período: {c3_periodo}</b><br>{desc_c3}" if desc_c3 else c3_periodo)
-
-        # Momentos Decisivos
-        m1_num = momentos_decisivos['momento1']['numero']
-        m1_periodo = f"{momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']}"
-        desc_m1 = get_desc_mapa("Momento Decisivo", str(m1_num))
-        add_row(f"1º Momento Decisivo - {m1_num}", f"<b>Período: {m1_periodo}</b><br>{desc_m1}" if desc_m1 else m1_periodo)
-
-        m2_num = momentos_decisivos['momento2']['numero']
-        m2_periodo = f"{momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']}"
-
-        desc_m2 = get_desc_mapa("Momento Decisivo", str(m2_num))
-        add_row(f"2º Momento Decisivo - {m2_num}", f"<b>Período: {m2_periodo}</b><br>{desc_m2}" if desc_m2 else m2_periodo)
-
-        m3_num = momentos_decisivos['momento3']['numero']
-        m3_periodo = f"{momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']}"
-        desc_m3 = get_desc_mapa("Momento Decisivo", str(m3_num))
-        add_row(f"3º Momento Decisivo - {m3_num}", f"<b>Período: {m3_periodo}</b><br>{desc_m3}" if desc_m3 else m3_periodo)
-
-        m4_num = momentos_decisivos['momento4']['numero']
-        m4_periodo = f"A partir de {momentos_decisivos['momento4']['inicio']}"
-        desc_m4 = get_desc_mapa("Momento Decisivo", str(m4_num))
-        add_row(f"4º Momento Decisivo - {m4_num}", f"<b>Período: {m4_periodo}</b><br>{desc_m4}" if desc_m4 else m4_periodo)
-
-        # Recarrega configurações dinamicamente
-        MATRIZ_DB = fetch_matriz()
-        ATRIBUTOS_DB = fetch_atributos()
-        REPETICAO_DB = fetch_repeticao()
-        PESO_DB = fetch_peso()
-
-        # --- CÁLCULO DO SCORE PERFIL (Mover para antes das tabelas para incluir no Resultado) ---
-        perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
-        colunas_score = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
-        mapa_col_matriz = {"Motivação": "motivacao", "Impressão": "impressao", "Expressão": "expressao", "Destino": "destino", "Missão": "missao", "Dia Natalício": "dia_natalicio", "Triângulo": "triangulo", "No Psiquico": "no_psiquico"}
-        
-        valores_originais_score = {
-            "Motivação": extract_num(motivacao), "Impressão": extract_num(impressao), "Expressão": extract_num(expressao), "Destino": extract_num(destino), "Missão": extract_num(missao),
-            "Dia Natalício": num_dia_puro, "Triângulo": triangulo_base, "No Psiquico": num_dia_reduzido,
-            "Estrutural": estrutural, "Direcionamento": direcionamento, "REPETIÇÃO 1": extract_num(rep1), "REPETIÇÃO 2": extract_num(rep2)
-        }
-        
-        score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
-        for campo_s in colunas_score:
-            val_s = valores_originais_score[campo_s]
-            if val_s is None: continue
-            perfil_enc = None
-            if campo_s in mapa_col_matriz:
-                row_m = MATRIZ_DB.get(str(val_s))
-                if row_m:
-                    attr_t = str(get_from_row(row_m, campo_s) or "").upper()
-                    
-                    if (not attr_t or attr_t == "NAN") and str(val_s).isdigit() and int(val_s) in (11, 22, 33):
-                        num_reduz = sum(int(d) for d in str(val_s))
-                        row_m_reduz = MATRIZ_DB.get(str(num_reduz))
-                        if row_m_reduz:
-                            attr_t = str(get_from_row(row_m_reduz, campo_s) or "").upper()
-                            
-                    if attr_t and attr_t != "NAN":
-                        ai = ATRIBUTOS_DB.get(attr_t)
-                        if ai: perfil_enc = get_from_row(ai, 'perfil')
-            else:
-                ri = REPETICAO_DB.get(str(val_s))
-                if ri: perfil_enc = get_from_row(ri, 'perfil')
-            
-            if perfil_enc:
-                pn = str(perfil_enc).strip().capitalize()
-                if pn in score_df_calc.index:
-                    pv = PESO_DB.get(campo_s, 0)
-                    score_df_calc.at[pn, campo_s] = int(pv)
-        
-        score_df_calc['TOTAL'] = score_df_calc.sum(axis=1)
-        
-        # --- CÁLCULO DO SCORE CATEGORIA ---
-        lista_cat = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
-        colunas_cat = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
-        
-        score_cat_df = pd.DataFrame(0, index=lista_cat, columns=colunas_cat)
-        
-        for campo_c in colunas_cat:
-            val_c = valores_originais_score[campo_c]
-            if val_c is None: continue
-            
-            cat_encontrada = None
-            if campo_c in mapa_col_matriz:
-                row_m_cat = MATRIZ_DB.get(str(val_c))
-                if row_m_cat:
-                    attr_t_cat = str(get_from_row(row_m_cat, campo_c)).upper()
-                    if attr_t_cat:
-                        ai_cat = ATRIBUTOS_DB.get(attr_t_cat)
-                        if ai_cat: cat_encontrada = get_from_row(ai_cat, 'categoria')
-            else:
-                ri_cat = REPETICAO_DB.get(str(val_c))
-                if ri_cat: cat_encontrada = get_from_row(ri_cat, 'categoria')
-                
-            if cat_encontrada:
-                cn = str(cat_encontrada).strip().capitalize()
-                if cn in score_cat_df.index:
-                    pv_cat = PESO_CATEGORIA_DB.get(campo_c, 0)
-                    score_cat_df.at[cn, campo_c] = int(pv_cat)
-                    
-        score_cat_df['TOTAL'] = score_cat_df.sum(axis=1)
-        
-        # Identificar categoria Dia Natalício
-        cat_dia_natalicio = ""
-        val_dia_natalicio = valores_originais_score["Dia Natalício"]
-        row_dia = MATRIZ_DB.get(str(val_dia_natalicio))
-        if row_dia:
-            attr_dia = str(get_from_row(row_dia, 'Dia Natalício')).upper()
-            if attr_dia:
-                ai_dia = ATRIBUTOS_DB.get(attr_dia)
-                if ai_dia: cat_dia_natalicio = str(get_from_row(ai_dia, 'categoria') or "").strip().capitalize()
-                
-        # --- CÁLCULO DO SCORE QUALIDADES ---
-        lista_qual = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
-        colunas_qual = ["Motivação", "Impressão", "Expressão", "Destino", "Missão", "Dia Natalício", "Triângulo", "No Psiquico", "Estrutural", "Direcionamento", "REPETIÇÃO 1", "REPETIÇÃO 2"]
-        
-        score_qual_df = pd.DataFrame(0, index=lista_qual, columns=colunas_qual)
-        dados_auditoria_qual = []
-        
-        for campo_q in colunas_qual:
-            val_q = valores_originais_score[campo_q]
-            if val_q is None: continue
-            
-            qual_encontrada = None
-            attr_t_q = None
-            perfil_val = "N/A"
-            categoria_val = "N/A"
-            if campo_q in mapa_col_matriz:
-                row_m_q = MATRIZ_DB.get(str(val_q))
-                if row_m_q:
-                    attr_t_q = str(get_from_row(row_m_q, campo_q) or "").upper()
-                    
-                    if (not attr_t_q or attr_t_q == "NAN") and str(val_q).isdigit() and int(val_q) in (11, 22, 33):
-                        num_reduz = sum(int(d) for d in str(val_q))
-                        row_m_reduz = MATRIZ_DB.get(str(num_reduz))
-                        if row_m_reduz:
-                            attr_t_q = str(get_from_row(row_m_reduz, campo_q) or "").upper()
-                            
-                    if attr_t_q and attr_t_q != "NAN":
-                        ai_q = ATRIBUTOS_DB.get(attr_t_q)
-                        if ai_q:
-                            perfil_val = get_from_row(ai_q, 'perfil') or "N/A"
-                            categoria_val = get_from_row(ai_q, 'categoria') or "N/A"
-                            # Tenta qualidade, depois area de suporte, depois categoria, depois perfil
-                            qual_encontrada = (get_from_row(ai_q, 'qualidade') or 
-                                               get_from_row(ai_q, 'area de suporte') or 
-                                               get_from_row(ai_q, 'categoria') or 
-                                               get_from_row(ai_q, 'perfil'))
-            else:
-                ri_q = REPETICAO_DB.get(str(val_q))
-                if ri_q:
-                    perfil_val = get_from_row(ri_q, 'perfil') or "N/A"
-                    categoria_val = get_from_row(ri_q, 'categoria') or "N/A"
-                    qual_encontrada = (get_from_row(ri_q, 'qualidade') or 
-                                       get_from_row(ri_q, 'area de suporte') or 
-                                       get_from_row(ri_q, 'categoria') or 
-                                       get_from_row(ri_q, 'perfil'))
-                    attr_t_q = "Tabela Repetição"
-                
-            if qual_encontrada:
-                qn = remover_acentos(str(qual_encontrada).strip()).upper()
-                # Busca insensível a maiúsculas/minúsculas e acentos no index
-                for idx_name in score_qual_df.index:
-                    if remover_acentos(idx_name).upper() == qn:
-                        pv_qual = PESO_DB.get(campo_q, 0)
-                        score_qual_df.at[idx_name, campo_q] += int(pv_qual)
-                        break
-            
-            dados_auditoria_qual.append({
-                "Campo": campo_q,
-                "Valor": val_q,
-                "Matriz": attr_t_q if attr_t_q else "N/A",
-                "Perfil": perfil_val,
-                "Categoria": categoria_val,
-                "Qualidade": qual_encontrada if qual_encontrada else "N/A"
-            })
-                    
-        score_qual_df['TOTAL'] = score_qual_df.sum(axis=1)
-        auditoria_qual_df = pd.DataFrame(dados_auditoria_qual)
-        
-        # --- FIM DO CÁLCULO DO SCORE PERFIL, CATEGORIA E QUALIDADES ---
-
-        dados_perfil = []
-        def add_row_perfil_split(campo, valor, descricao):
-            # Texto limpo para o PDF (sem HTML)
-            desc_limpa = descricao.replace("<b>", "").replace("</b>", "").replace("<br>", " | ")
-            dados_perfil.append({
-                "Campo": campo,
-                "Valor": valor,
-                "Descricao": descricao,
-                "Resultado": f"{valor} - {desc_limpa}" if desc_limpa else valor
-            })
-            
-        k_data = KAN_DB.get(str(kan), {"kan": str(kan), "descricao": ""})
-        add_row_perfil_split("KAN", k_data['kan'], k_data['descricao'])
-        
-        # Perfil
-        val_corte = st.session_state.get('score_perfil_corte_slider', 1.8)
-        totais_s = score_df_calc['TOTAL'].sort_values(ascending=False)
-        totais_s = totais_s[totais_s > 0]
-        perfis_escolhidos = []
-        if not totais_s.empty:
-            max_score = totais_s.iloc[0]
-            for p, s in totais_s.items():
-                if max_score / s <= val_corte:
-                    perfis_escolhidos.append(p)
-                else:
-                    break
-        
-        perfil_val = ", ".join(perfis_escolhidos)
-        perfil_desc_list = []
-        for p in perfis_escolhidos:
-            # Busca insensível para Perfil
-            d = ""
-            pn = remover_acentos(p).upper()
-            for k_desc, v_desc in PERFIL_DESCRICAO_DB.items():
-                if remover_acentos(k_desc).upper() == pn:
-                    d = v_desc
-                    break
-            if d: perfil_desc_list.append(d)
-        
-        add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(perfil_desc_list) if perfil_desc_list else "")
-        
-        # Categoria
-        modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
-        if modo_corte_cat == 'Dia Natalicio':
-            categoria_selecionada = cat_dia_natalicio
-        else:
-            totais_cat = score_cat_df['TOTAL'].sort_values(ascending=False)
-            totais_cat = totais_cat[totais_cat > 0]
-            categoria_selecionada = totais_cat.index[0] if not totais_cat.empty else ""
-            
-        # Busca insensível para Categoria
-        cat_desc = ""
-        cn = remover_acentos(categoria_selecionada).upper()
-        for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
-            if remover_acentos(k_desc).upper() == cn:
-                cat_desc = v_desc
-                break
-                
-        add_row_perfil_split("Categoria", categoria_selecionada, cat_desc)
-        
-        # Diferenciais (11 e 22)
-        campos_para_dif = [
-            extract_num(motivacao), extract_num(impressao), extract_num(expressao),
-            extract_num(destino), extract_num(missao), str(nascimento[0]),
-            str(triangulo_base), str(num_dia_reduzido)
-        ]
-        
-        diferenciais_ativos = []
-        dif_desc_list = []
-        
-        # Verifica 11
-        if "11" in campos_para_dif:
-            d11 = DIFERENCIAIS_DESC_DB.get("11")
-            if d11:
-                diferenciais_ativos.append(d11['diferencial'])
-                dif_desc_list.append(f"<b>{d11['diferencial']}</b>: {d11['descricao']}")
-        
-        # Verifica 22
-        if "22" in campos_para_dif:
-            d22 = DIFERENCIAIS_DESC_DB.get("22")
-            if d22:
-                diferenciais_ativos.append(d22['diferencial'])
-                dif_desc_list.append(f"<b>{d22['diferencial']}</b>: {d22['descricao']}")
-                
-        if diferenciais_ativos:
-            add_row_perfil_split("Diferenciais", ", ".join(diferenciais_ativos), "<br><br>".join(dif_desc_list))
-        
-        # Novo Campo: Qualidades
-        totais_q = score_qual_df['TOTAL'].sort_values(ascending=False)
-        totais_q = totais_q[totais_q > 0]
-        qualidades_escolhidas = list(totais_q.index)[:2]
-        
-        qual_val = ", ".join(qualidades_escolhidas)
-        qual_desc_list = []
-        for q in qualidades_escolhidas:
-            # Busca insensível para Qualidades
-            d = ""
-            qn = remover_acentos(q).upper()
-            for k_desc, v_desc in QUALIDADES_DB.items():
-                if remover_acentos(k_desc).upper() == qn:
-                    d = v_desc
-                    break
-            if d: qual_desc_list.append(f"<b>{q}</b>: {d}")
-            
-        add_row_perfil_split("Qualidades", qual_val, "<br>".join(qual_desc_list) if qual_desc_list else "")
-        
-        # --- NOVO: DIAGNÓSTICO COM IA (GEMINI) ---
-        if "ai_diagnosis" not in st.session_state:
-            st.session_state["ai_diagnosis"] = {}
-
-        user_name_key = f"diag_{nome}"
-        
-        # Se já existir um diagnóstico salvo para este nome na sessão ou no carregamento do banco, usamos ele
-        desc_diag = st.session_state["ai_diagnosis"].get(user_name_key)
-        if not desc_diag and clientes_salvos.get(nome):
-            desc_diag = clientes_salvos[nome].get('ai_diagnosis')
-        
-        if not desc_diag:
-            desc_diag = "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
-        
-        add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
-        
-        f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "Não Encontrado", "descricao": ""})
-        add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
-        
-        d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "Não Encontrado", "descricao": ""})
-        add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
-
         if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
             try:
-                mapa_json = json.dumps(dados, ensure_ascii=False)
-                perfil_json = json.dumps(dados_perfil, ensure_ascii=False)
-                data_str_to_save = data_input.strftime('%d/%m/%Y')
+                import json
+                # Preparar perfil_json completo para salvar (igual ao botão de cima)
+                dados_para_salvar = list(dados_perfil)
+                for label, val in [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
+                                   ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]:
+                    dados_para_salvar.append({
+                        "Campo": label, "Valor": str(val), "Descricao": "", "Resultado": str(val)
+                    })
+                for item in dados:
+                    campo_full = item.get('Campo', '')
+                    if ' - ' in campo_full:
+                        partes = campo_full.split(' - ')
+                        campo_simples = partes[0]
+                        valor_simples = partes[1]
+                    else:
+                        campo_simples = campo_full
+                        valor_simples = item.get('Resultado', '')
+                        if len(str(valor_simples)) > 50: valor_simples = "Ver Mapa"
+                    
+                    dados_para_salvar.append({
+                        "Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples
+                    })
+
+                perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
+                mapa_json_str = json.dumps(dados, ensure_ascii=False)
                 
+                data_str_to_save = data_input.strftime('%d/%m/%Y')
                 agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
                 usuario_logado = st.session_state.get("username", "Desconhecido")
                 
@@ -2302,24 +2232,18 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     "experiencias": experiencias,
                     "usuario": usuario_logado,
                     "data_inclusao": agora_str,
-                    "mapa_json": mapa_json,
-                    "perfil_json": perfil_json
+                    "mapa_json": mapa_json_str,
+                    "perfil_json": perfil_json_str
                 }
                 if nome in st.session_state['fotos']:
                     import base64
                     insert_data["foto_base64"] = base64.b64encode(st.session_state['fotos'][nome]).decode()
                     
                 supabase_client.table("mapas_salvos").insert(insert_data).execute()
-                st.toast("✅ Cálculos salvos automaticamente na nuvem!")
-                
-                clientes_salvos[nome] = {
-                    'data_nascimento': data_str_to_save,
-                    'cargo': cargo,
-                    'empresa': empresa,
-                    'foto_base64': insert_data.get('foto_base64', '')
-                }
+                st.toast("✅ Cadastro salvo na nuvem!")
+                st.cache_data.clear()
             except Exception as e:
-                st.toast(f"⚠️ Erro ao salvar automaticamente: {e}")
+                st.toast(f"⚠️ Erro ao salvar cadastro: {e}")
 
         # --- EXIBIÇÃO DOS RESULTADOS DO MAPA ---
         if st.session_state.get('show_mapa'):
@@ -2373,7 +2297,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
             st.markdown(html_mapa, unsafe_allow_html=True)
 
             st.markdown("---")
-            st.subheader("Salvar Resultados do Mapa")
+            st.subheader("Baixar Resultados do Mapa")
             col1, col2 = st.columns(2)
             nome_limpo = remover_acentos(nome).replace(' ', '_')
             df = pd.DataFrame(dados)
@@ -2488,91 +2412,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 pdf_p = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
                 st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key="dl_p_pdf")
             with col_p3:
-                if st.button("💾 Salvar na Base de Dados", key=f"save_db_{nome_limpo_p}"):
-                    if supabase_client:
-                        try:
-                            import json
-                            # Criar uma cópia para não afetar a exibição atual
-                            dados_para_salvar = list(dados_perfil)
-                            
-                            # Adicionar campos do Mapa Numerológico (simplificados)
-                            if 'dados' in locals() or 'dados' in globals():
-                                for item in dados:
-                                    campo_full = item.get('Campo', '')
-                                    # Extrair valor se estiver no formato "Campo - Valor"
-                                    if ' - ' in campo_full:
-                                        partes = campo_full.split(' - ')
-                                        campo_simples = partes[0]
-                                        valor_simples = partes[1]
-                                    else:
-                                        campo_simples = campo_full
-                                        valor_simples = item.get('Resultado', '')
-                                        # Se o resultado for muito longo (descrição), tenta pegar só o início ou ignora
-                                        if len(str(valor_simples)) > 50:
-                                            valor_simples = "Ver Mapa"
-                                    
-                                    # Adiciona ao JSON de salvamento (sem descrição longa)
-                                    dados_para_salvar.append({
-                                        "Campo": f"Mapa: {campo_simples}",
-                                        "Valor": valor_simples,
-                                        "Descricao": "",
-                                        "Resultado": valor_simples
-                                    })
-                            
-                            # Adicionar campos extras de Perfil Comportamental
-                            for label, val in [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
-                                               ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]:
-                                dados_para_salvar.append({
-                                    "Campo": label,
-                                    "Valor": str(val),
-                                    "Descricao": "",
-                                    "Resultado": str(val)
-                                })
-
-                            perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
-                            resp = supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
-                            if resp and hasattr(resp, 'data') and resp.data:
-                                st.success("Perfil e Mapa detalhado salvos na base com sucesso!")
-                                st.cache_data.clear() # clear cache to ensure search is updated
-                            else:
-                                st.warning("Atualização enviada, mas nenhuma linha foi modificada (verifique se o nome exato já existe na base).")
-                        except Exception as e:
-                            st.error(f"Erro ao salvar na base: {e}")
-                    else:
-                        st.error("Conexão com o banco de dados indisponível.")
-
+                if st.button("💾 Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
+                    salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
             # --- BUSCA DE PERFIS (AUDITORIA) ---
-            # --- ESTATÍSTICAS DA BASE (DEBUG) ---
-            with st.expander("📊 Estatísticas da Base (Sincronização)", expanded=True):
-                if clientes_salvos:
-                    stats = {}
-                    for n, c in clientes_salvos.items():
-                        letra = n[0].upper() if n else "?"
-                        if letra not in stats: stats[letra] = {"total": 0, "com_mapa": 0}
-                        stats[letra]["total"] += 1
-                        # Se veio do perfil_json (não foi calculado on-the-fly), consideramos 'com mapa'
-                        # Na carga, se p_json era nulo, calcular_perfil_faltante foi chamado.
-                        # Podemos checar se os dados batem com o esperado.
-                        if c.get('perfil') and "ERRO" not in str(c.get('perfil')):
-                             # Verificamos se o registro no banco tinha o campo perfil_json preenchido
-                             # No carregamento (linha 1505), p_json = row.get('perfil_json')
-                             # Vamos adicionar essa info no dict clientes_salvos
-                             if c.get('has_json'):
-                                 stats[letra]["com_mapa"] += 1
-                    
-                    st.write("### Resumo por Letra Inicial")
-                    cols_stats = st.columns(4)
-                    sorted_letras = sorted(stats.keys())
-                    for i, letra in enumerate(sorted_letras):
-                        with cols_stats[i % 4]:
-                            total = stats[letra]['total']
-                            com = stats[letra]['com_mapa']
-                            cor = "🟢" if total == com else "🟡"
-                            st.markdown(f"**{letra}**: {com}/{total} {cor}")
-                    
-                    st.info("🟢 = Todos salvos | 🟡 = Alguns pendentes (precisam ser abertos e salvos)")
-                else:
-                    st.warning("Nenhum dado carregado para estatísticas.")
 
             with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
                 st.markdown("### Selecione os filtros desejados")
