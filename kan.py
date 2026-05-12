@@ -1330,7 +1330,7 @@ if menu_opt == "Painel de Controle":
 
 # --- TITULO DA PAGINA DE MAPAS ---
 st.markdown("<h2 style='text-align: left; margin-bottom: 20px;'>Mapa e Perfil Comportamental</h2>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Descubra a sua potencialidade através da numerologia cabalística.</p>", unsafe_allow_html=True)
+st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Diagnóstico comportamental instantâneo. Sem testes. Sem manipulação.</p>", unsafe_allow_html=True)
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
 @st.cache_data(ttl=3600)
