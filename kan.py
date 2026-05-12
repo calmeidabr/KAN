@@ -1309,6 +1309,19 @@ if menu_opt == "Painel de Controle":
         except Exception as e:
             st.error(f"Erro ao carregar tabela: {e}")
     
+    st.markdown("---")
+    st.subheader("📋 Visualização da Base de Mapas Salvos")
+    if supabase_client:
+        try:
+            res_mapas = supabase_client.table("mapas_salvos").select("id, created_at, nome, data_nascimento, cargo, empresa, usuario").order("created_at", desc=True).execute()
+            if res_mapas.data:
+                df_view = pd.DataFrame(res_mapas.data)
+                st.dataframe(df_view, use_container_width=True)
+            else:
+                st.info("Nenhum mapa salvo encontrado.")
+        except Exception as e:
+            st.error(f"Erro ao carregar mapas: {e}")
+
     if st.button("Sair do Painel"):
         st.session_state["admin_authenticated"] = False
         st.rerun()
@@ -2465,10 +2478,37 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     if supabase_client:
                         try:
                             import json
-                            perfil_json_str = json.dumps(dados_perfil, ensure_ascii=False)
+                            # Criar uma cópia para não afetar a exibição atual
+                            dados_para_salvar = list(dados_perfil)
+                            
+                            # Adicionar campos do Mapa Numerológico (simplificados)
+                            if 'dados' in locals() or 'dados' in globals():
+                                for item in dados:
+                                    campo_full = item.get('Campo', '')
+                                    # Extrair valor se estiver no formato "Campo - Valor"
+                                    if ' - ' in campo_full:
+                                        partes = campo_full.split(' - ')
+                                        campo_simples = partes[0]
+                                        valor_simples = partes[1]
+                                    else:
+                                        campo_simples = campo_full
+                                        valor_simples = item.get('Resultado', '')
+                                        # Se o resultado for muito longo (descrição), tenta pegar só o início ou ignora
+                                        if len(str(valor_simples)) > 50:
+                                            valor_simples = "Ver Mapa"
+                                    
+                                    # Adiciona ao JSON de salvamento (sem descrição longa)
+                                    dados_para_salvar.append({
+                                        "Campo": f"Mapa: {campo_simples}",
+                                        "Valor": valor_simples,
+                                        "Descricao": "",
+                                        "Resultado": valor_simples
+                                    })
+
+                            perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
                             resp = supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
                             if resp and hasattr(resp, 'data') and resp.data:
-                                st.success("Perfil salvo e atualizado na base com sucesso!")
+                                st.success("Perfil e Mapa detalhado salvos na base com sucesso!")
                                 st.cache_data.clear() # clear cache to ensure search is updated
                             else:
                                 st.warning("Atualização enviada, mas nenhuma linha foi modificada (verifique se o nome exato já existe na base).")
