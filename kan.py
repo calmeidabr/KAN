@@ -2049,22 +2049,19 @@ if cliente_selecionado == "-- Novo Cliente --":
                                     height=80)
             
             st.markdown("<br>", unsafe_allow_html=True)
-            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
-            with col_btn1:
-                submit_mapa = st.button("Gerar Mapa")
-            with col_btn2:
-                submit_perfil = st.button("Gerar Perfil")
+            submit_diag = st.button("Gerar Diagnóstico", use_container_width=True)
+
             
-    if submit_mapa or submit_perfil:
+    if submit_diag:
         try:
             dia, mes, ano = map(int, data_str_input.split('/'))
             data_input = datetime.date(ano, mes, dia)
             data_str = data_str_input
             if foto_upload:
                 st.session_state['fotos'][nome] = foto_upload.getvalue()
-            if submit_mapa or submit_perfil:
-                st.session_state['show_mapa'] = submit_mapa
-                st.session_state['show_perfil'] = submit_perfil
+            if submit_diag:
+                st.session_state['show_mapa'] = True
+                st.session_state['show_perfil'] = True
                 nascimento_tup = (data_input.day, data_input.month, data_input.year)
                 hoje = datetime.date.today()
                 data_atual_tup = (hoje.day, hoje.month, hoje.year)
@@ -2803,7 +2800,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     st.warning("⚠️ O triângulo harmônico não foi formado.")
 
 
-elif (submit_mapa or submit_perfil) and not nome:
+elif (submit_diag) and not nome:
     st.error("Por favor, digite seu nome completo para calcular!")
 
 # --- RODAPÉ ---
