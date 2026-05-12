@@ -1536,13 +1536,18 @@ if supabase_client:
                                 else:
                                     raw_val = res_str.strip()
                             
-                            campo_norm = remover_acentos(str(item.get('Campo', ''))).lower().strip()
+                            campo_orig = str(item.get('Campo', ''))
+                            campo_norm = remover_acentos(campo_orig).lower().strip()
                             if campo_norm == 'kan': kan_val = raw_val
                             elif campo_norm == 'perfil': perfil_val = raw_val
                             elif campo_norm == 'categoria': categoria_val = raw_val
                             elif campo_norm == 'qualidades': qualidades_val = raw_val
                             elif campo_norm == 'fortaleza': fortaleza_val = raw_val
                             elif campo_norm == 'desafio': desafio_val = raw_val
+                            elif "mapa:" in campo_norm:
+                                if 'mapa_detalhado' not in row: row['mapa_detalhado'] = {}
+                                nome_campo_mapa = campo_orig.split("Mapa:")[1].strip()
+                                row['mapa_detalhado'][nome_campo_mapa] = raw_val
 
             if not perfil_val or not kan_val:
                 perfil_val, categoria_val, qualidades_val, kan_val = calcular_perfil_faltante(
@@ -1564,6 +1569,7 @@ if supabase_client:
                 'qualidades': qualidades_val,
                 'fortaleza': fortaleza_val,
                 'desafio': desafio_val,
+                'mapa_detalhado': row.get('mapa_detalhado', {}),
                 'has_json': True if p_json else False
             }
             if row.get('ai_diagnosis'):
@@ -2554,24 +2560,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 st.markdown("### Selecione os filtros desejados")
                 st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
                 
-                # Puxa todas as opções possíveis dos bancos de dados (não apenas os que já foram usados)
-                all_kans = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
-                
-                # Normaliza e remove vazios
-                def limpa_lista(lst):
-                    return sorted(list(set(str(x).strip() for x in lst if x and str(x).strip())))
-                
-                # Perfis
-                perfis_db_lista = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
-                all_perfis = limpa_lista(perfis_db_lista)
-                
-                # Categorias
-                cats_db_lista = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
-                all_cats = limpa_lista(cats_db_lista)
-                
-                # Qualidades
-                quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
-                all_quals = limpa_lista(quals_db_lista)
+                kan_display_map = {"3": "CRIAÇÃO", "6": "MOVIMENTO", "9": "FINALIDADE"}
+                all_kans_raw = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
+                all_kans = [kan_display_map.get(k, k) for k in all_kans_raw]
                 
                 # Normaliza e remove vazios
                 def limpa_lista(lst):
@@ -2593,7 +2584,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 with col_b1:
                     filtro_kan = st.multiselect("KAN", options=all_kans)
                 with col_b2:
-                    filtro_perfil = st.multiselect("Tipo de Líder (Perfil)", options=all_perfis)
+                    filtro_perfil = st.multiselect("PERFIL", options=all_perfis)
                 with col_b3:
                     filtro_cat = st.multiselect("Categoria", options=all_cats)
                 with col_b4:
@@ -2604,7 +2595,9 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     for n, c in clientes_salvos.items():
                         match_kan = True
                         if filtro_kan:
-                            f_kan_norm = [str(f).strip() for f in filtro_kan]
+                            inv_kan_map = {v: k for k, v in kan_display_map.items()}
+                            f_kan_raw = [inv_kan_map.get(f, f) for f in filtro_kan]
+                            f_kan_norm = [str(f).strip() for f in f_kan_raw]
                             match_kan = str(c.get('kan')).strip() in f_kan_norm
                         
                         match_perfil = True
@@ -2626,20 +2619,28 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                             match_qual = any(q in f_quals_norm for q in c_quals)
                             
                         if match_kan and match_perfil and match_cat and match_qual:
-                            resultados_busca.append({
+                            # Prepara dado base
+                            row_res = {
                                 "Nome": n,
                                 "Data Nasc.": c.get('data_nascimento', ''),
-                                "KAN": c.get('kan', ''),
+                                "KAN": kan_display_map.get(str(c.get('kan')), str(c.get('kan'))),
                                 "Perfil": c.get('perfil', ''),
                                 "Categoria": c.get('categoria', ''),
                                 "Qualidades": c.get('qualidades', ''),
                                 "Fortaleza": c.get('fortaleza', ''),
                                 "Desafio": c.get('desafio', '')
-                            })
+                            }
+                            # Adiciona campos do mapa detalhado ao final
+                            if c.get('mapa_detalhado'):
+                                for k_mapa, v_mapa in c['mapa_detalhado'].items():
+                                    row_res[k_mapa] = v_mapa
+                            
+                            resultados_busca.append(row_res)
                     
                     if resultados_busca:
                         st.success(f"{len(resultados_busca)} perfil(is) encontrado(s)!")
-                        st.dataframe(pd.DataFrame(resultados_busca), use_container_width=True)
+                        df_final = pd.DataFrame(resultados_busca)
+                        st.dataframe(df_final, use_container_width=True, column_config={"Nome": st.column_config.Column(pinned=True)})
                     else:
                         st.warning("Nenhum perfil encontrado com os critérios selecionados.")
 
