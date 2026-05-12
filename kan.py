@@ -1987,7 +1987,7 @@ if cliente_selecionado == "-- Novo Cliente --":
     col_c1, col_c2, col_c3 = st.columns([1, 6, 1])
     with col_c2:
         with st.container(border=True):
-            st.markdown("### 👤 Novo Cadastro")
+            st.markdown("### Novo Cadastro")
             nome = st.text_input("Nome Completo (Conforme certidão):", value=st.session_state.get('ocr_nome', ''))
             
             col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
@@ -1997,7 +1997,7 @@ if cliente_selecionado == "-- Novo Cliente --":
                 foto_upload = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"])
             with col_f3:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if st.button("📷 Ativar Câmera", use_container_width=True):
+                if st.button("Ativar Câmera", use_container_width=True):
                     st.session_state['camera_aberta'] = True
                 st.caption("Leitura de Documento")
             
@@ -2051,9 +2051,9 @@ if cliente_selecionado == "-- Novo Cliente --":
             st.markdown("<br>", unsafe_allow_html=True)
             col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 2])
             with col_btn1:
-                submit_mapa = st.button("🏁 Gerar Mapa")
+                submit_mapa = st.button("Gerar Mapa")
             with col_btn2:
-                submit_perfil = st.button("🧠 Gerar Perfil")
+                submit_perfil = st.button("Gerar Perfil")
             
     if submit_mapa or submit_perfil:
         try:
