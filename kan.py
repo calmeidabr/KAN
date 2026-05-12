@@ -1544,6 +1544,10 @@ if supabase_client:
                             elif campo_norm == 'qualidades': qualidades_val = raw_val
                             elif campo_norm == 'fortaleza': fortaleza_val = raw_val
                             elif campo_norm == 'desafio': desafio_val = raw_val
+                            elif campo_norm == 'estrutural': row['estrutural_val'] = raw_val
+                            elif campo_norm == 'direcionamento': row['direcionamento_val'] = raw_val
+                            elif 'repeticao 1' in campo_norm: row['rep1_val'] = raw_val
+                            elif 'repeticao 2' in campo_norm: row['rep2_val'] = raw_val
                             elif "mapa:" in campo_norm:
                                 if 'mapa_detalhado' not in row: row['mapa_detalhado'] = {}
                                 nome_campo_mapa = campo_orig.split("Mapa:")[1].strip()
@@ -1569,6 +1573,10 @@ if supabase_client:
                 'qualidades': qualidades_val,
                 'fortaleza': fortaleza_val,
                 'desafio': desafio_val,
+                'estrutural': row.get('estrutural_val', ''),
+                'direcionamento': row.get('direcionamento_val', ''),
+                'repeticao_1': row.get('rep1_val', ''),
+                'repeticao_2': row.get('rep2_val', ''),
                 'mapa_detalhado': row.get('mapa_detalhado', {}),
                 'has_json': True if p_json else False
             }
@@ -2510,6 +2518,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                         "Descricao": "",
                                         "Resultado": valor_simples
                                     })
+                            
+                            # Adicionar campos extras de Perfil Comportamental
+                            for label, val in [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
+                                               ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]:
+                                dados_para_salvar.append({
+                                    "Campo": label,
+                                    "Valor": str(val),
+                                    "Descricao": "",
+                                    "Resultado": str(val)
+                                })
 
                             perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
                             resp = supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
@@ -2580,6 +2598,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
                 all_quals = limpa_lista(quals_db_lista)
                 
+                # Cargos e Empresas
+                all_cargos = limpa_lista([c.get('cargo', '') for c in clientes_salvos.values()])
+                all_empresas = limpa_lista([c.get('empresa', '') for c in clientes_salvos.values()])
+                
                 col_b1, col_b2, col_b3, col_b4 = st.columns(4)
                 with col_b1:
                     filtro_kan = st.multiselect("KAN", options=all_kans)
@@ -2589,6 +2611,12 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                     filtro_cat = st.multiselect("Categoria", options=all_cats)
                 with col_b4:
                     filtro_qual = st.multiselect("Qualidades", options=all_quals)
+                
+                col_b5, col_b6 = st.columns(2)
+                with col_b5:
+                    filtro_cargo = st.multiselect("Cargo/Profissão", options=all_cargos)
+                with col_b6:
+                    filtro_empresa = st.multiselect("Empresa/Grupo", options=all_empresas)
                 
                 if st.button("🔎 Realizar Busca de Perfis"):
                     resultados_busca = []
@@ -2617,8 +2645,16 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                             f_quals_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_qual]
                             c_quals = [remover_acentos(str(q)).upper().strip() for q in str(c.get('qualidades', '')).split(',')]
                             match_qual = any(q in f_quals_norm for q in c_quals)
+                        
+                        match_cargo = True
+                        if filtro_cargo:
+                            match_cargo = str(c.get('cargo', '')).strip() in filtro_cargo
                             
-                        if match_kan and match_perfil and match_cat and match_qual:
+                        match_empresa = True
+                        if filtro_empresa:
+                            match_empresa = str(c.get('empresa', '')).strip() in filtro_empresa
+                            
+                        if match_kan and match_perfil and match_cat and match_qual and match_cargo and match_empresa:
                             # Prepara dado base
                             row_res = {
                                 "Nome": n,
@@ -2627,6 +2663,10 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                                 "Perfil": c.get('perfil', ''),
                                 "Categoria": c.get('categoria', ''),
                                 "Qualidades": c.get('qualidades', ''),
+                                "Estrutural": c.get('estrutural', ''),
+                                "Direcionamento": c.get('direcionamento', ''),
+                                "REPETIÇÃO 1": c.get('repeticao_1', ''),
+                                "REPETIÇÃO 2": c.get('repeticao_2', ''),
                                 "Fortaleza": c.get('fortaleza', ''),
                                 "Desafio": c.get('desafio', '')
                             }
