@@ -9,6 +9,7 @@ from collections import Counter
 from PIL import Image
 import os
 import google.generativeai as genai
+import base64
 
 def remover_acentos(texto):
     if texto is None: return ""
@@ -1031,63 +1032,140 @@ if not check_password():
     st.stop()
 
 # --- CABEÇALHO ---
-col_logo1, col_logo2, col_logo3 = st.columns([1, 1, 1])
-with col_logo2:
+# --- CABEÇALHO ---
+col_logo, col_empty = st.columns([1, 4])
+with col_logo:
     if header_img != "🔮":
-        st.image(header_img, use_container_width=True)
+        st.image(header_img, width=150)
     else:
-        st.markdown("<h2 style='text-align: center; margin:0;'>🔮 KAN</h2>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin:0; color: #F18617;'>🔮 KAN</h3>", unsafe_allow_html=True)
+
+def get_base64_of_bin_file(bin_file):
+    if not os.path.exists(bin_file):
+        return ""
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
 
 def render_home():
-    st.markdown("<h2 style='text-align: center; color: #F18617; margin-bottom: 30px;'>Home</h2>", unsafe_allow_html=True)
-    
+    # Caminhos das imagens geradas
+    banner1_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_1778635584174.png"
+    banner2_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_2_1778635604922.png"
+    banner3_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_3_1778635625640.png"
+
     if 'carousel_index' not in st.session_state:
         st.session_state.carousel_index = 0
     
-    cards = [
-        {"title": "Diagnóstico Inteligente", "text": "Análise comportamental profunda e instantânea."},
-        {"title": "Gestão Estratégica", "text": "Dados precisos para a formação de equipes de alta performance."},
-        {"title": "Mundo KAN", "text": "A inteligência por trás do comportamento humano."}
+    b1_b64 = get_base64_of_bin_file(banner1_path)
+    b2_b64 = get_base64_of_bin_file(banner2_path)
+    b3_b64 = get_base64_of_bin_file(banner3_path)
+
+    banners = [
+        {"b64": b1_b64, "title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617"},
+        {"b64": b2_b64, "title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff"},
+        {"b64": b3_b64, "title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14"}
     ]
     
-    st.markdown("""
+    current_b = banners[st.session_state.carousel_index]
+
+    # Injeção de CSS para o Carrossel Moderno
+    st.markdown(f"""
     <style>
-    .carousel-card {
-        background-color: rgba(255,255,255,0.05);
-        padding: 60px;
-        border-radius: 20px;
-        border: 1px solid #F18617;
-        text-align: center;
-        min-height: 250px;
+    .main-hero {{
+        position: relative;
+        width: 100%;
+        height: 500px;
+        background-color: #111;
+        background-image: url('data:image/png;base64,{current_b['b64']}');
+        background-size: cover;
+        background-position: center;
+        border-radius: 30px;
+        overflow: hidden;
+        margin-bottom: 20px;
         display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
+        align-items: center;
+        padding: 60px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        transition: all 0.8s ease;
+    }}
+    .hero-overlay {{
+        background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
+        position: absolute;
+        top:0; left:0; width:100%; height:100%;
+        z-index: 1;
+    }}
+    .hero-content {{
+        position: relative;
+        z-index: 10;
+        max-width: 600px;
+    }}
+    .hero-label {{
+        background-color: {current_b['accent']};
+        color: black;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9em;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-bottom: 20px;
+    }}
+    .hero-title {{
+        font-size: 4.2em;
+        font-weight: 900;
+        color: white;
+        margin-bottom: 15px;
+        line-height: 1.05;
+        letter-spacing: -2px;
+    }}
+    .hero-subtitle {{
+        font-size: 1.6em;
+        color: rgba(255,255,255,0.8);
+        margin-bottom: 35px;
+        line-height: 1.3;
+    }}
+    .hero-cta {{
+        background-color: white;
+        color: black;
+        padding: 15px 40px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1.1em;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.3s;
+    }}
+    .hero-cta:hover {{
+        background-color: {current_b['accent']};
+        transform: translateY(-3px);
+    }}
     </style>
+    
+    <div class='main-hero'>
+        <div class='hero-overlay'></div>
+        <div class='hero-content'>
+            <div class='hero-label'>Mundo KAN</div>
+            <div class='hero-title'>{current_b['title']}</div>
+            <div class='hero-subtitle'>{current_b['subtitle']}</div>
+            <a href='#' class='hero-cta'>Explorar Diagnósticos</a>
+        </div>
+    </div>
     """, unsafe_allow_html=True)
 
-    col_prev, col_card, col_next = st.columns([1, 8, 1])
-    
-    with col_prev:
-        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
-        if st.button("❮", key="prev_home"):
-            st.session_state.carousel_index = (st.session_state.carousel_index - 1) % len(cards)
-            st.rerun()
-            
-    with col_card:
-        card = cards[st.session_state.carousel_index]
-        st.markdown(f"""
-        <div class='carousel-card'>
-            <h2 style='color: #F18617;'>{card['title']}</h2>
-            <p style='font-size: 1.2em;'>{card['text']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    with col_next:
-        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
-        if st.button("❯", key="next_home"):
-            st.session_state.carousel_index = (st.session_state.carousel_index + 1) % len(cards)
-            st.rerun()
+    # Navegação do Carrossel
+    col_nav1, col_nav2, col_nav3 = st.columns([1, 1, 1])
+    with col_nav2:
+        c1, c2, c3 = st.columns([1, 1, 1])
+        with c1:
+            if st.button("❮", key="prev_home"):
+                st.session_state.carousel_index = (st.session_state.carousel_index - 1) % len(banners)
+                st.rerun()
+        with c2:
+            st.markdown(f"<p style='text-align: center; margin-top: 10px; opacity: 0.5;'>{st.session_state.carousel_index + 1} / {len(banners)}</p>", unsafe_allow_html=True)
+        with c3:
+            if st.button("❯", key="next_home"):
+                st.session_state.carousel_index = (st.session_state.carousel_index + 1) % len(banners)
+                st.rerun()
 
 def render_admin_panel():
 
