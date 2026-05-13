@@ -1328,9 +1328,68 @@ if menu_opt == "Painel de Controle":
         
     st.stop() 
 
-# --- TITULO DA PAGINA DE MAPAS ---
-st.markdown("<h2 style='text-align: left; margin-bottom: 20px;'>Mapa e Perfil Comportamental</h2>", unsafe_allow_html=True)
-st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7);'>Diagnóstico comportamental instantâneo. Sem testes. Sem manipulação.</p>", unsafe_allow_html=True)
+# --- CONFIGURAÇÃO DO MENU LATERAL ---
+with st.sidebar:
+    st.markdown("""
+    <div style='text-align: center; margin-bottom: 20px;'>
+        <h2 style='color: #F18617; margin-bottom: 0;'>Mundo KAN</h2>
+        <p style='font-size: 0.8em; color: rgba(255,255,255,0.6);'>Intelligence Diagnostic</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    menu_opcoes = [
+        "Conta", 
+        "Estrutura da Empresa", 
+        "Colaboradores", 
+        "Equipes", 
+        "Diagnósticos", 
+        "Mapas", 
+        "Analytics"
+    ]
+    
+    escolha = st.radio("Navegação", menu_opcoes, index=4) # Diagnósticos por padrão
+    
+    st.markdown("---")
+    if st.button("🚪 Sair", use_container_width=True):
+        st.session_state["password_correct"] = False
+        st.rerun()
+
+# --- LÓGICA DE PÁGINAS ---
+
+if escolha == "Conta":
+    st.title("👤 Minha Conta")
+    st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Estrutura da Empresa":
+    st.title("🏢 Estrutura da Empresa")
+    st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Colaboradores":
+    st.title("👥 Colaboradores")
+    st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Equipes":
+    st.title("🤝 Equipes")
+    st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Analytics":
+    st.title("📊 Analytics")
+    st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
+elif escolha in ["Diagnósticos", "Mapas"]:
+    # O conteúdo atual do app vai aqui
+    if escolha == "Diagnósticos":
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Diagnóstico Comportamental</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Diagnóstico comportamental instantâneo. Sem testes. Sem manipulação.</p>", unsafe_allow_html=True)
+    else:
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Mapas Detalhados</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Visualização completa de dados numerológicos e arquétipos.</p>", unsafe_allow_html=True)
+
 
 # --- FETCH CLIENTES DO BANCO DE DADOS ---
 @st.cache_data(ttl=3600)
