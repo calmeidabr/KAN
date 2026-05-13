@@ -1048,7 +1048,7 @@ def get_base64_of_bin_file(bin_file):
     return base64.b64encode(data).decode()
 
 def render_home():
-    # Caminhos das imagens geradas
+    # Caminhos padrão
     banner1_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_1778635584174.png"
     banner2_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_2_1778635604922.png"
     banner3_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_3_1778635625640.png"
@@ -1056,17 +1056,21 @@ def render_home():
     if 'carousel_index' not in st.session_state:
         st.session_state.carousel_index = 0
     
-    b1_b64 = get_base64_of_bin_file(banner1_path)
-    b2_b64 = get_base64_of_bin_file(banner2_path)
-    b3_b64 = get_base64_of_bin_file(banner3_path)
-
-    banners = [
-        {"b64": b1_b64, "title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617"},
-        {"b64": b2_b64, "title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff"},
-        {"b64": b3_b64, "title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14"}
-    ]
+    # Inicializa dados dos banners se não existirem
+    if 'banners_data' not in st.session_state:
+        st.session_state.banners_data = [
+            {"title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": banner1_path},
+            {"title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": banner2_path},
+            {"title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": banner3_path}
+        ]
     
-    current_b = banners[st.session_state.carousel_index]
+    current_b = st.session_state.banners_data[st.session_state.carousel_index]
+    
+    # Carrega imagem (base64 customizada ou do path padrão)
+    if current_b.get('b64_custom'):
+        img_b64 = current_b['b64_custom']
+    else:
+        img_b64 = get_base64_of_bin_file(current_b.get('img_path', ""))
 
     # Injeção de CSS para o Carrossel Moderno
     st.markdown(f"""
@@ -1076,7 +1080,7 @@ def render_home():
         width: 100%;
         height: 500px;
         background-color: #111;
-        background-image: url('data:image/png;base64,{current_b['b64']}');
+        background-image: url('data:image/png;base64,{img_b64}');
         background-size: cover;
         background-position: center;
         border-radius: 30px;
@@ -1147,7 +1151,7 @@ def render_home():
             <div class='hero-label'>Mundo KAN</div>
             <div class='hero-title'>{current_b['title']}</div>
             <div class='hero-subtitle'>{current_b['subtitle']}</div>
-            <a href='#' class='hero-cta'>Explorar Diagnósticos</a>
+            <a href='{current_b['link']}' class='hero-cta'>{current_b['cta']}</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1158,14 +1162,15 @@ def render_home():
         c1, c2, c3 = st.columns([1, 1, 1])
         with c1:
             if st.button("❮", key="prev_home"):
-                st.session_state.carousel_index = (st.session_state.carousel_index - 1) % len(banners)
+                st.session_state.carousel_index = (st.session_state.carousel_index - 1) % len(st.session_state.banners_data)
                 st.rerun()
         with c2:
-            st.markdown(f"<p style='text-align: center; margin-top: 10px; opacity: 0.5;'>{st.session_state.carousel_index + 1} / {len(banners)}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center; margin-top: 10px; opacity: 0.5;'>{st.session_state.carousel_index + 1} / {len(st.session_state.banners_data)}</p>", unsafe_allow_html=True)
         with c3:
             if st.button("❯", key="next_home"):
-                st.session_state.carousel_index = (st.session_state.carousel_index + 1) % len(banners)
+                st.session_state.carousel_index = (st.session_state.carousel_index + 1) % len(st.session_state.banners_data)
                 st.rerun()
+
 
 def render_admin_panel():
 
@@ -1199,7 +1204,7 @@ def render_admin_panel():
     
     st.info("Central de comando administrativa do sistema KAN.")
     
-    t_tab1, t_tab2, t_tab3, t_tab4 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas"])
+    t_tab1, t_tab2, t_tab3, t_tab4, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Banners"])
     
     with t_tab1:
         st.subheader("Editor de Configurações (Tabelas)")
@@ -1356,6 +1361,41 @@ def render_admin_panel():
     with t_tab4:
         st.subheader("Gerenciamento de Empresas (SaaS)")
         render_empresas()
+
+    with t_tab5:
+        st.subheader("Gerenciamento de Banners da Home")
+        # Caminhos padrão para garantir inicialização
+        b1_p = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_1778635584174.png"
+        b2_p = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_2_1778635604922.png"
+        b3_p = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_3_1778635625640.png"
+
+        if "banners_data" not in st.session_state:
+             st.session_state.banners_data = [
+                {"title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": b1_p},
+                {"title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": b2_p},
+                {"title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": b3_p}
+            ]
+        
+        for i, b in enumerate(st.session_state.banners_data):
+            with st.expander(f"Banner {i+1}: {b['title']}"):
+                col_e1, col_e2 = st.columns(2)
+                with col_e1:
+                    st.session_state.banners_data[i]['title'] = st.text_input("Título", value=b['title'], key=f"b_title_{i}")
+                    st.session_state.banners_data[i]['subtitle'] = st.text_area("Subtítulo", value=b['subtitle'], key=f"b_sub_{i}")
+                with col_e2:
+                    st.session_state.banners_data[i]['cta'] = st.text_input("Texto do Botão", value=b['cta'], key=f"b_cta_{i}")
+                    st.session_state.banners_data[i]['link'] = st.text_input("Link do Botão", value=b['link'], key=f"b_link_{i}")
+                    st.session_state.banners_data[i]['accent'] = st.color_picker("Cor de Destaque", value=b['accent'], key=f"b_acc_{i}")
+                
+                img_file = st.file_uploader(f"Nova Imagem (Banner {i+1})", type=["png", "jpg", "jpeg"], key=f"b_img_{i}")
+                if img_file:
+                    b64 = base64.b64encode(img_file.read()).decode()
+                    st.session_state.banners_data[i]['b64_custom'] = b64
+                    st.success("Imagem atualizada!")
+
+        if st.button("💾 Salvar Configurações de Banners"):
+            st.success("Configurações aplicadas com sucesso!")
+            st.rerun()
 
 def render_empresas():
     st.title("Gestão de Empresas (Tenants)")
