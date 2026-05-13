@@ -1351,9 +1351,13 @@ with st.sidebar:
         "Equipes", 
         "Diagnósticos", 
         "Mapas", 
-        "Analytics",
-        "Painel de Controle"
+        "Analytics"
     ]
+    
+    # Painel de Controle apenas para adminkan
+    if st.session_state.get("username") == "adminkan":
+        menu_opcoes.append("Painel de Controle")
+
 
     escolha = st.radio("", menu_opcoes, index=0) # Home por padrão
 
