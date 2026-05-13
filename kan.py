@@ -1351,7 +1351,8 @@ with st.sidebar:
         "Equipes", 
         "Diagnósticos", 
         "Mapas", 
-        "Analytics"
+        "Analytics",
+        "Configurações"
     ]
     
     # Painel de Controle apenas para adminkan
@@ -1405,6 +1406,12 @@ elif escolha == "Analytics":
     st.title("Analytics")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
+
+elif escolha == "Configurações":
+    st.title("Configurações")
+    st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
 
 elif escolha == "Painel de Controle":
     render_admin_panel()
