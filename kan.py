@@ -1250,11 +1250,13 @@ def render_home():
     /* Estilo para sobrepor o botão real do Streamlit no Hero */
     .st-hero-btn-container {{
         position: relative !important;
-        margin-top: -220px !important; /* Puxa o botão agressivamente para cima */
+        top: -280px !important; /* Move o botão para cima do hero */
         margin-left: 60px !important;
         z-index: 9999 !important;
-        width: fit-content !important;
+        height: 0 !important;
+        display: block !important;
     }}
+
 
 
     .st-hero-btn-container button {{
