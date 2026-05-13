@@ -1002,6 +1002,8 @@ def check_password():
         pwd = st.session_state.get("password", "")
         if user in USUARIOS and USUARIOS[user] == pwd:
             st.session_state["password_correct"] = True
+            st.session_state["logged_user"] = user
+
             if "password" in st.session_state:
                 del st.session_state["password"]
         else:
@@ -1178,8 +1180,9 @@ def render_admin_panel():
     st.title("Painel de Controle Administrativo")
     
     # Login automático se já estiver logado como adminkan no app principal
-    if st.session_state.get("username") == "adminkan":
+    if st.session_state.get("logged_user") == "adminkan":
         st.session_state["admin_authenticated"] = True
+
 
     if "admin_authenticated" not in st.session_state:
         st.session_state["admin_authenticated"] = False
@@ -1481,11 +1484,12 @@ with st.sidebar:
     ]
     
     # Painel de Controle apenas para adminkan
-    if st.session_state.get("username") == "adminkan":
+    if st.session_state.get("logged_user") == "adminkan":
         menu_opcoes.append("Painel de Controle")
 
 
-    escolha = st.radio("", menu_opcoes, index=0) # Home por padrão
+    escolha = st.radio("", menu_opcoes, index=0, key="sidebar_menu") # Home por padrão
+
 
 
     
@@ -2438,7 +2442,7 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 
                 data_str_to_save = data_input.strftime('%d/%m/%Y')
                 agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                usuario_logado = st.session_state.get("username", "Desconhecido")
+                usuario_logado = st.session_state.get("logged_user", "Desconhecido")
                 
                 insert_data = {
                     "nome": nome,
