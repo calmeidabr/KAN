@@ -1042,7 +1042,32 @@ def get_base64_of_bin_file(bin_file):
         data = f.read()
     return base64.b64encode(data).decode()
 
+def compress_image_to_b64(uploaded_file, max_width=1280, quality=75):
+    """Redimensiona e comprime imagem para evitar timeouts no BD."""
+    try:
+        import io
+        img = Image.open(uploaded_file)
+        
+        # Converte para RGB (necessário para JPEG)
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+            
+        # Redimensiona mantendo proporção
+        w, h = img.size
+        if w > max_width:
+            new_h = int(h * (max_width / w))
+            img = img.resize((max_width, new_h), Image.LANCZOS)
+            
+        # Comprime
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG", quality=quality, optimize=True)
+        return base64.b64encode(buffer.getvalue()).decode()
+    except Exception as e:
+        st.error(f"Erro no processamento da imagem: {e}")
+        return None
+
 @st.cache_data(ttl=60)
+
 def fetch_banners():
     if not supabase_client: return []
     try:
@@ -1429,16 +1454,19 @@ def render_admin_panel():
             new_asset_name = st.text_input("Nome da imagem no sistema", key="asset_name")
             if st.button("Adicionar à Biblioteca"):
                 if new_asset_file and new_asset_name:
-                    b64_data = base64.b64encode(new_asset_file.read()).decode()
-                    try:
-                        supabase_client.table("kan_assets").insert({"nome": new_asset_name, "data_base64": b64_data}).execute()
-                        st.success(f"Imagem '{new_asset_name}' salva na biblioteca!")
-                        st.cache_data.clear()
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Erro ao salvar asset: {e}")
+                    with st.spinner("Otimizando e enviando imagem..."):
+                        b64_data = compress_image_to_b64(new_asset_file)
+                        if b64_data:
+                            try:
+                                supabase_client.table("kan_assets").insert({"nome": new_asset_name, "data_base64": b64_data}).execute()
+                                st.success(f"Imagem '{new_asset_name}' salva na biblioteca!")
+                                st.cache_data.clear()
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Erro ao salvar asset: {e}")
                 else:
                     st.warning("Preencha o nome e selecione um arquivo.")
+
             
             assets_list = fetch_assets_list()
             if assets_list:
