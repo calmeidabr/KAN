@@ -1609,6 +1609,36 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
+    st.markdown("""
+    <style>
+    /* Estilização moderna dos botões do menu lateral */
+    div.stButton > button {
+        border: none !important;
+        background-color: transparent !important;
+        color: rgba(255,255,255,0.8) !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        font-size: 1em !important;
+        padding: 12px 15px !important;
+        border-radius: 12px !important;
+        margin-bottom: 5px !important;
+        transition: all 0.3s ease !important;
+    }
+    div.stButton > button:hover {
+        background-color: rgba(241, 134, 23, 0.15) !important;
+        color: #F18617 !important;
+        transform: translateX(5px);
+    }
+    /* Estilo para o item selecionado (Botão Primário) */
+    div.stButton > button[kind="primary"] {
+        background-color: #F18617 !important;
+        color: black !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 15px rgba(241, 134, 23, 0.3) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     menu_opcoes = [
         "Home",
         "Conta", 
@@ -1625,8 +1655,24 @@ with st.sidebar:
     if st.session_state.get("logged_user") == "adminkan":
         menu_opcoes.append("Painel de Controle")
 
+    # Inicializa estado do menu se não existir
+    if "sidebar_menu" not in st.session_state:
+        st.session_state["sidebar_menu"] = "Home"
 
-    escolha = st.radio("", menu_opcoes, index=0, key="sidebar_menu") # Home por padrão
+    # Renderiza botões como itens de menu
+    for opcao in menu_opcoes:
+        is_selected = (st.session_state["sidebar_menu"] == opcao)
+        if st.button(
+            opcao, 
+            key=f"menu_{opcao}", 
+            use_container_width=True, 
+            type="primary" if is_selected else "secondary"
+        ):
+            st.session_state["sidebar_menu"] = opcao
+            st.rerun()
+
+    escolha = st.session_state["sidebar_menu"]
+
 
 
 
