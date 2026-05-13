@@ -2049,7 +2049,7 @@ if cliente_selecionado == "-- Novo Cliente --":
                                     height=80)
             
             st.markdown("<br>", unsafe_allow_html=True)
-            submit_diag = st.button("Gerar Diagnóstico", use_container_width=True)
+            submit_diag = st.button("Gerar Diagnóstico")
 
             
     if submit_diag:
