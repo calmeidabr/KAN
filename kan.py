@@ -1048,10 +1048,11 @@ def get_base64_of_bin_file(bin_file):
     return base64.b64encode(data).decode()
 
 def render_home():
-    # Caminhos padrão
-    banner1_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_1778635584174.png"
-    banner2_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_2_1778635604922.png"
-    banner3_path = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_3_1778635625640.png"
+    # Caminhos padrão (Arquivos locais na pasta PROG)
+    banner1_path = "banner1.png"
+    banner2_path = "banner2.png"
+    banner3_path = "banner3.png"
+
 
     if 'carousel_index' not in st.session_state:
         st.session_state.carousel_index = 0
@@ -1364,10 +1365,11 @@ def render_admin_panel():
 
     with t_tab5:
         st.subheader("Gerenciamento de Banners da Home")
-        # Caminhos padrão para garantir inicialização
-        b1_p = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_1778635584174.png"
-        b2_p = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_2_1778635604922.png"
-        b3_p = r"C:\Users\calme\.gemini\antigravity\brain\a64fa6a5-8fe1-4934-9f71-066ad05349ba\kan_hero_banner_3_1778635625640.png"
+        # Caminhos padrão para garantir inicialização (Pasta PROG)
+        b1_p = "banner1.png"
+        b2_p = "banner2.png"
+        b3_p = "banner3.png"
+
 
         if "banners_data" not in st.session_state:
              st.session_state.banners_data = [
