@@ -1043,20 +1043,20 @@ with col_logo2:
         st.markdown("<h2 style='text-align: center; margin:0;'>🔮 KAN</h2>", unsafe_allow_html=True)
 
 def render_admin_panel():
-    st.title("⚙️ Painel de Controle Administrativo")
+    st.title("Painel de Controle Administrativo")
     
     if "admin_authenticated" not in st.session_state:
         st.session_state["admin_authenticated"] = False
         
     if not st.session_state["admin_authenticated"]:
-        st.warning("⚠️ Área restrita. Identifique-se para acessar o Painel.")
+        st.warning("Área restrita. Identifique-se para acessar o Painel.")
         col_auth1, col_auth2 = st.columns(2)
         with col_auth1:
             user_admin = st.text_input("Usuário de Administrador", key="admin_user_input")
         with col_auth2:
             pass_admin = st.text_input("Senha de Administrador", type="password", key="admin_pass_input")
             
-        if st.button("🚀 Validar Acesso Administrativo"):
+        if st.button("Validar Acesso Administrativo"):
             if user_admin == "adminkan" and pass_admin == "K@nAdmin#2026*":
                 st.session_state["admin_authenticated"] = True
                 st.session_state["admin_user"] = user_admin
@@ -1068,7 +1068,7 @@ def render_admin_panel():
     
     st.info("Aqui você pode editar as tabelas do banco de dados diretamente. As alterações são salvas no Supabase.")
     
-    with st.expander("📥 Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
+    with st.expander("Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
         st.markdown("""
         **Instruções:** Carregue um arquivo CSV com as seguintes colunas:
         `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Empresa/Grupo`.
@@ -1089,7 +1089,7 @@ def render_admin_panel():
                 
                 if colunas_validas:
                     st.dataframe(df_lote, use_container_width=True)
-                    if st.button("💾 Confirmar Inserção em Lote"):
+                    if st.button("Confirmar Inserção em Lote"):
                         with st.spinner("Gravando perfis no Supabase..."):
                             sucessos = 0
                             for _, row in df_lote.iterrows():
@@ -1125,7 +1125,7 @@ def render_admin_panel():
 
     # --- EDITOR DE TABELAS ---
     st.markdown("---")
-    st.subheader("🛠️ Editor de Configurações (Tabelas)")
+    st.subheader("Editor de Configurações (Tabelas)")
     tabelas_config = ["matriz", "atributos", "repeticao", "peso", "perfis", "lista_categoria", "qualidades", "categoria_descricao", "descricoes_mapa", "campo_definicao"]
     tab_selecionada = st.selectbox("Selecione a tabela para editar:", tabelas_config)
     
@@ -1157,7 +1157,7 @@ def render_admin_panel():
                 
                 edited_df = st.data_editor(df_edit, use_container_width=True, disabled=disabled_cols, num_rows="dynamic")
                 
-                if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
+                if st.button(f"Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
                         try:
                             supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
@@ -1178,7 +1178,7 @@ def render_admin_panel():
             st.error(f"Erro ao carregar tabela: {e}")
     
     st.markdown("---")
-    st.subheader("📋 Visualização da Base de Mapas Salvos")
+    st.subheader("Visualização da Base de Mapas Salvos")
     if supabase_client:
         try:
             res_mapas = supabase_client.table("mapas_salvos").select("id, created_at, nome, data_nascimento, cargo, empresa, usuario").order("created_at", desc=True).execute()
@@ -1214,34 +1214,34 @@ with st.sidebar:
     escolha = st.radio("Navegação", menu_opcoes, index=4) # Diagnósticos por padrão
     
     st.markdown("---")
-    if st.button("🚪 Sair", use_container_width=True):
+    if st.button("Sair", use_container_width=True):
         st.session_state["password_correct"] = False
         st.rerun()
 
 # --- LÓGICA DE PÁGINAS ---
 
 if escolha == "Conta":
-    st.title("👤 Minha Conta")
+    st.title("Minha Conta")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
 
 elif escolha == "Estrutura da Empresa":
-    st.title("🏢 Estrutura da Empresa")
+    st.title("Estrutura da Empresa")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
 
 elif escolha == "Colaboradores":
-    st.title("👥 Colaboradores")
+    st.title("Colaboradores")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
 
 elif escolha == "Equipes":
-    st.title("🤝 Equipes")
+    st.title("Equipes")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
 
 elif escolha == "Analytics":
-    st.title("📊 Analytics")
+    st.title("Analytics")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
 
