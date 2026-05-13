@@ -1229,7 +1229,7 @@ def render_admin_panel():
     st.subheader("Visualização da Base de Mapas Salvos")
     if supabase_client:
         try:
-            res_mapas = supabase_client.table("mapas_salvos").select("id, created_at, nome, data_nascimento, cargo, empresa, usuario").order("created_at", desc=True).execute()
+            res_mapas = supabase_client.table("mapas_salvos").select("id, nome, data_nascimento, cargo, empresa, usuario").order("id", desc=True).execute()
             if res_mapas.data:
                 df_view = pd.DataFrame(res_mapas.data)
                 st.dataframe(df_view, use_container_width=True)
