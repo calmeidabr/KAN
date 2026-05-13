@@ -125,12 +125,8 @@ try:
 except Exception as e:
     st.error(f"Erro ao conectar ao Supabase: {e}")
 
-# Botão para limpar cache
-if st.sidebar.button("🔄 Recarregar Dados do Banco"):
-    st.cache_data.clear()
-    st.rerun()
-
 # --- CACHED FETCH ---
+
 @st.cache_data(ttl=3600)
 def fetch_arcanos():
     try:
@@ -1042,7 +1038,59 @@ with col_logo2:
     else:
         st.markdown("<h2 style='text-align: center; margin:0;'>🔮 KAN</h2>", unsafe_allow_html=True)
 
+def render_home():
+    st.markdown("<h2 style='text-align: center; color: #F18617; margin-bottom: 30px;'>Home</h2>", unsafe_allow_html=True)
+    
+    if 'carousel_index' not in st.session_state:
+        st.session_state.carousel_index = 0
+    
+    cards = [
+        {"title": "Diagnóstico Inteligente", "text": "Análise comportamental profunda e instantânea."},
+        {"title": "Gestão Estratégica", "text": "Dados precisos para a formação de equipes de alta performance."},
+        {"title": "Mundo KAN", "text": "A inteligência por trás do comportamento humano."}
+    ]
+    
+    st.markdown("""
+    <style>
+    .carousel-card {
+        background-color: rgba(255,255,255,0.05);
+        padding: 60px;
+        border-radius: 20px;
+        border: 1px solid #F18617;
+        text-align: center;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col_prev, col_card, col_next = st.columns([1, 8, 1])
+    
+    with col_prev:
+        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
+        if st.button("❮", key="prev_home"):
+            st.session_state.carousel_index = (st.session_state.carousel_index - 1) % len(cards)
+            st.rerun()
+            
+    with col_card:
+        card = cards[st.session_state.carousel_index]
+        st.markdown(f"""
+        <div class='carousel-card'>
+            <h2 style='color: #F18617;'>{card['title']}</h2>
+            <p style='font-size: 1.2em;'>{card['text']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_next:
+        st.markdown("<div style='height: 100px;'></div>", unsafe_allow_html=True)
+        if st.button("❯", key="next_home"):
+            st.session_state.carousel_index = (st.session_state.carousel_index + 1) % len(cards)
+            st.rerun()
+
 def render_admin_panel():
+
     st.title("Painel de Controle Administrativo")
     
     if "admin_authenticated" not in st.session_state:
@@ -1195,11 +1243,12 @@ with st.sidebar:
     st.markdown("""
     <div style='text-align: center; margin-bottom: 20px;'>
         <h2 style='color: #F18617; margin-bottom: 0;'>Mundo KAN</h2>
-        <p style='font-size: 0.8em; color: rgba(255,255,255,0.6);'>Intelligence Diagnostic</p>
+        <p style='font-size: 0.8em; color: rgba(255,255,255,0.6);'>Diagnóstico Inteligente</p>
     </div>
     """, unsafe_allow_html=True)
     
     menu_opcoes = [
+        "Home",
         "Conta", 
         "Estrutura da Empresa", 
         "Colaboradores", 
@@ -1210,15 +1259,24 @@ with st.sidebar:
         "Painel de Controle"
     ]
 
-    
-    escolha = st.radio("Navegação", menu_opcoes, index=4) # Diagnósticos por padrão
+    escolha = st.radio("", menu_opcoes, index=0) # Home por padrão
     
     st.markdown("---")
     if st.button("Sair", use_container_width=True):
         st.session_state["password_correct"] = False
         st.rerun()
+    
+    if st.button("Recarregar Dados", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
+
 
 # --- LÓGICA DE PÁGINAS ---
+
+if escolha == "Home":
+    render_home()
+    st.stop()
+
 
 if escolha == "Conta":
     st.title("Minha Conta")
