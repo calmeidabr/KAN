@@ -1162,94 +1162,66 @@ def render_home():
 
 
     # Injeção de CSS para o Carrossel Moderno
-    # Injeção de CSS para o Carrossel Moderno (Arquitetura de Container Nativo)
+    # Injeção de CSS para o Carrossel Moderno (Compacto e Sem CTA)
     st.markdown(f"""
     <style>
-    .hero-container-marker {{
-        display: none;
-    }}
-    
-    /* Alvo: O container que contém o marcador do Hero */
-    [data-testid="stVerticalBlock"] > div:has(.hero-container-marker) {{
+    .main-hero {{
+        position: relative;
+        width: 100%;
+        height: 400px;
         background-image: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%), url('data:image/png;base64,{img_b64}');
         background-size: cover;
         background-position: center;
         border-radius: 30px;
-        padding: 60px !important;
-        min-height: 480px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        position: relative;
         overflow: hidden;
-        margin-bottom: 30px;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        padding: 60px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        transition: all 0.8s ease;
     }}
-    
-    .hero-title-new {{
-        font-size: 4.2em;
-        font-weight: 900;
-        color: white;
-        line-height: 1.05;
-        letter-spacing: -2px;
-        margin-bottom: 15px;
-    }}
-    .hero-subtitle-new {{
-        font-size: 1.6em;
-        color: rgba(255,255,255,0.8);
-        margin-bottom: 35px;
+    .hero-content {{
+        position: relative;
+        z-index: 10;
         max-width: 600px;
-        line-height: 1.3;
     }}
-    .hero-label-new {{
+    .hero-label {{
         background-color: {accent};
         color: black;
         padding: 5px 15px;
         border-radius: 20px;
         font-weight: 700;
-        font-size: 0.9em;
+        font-size: 0.8em;
+        text-transform: uppercase;
         display: inline-block;
-        margin-bottom: 20px;
-        width: fit-content;
+        margin-bottom: 15px;
     }}
-    
-    /* Botão customizado dentro do container nativo */
-    [data-testid="stVerticalBlock"] > div:has(.hero-container-marker) button {{
-        background-color: white !important;
-        color: black !important;
-        padding: 10px 40px !important;
-        border-radius: 30px !important;
-        font-weight: 700 !important;
-        font-size: 1.1em !important;
-        border: none !important;
-        height: 50px !important;
-        width: fit-content !important;
-        transition: 0.3s !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+    .hero-title {{
+        font-size: 3.5em;
+        font-weight: 900;
+        color: white;
+        line-height: 1.05;
+        letter-spacing: -1px;
+        margin-bottom: 10px;
     }}
-    [data-testid="stVerticalBlock"] > div:has(.hero-container-marker) button:hover {{
-        background-color: {accent} !important;
-        transform: translateY(-3px) !important;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3) !important;
+    .hero-subtitle {{
+        font-size: 1.3em;
+        color: rgba(255,255,255,0.8);
+        line-height: 1.3;
     }}
     </style>
+    
+    <div class='main-hero'>
+        <div class='hero-content'>
+            <div class='hero-label'>Mundo KAN</div>
+            <div class='hero-title'>{title}</div>
+            <div class='hero-subtitle'>{subtitle}</div>
+        </div>
+    </div>
+    <br>
     """, unsafe_allow_html=True)
 
-    with st.container():
-        st.markdown("<div class='hero-container-marker'></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='hero-label-new'>Mundo KAN</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='hero-title-new'>{title}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='hero-subtitle-new'>{subtitle}</div>", unsafe_allow_html=True)
-        
-        if st.button(cta, key=f"hero_cta_btn_{st.session_state.carousel_index}"):
-            if link.startswith("?nav="):
-                page_name = link.replace("?nav=", "")
-                st.session_state["sidebar_menu"] = page_name
-                st.rerun()
-            else:
-                st.markdown(f"<script>window.open('{link}', '_blank').focus();</script>", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
 
 
 
