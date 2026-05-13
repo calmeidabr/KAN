@@ -48,15 +48,12 @@ except Exception:
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_icon=favicon_img)
 
-# --- TRATAMENTO DE NAVEGAÇÃO VIA URL ---
-if "nav" in st.query_params:
-    st.session_state["sidebar_menu"] = st.query_params["nav"]
-
 # --- DEFINIÇÃO DE MENUS ---
 MENU_PRINCIPAL = [
     "Home", "Conta", "Estrutura da Empresa", "Colaboradores", 
     "Equipes", "Diagnósticos", "Mapas", "Analytics", "Configurações"
 ]
+
 
 st.markdown("""
 <style>
@@ -1245,10 +1242,49 @@ def render_home():
             <div class='hero-label'>Mundo KAN</div>
             <div class='hero-title'>{title}</div>
             <div class='hero-subtitle'>{subtitle}</div>
-            <a href='{link}' class='hero-cta' target='_self'>{cta}</a>
+            <div style='height: 60px;'></div> <!-- Espaço para o botão real -->
         </div>
     </div>
+    
+    <style>
+    /* Estilo para sobrepor o botão real do Streamlit no Hero */
+    .st-hero-btn-container {{
+        position: relative;
+        margin-top: -150px; /* Sobe o botão para dentro do hero */
+        margin-left: 60px;
+        z-index: 100;
+        width: fit-content;
+    }}
+    .st-hero-btn-container button {{
+        background-color: white !important;
+        color: black !important;
+        padding: 10px 40px !important;
+        border-radius: 30px !important;
+        font-weight: 700 !important;
+        font-size: 1.1em !important;
+        border: none !important;
+        height: 50px !important;
+        transition: 0.3s !important;
+    }}
+    .st-hero-btn-container button:hover {{
+        background-color: {accent} !important;
+        transform: translateY(-3px) !important;
+    }}
+    </style>
     """, unsafe_allow_html=True)
+    
+    # Botão Real do Streamlit sobreposto
+    st.markdown("<div class='st-hero-btn-container'>", unsafe_allow_html=True)
+    if st.button(cta, key=f"hero_cta_btn_{st.session_state.carousel_index}"):
+        if link.startswith("?nav="):
+            page_name = link.replace("?nav=", "")
+            st.session_state["sidebar_menu"] = page_name
+            st.rerun()
+        else:
+            # Se for link externo, abre via JS (gambiarra necessária para botão nativo abrir link externo)
+            st.markdown(f"<script>window.open('{link}', '_blank').focus();</script>", unsafe_allow_html=True)
+    st.markdown("</div><br><br>", unsafe_allow_html=True)
+
 
 
 
