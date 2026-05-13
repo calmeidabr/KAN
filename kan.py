@@ -1071,12 +1071,22 @@ def compress_image_to_b64(uploaded_file, max_width=1280, quality=75):
 def fetch_banners():
     if not supabase_client: return []
     try:
-        # Tenta buscar banners com assets relacionados
-        res = supabase_client.table("kan_banners").select("*, kan_assets(data_base64)").order("id").execute()
+        # Busca apenas metadados (sem a coluna pesada de base64)
+        res = supabase_client.table("kan_banners").select("*").order("id").execute()
         return res.data
     except Exception as e:
         st.error(f"Erro ao carregar banners do BD: {e}")
         return []
+
+@st.cache_data(ttl=300)
+def fetch_asset_b64(asset_id):
+    if not asset_id or not supabase_client: return None
+    try:
+        res = supabase_client.table("kan_assets").select("data_base64").eq("id", asset_id).single().execute()
+        return res.data.get('data_base64')
+    except:
+        return None
+
 
 @st.cache_data(ttl=60)
 def fetch_assets_list():
@@ -1098,14 +1108,18 @@ def render_home():
     if db_banners:
         banners_list = db_banners
         current_b = banners_list[st.session_state.carousel_index % len(banners_list)]
-        # Extrai imagem do asset relacionado ou fallback
+        
+        # Carregamento Preguiçoso (Lazy Load) da imagem
         img_b64 = ""
-        if current_b.get('kan_assets') and current_b['kan_assets'].get('data_base64'):
-            img_b64 = current_b['kan_assets']['data_base64']
-        else:
-            # Fallback para arquivos locais se não houver asset no BD
+        asset_id = current_b.get('asset_id')
+        if asset_id:
+            img_b64 = fetch_asset_b64(asset_id)
+        
+        if not img_b64:
+            # Fallback para arquivos locais se não houver imagem no BD
             local_map = {1: "banner1.png", 2: "banner2.png", 3: "banner3.png"}
             img_b64 = get_base64_of_bin_file(local_map.get(current_b['id'], "banner1.png"))
+
         
         # Mapeia campos do BD para nomes usados no template
         title = current_b.get('title', '')
