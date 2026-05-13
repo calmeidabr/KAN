@@ -1103,10 +1103,11 @@ def render_home():
         
         if 'banners_data' not in st.session_state:
             st.session_state.banners_data = [
-                {"title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": banner1_path},
-                {"title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": banner2_path},
-                {"title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": banner3_path}
+                {"id": 1, "title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": banner1_path},
+                {"id": 2, "title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": banner2_path},
+                {"id": 3, "title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": banner3_path}
             ]
+
         
         current_b = st.session_state.banners_data[st.session_state.carousel_index % len(st.session_state.banners_data)]
         if current_b.get('b64_custom'):
@@ -1153,7 +1154,8 @@ def render_home():
         max-width: 600px;
     }}
     .hero-label {{
-        background-color: {current_b['accent']};
+        background-color: {accent};
+
         color: black;
         padding: 5px 15px;
         border-radius: 20px;
@@ -1189,7 +1191,8 @@ def render_home():
         transition: 0.3s;
     }}
     .hero-cta:hover {{
-        background-color: {current_b['accent']};
+        background-color: {accent};
+
         transform: translateY(-3px);
     }}
     </style>
