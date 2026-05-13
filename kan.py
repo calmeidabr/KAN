@@ -1114,129 +1114,165 @@ def render_admin_panel():
                 st.error("Usuário ou Senha incorretos!")
         return
     
-    st.info("Aqui você pode editar as tabelas do banco de dados diretamente. As alterações são salvas no Supabase.")
+    st.info("Central de comando administrativa do sistema KAN.")
     
-    with st.expander("Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
-        st.markdown("""
-        **Instruções:** Carregue um arquivo CSV com as seguintes colunas:
-        `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Empresa/Grupo`.
-        """)
-        arquivo_csv = st.file_uploader("Escolha o arquivo CSV:", type=["csv"])
-        if arquivo_csv is not None:
-            try:
-                df_lote = pd.read_csv(arquivo_csv, sep=";")
-                if df_lote.shape[1] <= 1:
-                    df_lote = pd.read_csv(arquivo_csv, sep=",")
-                
-                colunas_obrigatorias = ["Nome completo", "Data de Nascimento", "Cargo/Profissao", "Empresa/Grupo"]
-                colunas_validas = True
-                for col in colunas_obrigatorias:
-                    if col not in df_lote.columns:
-                        colunas_validas = False
-                        st.error(f"Coluna obrigatória ausente no CSV: `{col}`")
-                
-                if colunas_validas:
-                    st.dataframe(df_lote, use_container_width=True)
-                    if st.button("Confirmar Inserção em Lote"):
-                        with st.spinner("Gravando perfis no Supabase..."):
-                            sucessos = 0
-                            for _, row in df_lote.iterrows():
-                                n_nome = str(row["Nome completo"]).strip()
-                                n_data = str(row["Data de Nascimento"]).strip()
-                                n_cargo = str(row["Cargo/Profissao"]).strip()
-                                n_empresa = str(row["Empresa/Grupo"]).strip()
-                                
-                                if n_nome and n_data:
-                                    try:
-                                        if supabase_client:
-                                            resp_chk = supabase_client.table("mapas_salvos").select("id").eq("nome", n_nome).execute()
-                                            if resp_chk.data:
-                                                supabase_client.table("mapas_salvos").update({
-                                                    "data_nascimento": n_data,
-                                                    "cargo": n_cargo,
-                                                    "empresa": n_empresa
-                                                }).eq("nome", n_nome).execute()
-                                            else:
-                                                supabase_client.table("mapas_salvos").insert({
-                                                    "nome": n_nome,
-                                                    "data_nascimento": n_data,
-                                                    "cargo": n_cargo,
-                                                    "empresa": n_empresa
-                                                }).execute()
-                                            sucessos += 1
-                                    except Exception as ex:
-                                        st.error(f"Erro ao inserir `{n_nome}`: {ex}")
-                            st.success(f"Processamento concluído! {sucessos} perfis integrados.")
-                            st.cache_data.clear()
-            except Exception as e:
-                st.error(f"Erro ao ler CSV: {e}")
+    t_tab1, t_tab2, t_tab3, t_tab4 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas"])
+    
+    with t_tab1:
+        st.subheader("Editor de Configurações (Tabelas)")
+        
+        with st.expander("Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
+            st.markdown("""
+            **Instruções:** Carregue um arquivo CSV com as seguintes colunas:
+            `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Empresa/Grupo`.
+            """)
+            arquivo_csv = st.file_uploader("Escolha o arquivo CSV:", type=["csv"])
+            if arquivo_csv is not None:
+                try:
+                    df_lote = pd.read_csv(arquivo_csv, sep=";")
+                    if df_lote.shape[1] <= 1:
+                        df_lote = pd.read_csv(arquivo_csv, sep=",")
+                    
+                    colunas_obrigatorias = ["Nome completo", "Data de Nascimento", "Cargo/Profissao", "Empresa/Grupo"]
+                    colunas_validas = True
+                    for col in colunas_obrigatorias:
+                        if col not in df_lote.columns:
+                            colunas_validas = False
+                            st.error(f"Coluna obrigatória ausente no CSV: `{col}`")
+                    
+                    if colunas_validas:
+                        st.dataframe(df_lote, use_container_width=True)
+                        if st.button("Confirmar Inserção em Lote"):
+                            with st.spinner("Gravando perfis no Supabase..."):
+                                sucessos = 0
+                                for _, row in df_lote.iterrows():
+                                    n_nome = str(row["Nome completo"]).strip()
+                                    n_data = str(row["Data de Nascimento"]).strip()
+                                    n_cargo = str(row["Cargo/Profissao"]).strip()
+                                    n_empresa = str(row["Empresa/Grupo"]).strip()
+                                    
+                                    if n_nome and n_data:
+                                        try:
+                                            if supabase_client:
+                                                resp_chk = supabase_client.table("mapas_salvos").select("id").eq("nome", n_nome).execute()
+                                                if resp_chk.data:
+                                                    supabase_client.table("mapas_salvos").update({
+                                                        "data_nascimento": n_data,
+                                                        "cargo": n_cargo,
+                                                        "empresa": n_empresa
+                                                    }).eq("nome", n_nome).execute()
+                                                else:
+                                                    supabase_client.table("mapas_salvos").insert({
+                                                        "nome": n_nome,
+                                                        "data_nascimento": n_data,
+                                                        "cargo": n_cargo,
+                                                        "empresa": n_empresa
+                                                    }).execute()
+                                                sucessos += 1
+                                        except Exception as ex:
+                                            st.error(f"Erro ao inserir `{n_nome}`: {ex}")
+                                st.success(f"Processamento concluído! {sucessos} perfis integrados.")
+                                st.cache_data.clear()
+                except Exception as e:
+                    st.error(f"Erro ao ler CSV: {e}")
 
-    # --- EDITOR DE TABELAS ---
-    st.markdown("---")
-    st.subheader("Editor de Configurações (Tabelas)")
-    tabelas_config = ["matriz", "atributos", "repeticao", "peso", "perfis", "lista_categoria", "qualidades", "categoria_descricao", "descricoes_mapa", "campo_definicao"]
-    tab_selecionada = st.selectbox("Selecione a tabela para editar:", tabelas_config)
-    
-    if supabase_client:
-        try:
-            res_tab = supabase_client.table(tab_selecionada).select("*").execute()
-            df_edit = pd.DataFrame(res_tab.data)
-            
-            if df_edit.empty and tab_selecionada == "descricoes_mapa":
-                dict_mapa = fetch_descricoes_mapa()
-                flat_data = []
-                for cat, subdict in dict_mapa.items():
-                    for val, desc in subdict.items():
-                        flat_data.append({"categoria": cat, "valor": val, "descricao": desc})
-                df_edit = pd.DataFrame(flat_data)
-            
-            if not df_edit.empty or tab_selecionada == "descricoes_mapa":
-                st.write(f"Editando: `{tab_selecionada}`")
-                if df_edit.empty:
-                    df_edit = pd.DataFrame(columns=["categoria", "valor", "descricao"])
+        st.markdown("---")
+        tabelas_config = ["matriz", "atributos", "repeticao", "peso", "perfis", "lista_categoria", "qualidades", "categoria_descricao", "descricoes_mapa", "campo_definicao"]
+        tab_selecionada = st.selectbox("Selecione a tabela para editar:", tabelas_config)
+        
+        if supabase_client:
+            try:
+                res_tab = supabase_client.table(tab_selecionada).select("*").execute()
+                df_edit = pd.DataFrame(res_tab.data)
                 
-                disabled_cols = []
-                if tab_selecionada == "descricoes_mapa":
-                    disabled_cols = [c for c in df_edit.columns if c not in ["descricao", "resumo"]]
-                elif tab_selecionada == "campo_definicao":
-                    disabled_cols = [c for c in df_edit.columns if c not in ["explicacao"]]
+                if df_edit.empty and tab_selecionada == "descricoes_mapa":
+                    dict_mapa = fetch_descricoes_mapa()
+                    flat_data = []
+                    for cat, subdict in dict_mapa.items():
+                        for val, desc in subdict.items():
+                            flat_data.append({"categoria": cat, "valor": val, "descricao": desc})
+                    df_edit = pd.DataFrame(flat_data)
+                
+                if not df_edit.empty or tab_selecionada == "descricoes_mapa":
+                    st.write(f"Editando: `{tab_selecionada}`")
+                    if df_edit.empty:
+                        df_edit = pd.DataFrame(columns=["categoria", "valor", "descricao"])
+                    
+                    disabled_cols = []
+                    if tab_selecionada == "descricoes_mapa":
+                        disabled_cols = [c for c in df_edit.columns if c not in ["descricao", "resumo"]]
+                    elif tab_selecionada == "campo_definicao":
+                        disabled_cols = [c for c in df_edit.columns if c not in ["explicacao"]]
+                    else:
+                        disabled_cols = [c for c in ["id", "categoria", "valor", "campo"] if c in df_edit.columns]
+                    
+                    edited_df = st.data_editor(df_edit, use_container_width=True, disabled=disabled_cols, num_rows="dynamic")
+                    
+                    if st.button(f"Salvar Alterações em {tab_selecionada}"):
+                        with st.spinner("Sincronizando com Supabase..."):
+                            try:
+                                supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
+                                novos_dados = edited_df.to_dict(orient='records')
+                                cleaned_dados = []
+                                for d in novos_dados:
+                                    d_clean = {k: v for k, v in d.items() if not (k == 'id' and pd.isna(v))}
+                                    cleaned_dados.append(d_clean)
+                                if cleaned_dados:
+                                    supabase_client.table(tab_selecionada).insert(cleaned_dados).execute()
+                                st.success(f"Tabela `{tab_selecionada}` atualizada com sucesso!")
+                                st.cache_data.clear() 
+                            except Exception as e:
+                                st.error(f"Erro ao salvar: {e}")
                 else:
-                    disabled_cols = [c for c in ["id", "categoria", "valor", "campo"] if c in df_edit.columns]
+                    st.warning("Tabela vazia ou não encontrada.")
+            except Exception as e:
+                st.error(f"Erro ao carregar tabela: {e}")
                 
-                edited_df = st.data_editor(df_edit, use_container_width=True, disabled=disabled_cols, num_rows="dynamic")
-                
-                if st.button(f"Salvar Alterações em {tab_selecionada}"):
-                    with st.spinner("Sincronizando com Supabase..."):
-                        try:
-                            supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
-                            novos_dados = edited_df.to_dict(orient='records')
-                            cleaned_dados = []
-                            for d in novos_dados:
-                                d_clean = {k: v for k, v in d.items() if not (k == 'id' and pd.isna(v))}
-                                cleaned_dados.append(d_clean)
-                            if cleaned_dados:
-                                supabase_client.table(tab_selecionada).insert(cleaned_dados).execute()
-                            st.success(f"Tabela `{tab_selecionada}` atualizada com sucesso!")
-                            st.cache_data.clear() 
-                        except Exception as e:
-                            st.error(f"Erro ao salvar: {e}")
-            else:
-                st.warning("Tabela vazia ou não encontrada.")
-        except Exception as e:
-            st.error(f"Erro ao carregar tabela: {e}")
-    
-    st.markdown("---")
-    st.subheader("Visualização da Base de Mapas Salvos")
-    if supabase_client:
-        try:
-            res_mapas = supabase_client.table("mapas_salvos").select("id, nome, data_nascimento, cargo, empresa, usuario").order("id", desc=True).execute()
-            if res_mapas.data:
-                df_view = pd.DataFrame(res_mapas.data)
-                st.dataframe(df_view, use_container_width=True)
-            else:
-                st.info("Nenhum mapa salvo encontrado.")
-        except Exception as e:
-            st.error(f"Erro ao carregar mapas: {e}")
+    with t_tab2:
+        st.subheader("Visualização da Base de Mapas Salvos")
+        if supabase_client:
+            try:
+                res_mapas = supabase_client.table("mapas_salvos").select("id, nome, data_nascimento, cargo, empresa, usuario").order("id", desc=True).execute()
+                if res_mapas.data:
+                    df_view = pd.DataFrame(res_mapas.data)
+                    st.dataframe(df_view, use_container_width=True)
+                else:
+                    st.info("Nenhum mapa salvo encontrado.")
+            except Exception as e:
+                st.error(f"Erro ao carregar mapas: {e}")
+
+    with t_tab3:
+        st.subheader("Gerenciamento de Usuários")
+        # Reutiliza lógica de render_contas_master mas com filtro de roles simplificado
+        if "usuarios_data" not in st.session_state:
+            st.session_state.usuarios_data = [
+                {"usuario": "adminkan", "tipo": "admin", "status": "Ativo"},
+                {"usuario": "cristiano", "tipo": "admin", "status": "Ativo"},
+                {"usuario": "maria", "tipo": "user", "status": "Ativo"}
+            ]
+        
+        for i, user in enumerate(st.session_state.usuarios_data):
+            with st.container(border=True):
+                c1, c2, c3 = st.columns([3, 2, 2])
+                with c1:
+                    st.write(f"**Usuário:** {user['usuario']}")
+                with c2:
+                    n_tipo = st.selectbox("Direitos", ["admin", "user"], 
+                                         index=["admin", "user"].index(user['tipo']),
+                                         key=f"user_tipo_{i}", disabled=(user['usuario'] == "adminkan"))
+                with c3:
+                    n_status = st.selectbox("Status", ["Ativo", "Desabilitado"], 
+                                           index=0 if user['status'] == "Ativo" else 1,
+                                           key=f"user_status_{i}", disabled=(user['usuario'] == "adminkan"))
+                if user['usuario'] != "adminkan":
+                    if st.button("Salvar", key=f"user_save_{i}"):
+                        st.session_state.usuarios_data[i]['tipo'] = n_tipo
+                        st.session_state.usuarios_data[i]['status'] = n_status
+                        st.success(f"Usuário {user['usuario']} atualizado!")
+
+    with t_tab4:
+        st.subheader("Gerenciamento de Empresas (SaaS)")
+        render_empresas()
 
 def render_empresas():
     st.title("Gestão de Empresas (Tenants)")
@@ -1318,13 +1354,9 @@ with st.sidebar:
         "Analytics",
         "Painel de Controle"
     ]
-    
-    # Menus extras para adminkan
-    if st.session_state.get("username") == "adminkan":
-        menu_opcoes.insert(1, "Empresas")
-        menu_opcoes.insert(2, "Contas Master")
 
     escolha = st.radio("", menu_opcoes, index=0) # Home por padrão
+
 
     
     st.markdown("---")
@@ -1343,18 +1375,11 @@ if escolha == "Home":
     render_home()
     st.stop()
 
-if escolha == "Empresas":
-    render_empresas()
-    st.stop()
-
-if escolha == "Contas Master":
-    render_contas_master()
-    st.stop()
-
 if escolha == "Conta":
     st.title("Minha Conta")
     st.info("Funcionalidade em desenvolvimento.")
     st.stop()
+
 
 
 elif escolha == "Estrutura da Empresa":
