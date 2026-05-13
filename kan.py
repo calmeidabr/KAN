@@ -1034,30 +1034,22 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- CABEÇALHO E NAVEGAÇÃO SUPERIOR ---
-col_logo, col_space, col_nav = st.columns([1.5, 4, 1.5])
-
-with col_logo:
+# --- CABEÇALHO ---
+col_logo1, col_logo2, col_logo3 = st.columns([1, 1, 1])
+with col_logo2:
     if header_img != "🔮":
         st.image(header_img, use_container_width=True)
     else:
-        st.markdown("<h2 style='margin:0;'>🔮 KAN</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center; margin:0;'>🔮 KAN</h2>", unsafe_allow_html=True)
 
-with col_nav:
-    st.markdown("<div style='padding-top: 10px;'>", unsafe_allow_html=True)
-    menu_opt = st.selectbox("Menu", ["Mapa", "Painel de Controle"], label_visibility="collapsed", key="top_nav_menu")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-if menu_opt == "Painel de Controle":
+def render_admin_panel():
     st.title("⚙️ Painel de Controle Administrativo")
     
-    # Proteção extra: Somente adminkan
     if "admin_authenticated" not in st.session_state:
         st.session_state["admin_authenticated"] = False
         
     if not st.session_state["admin_authenticated"]:
         st.warning("⚠️ Área restrita. Identifique-se para acessar o Painel.")
-        
         col_auth1, col_auth2 = st.columns(2)
         with col_auth1:
             user_admin = st.text_input("Usuário de Administrador", key="admin_user_input")
@@ -1072,7 +1064,7 @@ if menu_opt == "Painel de Controle":
                 st.rerun()
             else:
                 st.error("Usuário ou Senha incorretos!")
-        st.stop()
+        return
     
     st.info("Aqui você pode editar as tabelas do banco de dados diretamente. As alterações são salvas no Supabase.")
     
@@ -1126,139 +1118,22 @@ if menu_opt == "Painel de Controle":
                                             sucessos += 1
                                     except Exception as ex:
                                         st.error(f"Erro ao inserir `{n_nome}`: {ex}")
-                            
                             st.success(f"Processamento concluído! {sucessos} perfis integrados.")
                             st.cache_data.clear()
             except Exception as e:
                 st.error(f"Erro ao ler CSV: {e}")
-        
-        st.markdown("---")
-        st.subheader("🛠️ Manutenção do Banco")
-        if st.button("🚀 Inserir Descrições de Número Psíquico no Supabase"):
-            with st.spinner("Gravando..."):
-                data_psiquico = [
-                    {'categoria': 'Numero Psiquico', 'valor': '1', 'descricao': 'Independência, pioneirismo, liderança e coragem.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '2', 'descricao': 'Diplomacia, cooperação, união, intuição e sensibilidade.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '3', 'descricao': 'Comunicação, expressão, criatividade e natureza artística.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '4', 'descricao': 'Determinação, persistência, organização, resistência e trabalho.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '5', 'descricao': 'Adaptação, liberdade, movimento, curiosidade e progresso.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '6', 'descricao': 'Sensibilidade, harmonia, cuidado, responsabilidade e vínculos.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '7', 'descricao': 'Perfeccionismo, introspecção, inspiração, intuição e conhecimento.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '8', 'descricao': 'Liderança, gestão, força prática, autoridade e foco em resultados.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '9', 'descricao': 'Altruísmo, compaixão, generosidade, intuição e carisma.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '11', 'descricao': 'Intuição elevada, visão, inspiração e sensibilidade espiritual.'},
-                    {'categoria': 'Numero Psiquico', 'valor': '22', 'descricao': 'Construção em grande escala, realização, liderança prática e potencial de impacto coletivo.'}
-                ]
-                sucessos_p = 0
-                for item in data_psiquico:
-                    try:
-                        if supabase_client:
-                            supabase_client.table("descricoes_mapa").insert(item).execute()
-                            sucessos_p += 1
-                    except Exception as e:
-                        st.error(f"Erro ao inserir valor {item['valor']}: {e}")
-                st.success(f"Concluído! {sucessos_p} descrições inseridas com sucesso.")
-                st.cache_data.clear()
 
-        if st.button("🚀 Migrar descricoes_mapa.csv (com Resumo) para Supabase"):
-            with st.spinner("Migrando descrições..."):
-                try:
-                    # Tenta ler o arquivo com suporte a resumo
-                    try:
-                        df_dm = pd.read_csv("descricoes_mapa.csv", sep=";", encoding='utf-8-sig')
-                    except:
-                        df_dm = pd.read_csv("descricoes_mapa.csv", sep=";", encoding='latin-1')
-                    
-                    if df_dm.shape[1] <= 1:
-                        try:
-                            df_dm = pd.read_csv("descricoes_mapa.csv", sep=",", encoding='utf-8-sig')
-                        except:
-                            df_dm = pd.read_csv("descricoes_mapa.csv", sep=",", encoding='latin-1')
-                    
-                    rows_dm = df_dm.to_dict(orient='records')
-                    cleaned_dm = []
-                    for r in rows_dm:
-                        cat = get_from_row(r, 'categoria')
-                        val = get_from_row(r, 'valor')
-                        desc = get_from_row(r, 'descricao')
-                        res = get_from_row(r, 'resumo')
-                        
-                        if cat and val:
-                            cleaned_dm.append({
-                                "categoria": str(cat).strip(),
-                                "valor": str(val).strip(),
-                                "descricao": str(desc).strip() if desc else "",
-                                "resumo": str(res).strip() if res else ""
-                            })
-                    
-                    if supabase_client and cleaned_dm:
-                        # Limpa tabela principal (o backup já deve ter sido feito pelo usuário via SQL)
-                        supabase_client.table("descricoes_mapa").delete().neq("categoria", "___fake___").execute()
-                        supabase_client.table("descricoes_mapa").insert(cleaned_dm).execute()
-                        st.success(f"Sucesso! {len(cleaned_dm)} descrições e resumos migrados.")
-                        st.cache_data.clear()
-                except Exception as e:
-                    st.error(f"Erro na migração de descrições: {e}")
-        
-        if st.button("🚀 Migrar campo_definicao.csv para Supabase"):
-            with st.spinner("Migrando..."):
-                try:
-                    # Tenta ler com diferentes encodings e garantindo suporte a multi-line quotes
-                    try:
-                        df_def = pd.read_csv("campo_definicao.csv", sep=";", encoding='utf-8-sig', quotechar='"')
-                    except:
-                        df_def = pd.read_csv("campo_definicao.csv", sep=";", encoding='latin-1', quotechar='"')
-                    
-                    if df_def.shape[1] <= 1: 
-                        try:
-                            df_def = pd.read_csv("campo_definicao.csv", sep=",", encoding='utf-8-sig', quotechar='"')
-                        except:
-                            df_def = pd.read_csv("campo_definicao.csv", sep=",", encoding='latin-1', quotechar='"')
-                    
-                    rows = df_def.to_dict(orient='records')
-                    cleaned_rows = []
-                    for r in rows:
-                        # Pega as chaves independente de maiúscula/minúscula
-                        c_key = next((k for k in r.keys() if k.lower() == 'campo'), None)
-                        e_key = next((k for k in r.keys() if k.lower() == 'explicacao'), None)
-                        
-                        c_val = r.get(c_key) if c_key else None
-                        e_val = r.get(e_key) if e_key else ""
-                        
-                        if c_val and str(c_val).strip():
-                            cleaned_rows.append({
-                                "campo": str(c_val).strip(), 
-                                "explicacao": str(e_val).strip() if pd.notna(e_val) else ""
-                            })
-                    
-                    if supabase_client and cleaned_rows:
-                        # Limpa a tabela de forma segura
-                        supabase_client.table("campo_definicao").delete().neq("campo", "___fake___").execute()
-                        
-                        # Insere os dados
-                        supabase_client.table("campo_definicao").insert(cleaned_rows).execute()
-                        st.success(f"Sucesso! {len(cleaned_rows)} definições foram migradas para o Supabase.")
-                        st.cache_data.clear()
-                    else:
-                        st.warning("Nenhum dado válido encontrado no CSV para migrar.")
-                except Exception as e:
-                    st.error(f"Erro detalhado na migração: {e}")
-                
-    tabelas = [
-        "categoria_descricao", "perfil_descricao", "repeticao_descricao", 
-        "diferenciais_descricao", "peso_categoria", "atributos", "matriz", "qualidades",
-        "descricoes_mapa", "campo_definicao"
-    ]
-    
-    tab_selecionada = st.selectbox("Selecione a Tabela para Editar", tabelas)
+    # --- EDITOR DE TABELAS ---
+    st.markdown("---")
+    st.subheader("🛠️ Editor de Configurações (Tabelas)")
+    tabelas_config = ["matriz", "atributos", "repeticao", "peso", "perfis", "lista_categoria", "qualidades", "categoria_descricao", "descricoes_mapa", "campo_definicao"]
+    tab_selecionada = st.selectbox("Selecione a tabela para editar:", tabelas_config)
     
     if supabase_client:
         try:
-            # Busca dados atuais
-            res = supabase_client.table(tab_selecionada).select("*").execute()
-            df_edit = pd.DataFrame(res.data)
+            res_tab = supabase_client.table(tab_selecionada).select("*").execute()
+            df_edit = pd.DataFrame(res_tab.data)
             
-            # Se descricoes_mapa estiver vazia no banco, puxa os dados do fallback local
             if df_edit.empty and tab_selecionada == "descricoes_mapa":
                 dict_mapa = fetch_descricoes_mapa()
                 flat_data = []
@@ -1269,35 +1144,28 @@ if menu_opt == "Painel de Controle":
             
             if not df_edit.empty or tab_selecionada == "descricoes_mapa":
                 st.write(f"Editando: `{tab_selecionada}`")
-                
-                # Garante colunas mínimas caso venha vazio
                 if df_edit.empty:
                     df_edit = pd.DataFrame(columns=["categoria", "valor", "descricao"])
                 
-                # Editor de dados com altura limitada
                 disabled_cols = []
                 if tab_selecionada == "descricoes_mapa":
-                    # Permite editar apenas descricao e resumo
                     disabled_cols = [c for c in df_edit.columns if c not in ["descricao", "resumo"]]
                 elif tab_selecionada == "campo_definicao":
                     disabled_cols = [c for c in df_edit.columns if c not in ["explicacao"]]
                 else:
-                    # Padrão: bloqueia id e campos sensíveis em tabelas config
                     disabled_cols = [c for c in ["id", "categoria", "valor", "campo"] if c in df_edit.columns]
+                
+                edited_df = st.data_editor(df_edit, use_container_width=True, disabled=disabled_cols, num_rows="dynamic")
                 
                 if st.button(f"💾 Salvar Alterações em {tab_selecionada}"):
                     with st.spinner("Sincronizando com Supabase..."):
                         try:
-                            # Tenta deletar se houver RLS permissivo ou ignorar
                             supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
                             novos_dados = edited_df.to_dict(orient='records')
-                            
-                            # Limpa campos nulos de ID para não quebrar no banco
                             cleaned_dados = []
                             for d in novos_dados:
                                 d_clean = {k: v for k, v in d.items() if not (k == 'id' and pd.isna(v))}
                                 cleaned_dados.append(d_clean)
-                                
                             if cleaned_dados:
                                 supabase_client.table(tab_selecionada).insert(cleaned_dados).execute()
                             st.success(f"Tabela `{tab_selecionada}` atualizada com sucesso!")
@@ -1322,12 +1190,6 @@ if menu_opt == "Painel de Controle":
         except Exception as e:
             st.error(f"Erro ao carregar mapas: {e}")
 
-    if st.button("Sair do Painel"):
-        st.session_state["admin_authenticated"] = False
-        st.rerun()
-        
-    st.stop() 
-
 # --- CONFIGURAÇÃO DO MENU LATERAL ---
 with st.sidebar:
     st.markdown("""
@@ -1344,8 +1206,10 @@ with st.sidebar:
         "Equipes", 
         "Diagnósticos", 
         "Mapas", 
-        "Analytics"
+        "Analytics",
+        "Painel de Controle"
     ]
+
     
     escolha = st.radio("Navegação", menu_opcoes, index=4) # Diagnósticos por padrão
     
@@ -1379,6 +1243,10 @@ elif escolha == "Equipes":
 elif escolha == "Analytics":
     st.title("📊 Analytics")
     st.info("Funcionalidade em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Painel de Controle":
+    render_admin_panel()
     st.stop()
 
 elif escolha in ["Diagnósticos", "Mapas"]:
