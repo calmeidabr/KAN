@@ -1174,7 +1174,7 @@ def render_home():
         background-position: center;
         border-radius: 30px;
         overflow: hidden;
-        margin-bottom: 20px;
+        margin-bottom: 0;
         display: flex;
         align-items: center;
         padding: 60px;
@@ -1250,11 +1250,12 @@ def render_home():
     /* Estilo para sobrepor o botão real do Streamlit no Hero */
     .st-hero-btn-container {{
         position: relative;
-        margin-top: -150px; /* Sobe o botão para dentro do hero */
+        margin-top: -175px; /* Puxa o botão para dentro do hero */
         margin-left: 60px;
-        z-index: 100;
+        z-index: 1000;
         width: fit-content;
     }}
+
     .st-hero-btn-container button {{
         background-color: white !important;
         color: black !important;
