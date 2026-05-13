@@ -1033,14 +1033,7 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- CABEÇALHO ---
-# --- CABEÇALHO ---
-col_logo, col_empty = st.columns([1, 4])
-with col_logo:
-    if header_img != "🔮":
-        st.image(header_img, width=150)
-    else:
-        st.markdown("<h3 style='margin:0; color: #F18617;'>🔮 KAN</h3>", unsafe_allow_html=True)
+
 
 def get_base64_of_bin_file(bin_file):
     if not os.path.exists(bin_file):
@@ -1209,8 +1202,15 @@ def render_home():
     """, unsafe_allow_html=True)
 
 
-    # Navegação do Carrossel
+    # Navegação do Carrossel e Logo
     col_nav1, col_nav2, col_nav3 = st.columns([1, 1, 1])
+    with col_nav1:
+        # Logo menor alinhada à navegação
+        if header_img != "🔮":
+            st.image(header_img, width=80)
+        else:
+            st.markdown("<h4 style='margin:10px 0 0 0; color: #F18617;'>🔮 KAN</h4>", unsafe_allow_html=True)
+            
     with col_nav2:
         c1, c2, c3 = st.columns([1, 1, 1])
         num_banners = len(db_banners) if db_banners else len(st.session_state.banners_data)
@@ -1224,6 +1224,7 @@ def render_home():
             if st.button("❯", key="next_home"):
                 st.session_state.carousel_index = (st.session_state.carousel_index + 1) % num_banners
                 st.rerun()
+
 
 
 
@@ -1610,6 +1611,16 @@ with st.sidebar:
     if st.button("Recarregar Dados", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
+
+# --- CABEÇALHO GLOBAL (Apenas fora da Home) ---
+if escolha != "Home":
+    col_logo, col_empty = st.columns([1, 4])
+    with col_logo:
+        if header_img != "🔮":
+            st.image(header_img, width=150)
+        else:
+            st.markdown("<h3 style='margin:0; color: #F18617;'>🔮 KAN</h3>", unsafe_allow_html=True)
+
 
 
 # --- LÓGICA DE PÁGINAS ---
