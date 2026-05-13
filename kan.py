@@ -48,6 +48,16 @@ except Exception:
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_icon=favicon_img)
 
+# --- TRATAMENTO DE NAVEGAÇÃO VIA URL ---
+if "nav" in st.query_params:
+    st.session_state["sidebar_menu"] = st.query_params["nav"]
+
+# --- DEFINIÇÃO DE MENUS ---
+MENU_PRINCIPAL = [
+    "Home", "Conta", "Estrutura da Empresa", "Colaboradores", 
+    "Equipes", "Diagnósticos", "Mapas", "Analytics", "Configurações"
+]
+
 st.markdown("""
 <style>
     /* Restaurando Identidade KAN */
@@ -1235,10 +1245,11 @@ def render_home():
             <div class='hero-label'>Mundo KAN</div>
             <div class='hero-title'>{title}</div>
             <div class='hero-subtitle'>{subtitle}</div>
-            <a href='{link}' class='hero-cta'>{cta}</a>
+            <a href='{link}' class='hero-cta' target='_self'>{cta}</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
 
 
     # Navegação do Carrossel e Logo
@@ -1515,10 +1526,30 @@ def render_admin_panel():
                     n_sub = st.text_area("Subtítulo", value=b_sub, key=f"db_b_sub_{i}")
                 with col_e2:
                     n_cta = st.text_input("Texto do Botão", value=b_cta, key=f"db_b_cta_{i}")
-                    n_link = st.text_input("Link do Botão", value=b_link, key=f"db_b_link_{i}")
                     n_accent = st.color_picker("Cor de Destaque", value=b_accent, key=f"db_b_acc_{i}")
+                    
+                    # Lógica de Destino do Link
+                    is_internal = b_link.startswith("?nav=") if b_link else False
+                    dest_type = st.radio("Destino do Clique", ["Página do Sistema", "Link Externo"], 
+                                         index=0 if is_internal else 1, key=f"db_b_dest_type_{i}")
+                    
+                    if dest_type == "Página do Sistema":
+                        # Filtra página atual do link se for interno
+                        current_nav_page = b_link.replace("?nav=", "") if is_internal else "Home"
+                        available_pages = MENU_PRINCIPAL + (["Painel de Controle"] if st.session_state.get("logged_user") == "adminkan" else [])
+                        
+                        try:
+                            default_nav_idx = available_pages.index(current_nav_page)
+                        except:
+                            default_nav_idx = 0
+                            
+                        n_page = st.selectbox("Selecione a Página", options=available_pages, index=default_nav_idx, key=f"db_b_page_{i}")
+                        n_link = f"?nav={n_page}"
+                    else:
+                        n_link = st.text_input("URL Externa", value=b_link if not is_internal else "https://", key=f"db_b_link_{i}")
                 
                 # Seleção de imagem da biblioteca
+
                 if asset_options:
                     default_idx = 0
                     if b_asset_id:
@@ -1653,21 +1684,12 @@ with st.sidebar:
     </style>
     """, unsafe_allow_html=True)
 
-    menu_opcoes = [
-        "Home",
-        "Conta", 
-        "Estrutura da Empresa", 
-        "Colaboradores", 
-        "Equipes", 
-        "Diagnósticos", 
-        "Mapas", 
-        "Analytics",
-        "Configurações"
-    ]
+    menu_opcoes = list(MENU_PRINCIPAL)
     
     # Painel de Controle apenas para adminkan
     if st.session_state.get("logged_user") == "adminkan":
         menu_opcoes.append("Painel de Controle")
+
 
     # Inicializa estado do menu se não existir
     if "sidebar_menu" not in st.session_state:
