@@ -1171,8 +1171,13 @@ def render_admin_panel():
 
     st.title("Painel de Controle Administrativo")
     
+    # Login automático se já estiver logado como adminkan no app principal
+    if st.session_state.get("username") == "adminkan":
+        st.session_state["admin_authenticated"] = True
+
     if "admin_authenticated" not in st.session_state:
         st.session_state["admin_authenticated"] = False
+
         
     if not st.session_state["admin_authenticated"]:
         st.warning("Área restrita. Identifique-se para acessar o Painel.")
