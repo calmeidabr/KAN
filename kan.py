@@ -1049,31 +1049,77 @@ def get_base64_of_bin_file(bin_file):
         data = f.read()
     return base64.b64encode(data).decode()
 
+@st.cache_data(ttl=60)
+def fetch_banners():
+    if not supabase_client: return []
+    try:
+        # Tenta buscar banners com assets relacionados
+        res = supabase_client.table("kan_banners").select("*, kan_assets(data_base64)").order("id").execute()
+        return res.data
+    except Exception as e:
+        st.error(f"Erro ao carregar banners do BD: {e}")
+        return []
+
+@st.cache_data(ttl=60)
+def fetch_assets_list():
+    if not supabase_client: return []
+    try:
+        res = supabase_client.table("kan_assets").select("id, nome").order("nome").execute()
+        return res.data
+    except:
+        return []
+
+
 def render_home():
-    # Caminhos padrão (Arquivos locais na pasta PROG)
-    banner1_path = "banner1.png"
-    banner2_path = "banner2.png"
-    banner3_path = "banner3.png"
-
-
     if 'carousel_index' not in st.session_state:
         st.session_state.carousel_index = 0
     
-    # Inicializa dados dos banners se não existirem
-    if 'banners_data' not in st.session_state:
-        st.session_state.banners_data = [
-            {"title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": banner1_path},
-            {"title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": banner2_path},
-            {"title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": banner3_path}
-        ]
+    # Tenta carregar do Supabase
+    db_banners = fetch_banners()
     
-    current_b = st.session_state.banners_data[st.session_state.carousel_index]
-    
-    # Carrega imagem (base64 customizada ou do path padrão)
-    if current_b.get('b64_custom'):
-        img_b64 = current_b['b64_custom']
+    if db_banners:
+        banners_list = db_banners
+        current_b = banners_list[st.session_state.carousel_index % len(banners_list)]
+        # Extrai imagem do asset relacionado ou fallback
+        img_b64 = ""
+        if current_b.get('kan_assets') and current_b['kan_assets'].get('data_base64'):
+            img_b64 = current_b['kan_assets']['data_base64']
+        else:
+            # Fallback para arquivos locais se não houver asset no BD
+            local_map = {1: "banner1.png", 2: "banner2.png", 3: "banner3.png"}
+            img_b64 = get_base64_of_bin_file(local_map.get(current_b['id'], "banner1.png"))
+        
+        # Mapeia campos do BD para nomes usados no template
+        title = current_b.get('title', '')
+        subtitle = current_b.get('subtitle', '')
+        accent = current_b.get('accent_color', '#F18617')
+        cta = current_b.get('cta_text', 'Explorar')
+        link = current_b.get('cta_link', '#')
     else:
-        img_b64 = get_base64_of_bin_file(current_b.get('img_path', ""))
+        # Fallback total para hardcoded se o BD falhar
+        banner1_path = "banner1.png"
+        banner2_path = "banner2.png"
+        banner3_path = "banner3.png"
+        
+        if 'banners_data' not in st.session_state:
+            st.session_state.banners_data = [
+                {"title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": banner1_path},
+                {"title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": banner2_path},
+                {"title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": banner3_path}
+            ]
+        
+        current_b = st.session_state.banners_data[st.session_state.carousel_index % len(st.session_state.banners_data)]
+        if current_b.get('b64_custom'):
+            img_b64 = current_b['b64_custom']
+        else:
+            img_b64 = get_base64_of_bin_file(current_b.get('img_path', ""))
+            
+        title = current_b['title']
+        subtitle = current_b['subtitle']
+        accent = current_b['accent']
+        cta = current_b['cta']
+        link = current_b['link']
+
 
     # Injeção de CSS para o Carrossel Moderno
     st.markdown(f"""
@@ -1152,27 +1198,30 @@ def render_home():
         <div class='hero-overlay'></div>
         <div class='hero-content'>
             <div class='hero-label'>Mundo KAN</div>
-            <div class='hero-title'>{current_b['title']}</div>
-            <div class='hero-subtitle'>{current_b['subtitle']}</div>
-            <a href='{current_b['link']}' class='hero-cta'>{current_b['cta']}</a>
+            <div class='hero-title'>{title}</div>
+            <div class='hero-subtitle'>{subtitle}</div>
+            <a href='{link}' class='hero-cta'>{cta}</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
 
     # Navegação do Carrossel
     col_nav1, col_nav2, col_nav3 = st.columns([1, 1, 1])
     with col_nav2:
         c1, c2, c3 = st.columns([1, 1, 1])
+        num_banners = len(db_banners) if db_banners else len(st.session_state.banners_data)
         with c1:
             if st.button("❮", key="prev_home"):
-                st.session_state.carousel_index = (st.session_state.carousel_index - 1) % len(st.session_state.banners_data)
+                st.session_state.carousel_index = (st.session_state.carousel_index - 1) % num_banners
                 st.rerun()
         with c2:
-            st.markdown(f"<p style='text-align: center; margin-top: 10px; opacity: 0.5;'>{st.session_state.carousel_index + 1} / {len(st.session_state.banners_data)}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center; margin-top: 10px; opacity: 0.5;'>{st.session_state.carousel_index + 1} / {num_banners}</p>", unsafe_allow_html=True)
         with c3:
             if st.button("❯", key="next_home"):
-                st.session_state.carousel_index = (st.session_state.carousel_index + 1) % len(st.session_state.banners_data)
+                st.session_state.carousel_index = (st.session_state.carousel_index + 1) % num_banners
                 st.rerun()
+
 
 
 def render_admin_panel():
@@ -1367,40 +1416,97 @@ def render_admin_panel():
         render_empresas()
 
     with t_tab5:
-        st.subheader("Gerenciamento de Banners da Home")
-        # Caminhos padrão para garantir inicialização (Pasta PROG)
-        b1_p = "banner1.png"
-        b2_p = "banner2.png"
-        b3_p = "banner3.png"
-
-
-        if "banners_data" not in st.session_state:
-             st.session_state.banners_data = [
-                {"title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "cta": "Explorar Diagnósticos", "link": "#", "img_path": b1_p},
-                {"title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "cta": "Ver Equipes", "link": "#", "img_path": b2_p},
-                {"title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "cta": "Saiba Mais", "link": "#", "img_path": b3_p}
-            ]
+        st.subheader("Gerenciamento de Banners e Imagens")
         
-        for i, b in enumerate(st.session_state.banners_data):
-            with st.expander(f"Banner {i+1}: {b['title']}"):
+        # Seção de Assets (Biblioteca)
+        with st.expander("🖼️ Biblioteca de Imagens (Assets)", expanded=False):
+            st.write("Suba novas imagens para usar nos banners.")
+            new_asset_file = st.file_uploader("Upload de nova imagem para biblioteca", type=["png", "jpg", "jpeg"], key="upload_asset")
+            new_asset_name = st.text_input("Nome da imagem no sistema", key="asset_name")
+            if st.button("Adicionar à Biblioteca"):
+                if new_asset_file and new_asset_name:
+                    b64_data = base64.b64encode(new_asset_file.read()).decode()
+                    try:
+                        supabase_client.table("kan_assets").insert({"nome": new_asset_name, "data_base64": b64_data}).execute()
+                        st.success(f"Imagem '{new_asset_name}' salva na biblioteca!")
+                        st.cache_data.clear()
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao salvar asset: {e}")
+                else:
+                    st.warning("Preencha o nome e selecione um arquivo.")
+            
+            assets_list = fetch_assets_list()
+            if assets_list:
+                st.write("**Imagens Disponíveis:**")
+                for asset in assets_list:
+                    st.write(f"- {asset['nome']} (ID: {asset['id']})")
+
+        st.markdown("---")
+        
+        # Edição de Banners
+        db_banners = fetch_banners()
+        assets_list = fetch_assets_list()
+        asset_options = {a['nome']: a['id'] for a in assets_list} if assets_list else {}
+        
+        # Se não houver dados no BD, usa o estado da sessão como base para o formulário
+        current_data = db_banners if db_banners else st.session_state.get('banners_data', [])
+        
+        for i, b in enumerate(current_data):
+            # Normaliza dados vindo do BD ou da sessão
+            b_id = b.get('id', i+1)
+            b_title = b.get('title', '')
+            b_sub = b.get('subtitle', '')
+            b_cta = b.get('cta_text', b.get('cta', ''))
+            b_link = b.get('cta_link', b.get('link', '#'))
+            b_accent = b.get('accent_color', b.get('accent', '#F18617'))
+            b_asset_id = b.get('asset_id')
+            
+            with st.expander(f"Banner {b_id}: {b_title}"):
                 col_e1, col_e2 = st.columns(2)
                 with col_e1:
-                    st.session_state.banners_data[i]['title'] = st.text_input("Título", value=b['title'], key=f"b_title_{i}")
-                    st.session_state.banners_data[i]['subtitle'] = st.text_area("Subtítulo", value=b['subtitle'], key=f"b_sub_{i}")
+                    n_title = st.text_input("Título", value=b_title, key=f"db_b_title_{i}")
+                    n_sub = st.text_area("Subtítulo", value=b_sub, key=f"db_b_sub_{i}")
                 with col_e2:
-                    st.session_state.banners_data[i]['cta'] = st.text_input("Texto do Botão", value=b['cta'], key=f"b_cta_{i}")
-                    st.session_state.banners_data[i]['link'] = st.text_input("Link do Botão", value=b['link'], key=f"b_link_{i}")
-                    st.session_state.banners_data[i]['accent'] = st.color_picker("Cor de Destaque", value=b['accent'], key=f"b_acc_{i}")
+                    n_cta = st.text_input("Texto do Botão", value=b_cta, key=f"db_b_cta_{i}")
+                    n_link = st.text_input("Link do Botão", value=b_link, key=f"db_b_link_{i}")
+                    n_accent = st.color_picker("Cor de Destaque", value=b_accent, key=f"db_b_acc_{i}")
                 
-                img_file = st.file_uploader(f"Nova Imagem (Banner {i+1})", type=["png", "jpg", "jpeg"], key=f"b_img_{i}")
-                if img_file:
-                    b64 = base64.b64encode(img_file.read()).decode()
-                    st.session_state.banners_data[i]['b64_custom'] = b64
-                    st.success("Imagem atualizada!")
+                # Seleção de imagem da biblioteca
+                if asset_options:
+                    default_idx = 0
+                    if b_asset_id:
+                        # Encontra o índice do asset atual
+                        for idx, (name, aid) in enumerate(asset_options.items()):
+                            if aid == b_asset_id:
+                                default_idx = idx
+                                break
+                    
+                    selected_asset_name = st.selectbox("Selecionar Imagem da Biblioteca", options=list(asset_options.keys()), index=default_idx, key=f"db_b_asset_{i}")
+                    selected_asset_id = asset_options[selected_asset_name]
+                else:
+                    st.warning("Nenhuma imagem na biblioteca. Faça um upload acima.")
+                    selected_asset_id = None
 
-        if st.button("💾 Salvar Configurações de Banners"):
-            st.success("Configurações aplicadas com sucesso!")
-            st.rerun()
+                if st.button(f"Salvar Banner {b_id}", key=f"btn_save_db_b_{i}"):
+                    if supabase_client:
+                        try:
+                            update_data = {
+                                "title": n_title,
+                                "subtitle": n_sub,
+                                "cta_text": n_cta,
+                                "cta_link": n_link,
+                                "accent_color": n_accent,
+                                "asset_id": selected_asset_id,
+                                "updated_at": datetime.datetime.now().isoformat()
+                            }
+                            supabase_client.table("kan_banners").update(update_data).eq("id", b_id).execute()
+                            st.success(f"Banner {b_id} atualizado no banco de dados!")
+                            st.cache_data.clear()
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar no BD: {e}")
+
 
 def render_empresas():
     st.title("Gestão de Empresas (Tenants)")
