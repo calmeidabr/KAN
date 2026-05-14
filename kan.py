@@ -1623,79 +1623,142 @@ def render_contas_master():
 # --- CONFIGURAÇÃO DO MENU LATERAL ---
 with st.sidebar:
     st.markdown("""
-    <div style='text-align: center; margin-bottom: 20px;'>
-        <h2 style='color: #F18617; margin-bottom: 0;'>Mundo KAN</h2>
-        <p style='font-size: 0.8em; color: rgba(255,255,255,0.6);'>Diagnóstico Inteligente</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("""
     <style>
-    /* Estilização moderna dos botões do menu lateral */
+    /* Estilização Global do Sidebar */
+    [data-testid="stSidebar"] {
+        background-image: linear-gradient(180deg, #1e1e2f 0%, #111111 100%) !important;
+    }
+    
+    /* Container do Perfil do Usuário */
+    .user-profile-card {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: 0.3s;
+    }
+    .user-profile-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(241, 134, 23, 0.3);
+    }
+    
+    /* Seções do Menu */
+    .menu-section-label {
+        font-size: 0.7em !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.5px !important;
+        color: rgba(255, 255, 255, 0.4) !important;
+        margin: 20px 0 10px 15px !important;
+        font-weight: 700 !important;
+    }
+
+    /* Botões do Menu Lateral */
     div.stButton > button {
         border: none !important;
         background-color: transparent !important;
-        color: rgba(255,255,255,0.8) !important;
+        color: rgba(255,255,255,0.7) !important;
         text-align: left !important;
         justify-content: flex-start !important;
-        font-size: 1em !important;
-        padding: 12px 15px !important;
+        font-size: 0.95em !important;
+        padding: 10px 15px !important;
         border-radius: 12px !important;
-        margin-bottom: 5px !important;
-        transition: all 0.3s ease !important;
+        margin-bottom: 4px !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: 1px solid transparent !important;
     }
+    
     div.stButton > button:hover {
-        background-color: rgba(241, 134, 23, 0.15) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
         color: #F18617 !important;
-        transform: translateX(5px);
+        transform: translateX(4px) !important;
+        border-color: rgba(241, 134, 23, 0.2) !important;
     }
-    /* Estilo para o item selecionado (Botão Primário) */
+    
+    /* Item Selecionado */
     div.stButton > button[kind="primary"] {
-        background-color: #F18617 !important;
-        color: black !important;
+        background: linear-gradient(90deg, rgba(241, 134, 23, 0.2) 0%, rgba(241, 134, 23, 0.05) 100%) !important;
+        color: #F18617 !important;
         font-weight: 700 !important;
-        box-shadow: 0 4px 15px rgba(241, 134, 23, 0.3) !important;
+        border-left: 3px solid #F18617 !important;
+        border-radius: 4px 12px 12px 4px !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    menu_opcoes = list(MENU_PRINCIPAL)
+    # Identidade e Perfil no Topo
+    user_logged = st.session_state.get("logged_user", "Usuário")
+    st.markdown(f"""
+    <div style='text-align: center; margin-bottom: 25px;'>
+        <h2 style='color: #F18617; margin-bottom: 0; font-size: 1.8em; letter-spacing: -1px;'>Mundo KAN</h2>
+        <p style='font-size: 0.75em; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 2px;'>Diagnóstico 4.0</p>
+    </div>
+    <div class='user-profile-card'>
+        <div style='display: flex; align-items: center;'>
+            <div style='background: #F18617; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: black; margin-right: 12px; box-shadow: 0 4px 10px rgba(241, 134, 23, 0.4);'>
+                {user_logged[0].upper()}
+            </div>
+            <div style='overflow: hidden;'>
+                <p style='margin: 0; font-size: 0.9em; font-weight: 700; color: white; white-space: nowrap; text-overflow: ellipsis;'>{user_logged}</p>
+                <div style='display: flex; align-items: center;'>
+                    <div style='width: 6px; height: 6px; background: #39ff14; border-radius: 50%; margin-right: 6px; box-shadow: 0 0 10px #39ff14;'></div>
+                    <p style='margin: 0; font-size: 0.65em; color: rgba(255,255,255,0.4);'>Sessão Ativa</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Mapeamento de Ícones
+    icones = {
+        "Home": "🏠", "Conta": "👤", "Estrutura da Empresa": "🏢", 
+        "Colaboradores": "👥", "Equipes": "🤝", "Diagnósticos": "📋", 
+        "Mapas": "🗺️", "Analytics": "📊", "Configurações": "⚙️", 
+        "Painel de Controle": "🛠️"
+    }
+
+    # Grupos de Menu
+    menu_groups = {
+        "PRINCIPAL": ["Home", "Mapas", "Diagnósticos", "Analytics"],
+        "GESTÃO": ["Estrutura da Empresa", "Colaboradores", "Equipes"],
+        "SISTEMA": ["Conta", "Configurações"]
+    }
     
-    # Painel de Controle apenas para adminkan
     if st.session_state.get("logged_user") == "adminkan":
-        menu_opcoes.append("Painel de Controle")
+        menu_groups["ADMIN"] = ["Painel de Controle"]
+
+    # Renderização por Grupos
+    for grupo, itens in menu_groups.items():
+        st.markdown(f"<div class='menu-section-label'>{grupo}</div>", unsafe_allow_html=True)
+        for opcao in itens:
+            is_selected = (st.session_state.get("sidebar_menu", "Home") == opcao)
+            label = f"{icones.get(opcao, '•')} &nbsp; {opcao}"
+            if st.button(
+                label, 
+                key=f"menu_{opcao}", 
+                use_container_width=True, 
+                type="primary" if is_selected else "secondary"
+            ):
+                st.session_state["sidebar_menu"] = opcao
+                st.rerun()
+
+    escolha = st.session_state.get("sidebar_menu", "Home")
 
 
-    # Inicializa estado do menu se não existir
-    if "sidebar_menu" not in st.session_state:
-        st.session_state["sidebar_menu"] = "Home"
 
-    # Renderiza botões como itens de menu
-    for opcao in menu_opcoes:
-        is_selected = (st.session_state["sidebar_menu"] == opcao)
-        if st.button(
-            opcao, 
-            key=f"menu_{opcao}", 
-            use_container_width=True, 
-            type="primary" if is_selected else "secondary"
-        ):
-            st.session_state["sidebar_menu"] = opcao
+
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    col_out1, col_out2 = st.columns(2)
+    with col_out1:
+        if st.button("🚪 Sair", use_container_width=True, key="btn_logout_side"):
+            st.session_state["password_correct"] = False
+            st.rerun()
+    with col_out2:
+        if st.button("🔄 Reset", use_container_width=True, key="btn_reset_side"):
+            st.cache_data.clear()
             st.rerun()
 
-    escolha = st.session_state["sidebar_menu"]
-
-
-
-
-    
-    st.markdown("---")
-    if st.button("Sair", use_container_width=True):
-        st.session_state["password_correct"] = False
-        st.rerun()
-    
-    if st.button("Recarregar Dados", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
 
 # --- CABEÇALHO GLOBAL (Apenas fora da Home) ---
 if escolha != "Home":
