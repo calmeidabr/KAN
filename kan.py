@@ -57,12 +57,94 @@ MENU_PRINCIPAL = [
 
 st.markdown("""
 <style>
-    /* Restaurando Identidade KAN */
+    /* Restaurando Identidade KAN e Base Global */
     .stApp {
         background-color: #401041 !important;
         color: #FFFFFF !important;
     }
     
+    /* --- DESIGN PREMIUM DO SIDEBAR (Untitled UI Style) --- */
+    section[data-testid="stSidebar"] {
+        background-image: linear-gradient(180deg, #2D0C30 0%, #150317 100%) !important;
+        border-right: 1px solid rgba(241, 134, 23, 0.2) !important;
+        width: 275px !important;
+    }
+    
+    section[data-testid="stSidebar"] > div,
+    [data-testid="stSidebarContent"], [data-testid="stSidebarHeader"] {
+        background: transparent !important;
+    }
+
+    /* Container do Perfil do Usuário no rodapé */
+    .user-profile-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px 14px;
+        border-radius: 14px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .user-profile-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(241, 134, 23, 0.4);
+    }
+
+    /* Botões do Menu Lateral - Estilo Monocromático & Clean */
+    .stApp section[data-testid="stSidebar"] div.stButton > button {
+        border: none !important;
+        background-color: transparent !important;
+        color: rgba(255,255,255,0.75) !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        font-size: 0.92em !important;
+        padding: 8px 14px !important;
+        border-radius: 10px !important;
+        margin-bottom: 3px !important;
+        min-height: 36px !important;
+        line-height: 1.3 !important;
+        transition: all 0.2s ease !important;
+        width: 100% !important;
+        font-weight: 500 !important;
+        box-shadow: none !important;
+        filter: grayscale(100%) opacity(0.85);
+    }
+    
+    .stApp section[data-testid="stSidebar"] div.stButton > button:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important;
+        transform: translateX(3px) !important;
+        filter: grayscale(0%) opacity(1);
+    }
+    
+    /* Item Selecionado no Sidebar */
+    .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
+        background: linear-gradient(90deg, rgba(241, 134, 23, 0.2) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+        color: #F18617 !important;
+        font-weight: 700 !important;
+        border-left: 3px solid #F18617 !important;
+        border-radius: 3px 10px 10px 3px !important;
+        filter: grayscale(0%) opacity(1);
+    }
+
+    /* Inputs de Busca no Sidebar */
+    section[data-testid="stSidebar"] div[data-baseweb="input"] {
+        background-color: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 10px !important;
+        padding: 4px 8px !important;
+    }
+    section[data-testid="stSidebar"] div[data-baseweb="input"]:focus-within {
+        border-color: #F18617 !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* Ajuste de espaçamento geral no sidebar */
+    [data-testid="stSidebarNav"] { display: none; }
+    /* --- FIM DESIGN SIDEBAR --- */
+
+
     /* Inputs com fundo semi-transparente e texto BRANCO */
     div[data-baseweb="input"], div[data-baseweb="textarea"], div[data-baseweb="select"] > div {
         background-color: rgba(255, 255, 255, 0.1) !important;
@@ -72,33 +154,30 @@ st.markdown("""
     input, textarea, span {
         color: #FFFFFF !important;
     }
-    /* Cor do cursor (caret) também em branco */
     input {
         caret-color: white !important;
     }
     
-    /* Labels em branco para leitura sobre o roxo */
     label, .stMarkdown p, h3 {
         color: #FFFFFF !important;
     }
 
-    /* Inputs limitados para não ficarem muito longos e centralizados */
     .stTextInput, .stTextArea, .stFileUploader, .stSelectbox {
         max-width: 500px !important;
     }
-    /* Forçar o alinhamento dentro das colunas */
+    
     [data-testid="stForm"] {
         max-width: 800px !important;
         margin-left: auto !important;
         margin-right: auto !important;
     }
-    /* Em colunas, permite ocupar a largura da coluna */
+
     [data-testid="column"] .stTextInput, [data-testid="column"] .stTextArea {
         max-width: 100% !important;
     }
 
-    /* Botão Laranja KAN */
-    .stButton > button, .stFormSubmitButton > button {
+    /* Botão Geral (Não Sidebar) */
+    .stApp div.stButton > button:not([data-testid="stSidebar"] *) {
         background-color: #F18617 !important;
         color: #FFFFFF !important;
         border-radius: 8px !important;
@@ -106,7 +185,6 @@ st.markdown("""
         font-weight: bold !important;
     }
 
-    /* Tabelas com as cores originais */
     table thead th {
         background-color: #F18617 !important;
         color: #401041 !important;
@@ -115,13 +193,13 @@ st.markdown("""
         color: #F18617 !important;
     }
     
-    /* Ajuste para o expander ficar visível */
     div[data-testid="stExpander"] {
         background-color: rgba(255,255,255,0.1) !important;
         border: 1px solid #F18617 !important;
     }
 </style>
 """, unsafe_allow_html=True)
+
 
 # --- INICIALIZAÇÃO DO CLIENTE SUPABASE (GLOBAL) ---
 supabase_client = None
@@ -1040,6 +1118,122 @@ def check_password():
 if not check_password():
     st.stop()
 
+with st.sidebar:
+    # Top Header Logo / Title
+    st.markdown(f"""
+    <div style='padding: 10px 0 15px 0;'>
+        <div style='display: flex; align-items: center; justify-content: flex-start;'>
+            <div style='background: linear-gradient(135deg, #F18617 0%, #d86800 100%); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #1b0520; margin-right: 12px; font-size: 1.2em; box-shadow: 0 4px 10px rgba(241, 134, 23, 0.4);'>
+                K
+            </div>
+            <div>
+                <h2 style='color: white; margin: 0; font-size: 1.3em; font-weight: 700; letter-spacing: -0.5px;'>Mundo KAN</h2>
+                <p style='margin: 0; font-size: 0.7em; color: #F18617; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;'>SaaS Platform</p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Barra de busca estilizada
+    search_query = st.text_input("Busca", placeholder="🔍 Pesquisar...", label_visibility="collapsed")
+    st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+
+    # Mapeamento de Ícones Monocromáticos (símbolos limpos)
+    icones = {
+        "Home": "⌂", "Conta": "◷", "Estrutura da Empresa": "🏢", 
+        "Colaboradores": "👥", "Equipes": "🤝", "Diagnósticos": "📋", 
+        "Mapas": "🗺️", "Analytics": "📊", "Configurações": "⚙️", 
+        "Painel de Controle": "🛠️"
+    }
+
+    group_icons = {
+        "PRINCIPAL": "⌂",
+        "GESTÃO": "◈",
+        "SISTEMA": "⚙",
+        "ADMIN": "🛠"
+    }
+
+    menu_groups = {
+        "PRINCIPAL": ["Home", "Mapas", "Diagnósticos", "Analytics"],
+        "GESTÃO": ["Estrutura da Empresa", "Colaboradores", "Equipes"],
+        "SISTEMA": ["Conta", "Configurações"]
+    }
+    if st.session_state.get("logged_user") == "adminkan":
+        menu_groups["ADMIN"] = ["Painel de Controle"]
+
+    if "sidebar_menu" not in st.session_state:
+        st.session_state["sidebar_menu"] = "Home"
+
+    # Expand/collapse states para cada grupo
+    for grupo in menu_groups.keys():
+        if f"exp_{grupo}" not in st.session_state:
+            # Por padrão expande PRINCIPAL e colapsa os outros
+            st.session_state[f"exp_{grupo}"] = (grupo == "PRINCIPAL")
+
+    def format_dropdown_label(icon, name, chevron):
+        total_len = 26
+        pad = total_len - len(name) - len(icon)
+        spaces = "\u00A0" * max(1, pad * 2)
+        return f"{icon} \u00A0\u00A0 {name} {spaces} {chevron}"
+
+    # Renderização por Grupos (Menus Drop Down)
+    for grupo, itens in menu_groups.items():
+        is_exp = st.session_state[f"exp_{grupo}"]
+        chevron = "▴" if is_exp else "▾"
+        grp_icon = group_icons.get(grupo, '❖')
+        
+        grp_label = format_dropdown_label(grp_icon, grupo.capitalize(), chevron)
+        if st.button(grp_label, key=f"grp_{grupo}", use_container_width=True):
+            st.session_state[f"exp_{grupo}"] = not is_exp
+            st.rerun()
+            
+        if is_exp:
+            for opcao in itens:
+                is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
+                sub_label = f"\u00A0\u00A0\u00A0↳ \u00A0 {opcao}"
+                if st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary"):
+                    st.session_state["sidebar_menu"] = opcao
+                    st.rerun()
+
+    escolha = st.session_state.get("sidebar_menu", "Home")
+
+    # Espaçamento flexível para empurrar as informações para o rodapé
+    st.markdown("<div style='min-height: 40px;'></div>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 10px 0;'>", unsafe_allow_html=True)
+
+    col_out1, col_out2 = st.columns(2)
+    with col_out1:
+        if st.button("🚪 Sair", use_container_width=True, key="btn_logout_side"):
+            st.session_state["password_correct"] = False
+            st.rerun()
+    with col_out2:
+        if st.button("🔄 Reset", use_container_width=True, key="btn_reset_side"):
+            st.cache_data.clear()
+            st.rerun()
+
+    # Informações da conta no rodapé (Abaixo)
+    user_logged = st.session_state.get("logged_user", "Usuário")
+    role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"
+    st.markdown(f"""
+    <div class='user-profile-card'>
+        <div style='display: flex; align-items: center; justify-content: space-between;'>
+            <div style='display: flex; align-items: center;'>
+                <div style='background: #F18617; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #1b0520; margin-right: 12px; font-size: 1.1em; box-shadow: 0 2px 8px rgba(241, 134, 23, 0.4);'>
+                    {user_logged[0].upper()}
+                </div>
+                <div style='overflow: hidden; text-align: left;'>
+                    <p style='margin: 0; font-size: 0.9em; font-weight: 700; color: white; white-space: nowrap; text-overflow: ellipsis;'>{user_logged}</p>
+                    <p style='margin: 0; font-size: 0.7em; color: rgba(255,255,255,0.5);'>{role_str} • Online</p>
+                </div>
+            </div>
+            <div style='color: #39ff14; font-size: 0.8em; text-shadow: 0 0 8px #39ff14;'>
+                ●
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 
 
 def get_base64_of_bin_file(bin_file):
@@ -1413,32 +1607,139 @@ def render_admin_panel():
 
     with t_tab3:
         st.subheader("Gerenciamento de Usuários")
-        # Reutiliza lógica de render_contas_master mas com filtro de roles simplificado
+        
+        # Inicialização dos dados estendidos de usuários
         if "usuarios_data" not in st.session_state:
             st.session_state.usuarios_data = [
-                {"usuario": "adminkan", "tipo": "admin", "status": "Ativo"},
-                {"usuario": "cristiano", "tipo": "admin", "status": "Ativo"},
-                {"usuario": "maria", "tipo": "user", "status": "Ativo"}
+                {"usuario": "adminkan", "nome": "Master", "sobrenome": "Admin", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "foto": "👑", "grupo": "Geral", "direitos": "admin master", "status": "Ativo"},
+                {"usuario": "cristiano", "nome": "Cristiano", "sobrenome": "Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "foto": "👤", "grupo": "Geral", "direitos": "admin", "status": "Ativo"},
+                {"usuario": "maria", "nome": "Maria", "sobrenome": "Silva", "email": "maria@mundokan.com.br", "celular": "(11) 97777-7777", "foto": "👤", "grupo": "Geral", "direitos": "user", "status": "Ativo"},
+                {"usuario": "empresa_demo", "nome": "Tech Corp", "sobrenome": "Brasil", "email": "contato@techcorp.com", "celular": "(11) 96666-6666", "foto": "🏢", "grupo": "Empresas", "direitos": "user", "status": "Ativo"}
             ]
-        
-        for i, user in enumerate(st.session_state.usuarios_data):
-            with st.container(border=True):
-                c1, c2, c3 = st.columns([3, 2, 2])
-                with c1:
-                    st.write(f"**Usuário:** {user['usuario']}")
-                with c2:
-                    n_tipo = st.selectbox("Direitos", ["admin", "user"], 
-                                         index=["admin", "user"].index(user['tipo']),
-                                         key=f"user_tipo_{i}", disabled=(user['usuario'] == "adminkan"))
-                with c3:
-                    n_status = st.selectbox("Status", ["Ativo", "Desabilitado"], 
-                                           index=0 if user['status'] == "Ativo" else 1,
-                                           key=f"user_status_{i}", disabled=(user['usuario'] == "adminkan"))
-                if user['usuario'] != "adminkan":
-                    if st.button("Salvar", key=f"user_save_{i}"):
-                        st.session_state.usuarios_data[i]['tipo'] = n_tipo
-                        st.session_state.usuarios_data[i]['status'] = n_status
-                        st.success(f"Usuário {user['usuario']} atualizado!")
+
+        # Estado para controle da visualização/edição
+        if "view_selected_user" not in st.session_state:
+            st.session_state["view_selected_user"] = None
+        if "edit_mode_user" not in st.session_state:
+            st.session_state["edit_mode_user"] = None
+
+        # Se houver um usuário selecionado para visualização
+        sel_user_id = st.session_state["view_selected_user"]
+        if sel_user_id:
+            # Encontra o usuário na lista
+            u_obj = next((u for u in st.session_state.usuarios_data if u["usuario"] == sel_user_id), None)
+            if not u_obj:
+                st.session_state["view_selected_user"] = None
+                st.rerun()
+
+            col_btn1, col_btn2 = st.columns([1, 5])
+            with col_btn1:
+                if st.button("⬅️ Voltar à Lista", key="btn_back_list", use_container_width=True):
+                    st.session_state["view_selected_user"] = None
+                    st.session_state["edit_mode_user"] = None
+                    st.rerun()
+
+            st.write("---")
+
+            is_editing = (st.session_state["edit_mode_user"] == sel_user_id)
+            logged_adm = st.session_state.get("logged_user")
+
+            if is_editing:
+                st.markdown(f"<h3 style='color: #F18617;'>Editando Usuário: {u_obj['usuario']}</h3>", unsafe_allow_html=True)
+                with st.container(border=True):
+                    e_col1, e_col2 = st.columns(2)
+                    with e_col1:
+                        ed_nome = st.text_input("Nome", value=u_obj.get("nome", ""), key="ed_nome")
+                        ed_sob = st.text_input("Sobrenome", value=u_obj.get("sobrenome", ""), key="ed_sob")
+                        ed_email = st.text_input("Email", value=u_obj.get("email", ""), key="ed_email")
+                        ed_grupo = st.selectbox("Subgrupo", ["Geral", "Empresas"], index=["Geral", "Empresas"].index(u_obj.get("grupo", "Geral")), key="ed_grupo")
+                    with e_col2:
+                        ed_cel = st.text_input("Celular", value=u_obj.get("celular", ""), key="ed_cel")
+                        ed_foto = st.text_input("Ícone/Foto", value=u_obj.get("foto", "👤"), key="ed_foto")
+                        ed_dir = st.selectbox("Direitos", ["admin", "user", "admin master"], index=["admin", "user", "admin master"].index(u_obj.get("direitos", "user")), key="ed_dir")
+                        ed_st = st.selectbox("Status", ["Ativo", "Desabilitado"], index=0 if u_obj.get("status", "Ativo") == "Ativo" else 1, key="ed_st")
+
+                    col_s1, col_s2, col_s3 = st.columns([2, 2, 4])
+                    with col_s1:
+                        if st.button("💾 Salvar", type="primary", use_container_width=True, key="btn_save_ed"):
+                            u_obj["nome"] = ed_nome
+                            u_obj["sobrenome"] = ed_sob
+                            u_obj["email"] = ed_email
+                            u_obj["celular"] = ed_cel
+                            u_obj["foto"] = ed_foto
+                            u_obj["grupo"] = ed_grupo
+                            u_obj["direitos"] = ed_dir
+                            u_obj["status"] = ed_st
+                            st.session_state["edit_mode_user"] = None
+                            st.success("Dados do usuário atualizados com sucesso!")
+                            st.rerun()
+                    with col_s2:
+                        if st.button("❌ Cancelar", use_container_width=True, key="btn_canc_ed"):
+                            st.session_state["edit_mode_user"] = None
+                            st.rerun()
+            else:
+                # Modo Visualização (Read-Only)
+                with st.container(border=True):
+                    v_c1, v_c2 = st.columns([1, 4])
+                    with v_c1:
+                        st.markdown(f"<div style='font-size: 4em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 50%; padding: 10px;'>{u_obj.get('foto', '👤')}</div>", unsafe_allow_html=True)
+                    with v_c2:
+                        st.markdown(f"<h2 style='margin: 0; color: #FFFFFF;'>{u_obj.get('nome', '')} {u_obj.get('sobrenome', '')}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<p style='color: #F18617; font-size: 1.1em; font-weight: bold;'>@{u_obj['usuario']} • <span style='color: #39ff14;'>{u_obj.get('status', 'Ativo')}</span></p>", unsafe_allow_html=True)
+
+                    st.write("---")
+                    d_col1, d_col2, d_col3, d_col4 = st.columns(4)
+                    with d_col1:
+                        st.write("**E-mail:**")
+                        st.write(u_obj.get("email", "Não informado"))
+                    with d_col2:
+                        st.write("**Celular:**")
+                        st.write(u_obj.get("celular", "Não informado"))
+                    with d_col3:
+                        st.write("**Subgrupo:**")
+                        st.write(u_obj.get("grupo", "Geral"))
+                    with d_col4:
+                        st.write("**Direitos:**")
+                        st.write(str(u_obj.get("direitos", "user")).upper())
+
+                    st.write("---")
+                    
+                    # Verificação para o botão Editar
+                    if u_obj["usuario"] == "adminkan":
+                        st.warning("🔒 O usuário master (adminkan) é o controlador do sistema e não pode ser editado.")
+                    elif logged_adm != "adminkan":
+                        st.warning("⚠️ Apenas o administrador master (adminkan) tem permissão para editar usuários.")
+                    else:
+                        if st.button("✏️ Editar Usuário", type="primary", key="btn_start_edit"):
+                            st.session_state["edit_mode_user"] = sel_user_id
+                            st.rerun()
+
+        else:
+            # Lista principal com dois submenus: Geral e Empresas
+            sub_grupo = st.radio("Selecione o Subgrupo:", ["Geral", "Empresas"], horizontal=True, key="radio_subgrupo")
+            st.write("---")
+
+            lista_filtrada = [u for u in st.session_state.usuarios_data if u.get("grupo", "Geral") == sub_grupo]
+            
+            if not lista_filtrada:
+                st.info(f"Nenhum usuário cadastrado no subgrupo '{sub_grupo}'.")
+            else:
+                for u in lista_filtrada:
+                    with st.container(border=True):
+                        col_u1, col_u2, col_u3, col_u4 = st.columns([1, 3, 2, 2])
+                        with col_u1:
+                            st.markdown(f"<span style='font-size: 1.5em;'>{u.get('foto', '👤')}</span>", unsafe_allow_html=True)
+                        with col_u2:
+                            st.write(f"**{u.get('nome', '')} {u.get('sobrenome', '')}**")
+                            st.caption(f"@{u['usuario']} | {u.get('email', '')}")
+                        with col_u3:
+                            st.write(f"**Direitos:** {str(u.get('direitos', 'user')).upper()}")
+                            status_color = "#39ff14" if u.get('status', 'Ativo') == "Ativo" else "#ff3333"
+                            st.markdown(f"Status: <span style='color: {status_color}; font-weight: bold;'>{u.get('status', 'Ativo')}</span>", unsafe_allow_html=True)
+                        with col_u4:
+                            if st.button("👁️ Visualizar Detalhes", key=f"view_{u['usuario']}", use_container_width=True):
+                                st.session_state["view_selected_user"] = u["usuario"]
+                                st.rerun()
 
     with t_tab4:
         st.subheader("Gerenciamento de Empresas (SaaS)")
@@ -1620,144 +1921,11 @@ def render_contas_master():
                     st.session_state.contas_master_data[i]['status'] = n_status
                     st.success(f"Alterações para {conta['usuario']} salvas!")
 
-# --- CONFIGURAÇÃO DO MENU LATERAL ---
-with st.sidebar:
-    st.markdown("""
-    <style>
-    /* Estilização Global do Sidebar */
-    [data-testid="stSidebar"] {
-        background-image: linear-gradient(180deg, #1e1e2f 0%, #111111 100%) !important;
-    }
-    
-    /* Container do Perfil do Usuário */
-    .user-profile-card {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 15px;
-        border-radius: 16px;
-        margin-bottom: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        transition: 0.3s;
-    }
-    .user-profile-card:hover {
-        background: rgba(255, 255, 255, 0.05);
-        border-color: rgba(241, 134, 23, 0.3);
-    }
-    
-    /* Seções do Menu */
-    .menu-section-label {
-        font-size: 0.7em !important;
-        text-transform: uppercase !important;
-        letter-spacing: 1.5px !important;
-        color: rgba(255, 255, 255, 0.4) !important;
-        margin: 20px 0 10px 15px !important;
-        font-weight: 700 !important;
-    }
-
-    /* Botões do Menu Lateral */
-    div.stButton > button {
-        border: none !important;
-        background-color: transparent !important;
-        color: rgba(255,255,255,0.7) !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
-        font-size: 0.95em !important;
-        padding: 10px 15px !important;
-        border-radius: 12px !important;
-        margin-bottom: 4px !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        border: 1px solid transparent !important;
-    }
-    
-    div.stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: #F18617 !important;
-        transform: translateX(4px) !important;
-        border-color: rgba(241, 134, 23, 0.2) !important;
-    }
-    
-    /* Item Selecionado */
-    div.stButton > button[kind="primary"] {
-        background: linear-gradient(90deg, rgba(241, 134, 23, 0.2) 0%, rgba(241, 134, 23, 0.05) 100%) !important;
-        color: #F18617 !important;
-        font-weight: 700 !important;
-        border-left: 3px solid #F18617 !important;
-        border-radius: 4px 12px 12px 4px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Identidade e Perfil no Topo
-    user_logged = st.session_state.get("logged_user", "Usuário")
-    st.markdown(f"""
-    <div style='text-align: center; margin-bottom: 25px;'>
-        <h2 style='color: #F18617; margin-bottom: 0; font-size: 1.8em; letter-spacing: -1px;'>Mundo KAN</h2>
-        <p style='font-size: 0.75em; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 2px;'>Diagnóstico 4.0</p>
-    </div>
-    <div class='user-profile-card'>
-        <div style='display: flex; align-items: center;'>
-            <div style='background: #F18617; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: black; margin-right: 12px; box-shadow: 0 4px 10px rgba(241, 134, 23, 0.4);'>
-                {user_logged[0].upper()}
-            </div>
-            <div style='overflow: hidden;'>
-                <p style='margin: 0; font-size: 0.9em; font-weight: 700; color: white; white-space: nowrap; text-overflow: ellipsis;'>{user_logged}</p>
-                <div style='display: flex; align-items: center;'>
-                    <div style='width: 6px; height: 6px; background: #39ff14; border-radius: 50%; margin-right: 6px; box-shadow: 0 0 10px #39ff14;'></div>
-                    <p style='margin: 0; font-size: 0.65em; color: rgba(255,255,255,0.4);'>Sessão Ativa</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Mapeamento de Ícones
-    icones = {
-        "Home": "🏠", "Conta": "👤", "Estrutura da Empresa": "🏢", 
-        "Colaboradores": "👥", "Equipes": "🤝", "Diagnósticos": "📋", 
-        "Mapas": "🗺️", "Analytics": "📊", "Configurações": "⚙️", 
-        "Painel de Controle": "🛠️"
-    }
-
-    # Grupos de Menu
-    menu_groups = {
-        "PRINCIPAL": ["Home", "Mapas", "Diagnósticos", "Analytics"],
-        "GESTÃO": ["Estrutura da Empresa", "Colaboradores", "Equipes"],
-        "SISTEMA": ["Conta", "Configurações"]
-    }
-    
-    if st.session_state.get("logged_user") == "adminkan":
-        menu_groups["ADMIN"] = ["Painel de Controle"]
-
-    # Renderização por Grupos
-    for grupo, itens in menu_groups.items():
-        st.markdown(f"<div class='menu-section-label'>{grupo}</div>", unsafe_allow_html=True)
-        for opcao in itens:
-            is_selected = (st.session_state.get("sidebar_menu", "Home") == opcao)
-            label = f"{icones.get(opcao, '•')} &nbsp; {opcao}"
-            if st.button(
-                label, 
-                key=f"menu_{opcao}", 
-                use_container_width=True, 
-                type="primary" if is_selected else "secondary"
-            ):
-                st.session_state["sidebar_menu"] = opcao
-                st.rerun()
-
-    escolha = st.session_state.get("sidebar_menu", "Home")
-
-
-
 
     
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    col_out1, col_out2 = st.columns(2)
-    with col_out1:
-        if st.button("🚪 Sair", use_container_width=True, key="btn_logout_side"):
-            st.session_state["password_correct"] = False
-            st.rerun()
-    with col_out2:
-        if st.button("🔄 Reset", use_container_width=True, key="btn_reset_side"):
-            st.cache_data.clear()
-            st.rerun()
+
+
+
 
 
 # --- CABEÇALHO GLOBAL (Apenas fora da Home) ---
