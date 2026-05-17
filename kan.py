@@ -1625,10 +1625,10 @@ def render_admin_panel():
                         return res.data
                     else:
                         iniciais = [
-                            {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "👑", "grupo": "Geral"},
-                            {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
-                            {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
-                            {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "🏢", "grupo": "Empresas"}
+                            {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                            {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                            {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                            {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
                         ]
                         for item in iniciais:
                             supabase_client.table("usuarios").insert(item).execute()
@@ -1637,10 +1637,10 @@ def render_admin_panel():
                     st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do Supabase. Executando modo em cache local.")
             if "usuarios_data" not in st.session_state:
                 st.session_state.usuarios_data = [
-                    {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "👑", "grupo": "Geral"},
-                    {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
-                    {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
-                    {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "🏢", "grupo": "Empresas"}
+                    {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                    {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                    {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                    {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
                 ]
             return st.session_state.usuarios_data
 
@@ -1660,7 +1660,7 @@ def render_admin_panel():
 
             col_btn1, col_btn2 = st.columns([1, 5])
             with col_btn1:
-                if st.button("⬅️ Voltar à Lista", key="btn_back_list", use_container_width=True):
+                if st.button("⭠ \u00A0 Voltar à Lista", key="btn_back_list", use_container_width=True):
                     st.session_state["view_selected_user"] = None
                     st.session_state["edit_mode_user"] = None
                     st.rerun()
@@ -1691,8 +1691,8 @@ def render_admin_panel():
                     
                     col_s1, col_s2, col_s3 = st.columns([2, 2, 4])
                     with col_s1:
-                        if st.button("💾 Salvar no Supabase", type="primary", use_container_width=True, key="btn_save_ed"):
-                            nova_foto = u_obj.get("foto", "👤")
+                        if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_ed"):
+                            nova_foto = u_obj.get("foto", "☖")
                             if up_foto:
                                 b64_f = compress_image_to_b64(up_foto, max_width=300)
                                 if b64_f: nova_foto = b64_f
@@ -1719,16 +1719,15 @@ def render_admin_panel():
                                         insert_payload = update_payload.copy()
                                         insert_payload["usuario"] = u_obj["usuario"]
                                         supabase_client.table("usuarios").insert(insert_payload).execute()
-                                    st.success("Dados sincronizados com sucesso no Supabase!")
+                                    st.success("Dados salvos com sucesso!")
                                 except Exception as e:
-                                    st.error(f"Erro na sincronização: {e}")
+                                    st.error(f"Erro ao salvar: {e}")
                             
-                            # Atualiza também local/sessão
                             u_obj.update(update_payload)
                             st.session_state["edit_mode_user"] = None
                             st.rerun()
                     with col_s2:
-                        if st.button("❌ Cancelar", use_container_width=True, key="btn_canc_ed"):
+                        if st.button("Cancelar", use_container_width=True, key="btn_canc_ed"):
                             st.session_state["edit_mode_user"] = None
                             st.rerun()
             else:
@@ -1736,8 +1735,8 @@ def render_admin_panel():
                 with st.container(border=True):
                     v_c1, v_c2 = st.columns([1, 4])
                     with v_c1:
-                        foto_val = u_obj.get('foto', '👤')
-                        if len(foto_val) > 20: # É base64
+                        foto_val = u_obj.get('foto', '☖')
+                        if len(foto_val) > 20:
                             st.image(f"data:image/png;base64,{foto_val}", width=100)
                         else:
                             st.markdown(f"<div style='font-size: 3.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 50%; padding: 10px;'>{foto_val}</div>", unsafe_allow_html=True)
@@ -1767,11 +1766,11 @@ def render_admin_panel():
                     st.write("---")
                     
                     if u_obj["usuario"] == "adminkan":
-                        st.warning("🔒 O usuário master (adminkan) é o controlador do sistema e não pode ser editado.")
+                        st.warning("O usuário master (adminkan) é o controlador do sistema e não pode ser editado.")
                     elif logged_adm != "adminkan":
-                        st.warning("⚠️ Apenas o administrador master (adminkan) tem permissão para editar usuários.")
+                        st.warning("Apenas o administrador master (adminkan) tem permissão para editar usuários.")
                     else:
-                        if st.button("✏️ Editar Usuário", type="primary", key="btn_start_edit"):
+                        if st.button("Editar Usuário", type="primary", key="btn_start_edit"):
                             st.session_state["edit_mode_user"] = sel_user_id
                             st.rerun()
 
@@ -1789,7 +1788,7 @@ def render_admin_panel():
                     with st.container(border=True):
                         col_u1, col_u2, col_u3, col_u4 = st.columns([1, 3, 2, 2])
                         with col_u1:
-                            f_v = u.get('foto', '👤')
+                            f_v = u.get('foto', '☖')
                             if len(f_v) > 20: st.image(f"data:image/png;base64,{f_v}", width=45)
                             else: st.markdown(f"<span style='font-size: 1.5em;'>{f_v}</span>", unsafe_allow_html=True)
                         with col_u2:
@@ -1800,7 +1799,7 @@ def render_admin_panel():
                             status_color = "#39ff14" if u.get('status', 'Ativo') == "Ativo" else "#ff3333"
                             st.markdown(f"Status: <span style='color: {status_color}; font-weight: bold;'>{u.get('status', 'Ativo')}</span>", unsafe_allow_html=True)
                         with col_u4:
-                            if st.button("👁️ Visualizar Detalhes", key=f"view_{u['usuario']}", use_container_width=True):
+                            if st.button("Visualizar Detalhes", key=f"view_{u['usuario']}", use_container_width=True):
                                 st.session_state["view_selected_user"] = u["usuario"]
                                 st.rerun()
 
