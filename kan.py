@@ -50,8 +50,8 @@ st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_i
 
 # --- DEFINIÇÃO DE MENUS ---
 MENU_PRINCIPAL = [
-    "Home", "Conta", "Estrutura da Empresa", "Colaboradores", 
-    "Equipes", "Diagnósticos", "Mapas", "Analytics", "Configurações"
+    "Home", "Colabs/Candidatos", "Diagnósticos", "Mapas", "Analytics",
+    "Hierarquia / Deptos", "Equipes", "Vagas", "Empresa", "Usuários"
 ]
 
 
@@ -1138,25 +1138,27 @@ with st.sidebar:
     search_query = st.text_input("Busca", placeholder="🔍 Pesquisar...", label_visibility="collapsed")
     st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-    # Mapeamento de Ícones Monocromáticos (símbolos limpos)
+    # Mapeamento de Ícones Monocromáticos
     icones = {
-        "Home": "⌂", "Conta": "◷", "Estrutura da Empresa": "🏢", 
-        "Colaboradores": "👥", "Equipes": "🤝", "Diagnósticos": "📋", 
-        "Mapas": "🗺️", "Analytics": "📊", "Configurações": "⚙️", 
+        "Home": "⌂", "Colabs/Candidatos": "👥", "Hierarquia / Deptos": "🏢", 
+        "Equipes": "🤝", "Vagas": "🎯", "Diagnósticos": "📋", 
+        "Mapas": "🗺️", "Analytics": "📊", "Empresa": "🏢", "Usuários": "👥",
         "Painel de Controle": "🛠️"
     }
 
     group_icons = {
-        "PRINCIPAL": "⌂",
-        "GESTÃO": "◈",
-        "SISTEMA": "⚙",
+        "CADASTROS": "📋",
+        "ANÁLISES": "📊",
+        "ESTRUTURA DA EMPRESA": "🏢",
+        "CONFIGURAÇÕES": "⚙",
         "ADMIN": "🛠"
     }
 
     menu_groups = {
-        "PRINCIPAL": ["Home", "Mapas", "Diagnósticos", "Analytics"],
-        "GESTÃO": ["Estrutura da Empresa", "Colaboradores", "Equipes"],
-        "SISTEMA": ["Conta", "Configurações"]
+        "CADASTROS": ["Colabs/Candidatos"],
+        "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
+        "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes", "Vagas"],
+        "CONFIGURAÇÕES": ["Empresa", "Usuários"]
     }
     if st.session_state.get("logged_user") == "adminkan":
         menu_groups["ADMIN"] = ["Painel de Controle"]
@@ -1167,8 +1169,8 @@ with st.sidebar:
     # Expand/collapse states para cada grupo
     for grupo in menu_groups.keys():
         if f"exp_{grupo}" not in st.session_state:
-            # Por padrão expande PRINCIPAL e colapsa os outros
-            st.session_state[f"exp_{grupo}"] = (grupo == "PRINCIPAL")
+            # Por padrão expande ANÁLISES e colapsa os outros
+            st.session_state[f"exp_{grupo}"] = (grupo == "ANÁLISES")
 
     def format_dropdown_label(icon, name, chevron):
         total_len = 26
@@ -1176,13 +1178,19 @@ with st.sidebar:
         spaces = "\u00A0" * max(1, pad * 2)
         return f"{icon} \u00A0\u00A0 {name} {spaces} {chevron}"
 
+    # Botão Stand-Alone para a HOME
+    is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
+    if st.button("⌂ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary"):
+        st.session_state["sidebar_menu"] = "Home"
+        st.rerun()
+
     # Renderização por Grupos (Menus Drop Down)
     for grupo, itens in menu_groups.items():
         is_exp = st.session_state[f"exp_{grupo}"]
         chevron = "▴" if is_exp else "▾"
         grp_icon = group_icons.get(grupo, '❖')
         
-        grp_label = format_dropdown_label(grp_icon, grupo.capitalize(), chevron)
+        grp_label = format_dropdown_label(grp_icon, grupo, chevron)
         if st.button(grp_label, key=f"grp_{grupo}", use_container_width=True):
             st.session_state[f"exp_{grupo}"] = not is_exp
             st.rerun()
@@ -1945,38 +1953,40 @@ if escolha == "Home":
     render_home()
     st.stop()
 
-if escolha == "Conta":
-    st.title("Minha Conta")
-    st.info("Funcionalidade em desenvolvimento.")
+elif escolha == "Colabs/Candidatos":
+    st.title("Colaboradores & Candidatos")
+    st.info("Módulo de gestão de colaboradores e candidatos em desenvolvimento.")
     st.stop()
 
-
-
-elif escolha == "Estrutura da Empresa":
-    st.title("Estrutura da Empresa")
-    st.info("Funcionalidade em desenvolvimento.")
-    st.stop()
-
-elif escolha == "Colaboradores":
-    st.title("Colaboradores")
-    st.info("Funcionalidade em desenvolvimento.")
+elif escolha == "Hierarquia / Deptos":
+    st.title("Hierarquia / Departamentos")
+    st.info("Módulo de organograma e hierarquia em desenvolvimento.")
     st.stop()
 
 elif escolha == "Equipes":
-    st.title("Equipes")
-    st.info("Funcionalidade em desenvolvimento.")
+    st.title("Gestão de Equipes")
+    st.info("Módulo de estruturação de equipes em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Vagas":
+    st.title("Gestão de Vagas")
+    st.info("Módulo de vagas e recrutamento em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Empresa":
+    st.title("Configurações da Empresa")
+    st.info("Módulo de configurações gerais da empresa em desenvolvimento.")
+    st.stop()
+
+elif escolha == "Usuários":
+    st.title("Gestão de Usuários do Sistema")
+    st.info("Módulo de gestão de permissões de usuários em desenvolvimento.")
     st.stop()
 
 elif escolha == "Analytics":
-    st.title("Analytics")
-    st.info("Funcionalidade em desenvolvimento.")
+    st.title("Analytics & BI")
+    st.info("Módulo de business intelligence comportamental em desenvolvimento.")
     st.stop()
-
-elif escolha == "Configurações":
-    st.title("Configurações")
-    st.info("Funcionalidade em desenvolvimento.")
-    st.stop()
-
 
 elif escolha == "Painel de Controle":
     render_admin_panel()
