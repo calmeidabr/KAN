@@ -1614,28 +1614,46 @@ def render_admin_panel():
                 st.error(f"Erro ao carregar mapas: {e}")
 
     with t_tab3:
-        st.subheader("Gerenciamento de Usuários")
+        st.subheader("Gerenciamento de Usuários (Sincronizado com Supabase)")
         
-        # Inicialização dos dados estendidos de usuários
-        if "usuarios_data" not in st.session_state:
-            st.session_state.usuarios_data = [
-                {"usuario": "adminkan", "nome": "Master", "sobrenome": "Admin", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "foto": "👑", "grupo": "Geral", "direitos": "admin master", "status": "Ativo"},
-                {"usuario": "cristiano", "nome": "Cristiano", "sobrenome": "Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "foto": "👤", "grupo": "Geral", "direitos": "admin", "status": "Ativo"},
-                {"usuario": "maria", "nome": "Maria", "sobrenome": "Silva", "email": "maria@mundokan.com.br", "celular": "(11) 97777-7777", "foto": "👤", "grupo": "Geral", "direitos": "user", "status": "Ativo"},
-                {"usuario": "empresa_demo", "nome": "Tech Corp", "sobrenome": "Brasil", "email": "contato@techcorp.com", "celular": "(11) 96666-6666", "foto": "🏢", "grupo": "Empresas", "direitos": "user", "status": "Ativo"}
-            ]
+        # Função para buscar/inicializar do Supabase
+        def carregar_usuarios():
+            if supabase_client:
+                try:
+                    res = supabase_client.table("usuarios").select("*").order("usuario").execute()
+                    if res.data:
+                        return res.data
+                    else:
+                        iniciais = [
+                            {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "👑", "grupo": "Geral"},
+                            {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
+                            {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
+                            {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "🏢", "grupo": "Empresas"}
+                        ]
+                        for item in iniciais:
+                            supabase_client.table("usuarios").insert(item).execute()
+                        return iniciais
+                except Exception as ex:
+                    st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do Supabase. Executando modo em cache local.")
+            if "usuarios_data" not in st.session_state:
+                st.session_state.usuarios_data = [
+                    {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "👑", "grupo": "Geral"},
+                    {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
+                    {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "👤", "grupo": "Geral"},
+                    {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "🏢", "grupo": "Empresas"}
+                ]
+            return st.session_state.usuarios_data
 
-        # Estado para controle da visualização/edição
+        lista_usuarios_atual = carregar_usuarios()
+
         if "view_selected_user" not in st.session_state:
             st.session_state["view_selected_user"] = None
         if "edit_mode_user" not in st.session_state:
             st.session_state["edit_mode_user"] = None
 
-        # Se houver um usuário selecionado para visualização
         sel_user_id = st.session_state["view_selected_user"]
         if sel_user_id:
-            # Encontra o usuário na lista
-            u_obj = next((u for u in st.session_state.usuarios_data if u["usuario"] == sel_user_id), None)
+            u_obj = next((u for u in lista_usuarios_atual if u["usuario"] == sel_user_id), None)
             if not u_obj:
                 st.session_state["view_selected_user"] = None
                 st.rerun()
@@ -1657,29 +1675,57 @@ def render_admin_panel():
                 with st.container(border=True):
                     e_col1, e_col2 = st.columns(2)
                     with e_col1:
-                        ed_nome = st.text_input("Nome", value=u_obj.get("nome", ""), key="ed_nome")
-                        ed_sob = st.text_input("Sobrenome", value=u_obj.get("sobrenome", ""), key="ed_sob")
-                        ed_email = st.text_input("Email", value=u_obj.get("email", ""), key="ed_email")
-                        ed_grupo = st.selectbox("Subgrupo", ["Geral", "Empresas"], index=["Geral", "Empresas"].index(u_obj.get("grupo", "Geral")), key="ed_grupo")
+                        ed_user = st.text_input("Nome de usuário (@)", value=u_obj["usuario"], disabled=True, key="ed_usr")
+                        ed_nome = st.text_input("Nome completo (como na certidão de nascimento)", value=u_obj.get("nome_completo", ""), key="ed_nome")
+                        ed_data = st.text_input("Data de Nascimento (DD/MM/AAAA)", value=u_obj.get("data_nascimento", ""), key="ed_data")
+                        ed_emp = st.text_input("Empresa", value=u_obj.get("empresa", ""), key="ed_emp")
+                        ed_grupo = st.selectbox("Subgrupo de Exibição", ["Geral", "Empresas"], index=["Geral", "Empresas"].index(u_obj.get("grupo", "Geral")), key="ed_grp")
                     with e_col2:
-                        ed_cel = st.text_input("Celular", value=u_obj.get("celular", ""), key="ed_cel")
-                        ed_foto = st.text_input("Ícone/Foto", value=u_obj.get("foto", "👤"), key="ed_foto")
-                        ed_dir = st.selectbox("Direitos", ["admin", "user", "admin master"], index=["admin", "user", "admin master"].index(u_obj.get("direitos", "user")), key="ed_dir")
-                        ed_st = st.selectbox("Status", ["Ativo", "Desabilitado"], index=0 if u_obj.get("status", "Ativo") == "Ativo" else 1, key="ed_st")
+                        ed_cargo = st.text_input("Cargo/Função", value=u_obj.get("cargo", ""), key="ed_cargo")
+                        ed_depto = st.text_input("Departamento", value=u_obj.get("departamento", ""), key="ed_depto")
+                        ed_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum", "admin master"], index=["Editor", "Analista", "Comum", "admin master"].index(u_obj.get("direitos", "Comum")), key="ed_dir")
+                        ed_st = st.selectbox("Status", ["Ativo", "Inativo"], index=0 if u_obj.get("status", "Ativo") == "Ativo" else 1, key="ed_st")
 
+                    st.write("**Foto de Perfil:**")
+                    up_foto = st.file_uploader("Fazer upload de nova foto (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_foto_usr")
+                    
                     col_s1, col_s2, col_s3 = st.columns([2, 2, 4])
                     with col_s1:
-                        if st.button("💾 Salvar", type="primary", use_container_width=True, key="btn_save_ed"):
-                            u_obj["nome"] = ed_nome
-                            u_obj["sobrenome"] = ed_sob
-                            u_obj["email"] = ed_email
-                            u_obj["celular"] = ed_cel
-                            u_obj["foto"] = ed_foto
-                            u_obj["grupo"] = ed_grupo
-                            u_obj["direitos"] = ed_dir
-                            u_obj["status"] = ed_st
+                        if st.button("💾 Salvar no Supabase", type="primary", use_container_width=True, key="btn_save_ed"):
+                            nova_foto = u_obj.get("foto", "👤")
+                            if up_foto:
+                                b64_f = compress_image_to_b64(up_foto, max_width=300)
+                                if b64_f: nova_foto = b64_f
+                            
+                            update_payload = {
+                                "nome_completo": ed_nome,
+                                "data_nascimento": ed_data,
+                                "empresa": ed_emp,
+                                "cargo": ed_cargo,
+                                "departamento": ed_depto,
+                                "direitos": ed_dir,
+                                "status": ed_st,
+                                "foto": nova_foto,
+                                "grupo": ed_grupo,
+                                "updated_at": datetime.datetime.now().isoformat()
+                            }
+                            
+                            if supabase_client:
+                                try:
+                                    chk_exist = supabase_client.table("usuarios").select("id").eq("usuario", u_obj["usuario"]).execute()
+                                    if chk_exist.data:
+                                        supabase_client.table("usuarios").update(update_payload).eq("usuario", u_obj["usuario"]).execute()
+                                    else:
+                                        insert_payload = update_payload.copy()
+                                        insert_payload["usuario"] = u_obj["usuario"]
+                                        supabase_client.table("usuarios").insert(insert_payload).execute()
+                                    st.success("Dados sincronizados com sucesso no Supabase!")
+                                except Exception as e:
+                                    st.error(f"Erro na sincronização: {e}")
+                            
+                            # Atualiza também local/sessão
+                            u_obj.update(update_payload)
                             st.session_state["edit_mode_user"] = None
-                            st.success("Dados do usuário atualizados com sucesso!")
                             st.rerun()
                     with col_s2:
                         if st.button("❌ Cancelar", use_container_width=True, key="btn_canc_ed"):
@@ -1690,29 +1736,36 @@ def render_admin_panel():
                 with st.container(border=True):
                     v_c1, v_c2 = st.columns([1, 4])
                     with v_c1:
-                        st.markdown(f"<div style='font-size: 4em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 50%; padding: 10px;'>{u_obj.get('foto', '👤')}</div>", unsafe_allow_html=True)
+                        foto_val = u_obj.get('foto', '👤')
+                        if len(foto_val) > 20: # É base64
+                            st.image(f"data:image/png;base64,{foto_val}", width=100)
+                        else:
+                            st.markdown(f"<div style='font-size: 3.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 50%; padding: 10px;'>{foto_val}</div>", unsafe_allow_html=True)
                     with v_c2:
-                        st.markdown(f"<h2 style='margin: 0; color: #FFFFFF;'>{u_obj.get('nome', '')} {u_obj.get('sobrenome', '')}</h2>", unsafe_allow_html=True)
+                        st.markdown(f"<h2 style='margin: 0; color: #FFFFFF;'>{u_obj.get('nome_completo', u_obj['usuario'])}</h2>", unsafe_allow_html=True)
                         st.markdown(f"<p style='color: #F18617; font-size: 1.1em; font-weight: bold;'>@{u_obj['usuario']} • <span style='color: #39ff14;'>{u_obj.get('status', 'Ativo')}</span></p>", unsafe_allow_html=True)
 
                     st.write("---")
                     d_col1, d_col2, d_col3, d_col4 = st.columns(4)
                     with d_col1:
-                        st.write("**E-mail:**")
-                        st.write(u_obj.get("email", "Não informado"))
+                        st.write("**Empresa:**")
+                        st.write(u_obj.get("empresa", "Não informada"))
+                        st.write("**Departamento:**")
+                        st.write(u_obj.get("departamento", "Não informado"))
                     with d_col2:
-                        st.write("**Celular:**")
-                        st.write(u_obj.get("celular", "Não informado"))
+                        st.write("**Cargo/Função:**")
+                        st.write(u_obj.get("cargo", "Não informado"))
+                        st.write("**Nascimento:**")
+                        st.write(u_obj.get("data_nascimento", "Não informado"))
                     with d_col3:
                         st.write("**Subgrupo:**")
                         st.write(u_obj.get("grupo", "Geral"))
                     with d_col4:
                         st.write("**Direitos:**")
-                        st.write(str(u_obj.get("direitos", "user")).upper())
+                        st.write(str(u_obj.get("direitos", "Comum")).upper())
 
                     st.write("---")
                     
-                    # Verificação para o botão Editar
                     if u_obj["usuario"] == "adminkan":
                         st.warning("🔒 O usuário master (adminkan) é o controlador do sistema e não pode ser editado.")
                     elif logged_adm != "adminkan":
@@ -1727,7 +1780,7 @@ def render_admin_panel():
             sub_grupo = st.radio("Selecione o Subgrupo:", ["Geral", "Empresas"], horizontal=True, key="radio_subgrupo")
             st.write("---")
 
-            lista_filtrada = [u for u in st.session_state.usuarios_data if u.get("grupo", "Geral") == sub_grupo]
+            lista_filtrada = [u for u in lista_usuarios_atual if u.get("grupo", "Geral") == sub_grupo]
             
             if not lista_filtrada:
                 st.info(f"Nenhum usuário cadastrado no subgrupo '{sub_grupo}'.")
@@ -1736,12 +1789,14 @@ def render_admin_panel():
                     with st.container(border=True):
                         col_u1, col_u2, col_u3, col_u4 = st.columns([1, 3, 2, 2])
                         with col_u1:
-                            st.markdown(f"<span style='font-size: 1.5em;'>{u.get('foto', '👤')}</span>", unsafe_allow_html=True)
+                            f_v = u.get('foto', '👤')
+                            if len(f_v) > 20: st.image(f"data:image/png;base64,{f_v}", width=45)
+                            else: st.markdown(f"<span style='font-size: 1.5em;'>{f_v}</span>", unsafe_allow_html=True)
                         with col_u2:
-                            st.write(f"**{u.get('nome', '')} {u.get('sobrenome', '')}**")
-                            st.caption(f"@{u['usuario']} | {u.get('email', '')}")
+                            st.write(f"**{u.get('nome_completo', u['usuario'])}**")
+                            st.caption(f"@{u['usuario']} | {u.get('cargo', '')}")
                         with col_u3:
-                            st.write(f"**Direitos:** {str(u.get('direitos', 'user')).upper()}")
+                            st.write(f"**Direitos:** {str(u.get('direitos', 'Comum')).upper()}")
                             status_color = "#39ff14" if u.get('status', 'Ativo') == "Ativo" else "#ff3333"
                             st.markdown(f"Status: <span style='color: {status_color}; font-weight: bold;'>{u.get('status', 'Ativo')}</span>", unsafe_allow_html=True)
                         with col_u4:
