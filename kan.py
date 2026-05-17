@@ -1138,20 +1138,20 @@ with st.sidebar:
     search_query = st.text_input("Busca", placeholder="🔍 Pesquisar...", label_visibility="collapsed")
     st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
 
-    # Mapeamento de Ícones Monocromáticos
+    # Mapeamento de Ícones Outlined Brancos (símbolos geométricos limpos)
     icones = {
-        "Home": "⌂", "Colabs/Candidatos": "👥", "Hierarquia / Deptos": "🏢", 
-        "Equipes": "🤝", "Vagas": "🎯", "Diagnósticos": "📋", 
-        "Mapas": "🗺️", "Analytics": "📊", "Empresa": "🏢", "Usuários": "👥",
-        "Painel de Controle": "🛠️"
+        "Home": "⌂", "Colabs/Candidatos": "☖", "Hierarquia / Deptos": "⬠", 
+        "Equipes": "⚮", "Vagas": "⌖", "Diagnósticos": "☐", 
+        "Mapas": "⛯", "Analytics": "▱", "Empresa": "⛶", "Usuários": "☖",
+        "Painel de Controle": "⛭"
     }
 
     group_icons = {
-        "CADASTROS": "📋",
-        "ANÁLISES": "📊",
-        "ESTRUTURA DA EMPRESA": "🏢",
+        "CADASTROS": "⊞",
+        "ANÁLISES": "⎔",
+        "ESTRUTURA DA EMPRESA": "⛶",
         "CONFIGURAÇÕES": "⚙",
-        "ADMIN": "🛠"
+        "ADMIN": "⛭"
     }
 
     menu_groups = {
@@ -1173,10 +1173,8 @@ with st.sidebar:
             st.session_state[f"exp_{grupo}"] = (grupo == "ANÁLISES")
 
     def format_dropdown_label(icon, name, chevron):
-        total_len = 26
-        pad = total_len - len(name) - len(icon)
-        spaces = "\u00A0" * max(1, pad * 2)
-        return f"{icon} \u00A0\u00A0 {name} {spaces} {chevron}"
+        # A seta indicativa (chevron) fica diretamente ao lado da palavra do menu
+        return f"{icon} \u00A0 {name} \u00A0 {chevron}"
 
     # Botão Stand-Alone para a HOME
     is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
@@ -1198,7 +1196,9 @@ with st.sidebar:
         if is_exp:
             for opcao in itens:
                 is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
-                sub_label = f"\u00A0\u00A0\u00A0↳ \u00A0 {opcao}"
+                sub_icon = icones.get(opcao, '▫')
+                # Sem a seta ↳ (recuo limpo com ícone outlined)
+                sub_label = f"\u00A0\u00A0\u00A0\u00A0 {sub_icon} \u00A0 {opcao}"
                 if st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary"):
                     st.session_state["sidebar_menu"] = opcao
                     st.rerun()
