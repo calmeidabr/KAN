@@ -1961,8 +1961,8 @@ def carregar_empresas():
                 return res.data
             else:
                 iniciais = [
-                    {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br"},
-                    {"nome_empresa": "Empresa Cliente A", "razao_social": "Cliente A Varejo S/A", "cnpj": "11.111.111/0001-11", "segmento": "Varejo", "num_colaboradores": "500", "site": "https://clientea.com", "telefone": "(11) 88888-8888", "email": "rh@clientea.com"}
+                    {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br"},
+                    {"nome_empresa": "Empresa Cliente A", "razao_social": "Cliente A Varejo S/A", "cnpj": "11.111.111/0001-11", "segmento": "Varejo", "num_colaboradores": "500", "site": "https://clientea.com", "telefone": "(11) 88888-8888", "email": "rh@clientea.com", "responsavel_nome": "Maria da Silva", "responsavel_celular": "(11) 97777-7777", "responsavel_email": "maria@clientea.com"}
                 ]
                 for item in iniciais:
                     supabase_client.table("empresas").insert(item).execute()
@@ -1971,8 +1971,8 @@ def carregar_empresas():
             st.warning("Tabela 'empresas' ainda não existe ou erro de conexão no Supabase. Usando cache local.")
     if "empresas_local_data" not in st.session_state:
         st.session_state["empresas_local_data"] = [
-            {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br"},
-            {"nome_empresa": "Empresa Cliente A", "razao_social": "Cliente A Varejo S/A", "cnpj": "11.111.111/0001-11", "segmento": "Varejo", "num_colaboradores": "500", "site": "https://clientea.com", "telefone": "(11) 88888-8888", "email": "rh@clientea.com"}
+            {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br"},
+            {"nome_empresa": "Empresa Cliente A", "razao_social": "Cliente A Varejo S/A", "cnpj": "11.111.111/0001-11", "segmento": "Varejo", "num_colaboradores": "500", "site": "https://clientea.com", "telefone": "(11) 88888-8888", "email": "rh@clientea.com", "responsavel_nome": "Maria da Silva", "responsavel_celular": "(11) 97777-7777", "responsavel_email": "maria@clientea.com"}
         ]
     return st.session_state["empresas_local_data"]
 
@@ -1982,15 +1982,73 @@ def render_empresas():
     
     if "add_empresa_mode" not in st.session_state:
         st.session_state["add_empresa_mode"] = False
+    if "edit_empresa_id" not in st.session_state:
+        st.session_state["edit_empresa_id"] = None
 
-    col_topo1, col_topo2 = st.columns([1, 5])
-    with col_topo1:
-        if not st.session_state["add_empresa_mode"]:
-            if st.button("Adicionar", type="primary", key="btn_add_emp_start"):
-                st.session_state["add_empresa_mode"] = True
-                st.rerun()
+    lista_empresas = carregar_empresas()
+    emp_em_edicao = next((e for e in lista_empresas if e["nome_empresa"] == st.session_state["edit_empresa_id"]), None) if st.session_state["edit_empresa_id"] else None
 
-    if st.session_state["add_empresa_mode"]:
+    if emp_em_edicao:
+        st.write("---")
+        st.subheader(f"Editando Empresa: {emp_em_edicao['nome_empresa']}")
+        with st.container(border=True):
+            col_e1, col_e2 = st.columns(2)
+            with col_e1:
+                ed_emp = st.text_input("Nome da Empresa*", value=emp_em_edicao["nome_empresa"], key="ed_emp_n")
+                ed_raz = st.text_input("Razão Social", value=emp_em_edicao.get("razao_social", ""), key="ed_emp_r")
+                ed_cnpj = st.text_input("CNPJ (com ou sem pontuação)", value=emp_em_edicao.get("cnpj", ""), key="ed_emp_c")
+                ed_seg = st.text_input("Segmento", value=emp_em_edicao.get("segmento", ""), key="ed_emp_s")
+                ed_resp = st.text_input("Nome do Responsável", value=emp_em_edicao.get("responsavel_nome", ""), key="ed_emp_resp")
+                ed_resp_cel = st.text_input("Celular do Responsável", value=emp_em_edicao.get("responsavel_celular", ""), key="ed_emp_resp_c")
+            with col_e2:
+                ed_col = st.text_input("Número de Colaboradores", value=emp_em_edicao.get("num_colaboradores", ""), key="ed_emp_col")
+                ed_sit = st.text_input("Site", value=emp_em_edicao.get("site", ""), key="ed_emp_sit")
+                ed_tel = st.text_input("Telefone de contato", value=emp_em_edicao.get("telefone", ""), key="ed_emp_t")
+                ed_em = st.text_input("Email de contato", value=emp_em_edicao.get("email", ""), key="ed_emp_e")
+                ed_resp_em = st.text_input("Email do Responsável", value=emp_em_edicao.get("responsavel_email", ""), key="ed_emp_resp_e")
+
+            st.write("---")
+            col_eb1, col_eb2, col_eb3 = st.columns([2, 2, 4])
+            with col_eb1:
+                if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_ed_emp_final"):
+                    if not ed_emp.strip():
+                        st.error("O campo 'Nome da Empresa' é obrigatório.")
+                    elif ed_cnpj.strip() and not validar_cnpj(ed_cnpj):
+                        st.error("CNPJ inválido. Verifique a numeração informada.")
+                    else:
+                        payload = {
+                            "nome_empresa": ed_emp.strip(),
+                            "razao_social": ed_raz.strip() if ed_raz.strip() else None,
+                            "cnpj": ed_cnpj.strip() if ed_cnpj.strip() else None,
+                            "segmento": ed_seg.strip() if ed_seg.strip() else None,
+                            "num_colaboradores": ed_col.strip() if ed_col.strip() else None,
+                            "site": ed_sit.strip() if ed_sit.strip() else None,
+                            "telefone": ed_tel.strip() if ed_tel.strip() else None,
+                            "email": ed_em.strip() if ed_em.strip() else None,
+                            "responsavel_nome": ed_resp.strip() if ed_resp.strip() else None,
+                            "responsavel_celular": ed_resp_cel.strip() if ed_resp_cel.strip() else None,
+                            "responsavel_email": ed_resp_em.strip() if ed_resp_em.strip() else None,
+                            "updated_at": datetime.datetime.now().isoformat()
+                        }
+                        if supabase_client:
+                            try:
+                                supabase_client.table("empresas").update(payload).eq("nome_empresa", emp_em_edicao["nome_empresa"]).execute()
+                                st.success("empresa salva com sucesso.")
+                                st.session_state["edit_empresa_id"] = None
+                                st.rerun()
+                            except Exception as ex:
+                                st.error(f"Erro ao salvar no Supabase: {ex}")
+                        else:
+                            emp_em_edicao.update(payload)
+                            st.success("empresa salva com sucesso.")
+                            st.session_state["edit_empresa_id"] = None
+                            st.rerun()
+            with col_eb2:
+                if st.button("Cancelar", use_container_width=True, key="btn_canc_ed_emp_final"):
+                    st.session_state["edit_empresa_id"] = None
+                    st.rerun()
+
+    elif st.session_state["add_empresa_mode"]:
         st.write("---")
         st.subheader("Adicionar nova empresa")
         with st.container(border=True):
@@ -2000,11 +2058,14 @@ def render_empresas():
                 n_raz = st.text_input("Razão Social", key="add_emp_r")
                 n_cnpj = st.text_input("CNPJ (com ou sem pontuação)", key="add_emp_c")
                 n_seg = st.text_input("Segmento", key="add_emp_s")
+                n_resp = st.text_input("Nome do Responsável", key="add_emp_resp")
+                n_resp_cel = st.text_input("Celular do Responsável", key="add_emp_resp_c")
             with col_a2:
                 n_col = st.text_input("Número de Colaboradores", key="add_emp_col")
                 n_sit = st.text_input("Site", key="add_emp_sit")
                 n_tel = st.text_input("Telefone de contato", key="add_emp_t")
                 n_em = st.text_input("Email de contato", key="add_emp_e")
+                n_resp_em = st.text_input("Email do Responsável", key="add_emp_resp_e")
 
             st.write("---")
             col_b1, col_b2, col_b3 = st.columns([2, 2, 4])
@@ -2024,13 +2085,16 @@ def render_empresas():
                             "site": n_sit.strip() if n_sit.strip() else None,
                             "telefone": n_tel.strip() if n_tel.strip() else None,
                             "email": n_em.strip() if n_em.strip() else None,
+                            "responsavel_nome": n_resp.strip() if n_resp.strip() else None,
+                            "responsavel_celular": n_resp_cel.strip() if n_resp_cel.strip() else None,
+                            "responsavel_email": n_resp_em.strip() if n_resp_em.strip() else None,
                             "created_at": datetime.datetime.now().isoformat(),
                             "updated_at": datetime.datetime.now().isoformat()
                         }
                         if supabase_client:
                             try:
                                 supabase_client.table("empresas").insert(payload).execute()
-                                st.success("Empresa cadastrada com sucesso no Supabase!")
+                                st.success("empresa salva com sucesso.")
                                 st.session_state["add_empresa_mode"] = False
                                 st.rerun()
                             except Exception as ex:
@@ -2038,7 +2102,7 @@ def render_empresas():
                         else:
                             if "empresas_local_data" not in st.session_state: st.session_state["empresas_local_data"] = []
                             st.session_state["empresas_local_data"].append(payload)
-                            st.success("Empresa cadastrada localmente!")
+                            st.success("empresa salva com sucesso.")
                             st.session_state["add_empresa_mode"] = False
                             st.rerun()
             with col_b2:
@@ -2046,8 +2110,13 @@ def render_empresas():
                     st.session_state["add_empresa_mode"] = False
                     st.rerun()
     else:
+        col_topo1, col_topo2 = st.columns([1, 5])
+        with col_topo1:
+            if st.button("Adicionar", type="primary", key="btn_add_emp_start"):
+                st.session_state["add_empresa_mode"] = True
+                st.rerun()
+
         st.write("---")
-        lista_empresas = carregar_empresas()
         if not lista_empresas:
             st.info("Nenhuma empresa cadastrada no sistema.")
         else:
@@ -2061,16 +2130,27 @@ def render_empresas():
                         st.write(emp.get("cnpj") or "Não informado")
                         st.write("**Segmento:**")
                         st.write(emp.get("segmento") or "Não informado")
+                        st.write("**Responsável:**")
+                        st.write(emp.get("responsavel_nome") or "Não informado")
                     with ecol2:
                         st.write("**Colaboradores:**")
                         st.write(emp.get("num_colaboradores") or "Não informado")
                         st.write("**Site:**")
                         st.write(emp.get("site") or "Não informado")
+                        st.write("**Celular do Responsável:**")
+                        st.write(emp.get("responsavel_celular") or "Não informado")
                     with ecol3:
                         st.write("**Telefone:**")
                         st.write(emp.get("telefone") or "Não informado")
                         st.write("**E-mail:**")
                         st.write(emp.get("email") or "Não informado")
+                        st.write("**E-mail do Responsável:**")
+                        st.write(emp.get("responsavel_email") or "Não informado")
+
+                    st.write("---")
+                    if st.button("Editar", key=f"btn_ed_emp_{emp['nome_empresa']}"):
+                        st.session_state["edit_empresa_id"] = emp["nome_empresa"]
+                        st.rerun()
 
 def render_contas_master():
     st.title("Contas Master")
