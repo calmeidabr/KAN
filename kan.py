@@ -1994,40 +1994,52 @@ def render_empresas():
         with st.container(border=True):
             col_e1, col_e2 = st.columns(2)
             with col_e1:
-                ed_emp = st.text_input("Nome da Empresa*", value=emp_em_edicao["nome_empresa"], key="ed_emp_n")
-                ed_raz = st.text_input("Razão Social", value=emp_em_edicao.get("razao_social", ""), key="ed_emp_r")
-                ed_cnpj = st.text_input("CNPJ (com ou sem pontuação)", value=emp_em_edicao.get("cnpj", ""), key="ed_emp_c")
-                ed_seg = st.text_input("Segmento", value=emp_em_edicao.get("segmento", ""), key="ed_emp_s")
-                ed_resp = st.text_input("Nome do Responsável", value=emp_em_edicao.get("responsavel_nome", ""), key="ed_emp_resp")
-                ed_resp_cel = st.text_input("Celular do Responsável", value=emp_em_edicao.get("responsavel_celular", ""), key="ed_emp_resp_c")
+                ed_emp = st.text_input("Nome da Empresa*", value=emp_em_edicao.get("nome_empresa") or "", key="ed_emp_n")
+                ed_raz = st.text_input("Razão Social", value=emp_em_edicao.get("razao_social") or "", key="ed_emp_r")
+                ed_cnpj = st.text_input("CNPJ (com ou sem pontuação)", value=emp_em_edicao.get("cnpj") or "", key="ed_emp_c")
+                ed_seg = st.text_input("Segmento", value=emp_em_edicao.get("segmento") or "", key="ed_emp_s")
+                ed_resp = st.text_input("Nome do Responsável", value=emp_em_edicao.get("responsavel_nome") or "", key="ed_emp_resp")
+                ed_resp_cel = st.text_input("Celular do Responsável", value=emp_em_edicao.get("responsavel_celular") or "", key="ed_emp_resp_c")
             with col_e2:
-                ed_col = st.text_input("Número de Colaboradores", value=emp_em_edicao.get("num_colaboradores", ""), key="ed_emp_col")
-                ed_sit = st.text_input("Site", value=emp_em_edicao.get("site", ""), key="ed_emp_sit")
-                ed_tel = st.text_input("Telefone de contato", value=emp_em_edicao.get("telefone", ""), key="ed_emp_t")
-                ed_em = st.text_input("Email de contato", value=emp_em_edicao.get("email", ""), key="ed_emp_e")
-                ed_resp_em = st.text_input("Email do Responsável", value=emp_em_edicao.get("responsavel_email", ""), key="ed_emp_resp_e")
+                ed_col = st.text_input("Número de Colaboradores", value=emp_em_edicao.get("num_colaboradores") or "", key="ed_emp_col")
+                ed_sit = st.text_input("Site", value=emp_em_edicao.get("site") or "", key="ed_emp_sit")
+                ed_tel = st.text_input("Telefone de contato", value=emp_em_edicao.get("telefone") or "", key="ed_emp_t")
+                ed_em = st.text_input("Email de contato", value=emp_em_edicao.get("email") or "", key="ed_emp_e")
+                ed_resp_em = st.text_input("Email do Responsável", value=emp_em_edicao.get("responsavel_email") or "", key="ed_emp_resp_e")
 
             st.write("---")
             col_eb1, col_eb2, col_eb3 = st.columns([2, 2, 4])
             with col_eb1:
                 if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_ed_emp_final"):
-                    if not ed_emp.strip():
+                    ed_emp_str = ed_emp or ""
+                    ed_cnpj_str = ed_cnpj or ""
+                    ed_raz_str = ed_raz or ""
+                    ed_seg_str = ed_seg or ""
+                    ed_col_str = ed_col or ""
+                    ed_sit_str = ed_sit or ""
+                    ed_tel_str = ed_tel or ""
+                    ed_em_str = ed_em or ""
+                    ed_resp_str = ed_resp or ""
+                    ed_resp_cel_str = ed_resp_cel or ""
+                    ed_resp_em_str = ed_resp_em or ""
+                    
+                    if not ed_emp_str.strip():
                         st.error("O campo 'Nome da Empresa' é obrigatório.")
-                    elif ed_cnpj.strip() and not validar_cnpj(ed_cnpj):
+                    elif ed_cnpj_str.strip() and not validar_cnpj(ed_cnpj_str):
                         st.error("CNPJ inválido. Verifique a numeração informada.")
                     else:
                         payload = {
-                            "nome_empresa": ed_emp.strip(),
-                            "razao_social": ed_raz.strip() if ed_raz.strip() else None,
-                            "cnpj": ed_cnpj.strip() if ed_cnpj.strip() else None,
-                            "segmento": ed_seg.strip() if ed_seg.strip() else None,
-                            "num_colaboradores": ed_col.strip() if ed_col.strip() else None,
-                            "site": ed_sit.strip() if ed_sit.strip() else None,
-                            "telefone": ed_tel.strip() if ed_tel.strip() else None,
-                            "email": ed_em.strip() if ed_em.strip() else None,
-                            "responsavel_nome": ed_resp.strip() if ed_resp.strip() else None,
-                            "responsavel_celular": ed_resp_cel.strip() if ed_resp_cel.strip() else None,
-                            "responsavel_email": ed_resp_em.strip() if ed_resp_em.strip() else None,
+                            "nome_empresa": ed_emp_str.strip(),
+                            "razao_social": ed_raz_str.strip() if ed_raz_str.strip() else None,
+                            "cnpj": ed_cnpj_str.strip() if ed_cnpj_str.strip() else None,
+                            "segmento": ed_seg_str.strip() if ed_seg_str.strip() else None,
+                            "num_colaboradores": ed_col_str.strip() if ed_col_str.strip() else None,
+                            "site": ed_sit_str.strip() if ed_sit_str.strip() else None,
+                            "telefone": ed_tel_str.strip() if ed_tel_str.strip() else None,
+                            "email": ed_em_str.strip() if ed_em_str.strip() else None,
+                            "responsavel_nome": ed_resp_str.strip() if ed_resp_str.strip() else None,
+                            "responsavel_celular": ed_resp_cel_str.strip() if ed_resp_cel_str.strip() else None,
+                            "responsavel_email": ed_resp_em_str.strip() if ed_resp_em_str.strip() else None,
                             "updated_at": datetime.datetime.now().isoformat()
                         }
                         if supabase_client:
@@ -2071,23 +2083,35 @@ def render_empresas():
             col_b1, col_b2, col_b3 = st.columns([2, 2, 4])
             with col_b1:
                 if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_emp_final"):
-                    if not n_emp.strip():
+                    n_emp_str = n_emp or ""
+                    n_cnpj_str = n_cnpj or ""
+                    n_raz_str = n_raz or ""
+                    n_seg_str = n_seg or ""
+                    n_col_str = n_col or ""
+                    n_sit_str = n_sit or ""
+                    n_tel_str = n_tel or ""
+                    n_em_str = n_em or ""
+                    n_resp_str = n_resp or ""
+                    n_resp_cel_str = n_resp_cel or ""
+                    n_resp_em_str = n_resp_em or ""
+
+                    if not n_emp_str.strip():
                         st.error("O campo 'Nome da Empresa' é obrigatório.")
-                    elif n_cnpj.strip() and not validar_cnpj(n_cnpj):
+                    elif n_cnpj_str.strip() and not validar_cnpj(n_cnpj_str):
                         st.error("CNPJ inválido. Verifique a numeração informada.")
                     else:
                         payload = {
-                            "nome_empresa": n_emp.strip(),
-                            "razao_social": n_raz.strip() if n_raz.strip() else None,
-                            "cnpj": n_cnpj.strip() if n_cnpj.strip() else None,
-                            "segmento": n_seg.strip() if n_seg.strip() else None,
-                            "num_colaboradores": n_col.strip() if n_col.strip() else None,
-                            "site": n_sit.strip() if n_sit.strip() else None,
-                            "telefone": n_tel.strip() if n_tel.strip() else None,
-                            "email": n_em.strip() if n_em.strip() else None,
-                            "responsavel_nome": n_resp.strip() if n_resp.strip() else None,
-                            "responsavel_celular": n_resp_cel.strip() if n_resp_cel.strip() else None,
-                            "responsavel_email": n_resp_em.strip() if n_resp_em.strip() else None,
+                            "nome_empresa": n_emp_str.strip(),
+                            "razao_social": n_raz_str.strip() if n_raz_str.strip() else None,
+                            "cnpj": n_cnpj_str.strip() if n_cnpj_str.strip() else None,
+                            "segmento": n_seg_str.strip() if n_seg_str.strip() else None,
+                            "num_colaboradores": n_col_str.strip() if n_col_str.strip() else None,
+                            "site": n_sit_str.strip() if n_sit_str.strip() else None,
+                            "telefone": n_tel_str.strip() if n_tel_str.strip() else None,
+                            "email": n_em_str.strip() if n_em_str.strip() else None,
+                            "responsavel_nome": n_resp_str.strip() if n_resp_str.strip() else None,
+                            "responsavel_celular": n_resp_cel_str.strip() if n_resp_cel_str.strip() else None,
+                            "responsavel_email": n_resp_em_str.strip() if n_resp_em_str.strip() else None,
                             "created_at": datetime.datetime.now().isoformat(),
                             "updated_at": datetime.datetime.now().isoformat()
                         }
