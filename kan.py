@@ -1625,10 +1625,10 @@ def render_admin_panel():
                         return res.data
                     else:
                         iniciais = [
-                            {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                            {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                            {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                            {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
+                            {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                            {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                            {"usuario": "maria", "nome_completo": "Maria da Silva", "email": "maria@mundokan.com.br", "celular": "(11) 97777-7777", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                            {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "email": "contato@techcorp.com", "celular": "(11) 96666-6666", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
                         ]
                         for item in iniciais:
                             supabase_client.table("usuarios").insert(item).execute()
@@ -1637,10 +1637,10 @@ def render_admin_panel():
                     st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do Supabase. Executando modo em cache local.")
             if "usuarios_data" not in st.session_state:
                 st.session_state.usuarios_data = [
-                    {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                    {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                    {"usuario": "maria", "nome_completo": "Maria da Silva", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                    {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
+                    {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                    {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                    {"usuario": "maria", "nome_completo": "Maria da Silva", "email": "maria@mundokan.com.br", "celular": "(11) 97777-7777", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                    {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "email": "contato@techcorp.com", "celular": "(11) 96666-6666", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
                 ]
             return st.session_state.usuarios_data
 
@@ -1677,10 +1677,12 @@ def render_admin_panel():
                     with e_col1:
                         ed_user = st.text_input("Nome de usuário (@)", value=u_obj["usuario"], disabled=True, key="ed_usr")
                         ed_nome = st.text_input("Nome completo (como na certidão de nascimento)", value=u_obj.get("nome_completo", ""), key="ed_nome")
+                        ed_email = st.text_input("E-mail", value=u_obj.get("email", ""), key="ed_email")
                         ed_data = st.text_input("Data de Nascimento (DD/MM/AAAA)", value=u_obj.get("data_nascimento", ""), key="ed_data")
                         ed_emp = st.text_input("Empresa", value=u_obj.get("empresa", ""), key="ed_emp")
                         ed_grupo = st.selectbox("Subgrupo de Exibição", ["Geral", "Empresas"], index=["Geral", "Empresas"].index(u_obj.get("grupo", "Geral")), key="ed_grp")
                     with e_col2:
+                        ed_cel = st.text_input("Celular", value=u_obj.get("celular", ""), key="ed_cel")
                         ed_cargo = st.text_input("Cargo/Função", value=u_obj.get("cargo", ""), key="ed_cargo")
                         ed_depto = st.text_input("Departamento", value=u_obj.get("departamento", ""), key="ed_depto")
                         ed_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum", "admin master"], index=["Editor", "Analista", "Comum", "admin master"].index(u_obj.get("direitos", "Comum")), key="ed_dir")
@@ -1699,6 +1701,8 @@ def render_admin_panel():
                             
                             update_payload = {
                                 "nome_completo": ed_nome,
+                                "email": ed_email,
+                                "celular": ed_cel,
                                 "data_nascimento": ed_data,
                                 "empresa": ed_emp,
                                 "cargo": ed_cargo,
@@ -1747,11 +1751,15 @@ def render_admin_panel():
                     st.write("---")
                     d_col1, d_col2, d_col3, d_col4 = st.columns(4)
                     with d_col1:
+                        st.write("**E-mail:**")
+                        st.write(u_obj.get("email", "Não informado"))
                         st.write("**Empresa:**")
                         st.write(u_obj.get("empresa", "Não informada"))
                         st.write("**Departamento:**")
                         st.write(u_obj.get("departamento", "Não informado"))
                     with d_col2:
+                        st.write("**Celular:**")
+                        st.write(u_obj.get("celular", "Não informado"))
                         st.write("**Cargo/Função:**")
                         st.write(u_obj.get("cargo", "Não informado"))
                         st.write("**Nascimento:**")
