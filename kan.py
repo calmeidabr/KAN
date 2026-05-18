@@ -2693,9 +2693,7 @@ def render_processos_seletivos():
         except:
             pass
 
-    kan_display_map = {"3": "3 - CRIAÇÃO", "6": "6 - MOVIMENTO", "9": "9 - FINALIDADE"}
-    all_kans_raw = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
-    opcoes_kans = [kan_display_map.get(k, k) for k in all_kans_raw]
+    opcoes_kans = ["Criação", "Movimento", "Finalidade"]
 
     opcoes_perfis = sorted(list(set(PERFIS_DB))) if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
     opcoes_categorias = sorted(list(set(LISTA_CATEGORIA_DB))) if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
