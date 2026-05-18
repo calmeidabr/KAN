@@ -1699,7 +1699,7 @@ def render_admin_panel():
                         ed_cel = st.text_input("Celular", value=u_obj.get("celular", ""), key="ed_cel")
                         ed_cargo = st.text_input("Cargo/Função", value=u_obj.get("cargo", ""), key="ed_cargo")
                         ed_depto = st.text_input("Departamento", value=u_obj.get("departamento", ""), key="ed_depto")
-                        ed_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum", "admin master"], index=["Editor", "Analista", "Comum", "admin master"].index(u_obj.get("direitos", "Comum")), key="ed_dir")
+                        ed_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum"], index=["Editor", "Analista", "Comum"].index(u_obj.get("direitos", "Comum")) if u_obj.get("direitos", "Comum") in ["Editor", "Analista", "Comum"] else 2, key="ed_dir")
                         ed_st = st.selectbox("Status", ["Ativo", "Inativo"], index=0 if u_obj.get("status", "Ativo") == "Ativo" else 1, key="ed_st")
 
                     st.write("**Foto de Perfil:**")
@@ -1811,7 +1811,7 @@ def render_admin_panel():
                     add_cel = st.text_input("Celular", key="add_cel_in")
                     add_cargo = st.text_input("Cargo/Função", key="add_cargo_in")
                     add_depto = st.text_input("Departamento", key="add_depto_in")
-                    add_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum", "admin master"], index=2, key="add_dir_in")
+                    add_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum"], index=2, key="add_dir_in")
                     add_st = st.selectbox("Status", ["Ativo", "Inativo"], index=0, key="add_st_in")
 
                 st.write("**Foto de Perfil:**")
