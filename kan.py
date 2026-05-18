@@ -2096,6 +2096,9 @@ def render_empresas():
                 ed_em = st.text_input("Email de contato", value=emp_em_edicao.get("email") or "", key="ed_emp_e")
                 ed_resp_em = st.text_input("Email do Responsável", value=emp_em_edicao.get("responsavel_email") or "", key="ed_emp_resp_e")
 
+            st.write("**Logo da Empresa:**")
+            up_logo_ed = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_logo_ed_emp")
+
             st.write("---")
             col_eb1, col_eb2, col_eb3 = st.columns([2, 2, 4])
             with col_eb1:
@@ -2117,6 +2120,11 @@ def render_empresas():
                     elif ed_cnpj_str.strip() and not validar_cnpj(ed_cnpj_str):
                         st.error("CNPJ inválido. Verifique a numeração informada.")
                     else:
+                        novo_logo = emp_em_edicao.get("logo") or "⛶"
+                        if up_logo_ed:
+                            b64_l = compress_image_to_b64(up_logo_ed, max_width=300)
+                            if b64_l: novo_logo = b64_l
+
                         payload = {
                             "nome_empresa": ed_emp_str.strip(),
                             "razao_social": ed_raz_str.strip() if ed_raz_str.strip() else None,
@@ -2129,6 +2137,7 @@ def render_empresas():
                             "responsavel_nome": ed_resp_str.strip() if ed_resp_str.strip() else None,
                             "responsavel_celular": ed_resp_cel_str.strip() if ed_resp_cel_str.strip() else None,
                             "responsavel_email": ed_resp_em_str.strip() if ed_resp_em_str.strip() else None,
+                            "logo": novo_logo,
                             "updated_at": datetime.datetime.now().isoformat()
                         }
                         if supabase_client:
@@ -2168,6 +2177,9 @@ def render_empresas():
                 n_em = st.text_input("Email de contato", key="add_emp_e")
                 n_resp_em = st.text_input("Email do Responsável", key="add_emp_resp_e")
 
+            st.write("**Logo da Empresa:**")
+            up_logo_add = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_logo_add_emp")
+
             st.write("---")
             col_b1, col_b2, col_b3 = st.columns([2, 2, 4])
             with col_b1:
@@ -2189,6 +2201,11 @@ def render_empresas():
                     elif n_cnpj_str.strip() and not validar_cnpj(n_cnpj_str):
                         st.error("CNPJ inválido. Verifique a numeração informada.")
                     else:
+                        novo_logo = "⛶"
+                        if up_logo_add:
+                            b64_l = compress_image_to_b64(up_logo_add, max_width=300)
+                            if b64_l: novo_logo = b64_l
+
                         payload = {
                             "nome_empresa": n_emp_str.strip(),
                             "razao_social": n_raz_str.strip() if n_raz_str.strip() else None,
@@ -2201,6 +2218,7 @@ def render_empresas():
                             "responsavel_nome": n_resp_str.strip() if n_resp_str.strip() else None,
                             "responsavel_celular": n_resp_cel_str.strip() if n_resp_cel_str.strip() else None,
                             "responsavel_email": n_resp_em_str.strip() if n_resp_em_str.strip() else None,
+                            "logo": novo_logo,
                             "created_at": datetime.datetime.now().isoformat(),
                             "updated_at": datetime.datetime.now().isoformat()
                         }
@@ -2235,6 +2253,18 @@ def render_empresas():
         else:
             for emp in lista_empresas:
                 with st.expander(f"⛶ \u00A0 {emp['nome_empresa']}"):
+                    top_c1, top_c2 = st.columns([1, 4])
+                    with top_c1:
+                        logo_val = emp.get('logo') or '⛶'
+                        if len(logo_val) > 20:
+                            st.image(f"data:image/png;base64,{logo_val}", width=80)
+                        else:
+                            st.markdown(f"<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px;'>{logo_val}</div>", unsafe_allow_html=True)
+                    with top_c2:
+                        st.markdown(f"<h3 style='margin: 0; color: #FFFFFF;'>{emp['nome_empresa']}</h3>", unsafe_allow_html=True)
+                        st.caption(f"CNPJ: {emp.get('cnpj') or 'Não informado'} | Segmento: {emp.get('segmento') or 'Não informado'}")
+                    
+                    st.write("---")
                     ecol1, ecol2, ecol3 = st.columns(3)
                     with ecol1:
                         st.write("**Razão Social:**")
