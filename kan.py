@@ -51,7 +51,7 @@ st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_i
 
 # --- DEFINIÇÃO DE MENUS ---
 MENU_PRINCIPAL = [
-    "Home", "Colabs/Candidatos", "Diagnósticos", "Mapas", "Analytics",
+    "Home", "Cadastro", "Diagnósticos", "Mapas", "Analytics",
     "Hierarquia / Deptos", "Equipes", "Vagas", "Empresa", "Usuários"
 ]
 
@@ -1141,7 +1141,7 @@ with st.sidebar:
 
     # Mapeamento de Ícones Outlined Brancos (símbolos geométricos limpos)
     icones = {
-        "Home": "⌂", "Colabs/Candidatos": "☖", "Hierarquia / Deptos": "⬠", 
+        "Home": "⌂", "Cadastro": "☖", "Hierarquia / Deptos": "⬠", 
         "Equipes": "⚮", "Vagas": "⌖", "Diagnósticos": "☐", 
         "Mapas": "⛯", "Analytics": "▱", "Empresa": "⛶", "Usuários": "☖",
         "Painel de Controle": "⛭"
@@ -1156,7 +1156,7 @@ with st.sidebar:
     }
 
     menu_groups = {
-        "CADASTROS": ["Colabs/Candidatos"],
+        "CADASTROS": ["Cadastro"],
         "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
         "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes", "Vagas"],
         "CONFIGURAÇÕES": ["Empresa", "Usuários"]
@@ -2561,6 +2561,114 @@ def render_hierarquia():
                 st.rerun()
 
 
+def render_cadastro():
+    st.title("Cadastro de Perfil (Colaborador / Candidato)")
+    st.info("Cadastre novos perfis para análise comportamental e numerológica no sistema.")
+    st.write("---")
+
+    lista_empresas_salvas = carregar_empresas()
+    nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
+    if not nomes_empresas:
+        nomes_empresas = ["Mundo KAN", "Empresa Cliente A"]
+
+    with st.container(border=True):
+        st.subheader("Novo Cadastro")
+        cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key="cad_nome")
+        
+        col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
+        with col_f1:
+            cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key="cad_data")
+        with col_f2:
+            cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key="cad_foto")
+        with col_f3:
+            st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+            if st.button("Ativar Câmera", use_container_width=True, key="cad_cam_btn"):
+                st.session_state['cad_camera_aberta'] = True
+            st.caption("Leitura de Documento via IA")
+        
+        if st.session_state.get('cad_camera_aberta', False):
+            foto_doc = st.camera_input("Tire uma foto legível do seu documento", key="cad_cam_in")
+            if foto_doc:
+                with st.spinner("Extraindo dados do documento..."):
+                    try:
+                        api_key = st.secrets["gemini"]["api_key"]
+                        genai.configure(api_key=api_key)
+                        imagem_pil = Image.open(foto_doc)
+                        model = genai.GenerativeModel('models/gemini-2.5-flash')
+                        prompt = """
+                        Você é um especialista em OCR. Extraia as seguintes informações deste documento de identidade brasileiro:
+                        1. Nome completo (campo Nome).
+                        2. Data de nascimento (campo Data de Nascimento).
+                        Retorne EXCLUSIVAMENTE um objeto JSON válido no padrão a seguir:
+                        {"nome": "NOME COMPLETO", "data_nascimento": "DD/MM/AAAA"}
+                        """
+                        resposta_ia = model.generate_content([prompt, imagem_pil])
+                        texto_ia = resposta_ia.text.strip().replace("```json", "").replace("```", "")
+                        dados_json = json.loads(texto_ia)
+                        if "nome" in dados_json:
+                            st.session_state['ocr_nome'] = str(dados_json['nome']).upper().strip()
+                        if "data_nascimento" in dados_json:
+                            st.session_state['ocr_data_nascimento'] = str(dados_json['data_nascimento']).strip()
+                        st.session_state['cad_camera_aberta'] = False
+                        st.success("Dados preenchidos!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro na leitura: {e}")
+
+        col_f4, col_f5, col_f6 = st.columns([1, 1, 1])
+        with col_f4:
+            cad_cargo = st.text_input("Cargo/Profissão:", key="cad_cargo")
+        with col_f5:
+            cad_emp = st.selectbox("Empresa/Grupo*:", options=nomes_empresas, key="cad_emp")
+        with col_f6:
+            cad_link = st.text_input("LinkedIn (URL):", key="cad_link")
+            
+        cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key="cad_exp")
+        
+        st.write("---")
+        col_b1, col_b2, col_b3 = st.columns([2, 2, 4])
+        with col_b1:
+            if st.button("Salvar", type="primary", use_container_width=True, key="cad_salvar_btn"):
+                if not cad_nome or not cad_nome.strip():
+                    st.error("O campo 'Nome Completo' é obrigatório.")
+                elif not cad_data or not cad_data.strip() or len(cad_data.split('/')) != 3:
+                    st.error("Formato de data inválido. Use dd/mm/yyyy (ex: 25/12/1980).")
+                else:
+                    foto_b64 = ""
+                    if cad_foto:
+                        foto_b64 = compress_image_to_b64(cad_foto, max_width=300) or ""
+
+                    payload = {
+                        "nome": cad_nome.strip(),
+                        "data_nascimento": cad_data.strip(),
+                        "cargo": cad_cargo.strip() if cad_cargo else None,
+                        "empresa": cad_emp,
+                        "linkedin_url": cad_link.strip() if cad_link else None,
+                        "experiencias": cad_exp.strip() if cad_exp else None,
+                        "foto_base64": foto_b64,
+                        "created_at": datetime.datetime.now().isoformat()
+                    }
+                    if cad_foto:
+                        if 'fotos' not in st.session_state: st.session_state['fotos'] = {}
+                        st.session_state['fotos'][cad_nome.strip()] = cad_foto.getvalue()
+
+                    if supabase_client:
+                        try:
+                            res_exist = supabase_client.table("mapas_salvos").select("id").eq("nome", cad_nome.strip()).execute()
+                            if res_exist.data:
+                                supabase_client.table("mapas_salvos").update(payload).eq("nome", cad_nome.strip()).execute()
+                            else:
+                                supabase_client.table("mapas_salvos").insert(payload).execute()
+                            st.success("cadastro salvo com sucesso.")
+                            st.session_state['ocr_nome'] = ''
+                            st.session_state['ocr_data_nascimento'] = ''
+                            st.cache_data.clear()
+                        except Exception as ex:
+                            st.error(f"Erro ao salvar no Supabase: {ex}")
+                    else:
+                        st.success("cadastro salvo com sucesso.")
+
+
 # --- CABEÇALHO GLOBAL (Apenas fora da Home) ---
 if escolha != "Home":
     col_logo, col_empty = st.columns([1, 4])
@@ -2578,9 +2686,8 @@ if escolha == "Home":
     render_home()
     st.stop()
 
-elif escolha == "Colabs/Candidatos":
-    st.title("Colaboradores & Candidatos")
-    st.info("Módulo de gestão de colaboradores e candidatos em desenvolvimento.")
+elif escolha == "Cadastro":
+    render_cadastro()
     st.stop()
 
 elif escolha == "Hierarquia / Deptos":
@@ -3230,311 +3337,157 @@ if supabase_client:
     except Exception:
         pass
 
-opcoes_clientes = ["-- Novo Cliente --"] + sorted(list(clientes_salvos.keys()))
+opcoes_clientes = sorted(list(clientes_salvos.keys()))
+if not opcoes_clientes:
+    opcoes_clientes = ["Nenhum perfil cadastrado"]
 
 col_top1, col_top2_area = st.columns([3, 1])
 with col_top1:
-    cliente_selecionado = st.selectbox("Selecione um nome já cadastrado ou crie um novo:", opcoes_clientes)
+    cliente_selecionado = st.selectbox("Selecione um perfil cadastrado:", opcoes_clientes)
 col_top2 = col_top2_area.empty()
 
-# --- INICIALIZAÇÃO DE VARIÁVEIS ---
-nome = ""
-data_str = ""
-data_input = datetime.date.today()
-submit_mapa = False
-submit_perfil = False
-dados_perfil = []
-dados = []
+if cliente_selecionado == "Nenhum perfil cadastrado":
+    st.info("Nenhum perfil cadastrado ainda. Acesse o menu 'Cadastro' na barra lateral para adicionar o primeiro perfil.")
+    st.stop()
 
-# --- PRÉ-CÁLCULO PARA CLIENTE EXISTENTE (para permitir botão no topo) ---
-if cliente_selecionado != "-- Novo Cliente --":
-    nome = cliente_selecionado
-    info_cliente = clientes_salvos[nome]
-    data_str = info_cliente['data_nascimento']
-    cargo = info_cliente['cargo']
-    empresa = info_cliente['empresa']
-    linkedin = info_cliente.get('linkedin_url', '')
-    experiencias = info_cliente.get('experiencias', '')
-    try:
-        dia, mes, ano = map(int, data_str.split('/'))
-        data_input = datetime.date(ano, mes, dia)
-    except:
-        data_input = datetime.date.today()
-    
-    # Realiza cálculos básicos silenciosamente para o botão de salvar
-    hoje = datetime.date.today()
-    data_atual_tup = (hoje.day, hoje.month, hoje.year)
-    nascimento_tup = (data_input.day, data_input.month, data_input.year)
-    
-    # Executa cálculos completos para ter os dados prontos para o botão
-    res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
-    dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
-    
-    st.session_state['last_calc_results'] = res_calc # Cache para evitar re-calculo imediato no mesmo loop
-    
-    # O botão de salvar será renderizado mais abaixo, após o processamento de todos os casos (Novo/Existente)
-    pass
+# --- INICIALIZAÇÃO E CÁLCULO PARA O CLIENTE SELECIONADO ---
+nome = cliente_selecionado
+info_cliente = clientes_salvos[nome]
+data_str = info_cliente['data_nascimento']
+cargo = info_cliente['cargo']
+empresa = info_cliente['empresa']
+linkedin = info_cliente.get('linkedin_url', '')
+experiencias = info_cliente.get('experiencias', '')
+try:
+    dia, mes, ano = map(int, data_str.split('/'))
+    data_input = datetime.date(ano, mes, dia)
+except:
+    data_input = datetime.date.today()
+
+hoje = datetime.date.today()
+data_atual_tup = (hoje.day, hoje.month, hoje.year)
+nascimento_tup = (data_input.day, data_input.month, data_input.year)
+
 if 'fotos' not in st.session_state:
     st.session_state['fotos'] = {}
 
-if cliente_selecionado == "-- Novo Cliente --":
-    col_c1, col_c2, col_c3 = st.columns([1, 6, 1])
-    with col_c2:
-        with st.container(border=True):
-            st.markdown("### Novo Cadastro")
-            nome = st.text_input("Nome Completo (Conforme certidão):", value=st.session_state.get('ocr_nome', ''))
-            
-            col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
-            with col_f1:
-                data_str_input = st.text_input("Data de Nascimento:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''))
-            with col_f2:
-                foto_upload = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"])
-            with col_f3:
-                st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if st.button("Ativar Câmera", use_container_width=True):
-                    st.session_state['camera_aberta'] = True
-                st.caption("Leitura de Documento")
-            
-            if st.session_state.get('camera_aberta', False):
-                foto_doc = st.camera_input("Tire uma foto legível do seu documento")
-                if foto_doc:
-                    with st.spinner("Extraindo dados do documento..."):
-                        try:
-                            api_key = st.secrets["gemini"]["api_key"]
-                            genai.configure(api_key=api_key)
-                            
-                            imagem_pil = Image.open(foto_doc)
-                            model = genai.GenerativeModel('models/gemini-2.5-flash')
-                            
-                            prompt = """
-                            Você é um especialista em OCR. Extraia as seguintes informações deste documento de identidade brasileiro:
-                            1. Nome completo (campo Nome).
-                            2. Data de nascimento (campo Data de Nascimento).
-                            
-                            Retorne EXCLUSIVAMENTE um objeto JSON válido no padrão a seguir, sem textos adicionais, formatações markdown ou comentários:
-                            {"nome": "NOME COMPLETO", "data_nascimento": "DD/MM/AAAA"}
-                            """
-                            
-                            resposta_ia = model.generate_content([prompt, imagem_pil])
-                            texto_ia = resposta_ia.text.strip().replace("```json", "").replace("```", "")
-                            
-                            dados_json = json.loads(texto_ia)
-                            if "nome" in dados_json:
-                                st.session_state['ocr_nome'] = str(dados_json['nome']).upper().strip()
-                            if "data_nascimento" in dados_json:
-                                st.session_state['ocr_data_nascimento'] = str(dados_json['data_nascimento']).strip()
-                                
-                            st.session_state['camera_aberta'] = False
-                            st.success("Dados preenchidos! Atualizando formulário.")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"Erro na leitura: {e}")
-
-            col_f4, col_f5, col_f6 = st.columns([1, 1, 1])
-            with col_f4:
-                cargo = st.text_input("Cargo/Profissão:")
-            with col_f5:
-                empresa = st.text_input("Empresa/Grupo:")
-            with col_f6:
-                linkedin = st.text_input("LinkedIn (URL):")
-                
-            experiencias = st.text_area("Experiências Profissionais / Bio", 
-                                    placeholder="Resumo profissional para a IA...",
-                                    height=80)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            submit_diag = st.button("Gerar Diagnóstico")
-
-            
-    if submit_diag:
-        try:
-            dia, mes, ano = map(int, data_str_input.split('/'))
-            data_input = datetime.date(ano, mes, dia)
-            data_str = data_str_input
-            if foto_upload:
-                st.session_state['fotos'][nome] = foto_upload.getvalue()
-            if submit_diag:
-                st.session_state['show_mapa'] = True
-                st.session_state['show_perfil'] = True
-                nascimento_tup = (data_input.day, data_input.month, data_input.year)
-                hoje = datetime.date.today()
-                data_atual_tup = (hoje.day, hoje.month, hoje.year)
-                
-                # Executa cálculos para novo cliente
-                res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
-                dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
-                st.session_state['last_calc_results'] = res_calc
-        except:
-            st.error("Formato de data inválido! Use dd/mm/yyyy (ex: 25/12/1980).")
-            submit_mapa = False
-            submit_perfil = False
-            st.error("Formato de data inválido! Use dd/mm/yyyy (ex: 25/12/1980).")
-            submit_mapa = False
-            submit_perfil = False
-else:
-    nome = cliente_selecionado
-    info_cliente = clientes_salvos[nome]
-    data_str = info_cliente['data_nascimento']
-    cargo = info_cliente['cargo']
-    empresa = info_cliente['empresa']
-    linkedin = info_cliente.get('linkedin_url', '')
-    experiencias = info_cliente.get('experiencias', '')
-    try:
-        dia, mes, ano = map(int, data_str.split('/'))
-        data_input = datetime.date(ano, mes, dia)
-    except:
-        data_input = datetime.date.today()
-        
-    tem_foto = bool(info_cliente.get('foto_base64')) or (nome in st.session_state['fotos'])
-    if not tem_foto:
-        foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"foto_existente_{nome}")
-        if foto_upload_existente:
-            foto_bytes = foto_upload_existente.getvalue()
-            st.session_state['fotos'][nome] = foto_bytes
-            import base64
-            encoded = base64.b64encode(foto_bytes).decode()
-            if supabase_client:
-                try:
-                    supabase_client.table("mapas_salvos").update({"foto_base64": encoded}).eq("nome", nome).execute()
-                    info_cliente['foto_base64'] = encoded
-                    st.rerun()
-                except:
-                    pass
-        
-    # --- RENDERIZAÇÃO DO BOTÃO DE SALVAR NO TOPO (Pós-processamento) ---
-if nome and dados_perfil:
-    with col_top2:
-        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-        if st.button("💾 Salvar na Base de Dados", key=f"save_top_{nome}", use_container_width=True):
-            salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
-
-    with st.expander("📝 Editar dados", expanded=False):
-        col_edit1, col_edit2 = st.columns(2)
-        with col_edit1:
-            new_nome = st.text_input("Nome", value=nome, key=f"edit_nome_{nome}")
-            new_data = st.text_input("Data de Nascimento (dd/mm/yyyy)", value=data_str, key=f"edit_data_{nome}")
-            new_cargo = st.text_input("Cargo/Profissão", value=cargo if pd.notna(cargo) and str(cargo) != 'nan' else "", key=f"edit_cargo_{nome}")
-        with col_edit2:
-            new_empresa = st.text_input("Empresa/Grupo", value=empresa if pd.notna(empresa) and str(empresa) != 'nan' else "", key=f"edit_emp_{nome}")
-            new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin if pd.notna(linkedin) and str(linkedin) != 'nan' else "", key=f"edit_link_{nome}")
-            new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias if pd.notna(experiencias) and str(experiencias) != 'nan' else "", key=f"edit_exp_{nome}", height=68)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("💾 Salvar Alterações", key=f"btn_save_edit_{nome}"):
-            if supabase_client:
-                try:
-                    supabase_client.table("mapas_salvos").update({
-                        "nome": new_nome,
-                        "data_nascimento": new_data,
-                        "cargo": new_cargo,
-                        "empresa": new_empresa,
-                        "linkedin_url": new_linkedin,
-                        "experiencias": new_experiencias
-                    }).eq("nome", nome).execute()
-                    st.toast("✅ Informações atualizadas!")
-                    st.cache_data.clear()
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro ao atualizar: {e}")
-
-    st.markdown("---")
-    st.session_state['show_mapa'] = True
-    st.session_state['show_perfil'] = True
-    
-    # Executa cálculos completos imediatamente para carregar dados
-    res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
-    dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
-
-if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) and nome:
-    # Recupera resultados calculados anteriormente no loop
-    if 'last_calc_results' in st.session_state:
-        dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = st.session_state['last_calc_results']
-    
-    col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
-    with col_res2:
-        st.markdown("---")
-        info_parts = [nome, data_str]
-        for p in [cargo, empresa]:
-            if p and str(p).lower() != "nan" and str(p).strip() != "":
-                info_parts.append(str(p))
-        info_text = " | ".join(info_parts)
-        
-        foto_b64 = None
-        if nome in st.session_state['fotos']:
-            import base64
-            foto_b64 = base64.b64encode(st.session_state['fotos'][nome]).decode()
-        elif clientes_salvos.get(nome) and clientes_salvos[nome].get('foto_base64'):
-            foto_b64 = clientes_salvos[nome]['foto_base64']
-        
-        if foto_b64:
-            html = f'''
-            <div style="display: flex; align-items: center; margin-bottom: 25px;">
-                <img src="data:image/png;base64,{foto_b64}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
-                <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
-            </div>
-            '''
-            st.markdown(html, unsafe_allow_html=True)
-        else:
-            html = f'''
-            <div style="display: flex; align-items: center; margin-bottom: 25px;">
-                <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
-            </div>
-            '''
-            st.markdown(html, unsafe_allow_html=True)
-
-        if cliente_selecionado == "-- Novo Cliente --" and (submit_mapa or submit_perfil) and supabase_client:
+tem_foto = bool(info_cliente.get('foto_base64')) or (nome in st.session_state['fotos'])
+if not tem_foto:
+    foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"foto_existente_{nome}")
+    if foto_upload_existente:
+        foto_bytes = foto_upload_existente.getvalue()
+        st.session_state['fotos'][nome] = foto_bytes
+        import base64
+        encoded = base64.b64encode(foto_bytes).decode()
+        if supabase_client:
             try:
-                import json
-                # Preparar perfil_json completo para salvar (igual ao botão de cima)
-                dados_para_salvar = list(dados_perfil)
-                for label, val in [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
-                                   ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]:
-                    dados_para_salvar.append({
-                        "Campo": label, "Valor": str(val), "Descricao": "", "Resultado": str(val)
-                    })
-                for item in dados:
-                    campo_full = item.get('Campo', '')
-                    if ' - ' in campo_full:
-                        partes = campo_full.split(' - ')
-                        campo_simples = partes[0]
-                        valor_simples = partes[1]
-                    else:
-                        campo_simples = campo_full
-                        valor_simples = item.get('Resultado', '')
-                        if len(str(valor_simples)) > 50: valor_simples = "Ver Mapa"
-                    
-                    dados_para_salvar.append({
-                        "Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples
-                    })
+                supabase_client.table("mapas_salvos").update({"foto_base64": encoded}).eq("nome", nome).execute()
+                info_cliente['foto_base64'] = encoded
+                st.rerun()
+            except:
+                pass
 
-                perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
-                mapa_json_str = json.dumps(dados, ensure_ascii=False)
-                
-                data_str_to_save = data_input.strftime('%d/%m/%Y')
-                agora_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                usuario_logado = st.session_state.get("logged_user", "Desconhecido")
-                
-                insert_data = {
-                    "nome": nome,
-                    "data_nascimento": data_str_to_save,
-                    "cargo": cargo,
-                    "empresa": empresa,
-                    "linkedin_url": linkedin,
-                    "experiencias": experiencias,
-                    "usuario": usuario_logado,
-                    "data_inclusao": agora_str,
-                    "mapa_json": mapa_json_str,
-                    "perfil_json": perfil_json_str
-                }
-                if nome in st.session_state['fotos']:
-                    import base64
-                    insert_data["foto_base64"] = base64.b64encode(st.session_state['fotos'][nome]).decode()
-                    
-                supabase_client.table("mapas_salvos").insert(insert_data).execute()
-                st.toast("✅ Cadastro salvo na nuvem!")
+with st.expander("📝 Editar dados do perfil", expanded=False):
+    col_edit1, col_edit2 = st.columns(2)
+    with col_edit1:
+        new_nome = st.text_input("Nome", value=nome, key=f"edit_nome_{nome}")
+        new_data = st.text_input("Data de Nascimento (dd/mm/yyyy)", value=data_str, key=f"edit_data_{nome}")
+        new_cargo = st.text_input("Cargo/Profissão", value=cargo if pd.notna(cargo) and str(cargo) != 'nan' else "", key=f"edit_cargo_{nome}")
+    with col_edit2:
+        new_empresa = st.text_input("Empresa/Grupo", value=empresa if pd.notna(empresa) and str(empresa) != 'nan' else "", key=f"edit_emp_{nome}")
+        new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin if pd.notna(linkedin) and str(linkedin) != 'nan' else "", key=f"edit_link_{nome}")
+        new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias if pd.notna(experiencias) and str(experiencias) != 'nan' else "", key=f"edit_exp_{nome}", height=68)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Salvar Alterações", key=f"btn_save_edit_{nome}"):
+        if supabase_client:
+            try:
+                supabase_client.table("mapas_salvos").update({
+                    "nome": new_nome,
+                    "data_nascimento": new_data,
+                    "cargo": new_cargo,
+                    "empresa": new_empresa,
+                    "linkedin_url": new_linkedin,
+                    "experiencias": new_experiencias
+                }).eq("nome", nome).execute()
+                st.toast("✅ Informações atualizadas!")
                 st.cache_data.clear()
+                st.rerun()
             except Exception as e:
-                st.toast(f"⚠️ Erro ao salvar cadastro: {e}")
+                st.error(f"Erro ao atualizar: {e}")
+
+st.markdown("---")
+st.session_state['show_mapa'] = True
+st.session_state['show_perfil'] = True
+
+# Executa cálculos completos para o cliente selecionado
+res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
+dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
+st.session_state['last_calc_results'] = res_calc
+
+if not info_cliente.get('has_json') and supabase_client:
+    try:
+        import json
+        dados_para_salvar = list(dados_perfil)
+        for label, val in [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
+                           ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]:
+            dados_para_salvar.append({
+                "Campo": label, "Valor": str(val), "Descricao": "", "Resultado": str(val)
+            })
+        for item in dados:
+            campo_full = item.get('Campo', '')
+            if ' - ' in campo_full:
+                partes = campo_full.split(' - ')
+                campo_simples = partes[0]
+                valor_simples = partes[1]
+            else:
+                campo_simples = campo_full
+                valor_simples = item.get('Resultado', '')
+                if len(str(valor_simples)) > 50: valor_simples = "Ver Mapa"
+            
+            dados_para_salvar.append({
+                "Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples
+            })
+        perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
+        mapa_json_str = json.dumps(dados, ensure_ascii=False)
+        supabase_client.table("mapas_salvos").update({
+            "mapa_json": mapa_json_str,
+            "perfil_json": perfil_json_str
+        }).eq("nome", nome).execute()
+        info_cliente['has_json'] = True
+    except:
+        pass
+
+col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
+with col_res2:
+    info_parts = [nome, data_str]
+    for p in [cargo, empresa]:
+        if p and str(p).lower() != "nan" and str(p).strip() != "":
+            info_parts.append(str(p))
+    info_text = " | ".join(info_parts)
+    
+    foto_b64 = None
+    if nome in st.session_state['fotos']:
+        import base64
+        foto_b64 = base64.b64encode(st.session_state['fotos'][nome]).decode()
+    elif clientes_salvos.get(nome) and clientes_salvos[nome].get('foto_base64'):
+        foto_b64 = clientes_salvos[nome]['foto_base64']
+    
+    if foto_b64:
+        html = f'''
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <img src="data:image/png;base64,{foto_b64}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
+            <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
+        </div>
+        '''
+        st.markdown(html, unsafe_allow_html=True)
+    else:
+        html = f'''
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
+        </div>
+        '''
+        st.markdown(html, unsafe_allow_html=True)
 
         # --- EXIBIÇÃO DOS RESULTADOS DO MAPA ---
         if st.session_state.get('show_mapa'):
@@ -4093,9 +4046,6 @@ if (st.session_state.get('show_mapa') or st.session_state.get('show_perfil')) an
                 else:
                     st.warning("⚠️ O triângulo harmônico não foi formado.")
 
-
-elif (submit_diag) and not nome:
-    st.error("Por favor, digite seu nome completo para calcular!")
 
 # --- RODAPÉ ---
 st.markdown("<br><br><br>", unsafe_allow_html=True)
