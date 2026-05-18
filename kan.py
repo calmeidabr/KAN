@@ -1645,11 +1645,17 @@ def render_admin_panel():
             return st.session_state.usuarios_data
 
         lista_usuarios_atual = carregar_usuarios()
+        lista_empresas_salvas = carregar_empresas()
+        nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
+        if not nomes_empresas:
+            nomes_empresas = ["Mundo KAN", "Empresa Cliente A", "Tech Corp"]
 
         if "view_selected_user" not in st.session_state:
             st.session_state["view_selected_user"] = None
         if "edit_mode_user" not in st.session_state:
             st.session_state["edit_mode_user"] = None
+        if "add_user_mode" not in st.session_state:
+            st.session_state["add_user_mode"] = False
 
         sel_user_id = st.session_state["view_selected_user"]
         if sel_user_id:
@@ -1679,7 +1685,15 @@ def render_admin_panel():
                         ed_nome = st.text_input("Nome completo (como na certidão de nascimento)", value=u_obj.get("nome_completo", ""), key="ed_nome")
                         ed_email = st.text_input("E-mail", value=u_obj.get("email", ""), key="ed_email")
                         ed_data = st.text_input("Data de Nascimento (DD/MM/AAAA)", value=u_obj.get("data_nascimento", ""), key="ed_data")
-                        ed_emp = st.text_input("Empresa", value=u_obj.get("empresa", ""), key="ed_emp")
+                        
+                        emp_atual = u_obj.get("empresa") or ""
+                        if emp_atual not in nomes_empresas and emp_atual:
+                            opcoes_emp = [emp_atual] + [n for n in nomes_empresas if n != emp_atual]
+                        else:
+                            opcoes_emp = nomes_empresas
+                        idx_emp = opcoes_emp.index(emp_atual) if emp_atual in opcoes_emp else 0
+                        ed_emp = st.selectbox("Empresa", options=opcoes_emp, index=idx_emp, key="ed_emp")
+                        
                         ed_grupo = st.selectbox("Subgrupo de Exibição", ["Geral", "Empresas"], index=["Geral", "Empresas"].index(u_obj.get("grupo", "Geral")), key="ed_grp")
                     with e_col2:
                         ed_cel = st.text_input("Celular", value=u_obj.get("celular", ""), key="ed_cel")
@@ -1723,7 +1737,7 @@ def render_admin_panel():
                                         insert_payload = update_payload.copy()
                                         insert_payload["usuario"] = u_obj["usuario"]
                                         supabase_client.table("usuarios").insert(insert_payload).execute()
-                                    st.success("Dados salvos com sucesso!")
+                                    st.success("usuário salvo com sucesso.")
                                 except Exception as e:
                                     st.error(f"Erro ao salvar: {e}")
                             
@@ -1782,8 +1796,83 @@ def render_admin_panel():
                             st.session_state["edit_mode_user"] = sel_user_id
                             st.rerun()
 
+        elif st.session_state["add_user_mode"]:
+            st.subheader("Adicionar novo usuário")
+            with st.container(border=True):
+                a_col1, a_col2 = st.columns(2)
+                with a_col1:
+                    add_user = st.text_input("Nome de usuário (@)*", key="add_usr_in")
+                    add_nome = st.text_input("Nome completo (como na certidão de nascimento)", key="add_nome_in")
+                    add_email = st.text_input("E-mail", key="add_email_in")
+                    add_data = st.text_input("Data de Nascimento (DD/MM/AAAA)", key="add_data_in")
+                    add_emp = st.selectbox("Empresa", options=nomes_empresas, index=0, key="add_emp_in")
+                    add_grupo = st.selectbox("Subgrupo de Exibição", ["Geral", "Empresas"], index=0, key="add_grp_in")
+                with a_col2:
+                    add_cel = st.text_input("Celular", key="add_cel_in")
+                    add_cargo = st.text_input("Cargo/Função", key="add_cargo_in")
+                    add_depto = st.text_input("Departamento", key="add_depto_in")
+                    add_dir = st.selectbox("Direitos", ["Editor", "Analista", "Comum", "admin master"], index=2, key="add_dir_in")
+                    add_st = st.selectbox("Status", ["Ativo", "Inativo"], index=0, key="add_st_in")
+
+                st.write("**Foto de Perfil:**")
+                up_foto_add = st.file_uploader("Fazer upload de foto (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_foto_add_usr")
+                
+                col_sa1, col_sa2, col_sa3 = st.columns([2, 2, 4])
+                with col_sa1:
+                    if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_add_usr"):
+                        add_user_str = add_user or ""
+                        if not add_user_str.strip():
+                            st.error("O campo 'Nome de usuário (@)' é obrigatório.")
+                        else:
+                            nova_foto = "☖"
+                            if up_foto_add:
+                                b64_f = compress_image_to_b64(up_foto_add, max_width=300)
+                                if b64_f: nova_foto = b64_f
+                            
+                            insert_payload = {
+                                "usuario": add_user_str.strip(),
+                                "nome_completo": add_nome.strip() if add_nome else None,
+                                "email": add_email.strip() if add_email else None,
+                                "celular": add_cel.strip() if add_cel else None,
+                                "data_nascimento": add_data.strip() if add_data else None,
+                                "empresa": add_emp,
+                                "cargo": add_cargo.strip() if add_cargo else None,
+                                "departamento": add_depto.strip() if add_depto else None,
+                                "direitos": add_dir,
+                                "status": add_st,
+                                "foto": nova_foto,
+                                "grupo": add_grupo,
+                                "created_at": datetime.datetime.now().isoformat(),
+                                "updated_at": datetime.datetime.now().isoformat()
+                            }
+                            
+                            if supabase_client:
+                                try:
+                                    supabase_client.table("usuarios").insert(insert_payload).execute()
+                                    st.success("usuário salvo com sucesso.")
+                                    st.session_state["add_user_mode"] = False
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Erro ao salvar no Supabase: {e}")
+                            else:
+                                if "usuarios_data" not in st.session_state: st.session_state.usuarios_data = []
+                                st.session_state.usuarios_data.append(insert_payload)
+                                st.success("usuário salvo com sucesso.")
+                                st.session_state["add_user_mode"] = False
+                                st.rerun()
+                with col_sa2:
+                    if st.button("Cancelar", use_container_width=True, key="btn_canc_add_usr"):
+                        st.session_state["add_user_mode"] = False
+                        st.rerun()
+
         else:
-            # Lista principal com dois submenus: Geral e Empresas
+            # Lista principal com botão adicionar e submenus
+            col_topo_u1, col_topo_u2 = st.columns([1, 5])
+            with col_topo_u1:
+                if st.button("Adicionar", type="primary", key="btn_add_usr_start"):
+                    st.session_state["add_user_mode"] = True
+                    st.rerun()
+            st.write("---")
             sub_grupo = st.radio("Selecione o Subgrupo:", ["Geral", "Empresas"], horizontal=True, key="radio_subgrupo")
             st.write("---")
 
