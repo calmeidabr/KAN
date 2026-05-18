@@ -2693,7 +2693,7 @@ def render_processos_seletivos():
         except:
             pass
 
-    opcoes_kans = ["Criação", "Movimento", "Finalidade"]
+    opcoes_kans = ["Nenhum / Não Exigido", "Criação", "Movimento", "Finalidade"]
 
     opcoes_perfis = sorted(list(set(PERFIS_DB))) if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
     opcoes_categorias = sorted(list(set(LISTA_CATEGORIA_DB))) if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
@@ -2736,7 +2736,7 @@ def render_processos_seletivos():
                         "link_vaga": vaga_link.strip() if vaga_link else None,
                         "empresa": empresa_selecionada,
                         "departamento": vaga_depto,
-                        "kan_ideal": str(vaga_kan),
+                        "kan_ideal": str(vaga_kan) if vaga_kan != "Nenhum / Não Exigido" else "Nenhum",
                         "perfis_ideais": json.dumps(vaga_perfis, ensure_ascii=False),
                         "categorias_ideais": json.dumps(vaga_cats, ensure_ascii=False),
                         "qualidades_ideais": json.dumps(vaga_quals, ensure_ascii=False),
@@ -2760,31 +2760,54 @@ def render_processos_seletivos():
             if res_vagas.data and len(res_vagas.data) > 0:
                 for vg in res_vagas.data:
                     with st.container(border=True):
-                        col_c1, col_c2 = st.columns([3, 1])
+                        col_c1, col_c2 = st.columns([4, 1])
+                        
+                        def parse_json_list(val):
+                            if not val: return []
+                            if isinstance(val, list): return val
+                            try: return json.loads(val)
+                            except: return []
+                            
+                        p_list = parse_json_list(vg.get('perfis_ideais'))
+                        c_list = parse_json_list(vg.get('categorias_ideais'))
+                        q_list = parse_json_list(vg.get('qualidades_ideais'))
+                        
                         with col_c1:
                             st.markdown(f"#### 💼 {vg['nome_vaga']} ({vg['senioridade']})")
-                            st.write(f"**Departamento:** {vg.get('departamento') or 'Não informado'} | **KAN Ideal:** {vg.get('kan_ideal') or 'N/A'}")
                             
-                            def parse_json_list(val):
-                                if not val: return []
-                                if isinstance(val, list): return val
-                                try: return json.loads(val)
-                                except: return []
-                                
-                            p_list = parse_json_list(vg.get('perfis_ideais'))
-                            c_list = parse_json_list(vg.get('categorias_ideais'))
-                            q_list = parse_json_list(vg.get('qualidades_ideais'))
+                            resumo_parts = []
+                            if vg.get('kan_ideal') and vg['kan_ideal'] not in ("Nenhum", "Nenhum / Não Exigido"):
+                                resumo_parts.append(f"**KAN**: {vg['kan_ideal']}")
+                            if p_list: resumo_parts.append(f"**Perfil**: {', '.join(p_list)}")
+                            if c_list: resumo_parts.append(f"**Categoria**: {', '.join(c_list)}")
+                            if q_list: resumo_parts.append(f"**Qualidade**: {', '.join(q_list[:3])}{'...' if len(q_list)>3 else ''}")
                             
-                            if p_list: st.write(f"**Perfis Ideais:** {', '.join(p_list)}")
-                            if c_list: st.write(f"**Categorias Ideais:** {', '.join(c_list)}")
-                            if q_list: st.write(f"**Qualidades Ideais:** {', '.join(q_list)}")
-                            if vg.get('descricao_vaga'): st.write(f"**Descrição:** {vg['descricao_vaga']}")
+                            st.write(" | ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico.")
+                            
                         with col_c2:
-                            if vg.get('link_vaga'):
-                                st.markdown(f"[🔗 Link da Vaga]({vg['link_vaga']})")
-                            if st.button("🗑️ Excluir", key=f"del_vaga_{vg['id']}"):
-                                supabase_client.table("vagas").delete().eq("id", vg['id']).execute()
+                            is_open = st.session_state.get(f"vaga_open_{vg['id']}", False)
+                            btn_label = "▴ Ocultar Detalhes" if is_open else "▾ Ver Detalhes"
+                            if st.button(btn_label, key=f"btn_vaga_{vg['id']}", use_container_width=True):
+                                st.session_state[f"vaga_open_{vg['id']}"] = not is_open
                                 st.rerun()
+                                
+                        if st.session_state.get(f"vaga_open_{vg['id']}", False):
+                            st.write("---")
+                            col_d1, col_d2 = st.columns([3, 1])
+                            with col_d1:
+                                st.write(f"**Departamento:** {vg.get('departamento') or 'Não informado'}")
+                                st.write(f"**KAN Ideal Completo:** {vg.get('kan_ideal') or 'Nenhum'}")
+                                if p_list: st.write(f"**Perfis Ideais:** {', '.join(p_list)}")
+                                if c_list: st.write(f"**Categorias Ideais:** {', '.join(c_list)}")
+                                if q_list: st.write(f"**Qualidades Ideais:** {', '.join(q_list)}")
+                                if vg.get('descricao_vaga'):
+                                    st.write(f"**Descrição da Vaga:**\n{vg['descricao_vaga']}")
+                            with col_d2:
+                                if vg.get('link_vaga'):
+                                    st.markdown(f"[🔗 Link da Vaga]({vg['link_vaga']})")
+                                if st.button("🗑️ Excluir Vaga", key=f"del_vaga_{vg['id']}", type="secondary", use_container_width=True):
+                                    supabase_client.table("vagas").delete().eq("id", vg['id']).execute()
+                                    st.rerun()
             else:
                 st.info(f"Nenhuma vaga cadastrada para a empresa {empresa_selecionada}.")
         except Exception as e:
