@@ -2076,11 +2076,65 @@ def render_empresas():
         st.session_state["add_empresa_mode"] = False
     if "edit_empresa_id" not in st.session_state:
         st.session_state["edit_empresa_id"] = None
+    if "view_empresa_selected" not in st.session_state:
+        st.session_state["view_empresa_selected"] = None
 
     lista_empresas = carregar_empresas()
     emp_em_edicao = next((e for e in lista_empresas if e["nome_empresa"] == st.session_state["edit_empresa_id"]), None) if st.session_state["edit_empresa_id"] else None
+    emp_em_visualizacao = next((e for e in lista_empresas if e["nome_empresa"] == st.session_state["view_empresa_selected"]), None) if st.session_state["view_empresa_selected"] else None
 
-    if emp_em_edicao:
+    if emp_em_visualizacao and not emp_em_edicao:
+        col_btn1, col_btn2 = st.columns([1, 5])
+        with col_btn1:
+            if st.button("⭠ \u00A0 Voltar à Lista", key="btn_back_emp_list", use_container_width=True):
+                st.session_state["view_empresa_selected"] = None
+                st.rerun()
+        st.write("---")
+
+        with st.container(border=True):
+            top_c1, top_c2 = st.columns([1, 4])
+            with top_c1:
+                logo_val = emp_em_visualizacao.get('logo') or '⛶'
+                if len(logo_val) > 20:
+                    st.image(f"data:image/png;base64,{logo_val}", width=80)
+                else:
+                    st.markdown(f"<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px;'>{logo_val}</div>", unsafe_allow_html=True)
+            with top_c2:
+                st.markdown(f"<h3 style='margin: 0; color: #FFFFFF;'>{emp_em_visualizacao['nome_empresa']}</h3>", unsafe_allow_html=True)
+                st.caption(f"CNPJ: {emp_em_visualizacao.get('cnpj') or 'Não informado'} | Segmento: {emp_em_visualizacao.get('segmento') or 'Não informado'}")
+            
+            st.write("---")
+            ecol1, ecol2, ecol3 = st.columns(3)
+            with ecol1:
+                st.write("**Razão Social:**")
+                st.write(emp_em_visualizacao.get("razao_social") or "Não informada")
+                st.write("**CNPJ:**")
+                st.write(emp_em_visualizacao.get("cnpj") or "Não informado")
+                st.write("**Segmento:**")
+                st.write(emp_em_visualizacao.get("segmento") or "Não informado")
+                st.write("**Responsável:**")
+                st.write(emp_em_visualizacao.get("responsavel_nome") or "Não informado")
+            with ecol2:
+                st.write("**Colaboradores:**")
+                st.write(emp_em_visualizacao.get("num_colaboradores") or "Não informado")
+                st.write("**Site:**")
+                st.write(emp_em_visualizacao.get("site") or "Não informado")
+                st.write("**Celular do Responsável:**")
+                st.write(emp_em_visualizacao.get("responsavel_celular") or "Não informado")
+            with ecol3:
+                st.write("**Telefone:**")
+                st.write(emp_em_visualizacao.get("telefone") or "Não informado")
+                st.write("**E-mail:**")
+                st.write(emp_em_visualizacao.get("email") or "Não informado")
+                st.write("**E-mail do Responsável:**")
+                st.write(emp_em_visualizacao.get("responsavel_email") or "Não informado")
+
+            st.write("---")
+            if st.button("Editar Empresa", type="primary", key=f"btn_ed_emp_{emp_em_visualizacao['nome_empresa']}"):
+                st.session_state["edit_empresa_id"] = emp_em_visualizacao["nome_empresa"]
+                st.rerun()
+
+    elif emp_em_edicao:
         st.write("---")
         st.subheader(f"Editando Empresa: {emp_em_edicao['nome_empresa']}")
         with st.container(border=True):
@@ -2147,10 +2201,11 @@ def render_empresas():
                             try:
                                 supabase_client.table("empresas").update(payload).eq("nome_empresa", emp_em_edicao["nome_empresa"]).execute()
                                 st.success("empresa salva com sucesso.")
+                                emp_em_edicao.update(payload)
                                 st.session_state["edit_empresa_id"] = None
                                 st.rerun()
                             except Exception as ex:
-                                st.error(f"Erro ao salvar no Supabase: {ex}")
+                                st.error(f"Erro ao salvar no Supabase: {ex}\n\nDICA: Lembre-se de rodar o script 'empresas_schema.sql' no SQL Editor do Supabase para atualizar a tabela e o cache.")
                         else:
                             emp_em_edicao.update(payload)
                             st.success("empresa salva com sucesso.")
@@ -2255,48 +2310,24 @@ def render_empresas():
             st.info("Nenhuma empresa cadastrada no sistema.")
         else:
             for emp in lista_empresas:
-                with st.expander(f"⛶ \u00A0 {emp['nome_empresa']}"):
-                    top_c1, top_c2 = st.columns([1, 4])
-                    with top_c1:
-                        logo_val = emp.get('logo') or '⛶'
-                        if len(logo_val) > 20:
-                            st.image(f"data:image/png;base64,{logo_val}", width=80)
+                with st.container(border=True):
+                    col_c1, col_c2, col_c3, col_c4 = st.columns([1, 3, 2, 2])
+                    with col_c1:
+                        logo_v = emp.get('logo') or '⛶'
+                        if len(logo_v) > 20:
+                            st.image(f"data:image/png;base64,{logo_v}", width=45)
                         else:
-                            st.markdown(f"<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px;'>{logo_val}</div>", unsafe_allow_html=True)
-                    with top_c2:
-                        st.markdown(f"<h3 style='margin: 0; color: #FFFFFF;'>{emp['nome_empresa']}</h3>", unsafe_allow_html=True)
-                        st.caption(f"CNPJ: {emp.get('cnpj') or 'Não informado'} | Segmento: {emp.get('segmento') or 'Não informado'}")
-                    
-                    st.write("---")
-                    ecol1, ecol2, ecol3 = st.columns(3)
-                    with ecol1:
-                        st.write("**Razão Social:**")
-                        st.write(emp.get("razao_social") or "Não informada")
-                        st.write("**CNPJ:**")
-                        st.write(emp.get("cnpj") or "Não informado")
-                        st.write("**Segmento:**")
-                        st.write(emp.get("segmento") or "Não informado")
-                        st.write("**Responsável:**")
-                        st.write(emp.get("responsavel_nome") or "Não informado")
-                    with ecol2:
-                        st.write("**Colaboradores:**")
-                        st.write(emp.get("num_colaboradores") or "Não informado")
-                        st.write("**Site:**")
-                        st.write(emp.get("site") or "Não informado")
-                        st.write("**Celular do Responsável:**")
-                        st.write(emp.get("responsavel_celular") or "Não informado")
-                    with ecol3:
-                        st.write("**Telefone:**")
-                        st.write(emp.get("telefone") or "Não informado")
-                        st.write("**E-mail:**")
-                        st.write(emp.get("email") or "Não informado")
-                        st.write("**E-mail do Responsável:**")
-                        st.write(emp.get("responsavel_email") or "Não informado")
-
-                    st.write("---")
-                    if st.button("Editar", key=f"btn_ed_emp_{emp['nome_empresa']}"):
-                        st.session_state["edit_empresa_id"] = emp["nome_empresa"]
-                        st.rerun()
+                            st.markdown(f"<span style='font-size: 1.5em;'>{logo_v}</span>", unsafe_allow_html=True)
+                    with col_c2:
+                        st.write(f"**{emp['nome_empresa']}**")
+                        st.caption(f"{emp.get('razao_social') or ''}")
+                    with col_c3:
+                        st.write(f"**CNPJ:** {emp.get('cnpj') or 'N/I'}")
+                        st.caption(f"Segmento: {emp.get('segmento') or 'N/I'}")
+                    with col_c4:
+                        if st.button("Visualizar Detalhes", key=f"v_emp_{emp['nome_empresa']}", use_container_width=True):
+                            st.session_state["view_empresa_selected"] = emp["nome_empresa"]
+                            st.rerun()
 
 def render_contas_master():
     st.title("Contas Master")
