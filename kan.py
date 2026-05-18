@@ -2699,7 +2699,7 @@ def render_processos_seletivos():
     opcoes_categorias = sorted(list(set(LISTA_CATEGORIA_DB))) if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
     opcoes_qualidades = sorted(list(set(QUALIDADES_DB.keys()))) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
 
-    with st.expander("➕ Cadastrar Novo Processo seletivo (Vaga)", expanded=False):
+    with st.expander("Cadastrar Novo Processo seletivo (Vaga)", expanded=False):
         with st.container(border=True):
             col_v1, col_v2, col_v3 = st.columns([2, 1, 2])
             with col_v1:
@@ -2773,7 +2773,7 @@ def render_processos_seletivos():
                         q_list = parse_json_list(vg.get('qualidades_ideais'))
                         
                         with col_c1:
-                            st.markdown(f"#### 💼 {vg['nome_vaga']} ({vg['senioridade']})")
+                            st.markdown(f"#### {vg['nome_vaga']} ({vg['senioridade']})")
                             
                             resumo_parts = []
                             if vg.get('kan_ideal') and vg['kan_ideal'] not in ("Nenhum", "Nenhum / Não Exigido"):
@@ -2804,8 +2804,8 @@ def render_processos_seletivos():
                                     st.write(f"**Descrição da Vaga:**\n{vg['descricao_vaga']}")
                             with col_d2:
                                 if vg.get('link_vaga'):
-                                    st.markdown(f"[🔗 Link da Vaga]({vg['link_vaga']})")
-                                if st.button("🗑️ Excluir Vaga", key=f"del_vaga_{vg['id']}", type="secondary", use_container_width=True):
+                                    st.markdown(f"[Link da Vaga]({vg['link_vaga']})")
+                                if st.button("Excluir Vaga", key=f"del_vaga_{vg['id']}", type="secondary", use_container_width=True):
                                     supabase_client.table("vagas").delete().eq("id", vg['id']).execute()
                                     st.rerun()
             else:
