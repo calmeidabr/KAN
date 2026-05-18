@@ -1128,8 +1128,8 @@ with st.sidebar:
                 K
             </div>
             <div>
-                <h2 style='color: white; margin: 0; font-size: 1.3em; font-weight: 700; letter-spacing: -0.5px;'>Mundo KAN</h2>
-                <p style='margin: 0; font-size: 0.7em; color: #F18617; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;'>SaaS Platform</p>
+                <h2 style='color: white; margin: 0; font-size: 1.3em; font-weight: 700; letter-spacing: -0.5px;'>KAN</h2>
+                <p style='margin: 0; font-size: 0.7em; color: #F18617; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;'>Análise de Soft Skills</p>
             </div>
         </div>
     </div>
