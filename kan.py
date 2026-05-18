@@ -1738,12 +1738,15 @@ def render_admin_panel():
                                         insert_payload["usuario"] = u_obj["usuario"]
                                         supabase_client.table("usuarios").insert(insert_payload).execute()
                                     st.success("usuário salvo com sucesso.")
+                                    u_obj.update(update_payload)
+                                    st.session_state["edit_mode_user"] = None
+                                    st.rerun()
                                 except Exception as e:
-                                    st.error(f"Erro ao salvar: {e}")
-                            
-                            u_obj.update(update_payload)
-                            st.session_state["edit_mode_user"] = None
-                            st.rerun()
+                                    st.error(f"Erro ao salvar no Supabase: {e}\n\nDICA: Lembre-se de rodar o script 'usuarios_schema.sql' no SQL Editor do Supabase para atualizar a tabela e o cache da API.")
+                            else:
+                                u_obj.update(update_payload)
+                                st.session_state["edit_mode_user"] = None
+                                st.rerun()
                     with col_s2:
                         if st.button("Cancelar", use_container_width=True, key="btn_canc_ed"):
                             st.session_state["edit_mode_user"] = None
