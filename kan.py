@@ -49,10 +49,9 @@ except Exception:
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_icon=favicon_img)
 
-# --- DEFINIÇÃO DE MENUS ---
 MENU_PRINCIPAL = [
-    "Home", "Cadastro", "Diagnósticos", "Mapas", "Analytics",
-    "Hierarquia / Deptos", "Equipes", "Vagas", "Empresa", "Usuários"
+    "Home", "Talentos", "Processos seletivos", "Diagnósticos", "Mapas", "Analytics",
+    "Hierarquia / Deptos", "Equipes", "Empresa", "Usuários"
 ]
 
 
@@ -1141,8 +1140,8 @@ with st.sidebar:
 
     # Mapeamento de Ícones Outlined Brancos (símbolos geométricos limpos)
     icones = {
-        "Home": "⌂", "Cadastro": "☖", "Hierarquia / Deptos": "⬠", 
-        "Equipes": "⚮", "Vagas": "⌖", "Diagnósticos": "☐", 
+        "Home": "⌂", "Talentos": "☖", "Processos seletivos": "⌖", "Hierarquia / Deptos": "⬠", 
+        "Equipes": "⚮", "Diagnósticos": "☐", 
         "Mapas": "⛯", "Analytics": "▱", "Empresa": "⛶", "Usuários": "☖",
         "Painel de Controle": "⛭"
     }
@@ -1156,9 +1155,9 @@ with st.sidebar:
     }
 
     menu_groups = {
-        "CADASTROS": ["Cadastro"],
+        "CADASTROS": ["Talentos", "Processos seletivos"],
         "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
-        "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes", "Vagas"],
+        "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes"],
         "CONFIGURAÇÕES": ["Empresa", "Usuários"]
     }
     if st.session_state.get("logged_user") == "adminkan":
@@ -2561,8 +2560,8 @@ def render_hierarquia():
                 st.rerun()
 
 
-def render_cadastro():
-    st.title("Cadastro de Perfil (Colaborador / Candidato)")
+def render_talentos():
+    st.title("Cadastro de Talentos")
     st.info("Cadastre novos perfis para análise comportamental e numerológica no sistema.")
     st.write("---")
 
@@ -2669,6 +2668,133 @@ def render_cadastro():
                         st.success("cadastro salvo com sucesso.")
 
 
+def render_processos_seletivos():
+    st.title("Processos seletivos (Gestão de Vagas)")
+    st.info("Cadastre e consulte perfis ideais de vagas para alinhamento comportamental.")
+    st.write("---")
+
+    lista_empresas_salvas = carregar_empresas()
+    nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
+    if not nomes_empresas:
+        nomes_empresas = ["Mundo KAN"]
+
+    col_e1, col_e2 = st.columns([2, 2])
+    with col_e1:
+        empresa_selecionada = st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="proc_emp_sel")
+
+    departamentos = ["Geral / Sem Departamento"]
+    if supabase_client and empresa_selecionada:
+        try:
+            res_depts = supabase_client.table("hierarquia_departamentos").select("nome").eq("empresa", empresa_selecionada).order("ordem").execute()
+            if res_depts.data:
+                depts_banco = [d["nome"] for d in res_depts.data if d.get("nome")]
+                if depts_banco:
+                    departamentos = depts_banco
+        except:
+            pass
+
+    kan_display_map = {"3": "3 - CRIAÇÃO", "6": "6 - MOVIMENTO", "9": "9 - FINALIDADE"}
+    all_kans_raw = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
+    opcoes_kans = [kan_display_map.get(k, k) for k in all_kans_raw]
+
+    opcoes_perfis = sorted(list(set(PERFIS_DB))) if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+    opcoes_categorias = sorted(list(set(LISTA_CATEGORIA_DB))) if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
+    opcoes_qualidades = sorted(list(set(QUALIDADES_DB.keys()))) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
+
+    with st.expander("➕ Cadastrar Novo Processo seletivo (Vaga)", expanded=False):
+        with st.container(border=True):
+            col_v1, col_v2, col_v3 = st.columns([2, 1, 2])
+            with col_v1:
+                vaga_nome = st.text_input("Nome da Vaga*:", key="proc_vaga_n")
+            with col_v2:
+                vaga_senioridade = st.selectbox("Senioridade*:", ["Junior", "Pleno", "Senior"], key="proc_vaga_s")
+            with col_v3:
+                vaga_link = st.text_input("Link da Vaga (URL):", placeholder="https://...", key="proc_vaga_l")
+
+            col_d1, col_d2 = st.columns([2, 2])
+            with col_d1:
+                vaga_depto = st.selectbox("Departamento*:", options=departamentos, key="proc_vaga_d")
+            with col_d2:
+                vaga_kan = st.selectbox("KAN Ideal*:", options=opcoes_kans, key="proc_vaga_k")
+
+            col_p1, col_p2, col_p3 = st.columns([1, 1, 1])
+            with col_p1:
+                vaga_perfis = st.multiselect("Tipos de Perfis ideais:", options=opcoes_perfis, key="proc_vaga_perf")
+            with col_p2:
+                vaga_cats = st.multiselect("Categorias de Perfil ideais:", options=opcoes_categorias, key="proc_vaga_cat")
+            with col_p3:
+                vaga_quals = st.multiselect("Qualidades ideais:", options=opcoes_qualidades, key="proc_vaga_qual")
+
+            vaga_desc = st.text_area("Descrição da vaga:", height=100, key="proc_vaga_desc")
+
+            st.write("---")
+            if st.button("Salvar", type="primary", key="proc_salvar_btn"):
+                if not vaga_nome or not vaga_nome.strip():
+                    st.error("O Nome da Vaga é obrigatório.")
+                else:
+                    payload = {
+                        "nome_vaga": vaga_nome.strip(),
+                        "senioridade": vaga_senioridade,
+                        "link_vaga": vaga_link.strip() if vaga_link else None,
+                        "empresa": empresa_selecionada,
+                        "departamento": vaga_depto,
+                        "kan_ideal": str(vaga_kan),
+                        "perfis_ideais": json.dumps(vaga_perfis, ensure_ascii=False),
+                        "categorias_ideais": json.dumps(vaga_cats, ensure_ascii=False),
+                        "qualidades_ideais": json.dumps(vaga_quals, ensure_ascii=False),
+                        "descricao_vaga": vaga_desc.strip() if vaga_desc else None,
+                        "created_at": datetime.datetime.now().isoformat()
+                    }
+                    if supabase_client:
+                        try:
+                            supabase_client.table("vagas").insert(payload).execute()
+                            st.success("vaga cadastrada com sucesso.")
+                            st.rerun()
+                        except Exception as ex:
+                            st.error(f"Erro ao salvar no Supabase: {ex}")
+                    else:
+                        st.success("vaga cadastrada com sucesso.")
+
+    st.write("### Vagas Cadastradas")
+    if supabase_client and empresa_selecionada:
+        try:
+            res_vagas = supabase_client.table("vagas").select("*").eq("empresa", empresa_selecionada).order("created_at", desc=True).execute()
+            if res_vagas.data and len(res_vagas.data) > 0:
+                for vg in res_vagas.data:
+                    with st.container(border=True):
+                        col_c1, col_c2 = st.columns([3, 1])
+                        with col_c1:
+                            st.markdown(f"#### 💼 {vg['nome_vaga']} ({vg['senioridade']})")
+                            st.write(f"**Departamento:** {vg.get('departamento') or 'Não informado'} | **KAN Ideal:** {vg.get('kan_ideal') or 'N/A'}")
+                            
+                            def parse_json_list(val):
+                                if not val: return []
+                                if isinstance(val, list): return val
+                                try: return json.loads(val)
+                                except: return []
+                                
+                            p_list = parse_json_list(vg.get('perfis_ideais'))
+                            c_list = parse_json_list(vg.get('categorias_ideais'))
+                            q_list = parse_json_list(vg.get('qualidades_ideais'))
+                            
+                            if p_list: st.write(f"**Perfis Ideais:** {', '.join(p_list)}")
+                            if c_list: st.write(f"**Categorias Ideais:** {', '.join(c_list)}")
+                            if q_list: st.write(f"**Qualidades Ideais:** {', '.join(q_list)}")
+                            if vg.get('descricao_vaga'): st.write(f"**Descrição:** {vg['descricao_vaga']}")
+                        with col_c2:
+                            if vg.get('link_vaga'):
+                                st.markdown(f"[🔗 Link da Vaga]({vg['link_vaga']})")
+                            if st.button("🗑️ Excluir", key=f"del_vaga_{vg['id']}"):
+                                supabase_client.table("vagas").delete().eq("id", vg['id']).execute()
+                                st.rerun()
+            else:
+                st.info(f"Nenhuma vaga cadastrada para a empresa {empresa_selecionada}.")
+        except Exception as e:
+            st.error(f"Erro ao consultar vagas: {e}")
+    else:
+        st.info("Conecte ao Supabase ou selecione uma empresa para visualizar as vagas.")
+
+
 # --- CABEÇALHO GLOBAL (Apenas fora da Home) ---
 if escolha != "Home":
     col_logo, col_empty = st.columns([1, 4])
@@ -2686,8 +2812,12 @@ if escolha == "Home":
     render_home()
     st.stop()
 
-elif escolha == "Cadastro":
-    render_cadastro()
+elif escolha == "Talentos":
+    render_talentos()
+    st.stop()
+
+elif escolha == "Processos seletivos":
+    render_processos_seletivos()
     st.stop()
 
 elif escolha == "Hierarquia / Deptos":
@@ -2697,11 +2827,6 @@ elif escolha == "Hierarquia / Deptos":
 elif escolha == "Equipes":
     st.title("Gestão de Equipes")
     st.info("Módulo de estruturação de equipes em desenvolvimento.")
-    st.stop()
-
-elif escolha == "Vagas":
-    st.title("Gestão de Vagas")
-    st.info("Módulo de vagas e recrutamento em desenvolvimento.")
     st.stop()
 
 elif escolha == "Empresa":
