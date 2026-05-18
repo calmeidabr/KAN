@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS celular TEXT;
 
+-- Atualiza o cache de schema do PostgREST (Supabase API) instantaneamente
+NOTIFY pgrst, 'reload schema';
+
 -- Inserção de Registros Iniciais de Exemplo caso a tabela esteja vazia
 INSERT INTO usuarios (usuario, nome_completo, email, celular, data_nascimento, empresa, cargo, departamento, direitos, status, foto, grupo)
 VALUES 

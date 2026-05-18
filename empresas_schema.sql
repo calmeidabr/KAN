@@ -16,10 +16,13 @@ CREATE TABLE IF NOT EXISTS empresas (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Adiciona colunas caso a tabela já exista
+-- Adiciona colunas caso a tabela já exista em produção
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS responsavel_nome TEXT;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS responsavel_celular TEXT;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS responsavel_email TEXT;
+
+-- Atualiza o cache de schema do PostgREST (Supabase API) instantaneamente
+NOTIFY pgrst, 'reload schema';
 
 -- Inserção de Registros Iniciais de Exemplo caso a tabela esteja vazia
 INSERT INTO empresas (nome_empresa, razao_social, cnpj, segmento, num_colaboradores, site, telefone, email, responsavel_nome, responsavel_celular, responsavel_email)
