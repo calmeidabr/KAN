@@ -4121,7 +4121,9 @@ with col_res2:
     if foto_b64:
         html = f'''
         <div style="display: flex; align-items: center; margin-bottom: 25px;">
-            <img src="data:image/png;base64,{foto_b64}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-right: 25px; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
+            <div style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3); margin-right: 25px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: #1b0520;">
+                <img src="data:image/png;base64,{foto_b64}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+            </div>
             <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
         </div>
         '''
@@ -4134,174 +4136,174 @@ with col_res2:
         '''
         st.markdown(html, unsafe_allow_html=True)
 
-        # --- EXIBIÇÃO DOS RESULTADOS DO MAPA ---
-        if st.session_state.get('show_mapa'):
-            st.subheader("Mapa")
-            st.markdown("""
-            <style>
-            .mapa-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
-            .mapa-table th { background-color: #F18617; color: #401041; padding: 10px 14px; text-align: left; font-size: 0.95em; }
-            .mapa-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-            .mapa-campo { color: #F18617; font-weight: bold; padding: 10px 14px; white-space: nowrap; font-size: 0.9em; }
-            .mapa-numero { display: inline-block; background: #F18617; color: #401041;
-                           font-weight: bold; font-size: 1.1em; padding: 1px 8px;
-                           border-radius: 4px; margin-left: 6px; }
-            .mapa-desc { padding: 10px 14px; color: #FFFFFF; font-size: 0.88em;
-                         line-height: 1.45; text-align: justify; }
-            .mapa-valor { padding: 10px 14px; color: #FFFFFF; font-size: 0.95em; }
-            </style>
-            """, unsafe_allow_html=True)
+    # --- EXIBIÇÃO DOS RESULTADOS DO MAPA ---
+    if st.session_state.get('show_mapa'):
+        st.subheader("Mapa")
+        st.markdown("""
+        <style>
+        .mapa-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
+        .mapa-table th { background-color: #F18617; color: #401041; padding: 10px 14px; text-align: left; font-size: 0.95em; }
+        .mapa-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+        .mapa-campo { color: #F18617; font-weight: bold; padding: 10px 14px; white-space: nowrap; font-size: 0.9em; }
+        .mapa-numero { display: inline-block; background: #F18617; color: #401041;
+                       font-weight: bold; font-size: 1.1em; padding: 1px 8px;
+                       border-radius: 4px; margin-left: 6px; }
+        .mapa-desc { padding: 10px 14px; color: #FFFFFF; font-size: 0.88em;
+                     line-height: 1.45; text-align: justify; }
+        .mapa-valor { padding: 10px 14px; color: #FFFFFF; font-size: 0.95em; }
+        </style>
+        """, unsafe_allow_html=True)
 
-            html_mapa = '<table class="mapa-table"><thead><tr><th style="width:18%">Campo</th><th>Resultado</th></tr></thead><tbody>'
-            for item in dados:
-                campo_raw = item['Campo']
-                resultado_raw = item['Resultado']
+        html_mapa = '<table class="mapa-table"><thead><tr><th style="width:18%">Campo</th><th>Resultado</th></tr></thead><tbody>'
+        for item in dados:
+            campo_raw = item['Campo']
+            resultado_raw = item['Resultado']
 
-                # Detecta se o campo tem número embutido (ex: "Expressao - 1")
-                if ' - ' in campo_raw:
-                    partes_campo = campo_raw.rsplit(' - ', 1)
-                    label_campo = partes_campo[0]
-                    numero_badge = f"<span class='mapa-numero'>{partes_campo[1]}</span>"
-                else:
-                    label_campo = campo_raw
-                    numero_badge = ""
+            # Detecta se o campo tem número embutido (ex: "Expressao - 1")
+            if ' - ' in campo_raw:
+                partes_campo = campo_raw.rsplit(' - ', 1)
+                label_campo = partes_campo[0]
+                numero_badge = f"<span class='mapa-numero'>{partes_campo[1]}</span>"
+            else:
+                label_campo = campo_raw
+                numero_badge = ""
 
-                # Célula da descrição
-                if resultado_raw:
-                    cel_resultado = f"<div class='mapa-desc'>{resultado_raw}</div>"
-                else:
-                    cel_resultado = "<div class='mapa-valor'></div>"
+            # Célula da descrição
+            if resultado_raw:
+                cel_resultado = f"<div class='mapa-desc'>{resultado_raw}</div>"
+            else:
+                cel_resultado = "<div class='mapa-valor'></div>"
 
-                explicacao_html = ""
-                if item.get("Explicacao"):
-                    explicacao_html = f"<div style='font-size: 0.78em; color: rgba(255,255,255,0.6); padding: 0 14px 10px 14px; font-style: italic;'>{item['Explicacao']}</div>"
+            explicacao_html = ""
+            if item.get("Explicacao"):
+                explicacao_html = f"<div style='font-size: 0.78em; color: rgba(255,255,255,0.6); padding: 0 14px 10px 14px; font-style: italic;'>{item['Explicacao']}</div>"
 
-                html_mapa += (
-                    f"<tr>"
-                    f"<td><div class='mapa-campo'>{label_campo}{numero_badge}</div>{explicacao_html}</td>"
-                    f"<td>{cel_resultado}</td>"
-                    f"</tr>"
-                )
-            html_mapa += "</tbody></table>"
-            st.markdown(html_mapa, unsafe_allow_html=True)
+            html_mapa += (
+                f"<tr>"
+                f"<td><div class='mapa-campo'>{label_campo}{numero_badge}</div>{explicacao_html}</td>"
+                f"<td>{cel_resultado}</td>"
+                f"</tr>"
+            )
+        html_mapa += "</tbody></table>"
+        st.markdown(html_mapa, unsafe_allow_html=True)
 
+        st.markdown("---")
+        st.subheader("Baixar Resultados do Mapa")
+        col1, col2 = st.columns(2)
+        nome_limpo = remover_acentos(nome).replace(' ', '_')
+        df = pd.DataFrame(dados)
+        
+        with col1:
+            csv = df.to_csv(sep=';', index=False).encode('utf-8')
+            st.download_button("📥 Baixar Mapa como CSV", data=csv, file_name=f"mapa_{nome_limpo}.csv", mime="text/csv", key="dl_mapa_csv")
+        with col2:
+            data_str_pdf = data_input.strftime('%d/%m/%Y')
+            pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalistico")
+            st.download_button("📄 Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key="dl_mapa_pdf")
+
+        if st.session_state.get('show_perfil'):
             st.markdown("---")
-            st.subheader("Baixar Resultados do Mapa")
-            col1, col2 = st.columns(2)
-            nome_limpo = remover_acentos(nome).replace(' ', '_')
-            df = pd.DataFrame(dados)
+            st.subheader("Perfil Comportamental")
             
-            with col1:
-                csv = df.to_csv(sep=';', index=False).encode('utf-8')
-                st.download_button("📥 Baixar Mapa como CSV", data=csv, file_name=f"mapa_{nome_limpo}.csv", mime="text/csv", key="dl_mapa_csv")
-            with col2:
-                data_str_pdf = data_input.strftime('%d/%m/%Y')
-                pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalistico")
-                st.download_button("📄 Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key="dl_mapa_pdf")
-
-            if st.session_state.get('show_perfil'):
-                st.markdown("---")
-                st.subheader("Perfil Comportamental")
-                
-                # Injeta Estilo Separado
-                st.markdown("""<style>
-                .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
-                .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 12px; text-align: left; }
-                .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-                .p-label { color: #F18617; font-weight: bold; padding: 12px; }
-                .p-value { background-color: #F18617; color: #401041; padding: 6px; font-weight: bold; text-align: center; }
-                .p-desc { padding: 12px; color: #FFFFFF; font-size: 0.95em; line-height: 1.5; }
-                </style>""", unsafe_allow_html=True)
-                
-                # Constrói Tabela
-                html_table = '<table class="perfil-custom-table"><thead><tr><th>Campo</th><th>Resultado</th></tr></thead><tbody>'
-                for item in dados_perfil:
-                    html_table += f"<tr><td style='width: 25%;'><div class='p-label'>{item['Campo']}</div></td>"
-                    html_table += f"<td><div class='p-value'>{item['Valor']}</div><div class='p-desc'>{item['Descricao']}</div></td></tr>"
-                html_table += "</tbody></table>"
-                
-                st.markdown(html_table, unsafe_allow_html=True)
+            # Injeta Estilo Separado
+            st.markdown("""<style>
+            .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
+            .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 12px; text-align: left; }
+            .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
+            .p-label { color: #F18617; font-weight: bold; padding: 12px; }
+            .p-value { background-color: #F18617; color: #401041; padding: 6px; font-weight: bold; text-align: center; }
+            .p-desc { padding: 12px; color: #FFFFFF; font-size: 0.95em; line-height: 1.5; }
+            </style>""", unsafe_allow_html=True)
             
-            # Botão para Gerar Diagnóstico com IA
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🪄 Gerar Diagnóstico Profissional com IA"):
-                try:
-                    api_key = st.secrets["gemini"]["api_key"]
-                    genai.configure(api_key=api_key)
-                    
-                    # Montar o contexto para a IA (Extraindo dados do Mapa e Perfil)
-                    mapa_texto = "\n".join([f"- {item['Campo']}: {item['Resultado']}" for item in dados])
-                    perfil_texto = "\n".join([f"- {item['Campo']}: {item['Resultado']}" for item in dados_perfil if item['Campo'] != "Diagnóstico"])
-                    info_prof = f"- LinkedIn: {linkedin}\n- Experiências: {experiencias}" if (linkedin or experiencias) else ""
-                    
-                    contexto = f"""
-                    Você é um Especialista em Recrutamento e Seleção (RH) de alta performance e Consultor de Carreira.
-                    Sua tarefa é analisar o perfil completo de {nome} e gerar um Diagnóstico de Performance com foco em contratação corporativa.
-                    
-                    DADOS BRUTOS DO PERFIL E TENDÊNCIAS COMPORTAMENTAIS:
-                    {mapa_texto}
-                    
-                    DADOS DO PERFIL KAN (Forças, Estilo de Trabalho e Qualidades):
-                    {perfil_texto}
-                    
-                    INFORMAÇÕES PROFISSIONAIS ADICIONAIS:
-                    {info_prof}
-                    
-                    DIRETRIZES ESTRITAS PARA A REDAÇÃO:
-                    1. Use puramente linguagem corporativa, psicológica e de RH (Foco em soft skills, competências, fit cultural e desafios de gestão).
-                    2. PROIBIDO MENCIONAR TERMOS NUMEROLÓGICOS: NUNCA escreva palavras como "Mapa", "Numerologia", "Expressão 1", "Destino 8", "Motivação", "Dívidas Cármicas", etc. Você deve APENAS absorver o significado psicológico desses itens e transformá-los em análise de competência profissional.
-                    3. NUNCA use a expressão "tendências numerológicas". Se precisar, use "tendências comportamentais", "análise de perfil" ou "mapeamento".
-                    4. O texto não pode, em hipótese alguma, parecer uma consulta esotérica. Deve soar como uma avaliação técnica, profunda e baseada em dados analíticos de RH.
-                    5. O texto deve ser formatado em exatamente 3 parágrafos curtos, diretos e objetivos.
-                    """
-                    
-                    with st.spinner("IA analisando perfil com visão de RH (Alta Performance)..."):
-                        # Usando os modelos modernos disponíveis na chave do usuário (2026)
-                        texto_ia = ""
+            # Constrói Tabela
+            html_table = '<table class="perfil-custom-table"><thead><tr><th>Campo</th><th>Resultado</th></tr></thead><tbody>'
+            for item in dados_perfil:
+                html_table += f"<tr><td style='width: 25%;'><div class='p-label'>{item['Campo']}</div></td>"
+                html_table += f"<td><div class='p-value'>{item['Valor']}</div><div class='p-desc'>{item['Descricao']}</div></td></tr>"
+            html_table += "</tbody></table>"
+            
+            st.markdown(html_table, unsafe_allow_html=True)
+        
+        # Botão para Gerar Diagnóstico com IA
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🪄 Gerar Diagnóstico Profissional com IA"):
+            try:
+                api_key = st.secrets["gemini"]["api_key"]
+                genai.configure(api_key=api_key)
+                
+                # Montar o contexto para a IA (Extraindo dados do Mapa e Perfil)
+                mapa_texto = "\n".join([f"- {item['Campo']}: {item['Resultado']}" for item in dados])
+                perfil_texto = "\n".join([f"- {item['Campo']}: {item['Resultado']}" for item in dados_perfil if item['Campo'] != "Diagnóstico"])
+                info_prof = f"- LinkedIn: {linkedin}\n- Experiências: {experiencias}" if (linkedin or experiencias) else ""
+                
+                contexto = f"""
+                Você é um Especialista em Recrutamento e Seleção (RH) de alta performance e Consultor de Carreira.
+                Sua tarefa é analisar o perfil completo de {nome} e gerar um Diagnóstico de Performance com foco em contratação corporativa.
+                
+                DADOS BRUTOS DO PERFIL E TENDÊNCIAS COMPORTAMENTAIS:
+                {mapa_texto}
+                
+                DADOS DO PERFIL KAN (Forças, Estilo de Trabalho e Qualidades):
+                {perfil_texto}
+                
+                INFORMAÇÕES PROFISSIONAIS ADICIONAIS:
+                {info_prof}
+                
+                DIRETRIZES ESTRITAS PARA A REDAÇÃO:
+                1. Use puramente linguagem corporativa, psicológica e de RH (Foco em soft skills, competências, fit cultural e desafios de gestão).
+                2. PROIBIDO MENCIONAR TERMOS NUMEROLÓGICOS: NUNCA escreva palavras como "Mapa", "Numerologia", "Expressão 1", "Destino 8", "Motivação", "Dívidas Cármicas", etc. Você deve APENAS absorver o significado psicológico desses itens e transformá-los em análise de competência profissional.
+                3. NUNCA use a expressão "tendências numerológicas". Se precisar, use "tendências comportamentais", "análise de perfil" ou "mapeamento".
+                4. O texto não pode, em hipótese alguma, parecer uma consulta esotérica. Deve soar como uma avaliação técnica, profunda e baseada em dados analíticos de RH.
+                5. O texto deve ser formatado em exatamente 3 parágrafos curtos, diretos e objetivos.
+                """
+                
+                with st.spinner("IA analisando perfil com visão de RH (Alta Performance)..."):
+                    # Usando os modelos modernos disponíveis na chave do usuário (2026)
+                    texto_ia = ""
+                    try:
+                        # Tenta o modelo ultra-rápido moderno
+                        model = genai.GenerativeModel('models/gemini-2.5-flash')
+                        response = model.generate_content(contexto)
+                        texto_ia = response.text.replace("\n", "<br>")
+                    except Exception as e1:
                         try:
-                            # Tenta o modelo ultra-rápido moderno
-                            model = genai.GenerativeModel('models/gemini-2.5-flash')
+                            # Fallback para o modelo Pro 3.1 de última geração
+                            model = genai.GenerativeModel('models/gemini-3.1-pro-preview')
                             response = model.generate_content(contexto)
                             texto_ia = response.text.replace("\n", "<br>")
-                        except Exception as e1:
+                        except Exception as e2:
                             try:
-                                # Fallback para o modelo Pro 3.1 de última geração
-                                model = genai.GenerativeModel('models/gemini-3.1-pro-preview')
-                                response = model.generate_content(contexto)
-                                texto_ia = response.text.replace("\n", "<br>")
-                            except Exception as e2:
-                                try:
-                                    modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-                                    modelos_str = ", ".join(modelos)
-                                    texto_ia = f"<b>Aviso de Sistema:</b> Não foi possível acessar os modelos de IA modernos.<br>Erro: {e1}<br><br><b>Modelos disponíveis na sua chave:</b> {modelos_str}"
-                                except Exception as e3:
-                                    texto_ia = f"<b>Erro na IA:</b> Não foi possível conectar ao Google Gemini. Verifique se a chave da API em st.secrets é válida.<br>Erro original: {e1}"
-                        st.session_state["ai_diagnosis"][user_name_key] = texto_ia
-                        
-                        if supabase_client:
-                            supabase_client.table("mapas_salvos").update({"ai_diagnosis": texto_ia}).eq("nome", nome).execute()
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"Erro na IA: {e}")
+                                modelos = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+                                modelos_str = ", ".join(modelos)
+                                texto_ia = f"<b>Aviso de Sistema:</b> Não foi possível acessar os modelos de IA modernos.<br>Erro: {e1}<br><br><b>Modelos disponíveis na sua chave:</b> {modelos_str}"
+                            except Exception as e3:
+                                texto_ia = f"<b>Erro na IA:</b> Não foi possível conectar ao Google Gemini. Verifique se a chave da API em st.secrets é válida.<br>Erro original: {e1}"
+                    st.session_state["ai_diagnosis"][user_name_key] = texto_ia
+                    
+                    if supabase_client:
+                        supabase_client.table("mapas_salvos").update({"ai_diagnosis": texto_ia}).eq("nome", nome).execute()
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Erro na IA: {e}")
 
-            # Exibe o consumo de tokens se houver
-            if "ai_usage" in st.session_state:
-                st.caption(f"📊 {st.session_state['ai_usage']}")
+        # Exibe o consumo de tokens se houver
+        if "ai_usage" in st.session_state:
+            st.caption(f"📊 {st.session_state['ai_usage']}")
 
-            st.markdown("---")
-            st.subheader("Salvar Perfil Comportamental")
-            col_p1, col_p2, col_p3 = st.columns(3)
-            df_perfil = pd.DataFrame(dados_perfil)
-            nome_limpo_p = remover_acentos(nome).replace(' ', '_')
-            with col_p1:
-                csv_p = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
-                st.download_button("📥 Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key="dl_p_csv")
-            with col_p2:
-                pdf_p = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
-                st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key="dl_p_pdf")
-            with col_p3:
-                if st.button("💾 Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
-                    salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
+        st.markdown("---")
+        st.subheader("Salvar Perfil Comportamental")
+        col_p1, col_p2, col_p3 = st.columns(3)
+        df_perfil = pd.DataFrame(dados_perfil)
+        nome_limpo_p = remover_acentos(nome).replace(' ', '_')
+        with col_p1:
+            csv_p = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
+            st.download_button("📥 Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key="dl_p_csv")
+        with col_p2:
+            pdf_p = gerar_pdf(nome, data_str, dados_perfil, titulo="Perfil Comportamental KAN")
+            st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key="dl_p_pdf")
+        with col_p3:
+            if st.button("💾 Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
+                salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
 
 
 # --- RODAPÉ ---
