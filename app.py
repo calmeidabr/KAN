@@ -48,10 +48,10 @@ class App:
         with st.sidebar:
             st.markdown("""
             <div style="padding: 10px 0 20px 0; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px;">
-                <h2 style="font-size: 1.5em; font-weight: 900; color: #F18617; letter-spacing: -0.8px; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.1em; vertical-align: middle;">🔮</span> KAN
+                <h2 style="font-size: 1.5em; font-weight: 900; color: #FFFFFF; letter-spacing: -0.8px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #FFFFFF; font-size: 1.1em;">◇</span> KAN <span style="font-size: 0.5em; font-weight: 700; color: #0b020c; background: #FFFFFF; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;">PRO</span>
                 </h2>
-                <p style="margin: 4px 0 0 0; font-size: 0.72em; color: #F18617; opacity: 0.85; letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;">Análises de Soft Skills</p>
+                <p style="margin: 4px 0 0 0; font-size: 0.7em; color: rgba(255, 255, 255, 0.4); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;">People Analytics & Numerologia</p>
             </div>
             """, unsafe_allow_html=True)
             
