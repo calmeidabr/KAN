@@ -47,7 +47,7 @@ class AdminMenu(BaseMenu):
         
         supabase_client = get_supabase()
         
-        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Banners"])
+        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Banners"])
         
         with t_tab1:
             st.subheader("Editor de Configurações (Tabelas)")
@@ -861,6 +861,31 @@ class AdminMenu(BaseMenu):
                                 st.warning("⚠️ O triângulo harmônico não foi formado.")
                     except Exception as ex:
                         st.error(f"Erro ao processar dados de auditoria para {nome_aud}: {ex}")
+
+        with t_tab_mapas:
+            st.subheader("Mapas Salvos (Banco de Dados)")
+            st.markdown("Visão geral de todos os perfis e mapas salvos na tabela `mapas_salvos`.")
+            if st.button("Atualizar Tabela de Mapas Salvos"):
+                st.rerun()
+                
+            try:
+                res_mapas = supabase_client.table("mapas_salvos").select("*").order("id", desc=True).execute()
+                if res_mapas.data:
+                    df_mapas = pd.DataFrame(res_mapas.data)
+                    # Remover colunas pesadas para exibição mais limpa
+                    if "mapa_json" in df_mapas.columns:
+                        df_mapas = df_mapas.drop(columns=["mapa_json"])
+                    if "perfil_json" in df_mapas.columns:
+                        df_mapas["perfil_json"] = df_mapas["perfil_json"].apply(lambda x: "JSON Calculado" if x else "Vazio")
+                    if "foto_base64" in df_mapas.columns:
+                        df_mapas["foto_base64"] = df_mapas["foto_base64"].apply(lambda x: "Foto Presente" if x else "Sem Foto")
+                        
+                    st.dataframe(df_mapas, use_container_width=True)
+                    st.caption(f"Total de mapas salvos: {len(df_mapas)}")
+                else:
+                    st.info("Nenhum mapa salvo na base de dados.")
+            except Exception as e:
+                st.error(f"Erro ao carregar mapas salvos: {e}")
 
         with t_tab5:
             st.subheader("Gerenciamento de Banners e Imagens")
