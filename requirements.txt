@@ -4,3 +4,4 @@ fpdf
 supabase
 st-supabase-connection
 google-generativeai
+plotly

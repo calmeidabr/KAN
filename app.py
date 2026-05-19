@@ -10,6 +10,7 @@ from menus.hierarquia_menu import HierarquiaMenu
 from menus.empresas_menu import EmpresasMenu
 from menus.admin_menu import AdminMenu
 from menus.diagnosticos_menu import DiagnosticosMenu
+from menus.analytics_menu import AnalyticsMenu
 from menus.placeholder_menu import PlaceholderMenu
 
 def set_nav_route(route):
@@ -34,7 +35,7 @@ class App:
             "Equipes": lambda: PlaceholderMenu(self).render(title="Gestão de Equipes", message="Módulo de estruturação de equipes em desenvolvimento."),
             "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
             "Usuários": lambda: PlaceholderMenu(self).render(title="Gestão de Usuários do Sistema", message="Módulo de gestão de permissões de usuários em desenvolvimento."),
-            "Analytics": lambda: PlaceholderMenu(self).render(title="Analytics & BI", message="Módulo de business intelligence comportamental em desenvolvimento."),
+            "Analytics": lambda: AnalyticsMenu(self).render(),
             "Painel de Controle": lambda: AdminMenu(self).render(),
             "Diagnósticos": lambda: DiagnosticosMenu(self).render(mode="diagnostico"),
             "Mapas": lambda: DiagnosticosMenu(self).render(mode="mapa")

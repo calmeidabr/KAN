@@ -121,37 +121,9 @@ class DiagnosticosMenu(BaseMenu):
         dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
         st.session_state['last_calc_results'] = res_calc
 
-        if not info_cliente.get('has_json') and supabase_client:
-            try:
-                dados_para_salvar = list(dados_perfil)
-                for label, val in [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
-                                   ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]:
-                    dados_para_salvar.append({
-                        "Campo": label, "Valor": str(val), "Descricao": "", "Resultado": str(val)
-                    })
-                for item in dados:
-                    campo_full = item.get('Campo', '')
-                    if ' - ' in campo_full:
-                        partes = campo_full.split(' - ')
-                        campo_simples = partes[0]
-                        valor_simples = partes[1]
-                    else:
-                        campo_simples = campo_full
-                        valor_simples = item.get('Resultado', '')
-                        if len(str(valor_simples)) > 50: valor_simples = "Ver Mapa"
-                    
-                    dados_para_salvar.append({
-                        "Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples
-                    })
-                perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
-                mapa_json_str = json.dumps(dados, ensure_ascii=False)
-                supabase_client.table("mapas_salvos").update({
-                    "mapa_json": mapa_json_str,
-                    "perfil_json": perfil_json_str
-                }).eq("nome", nome).execute()
-                info_cliente['has_json'] = True
-            except Exception:
-                pass
+        if not info_cliente.get('has_json'):
+            salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
+            info_cliente['has_json'] = True
 
         col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
         with col_res2:

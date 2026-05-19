@@ -115,4 +115,32 @@ class TalentosMenu(BaseMenu):
                             except Exception as ex:
                                 st.error(f"Erro ao salvar no Supabase: {ex}")
                         else:
-                            st.success("cadastro salvo com sucesso.")
+                            if "clientes_local_data" not in st.session_state:
+                                st.session_state["clientes_local_data"] = {}
+                            
+                            # Simulando o payload completo que a tabela Supabase forneceria 
+                            # (em carregar_todos_clientes)
+                            st.session_state["clientes_local_data"][cad_nome.strip()] = {
+                                'data_nascimento': cad_data.strip(),
+                                'cargo': cad_cargo.strip() if cad_cargo else '',
+                                'empresa': cad_emp,
+                                'linkedin_url': cad_link.strip() if cad_link else '',
+                                'experiencias': cad_exp.strip() if cad_exp else '',
+                                'foto_base64': foto_b64,
+                                'ai_diagnosis': '',
+                                'kan': None,
+                                'perfil': '',
+                                'categoria': '',
+                                'qualidades': '',
+                                'fortaleza': '',
+                                'desafio': '',
+                                'estrutural': '',
+                                'direcionamento': '',
+                                'repeticao_1': '',
+                                'repeticao_2': '',
+                                'mapa_detalhado': {},
+                                'has_json': False
+                            }
+                            st.success("cadastro salvo com sucesso (armazenamento local ativo).")
+                            st.session_state['ocr_nome'] = ''
+                            st.session_state['ocr_data_nascimento'] = ''

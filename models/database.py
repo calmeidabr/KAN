@@ -454,7 +454,7 @@ def carregar_hierarquia(empresa):
     return padrao
 
 @st.cache_data(ttl=300)
-def carregar_todos_clientes():
+def _fetch_supabase_clientes():
     client = get_supabase()
     cl_salvos = {}
     if client:
@@ -516,11 +516,21 @@ def carregar_todos_clientes():
         except Exception: pass
     return cl_salvos
 
+def carregar_todos_clientes():
+    cl_salvos = _fetch_supabase_clientes().copy()
+    if "clientes_local_data" in st.session_state:
+        for nome, data in st.session_state["clientes_local_data"].items():
+            cl_salvos[nome] = data
+    return cl_salvos
+
 def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2):
     client = get_supabase()
-    if not client: return
+    
     try:
         import json
+        import streamlit as st
+        from utils.helpers import normalize_key
+        
         dados_para_salvar = list(dados_perfil)
         campos_extra = [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
                        ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]
@@ -541,8 +551,43 @@ def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, 
                 dados_para_salvar.append({"Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples})
 
         perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
-        client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
-        st.toast("✅ Dados sincronizados com sucesso!")
-        st.cache_data.clear()
+        
+        if client:
+            client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
+            st.toast("✅ Dados sincronizados com sucesso!")
+            st.cache_data.clear()
+        else:
+            # Salvar no armazenamento local da sessão
+            if "clientes_local_data" in st.session_state and nome in st.session_state["clientes_local_data"]:
+                perfil_val, categoria_val, qualidades_val, kan_val, fortaleza_val, desafio_val = "", "", "", None, "", ""
+                for item in dados_para_salvar:
+                    campo_norm = normalize_key(item.get('Campo', ''))
+                    raw_val = item.get('Resultado', item.get('Valor', ''))
+                    if campo_norm == 'perfil': perfil_val = raw_val
+                    elif campo_norm == 'categoria': categoria_val = raw_val
+                    elif campo_norm == 'qualidades': qualidades_val = raw_val
+                    elif campo_norm == 'kan':
+                        try: kan_val = int(raw_val)
+                        except: kan_val = raw_val
+                    elif campo_norm == 'fortaleza': fortaleza_val = raw_val
+                    elif campo_norm == 'desafio': desafio_val = raw_val
+                    elif campo_norm == 'estrutural': st.session_state["clientes_local_data"][nome]['estrutural'] = raw_val
+                    elif campo_norm == 'direcionamento': st.session_state["clientes_local_data"][nome]['direcionamento'] = raw_val
+                    elif 'repeticao 1' in campo_norm: st.session_state["clientes_local_data"][nome]['repeticao_1'] = raw_val
+                    elif 'repeticao 2' in campo_norm: st.session_state["clientes_local_data"][nome]['repeticao_2'] = raw_val
+                    elif "mapa:" in campo_norm:
+                        nome_campo_mapa = item['Campo'].split("Mapa:")[1].strip()
+                        st.session_state["clientes_local_data"][nome]['mapa_detalhado'][nome_campo_mapa] = raw_val
+                
+                st.session_state["clientes_local_data"][nome]['perfil'] = perfil_val
+                st.session_state["clientes_local_data"][nome]['categoria'] = categoria_val
+                st.session_state["clientes_local_data"][nome]['qualidades'] = qualidades_val
+                st.session_state["clientes_local_data"][nome]['kan'] = kan_val
+                st.session_state["clientes_local_data"][nome]['fortaleza'] = fortaleza_val
+                st.session_state["clientes_local_data"][nome]['desafio'] = desafio_val
+                st.session_state["clientes_local_data"][nome]['has_json'] = True
+                st.toast("✅ Dados calculados e salvos localmente na sessão atual!")
+
     except Exception as e:
+        import streamlit as st
         st.error(f"Erro ao salvar: {e}")
