@@ -49,23 +49,23 @@ class App:
             st.markdown("""
             <div style="padding: 10px 0 20px 0; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px;">
                 <h2 style="font-size: 1.5em; font-weight: 900; color: #FFFFFF; letter-spacing: -0.8px; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <span style="color: #F18617; text-shadow: 0 0 10px rgba(241, 134, 23, 0.5);">🔮</span> KAN <span style="font-size: 0.5em; font-weight: 700; color: #1b0520; background: #F18617; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;">PRO</span>
+                    <span style="color: #FFFFFF; font-size: 1.1em;">◇</span> KAN <span style="font-size: 0.5em; font-weight: 700; color: #0b020c; background: #FFFFFF; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;">PRO</span>
                 </h2>
-                <p style="margin: 4px 0 0 0; font-size: 0.7em; color: rgba(255, 255, 255, 0.45); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;">People Analytics & Numerologia</p>
+                <p style="margin: 4px 0 0 0; font-size: 0.7em; color: rgba(255, 255, 255, 0.4); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;">People Analytics & Numerologia</p>
             </div>
             """, unsafe_allow_html=True)
             
             icones = {
-                "Home": "⌂",
-                "Talentos": "👤",
-                "Processos seletivos": "🎯",
-                "Diagnósticos": "⚡",
-                "Mapas": "🗺️",
-                "Analytics": "📊",
-                "Hierarquia / Deptos": "🏢",
-                "Equipes": "👥",
-                "Empresa": "⚙️",
-                "Usuários": "🔒",
+                "Home": "◇",
+                "Talentos": "○",
+                "Processos seletivos": "◎",
+                "Diagnósticos": "⎔",
+                "Mapas": "⛶",
+                "Analytics": "⬡",
+                "Hierarquia / Deptos": "⊞",
+                "Equipes": "⧇",
+                "Empresa": "⚙",
+                "Usuários": "⚿",
                 "Painel de Controle": "⛭"
             }
 
@@ -91,7 +91,7 @@ class App:
                     st.session_state[f"exp_{grupo}"] = (grupo == "ANÁLISES")
 
             is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
-            st.button("⌂ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
+            st.button("◇ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
 
             for grupo, itens in menu_groups.items():
                 is_exp = st.session_state[f"exp_{grupo}"]
@@ -124,7 +124,7 @@ class App:
             <div class='user-profile-card'>
                 <div style='display: flex; align-items: center; justify-content: space-between;'>
                     <div style='display: flex; align-items: center;'>
-                        <div style='background: #F18617; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #1b0520; margin-right: 12px; font-size: 1.1em; box-shadow: 0 2px 8px rgba(241, 134, 23, 0.4);'>
+                        <div style='background: rgba(255, 255, 255, 0.08); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #FFFFFF; margin-right: 12px; font-size: 1.1em; border: 1px solid rgba(255, 255, 255, 0.1);'>
                             {user_logged[0].upper()}
                         </div>
                         <div style='overflow: hidden; text-align: left;'>
