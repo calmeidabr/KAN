@@ -1537,35 +1537,120 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
         perfis_list = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
         score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
         
-        dados = [
-            {"Campo": "Motivação", "Valor": motivacao, "Descricao": get_desc_mapa("Motivacao", extract_num(motivacao)), "Resultado": motivacao},
-            {"Campo": "Impressão", "Valor": impressao, "Descricao": get_desc_mapa("Impressao", extract_num(impressao)), "Resultado": impressao},
-            {"Campo": "Expressão", "Valor": expressao, "Descricao": get_desc_mapa("Expressao", extract_num(expressao)), "Resultado": expressao},
-            {"Campo": "Dia Natalício", "Valor": str(nascimento[0]), "Descricao": get_desc_mapa("Dia Natalicio", str(nascimento[0])), "Resultado": str(nascimento[0])},
-            {"Campo": "Número Psíquico", "Valor": str(num_psiquico), "Descricao": get_desc_mapa("Numero Psiquico", str(num_psiquico)), "Resultado": str(num_psiquico)},
-            {"Campo": "Destino", "Valor": destino, "Descricao": get_desc_mapa("Destino", extract_num(destino)), "Resultado": destino},
-            {"Campo": "Missão", "Valor": missao, "Descricao": get_desc_mapa("Missao", extract_num(missao)), "Resultado": missao},
-            {"Campo": "Dívidas Cármicas", "Valor": dividas_carmicas, "Descricao": "", "Resultado": dividas_carmicas},
-            {"Campo": "Lições Cármicas", "Valor": licoes_carmicas, "Descricao": "", "Resultado": licoes_carmicas},
-            {"Campo": "Tendências Ocultas", "Valor": tendencias_ocultas, "Descricao": "", "Resultado": tendencias_ocultas},
-            {"Campo": "Resposta Subconsciente", "Valor": resposta_subconsciente, "Descricao": "", "Resultado": resposta_subconsciente},
-            {"Campo": "1º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo1']['numero']), "Descricao": get_desc_mapa("1º Ciclo de Vida", str(ciclos_vida['ciclo1']['numero'])), "Resultado": f"({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']}) {ciclos_vida['ciclo1']['numero']}"},
-            {"Campo": "2º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo2']['numero']), "Descricao": get_desc_mapa("2º Ciclo de Vida", str(ciclos_vida['ciclo2']['numero'])), "Resultado": f"({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']}) {ciclos_vida['ciclo2']['numero']}"},
-            {"Campo": "3º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo3']['numero']), "Descricao": get_desc_mapa("3º Ciclo de Vida", str(ciclos_vida['ciclo3']['numero'])), "Resultado": f"(A partir de {ciclos_vida['ciclo3']['inicio']}) {ciclos_vida['ciclo3']['numero']}"},
-            {"Campo": "1º Momento Decisivo", "Valor": str(momentos_decisivos['momento1']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento1']['numero'])), "Resultado": f"({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']}) {momentos_decisivos['momento1']['numero']}"},
-            {"Campo": "2º Momento Decisivo", "Valor": str(momentos_decisivos['momento2']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento2']['numero'])), "Resultado": f"({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']}) {momentos_decisivos['momento2']['numero']}"},
-            {"Campo": "3º Momento Decisivo", "Valor": str(momentos_decisivos['momento3']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento3']['numero'])), "Resultado": f"({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']}) {momentos_decisivos['momento3']['numero']}"},
-            {"Campo": "4º Momento Decisivo", "Valor": str(momentos_decisivos['momento4']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento4']['numero'])), "Resultado": f"(A partir de {momentos_decisivos['momento4']['inicio']}) {momentos_decisivos['momento4']['numero']}"},
-            {"Campo": "Ano Pessoal", "Valor": str(ano_pess), "Descricao": get_desc_mapa("Ano Pessoal", str(ano_pess)), "Resultado": str(ano_pess)},
-            {"Campo": "Mês Pessoal", "Valor": str(mes_pess), "Descricao": "", "Resultado": str(mes_pess)},
-            {"Campo": "Dia Pessoal", "Valor": str(dia_pessoal), "Descricao": "", "Resultado": str(dia_pessoal)},
-            {"Campo": "Triângulo Harmônico", "Valor": str(triangulo_base), "Descricao": "", "Resultado": str(triangulo_base)},
-            {"Campo": "Arcano Atual", "Valor": arcano_atual_res, "Descricao": "", "Resultado": arcano_atual_res},
-            {"Campo": "Arcano Atual (Período)", "Valor": arcano_atual_periodo, "Descricao": "", "Resultado": arcano_atual_periodo},
-            {"Campo": "Repetição Mapa", "Valor": repeticao_mapa, "Descricao": "", "Resultado": repeticao_mapa},
-            {"Campo": "Repetição 2 Mapa", "Valor": repeticao_2_mapa, "Descricao": "", "Resultado": repeticao_2_mapa},
-            {"Campo": "Repetição 3 Mapa", "Valor": repeticao_3_mapa, "Descricao": "", "Resultado": repeticao_3_mapa}
-        ]
+        def get_expl(campo_nome):
+            base_name = str(campo_nome).split(" - ")[0]
+            search = normalize_key(base_name)
+            if "psiquico" in search: search = "nopsiquico"
+            if "triangulodavida" in search and "repeticao" not in search: search = "triangulodavida"
+            if "repeticao" in search: search = "triangulodavidarepeticoes"
+            for k, v in CAMPO_DEFINICAO_DB.items():
+                if normalize_key(k) == search: return v
+            for k, v in CAMPO_DEFINICAO_DB.items():
+                if normalize_key(k) in search or search in normalize_key(k):
+                    if len(normalize_key(k)) > 3: return v
+            return ""
+
+        dados = []
+        def add_row(campo_titulo, valor_badge, resultado_texto, explicacao=""):
+            if not explicacao or str(explicacao).strip() == "":
+                explicacao = get_expl(campo_titulo)
+            
+            campo_full = f"{campo_titulo} - {valor_badge}" if (valor_badge is not None and str(valor_badge).strip() != "") else campo_titulo
+            dados.append({
+                "Campo": campo_full,
+                "Valor": str(valor_badge) if valor_badge is not None else "",
+                "Resultado": str(resultado_texto) if resultado_texto is not None else "",
+                "Explicacao": explicacao
+            })
+
+        def add_row_mapa(campo_titulo, valor_num, cat_mapa):
+            num_clean = extract_num(valor_num)
+            desc = get_desc_mapa(cat_mapa, str(num_clean)) if num_clean is not None else ""
+            add_row(campo_titulo, valor_num, desc if desc else valor_num)
+
+        add_row_mapa("Motivação", motivacao, "Motivacao")
+        add_row_mapa("Impressão", impressao, "Impressao")
+        add_row_mapa("Expressão", expressao, "Expressao")
+        add_row_mapa("Dia Natalício", str(nascimento[0]), "Dia Natalicio")
+        add_row_mapa("Número Psíquico", str(num_psiquico), "Numero Psiquico")
+        add_row_mapa("Destino", destino, "Destino")
+        add_row_mapa("Missão", missao, "Missao")
+
+        if dividas_carmicas:
+            dividas_str = ', '.join(str(d) for d in dividas_carmicas)
+            dividas_parts = [f"<b>{d}</b>: {get_desc_mapa('Divida Carmica', str(d)) or d}" for d in dividas_carmicas]
+            add_row("Dívidas Cármicas", dividas_str, ' | '.join(dividas_parts))
+        else:
+            add_row("Dívidas Cármicas", None, "Não há")
+
+        if licoes_carmicas:
+            licoes_str = ', '.join(str(l) for l in licoes_carmicas)
+            licoes_parts = [f"<b>{l}</b>: {get_desc_mapa('Licao Carmica', str(l)) or l}" for l in licoes_carmicas]
+            add_row("Lições Cármicas", licoes_str, ' | '.join(licoes_parts))
+        else:
+            add_row("Lições Cármicas", None, "Não há")
+
+        if tendencias_ocultas:
+            tend_str = ', '.join(str(t) for t in tendencias_ocultas)
+            tend_parts = [f"<b>{t}</b>: {get_desc_mapa('Tendencia Oculta', str(t)) or t}" for t in tendencias_ocultas]
+            add_row("Tendências Ocultas", tend_str, ' | '.join(tend_parts))
+        else:
+            add_row("Tendências Ocultas", None, "Não há")
+
+        desc_resp = get_desc_mapa("Resposta Subconsciente", str(extract_num(resposta_subconsciente))) if resposta_subconsciente else ""
+        add_row("Resposta Subconsciente", resposta_subconsciente, desc_resp if desc_resp else resposta_subconsciente)
+
+        desc_des1 = get_desc_mapa("Desafio", str(desafio1))
+        add_row("1º Desafio", str(desafio1), desc_des1 if desc_des1 else str(desafio1))
+        desc_des2 = get_desc_mapa("Desafio", str(desafio2))
+        add_row("2º Desafio", str(desafio2), desc_des2 if desc_des2 else str(desafio2))
+        desc_des_princ = get_desc_mapa("Desafio", str(desafio_principal))
+        add_row("Desafio Principal", str(desafio_principal), desc_des_princ if desc_des_princ else str(desafio_principal))
+
+        c1_num = str(ciclos_vida['ciclo1']['numero'])
+        c1_periodo = f"({ciclos_vida['ciclo1']['inicio']} a {ciclos_vida['ciclo1']['fim']})"
+        desc_c1 = get_desc_mapa("1º Ciclo de Vida", c1_num)
+        add_row("1º Ciclo de Vida", c1_num, f"<b>Período: {c1_periodo}</b><br>{desc_c1}" if desc_c1 else f"{c1_periodo} {c1_num}")
+
+        c2_num = str(ciclos_vida['ciclo2']['numero'])
+        c2_periodo = f"({ciclos_vida['ciclo2']['inicio']} a {ciclos_vida['ciclo2']['fim']})"
+        desc_c2 = get_desc_mapa("2º Ciclo de Vida", c2_num)
+        add_row("2º Ciclo de Vida", c2_num, f"<b>Período: {c2_periodo}</b><br>{desc_c2}" if desc_c2 else f"{c2_periodo} {c2_num}")
+
+        c3_num = str(ciclos_vida['ciclo3']['numero'])
+        c3_periodo = f"(A partir de {ciclos_vida['ciclo3']['inicio']})"
+        desc_c3 = get_desc_mapa("3º Ciclo de Vida", c3_num)
+        add_row("3º Ciclo de Vida", c3_num, f"<b>Período: {c3_periodo}</b><br>{desc_c3}" if desc_c3 else f"{c3_periodo} {c3_num}")
+
+        m1_num = str(momentos_decisivos['momento1']['numero'])
+        m1_periodo = f"({momentos_decisivos['momento1']['inicio']} a {momentos_decisivos['momento1']['fim']})"
+        desc_m1 = get_desc_mapa("Momento Decisivo", m1_num)
+        add_row("1º Momento Decisivo", m1_num, f"<b>Período: {m1_periodo}</b><br>{desc_m1}" if desc_m1 else f"{m1_periodo} {m1_num}")
+
+        m2_num = str(momentos_decisivos['momento2']['numero'])
+        m2_periodo = f"({momentos_decisivos['momento2']['inicio']} a {momentos_decisivos['momento2']['fim']})"
+        desc_m2 = get_desc_mapa("Momento Decisivo", m2_num)
+        add_row("2º Momento Decisivo", m2_num, f"<b>Período: {m2_periodo}</b><br>{desc_m2}" if desc_m2 else f"{m2_periodo} {m2_num}")
+
+        m3_num = str(momentos_decisivos['momento3']['numero'])
+        m3_periodo = f"({momentos_decisivos['momento3']['inicio']} a {momentos_decisivos['momento3']['fim']})"
+        desc_m3 = get_desc_mapa("Momento Decisivo", m3_num)
+        add_row("3º Momento Decisivo", m3_num, f"<b>Período: {m3_periodo}</b><br>{desc_m3}" if desc_m3 else f"{m3_periodo} {m3_num}")
+
+        m4_num = str(momentos_decisivos['momento4']['numero'])
+        m4_periodo = f"(A partir de {momentos_decisivos['momento4']['inicio']})"
+        desc_m4 = get_desc_mapa("Momento Decisivo", m4_num)
+        add_row("4º Momento Decisivo", m4_num, f"<b>Período: {m4_periodo}</b><br>{desc_m4}" if desc_m4 else f"{m4_periodo} {m4_num}")
+
+        add_row("Ano Pessoal", str(ano_pess), get_desc_mapa("Ano Pessoal", str(ano_pess)) or str(ano_pess))
+        add_row("Mês Pessoal", str(mes_pess), str(mes_pess))
+        add_row("Dia Pessoal", str(dia_pessoal), str(dia_pessoal))
+        add_row("Triângulo Harmônico", str(triangulo_base), str(triangulo_base))
+        add_row("Arcano Atual", None, arcano_atual_res)
+        add_row("Arcano Atual (Período)", None, arcano_atual_periodo)
+        add_row("Repetição Mapa", None, repeticao_mapa)
+        add_row("Repetição 2 Mapa", None, repeticao_2_mapa)
+        add_row("Repetição 3 Mapa", None, repeticao_3_mapa)
         
         for campo_s in colunas_score:
             val_s = valores_originais_score.get(campo_s)
