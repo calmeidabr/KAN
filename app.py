@@ -47,11 +47,9 @@ class App:
     def render_sidebar(self):
         with st.sidebar:
             st.markdown("""
-            <div style="padding: 10px 0 20px 0; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px;">
-                <h2 style="font-size: 1.5em; font-weight: 900; color: #FFFFFF; letter-spacing: -0.8px; margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <span style="color: #FFFFFF; font-size: 1.1em;">◇</span> KAN <span style="font-size: 0.5em; font-weight: 700; color: #0b020c; background: #FFFFFF; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;">PRO</span>
-                </h2>
-                <p style="margin: 4px 0 0 0; font-size: 0.7em; color: rgba(255, 255, 255, 0.4); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;">People Analytics & Numerologia</p>
+            <div class="sb-brand">
+                <div class="sb-brand-title">🔮 KAN</div>
+                <div class="sb-brand-sub">Análises de Soft Skills</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -90,33 +88,36 @@ class App:
                 if f"exp_{grupo}" not in st.session_state:
                     st.session_state[f"exp_{grupo}"] = (grupo == "ANÁLISES")
 
-            is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
-            st.button("◇ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
+            # Seção de Navegação
+            with st.container(border=True):
+                st.markdown('<div class="sb-label">Navegação</div>', unsafe_allow_html=True)
+                is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
+                st.button("◇ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
 
-            for grupo, itens in menu_groups.items():
-                is_exp = st.session_state[f"exp_{grupo}"]
-                chevron = "▴" if is_exp else "▾"
-                grp_icon = group_icons.get(grupo, '❖')
-                
-                grp_label = f"{grp_icon} \u00A0 {grupo} \u00A0 {chevron}"
-                st.button(grp_label, key=f"grp_{grupo}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
+                for grupo, itens in menu_groups.items():
+                    is_exp = st.session_state[f"exp_{grupo}"]
+                    chevron = "▴" if is_exp else "▾"
+                    grp_icon = group_icons.get(grupo, '❖')
                     
-                if is_exp:
-                    with st.container():
-                        for opcao in itens:
-                            is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
-                            sub_icon = icones.get(opcao, '▫')
-                            sub_label = f"{sub_icon} \u00A0 {opcao}"
-                            st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
+                    grp_label = f"{grp_icon} \u00A0 {grupo} \u00A0 {chevron}"
+                    st.button(grp_label, key=f"grp_{grupo}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
+                        
+                    if is_exp:
+                        with st.container():
+                            for opcao in itens:
+                                is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
+                                sub_icon = icones.get(opcao, '▫')
+                                sub_label = f"{sub_icon} \u00A0 {opcao}"
+                                st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
 
-            st.markdown("<div style='min-height: 20px;'></div>", unsafe_allow_html=True)
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
-
-            col_out1, col_out2 = st.columns(2)
-            with col_out1:
-                st.button("🚪 Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
-            with col_out2:
-                st.button("🔄 Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
+            # Seção de Ações Rápidas
+            with st.container(border=True):
+                st.markdown('<div class="sb-label">Ações</div>', unsafe_allow_html=True)
+                col_out1, col_out2 = st.columns(2)
+                with col_out1:
+                    st.button("🚪 Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
+                with col_out2:
+                    st.button("🔄 Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
 
             user_logged = st.session_state.get("logged_user", "Usuário")
             role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"

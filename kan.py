@@ -8,7 +8,12 @@ try:
 except Exception:
     favicon_img = "🔮"
 
-st.set_page_config(page_title="KAN Perfil Comportamental", layout="wide", page_icon=favicon_img)
+st.set_page_config(
+    page_title="KAN Perfil Comportamental", 
+    layout="wide", 
+    page_icon=favicon_img,
+    initial_sidebar_state="expanded"
+)
 
 # 2. Estilização CSS Global
 st.markdown("""
@@ -55,15 +60,29 @@ st.markdown("""
         color: #F18617 !important;
     }
     
-    /* --- DESIGN EXCLUSIVO DO SIDEBAR (KAN V3 SAAS TOTALMENTE ESCURO) --- */
-    section[data-testid="stSidebar"] {
-        width: 310px !important;
-        min-width: 310px !important;
-        max-width: 310px !important;
-        background-color: #0b020c !important;
-        border-right: 1px solid rgba(255,255,255,0.04);
+    /* --- DESIGN EXCLUSIVO DO SIDEBAR (KAN V3 SAAS PREMIUM) --- */
+    :root {
+        --sidebar-bg: linear-gradient(180deg, #0b020c 0%, #160318 100%);
+        --panel-bg: rgba(255,255,255,0.03);
+        --panel-border: rgba(255,255,255,0.06);
+        --text-main: #f8fafc;
+        --text-soft: #94a3b8;
+        --accent: #F18617;
+        --radius: 18px;
     }
-    section[data-testid="stSidebar"] > div,
+
+    [data-testid="stSidebar"] {
+        background: var(--sidebar-bg) !important;
+        border-right: 1px solid rgba(255,255,255,0.06) !important;
+        width: 340px !important;
+        min-width: 340px !important;
+        max-width: 340px !important;
+    }
+
+    [data-testid="stSidebar"] > div:first-child {
+        width: 340px !important;
+    }
+
     [data-testid="stSidebarContent"], [data-testid="stSidebarHeader"] {
         background: transparent !important;
     }
@@ -79,32 +98,78 @@ st.markdown("""
         background-color: rgba(255, 255, 255, 0.06);
         border-radius: 10px;
     }
-    [data-testid="stSidebarContent"]::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(255, 255, 255, 0.15);
+
+    /* Marca / Topo do Sidebar (.sb-brand) */
+    .sb-brand {
+        padding: 0.9rem 1rem 1.1rem 1rem;
+        margin-bottom: 1rem;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(241,134,23,0.15), rgba(255,255,255,0.02));
+        border: 1px solid rgba(255,255,255,0.06);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .sb-brand-title {
+        color: var(--text-main);
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin: 0;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+    }
+    .sb-brand-sub {
+        color: var(--text-soft);
+        font-size: 0.78rem;
+        margin-top: 0.35rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        font-weight: 600;
+        opacity: 0.8;
+    }
+
+    /* Estilo dos containers st.container(border=True) como seções (.sb-section) */
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlockBorderWrapper"] {
+        margin-top: 0.8rem !important;
+        margin-bottom: 0.8rem !important;
+        padding: 0.85rem !important;
+        border-radius: var(--radius) !important;
+        background-color: var(--panel-bg) !important;
+        border: 1px solid var(--panel-border) !important;
+        backdrop-filter: blur(8px) !important;
+    }
+
+    .sb-label {
+        color: var(--text-soft);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        margin-bottom: 0.65rem;
+        padding-left: 4px;
     }
 
     /* Container do Perfil do Usuário no rodapé */
     .user-profile-card {
-        background: rgba(255, 255, 255, 0.02) !important;
+        background: var(--panel-bg) !important;
         padding: 12px 14px !important;
-        border-radius: 12px !important;
+        border-radius: 14px !important;
         margin-top: 15px !important;
         margin-bottom: 10px !important;
-        border: 1px solid rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid var(--panel-border) !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
     .user-profile-card:hover {
         background: rgba(255, 255, 255, 0.04) !important;
-        border-color: rgba(255, 255, 255, 0.12) !important;
-        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05) !important;
+        border-color: rgba(241, 134, 23, 0.3) !important;
+        box-shadow: 0 6px 20px rgba(241, 134, 23, 0.08) !important;
     }
 
     /* Botões Gerais do Sidebar - Sem Contorno e com Fundo Transparente */
     .stApp section[data-testid="stSidebar"] div.stButton > button {
         border: none !important;
         background-color: transparent !important;
-        color: rgba(255,255,255,0.6) !important;
+        color: var(--text-soft) !important;
         text-align: left !important;
         justify-content: flex-start !important;
         padding: 10px 14px !important;
@@ -121,17 +186,17 @@ st.markdown("""
         color: #FFFFFF !important;
         border: none !important;
         box-shadow: none !important;
-        transform: translateX(2px) !important;
+        transform: translateX(3px) !important;
     }
 
-    /* Item Selecionado Geral - Destaque Branco e Sem Contorno */
+    /* Item Selecionado Geral - Fundo Transparente, indicador laranja */
     .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
         background-color: rgba(255, 255, 255, 0.06) !important;
-        color: #FFFFFF !important;
+        color: var(--accent) !important;
         font-weight: 700 !important;
         border: none !important;
-        border-left: 3px solid #FFFFFF !important;
+        border-left: 3px solid var(--accent) !important;
         border-radius: 0 8px 8px 0 !important;
         box-shadow: none !important;
     }
@@ -149,7 +214,7 @@ st.markdown("""
         box-shadow: none !important;
     }
     
-    /* Hover específico nos Submenus Aninhados - Sem Contorno */
+    /* Hover específico nos Submenus Aninhados */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button:hover {
         border: none !important;
         border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
@@ -158,24 +223,24 @@ st.markdown("""
         box-shadow: none !important;
     }
 
-    /* Submenu Ativo Aninhado - Destaque Branco e Sem Contorno */
+    /* Submenu Ativo Aninhado */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button[data-testid="baseButton-primary"] {
         border: none !important;
-        border-left: 2px solid #FFFFFF !important;
+        border-left: 2px solid var(--accent) !important;
         background-color: rgba(255, 255, 255, 0.06) !important;
-        color: #FFFFFF !important;
+        color: var(--accent) !important;
         font-weight: 650 !important;
         box-shadow: none !important;
     }
 
-    /* Botões de Ação no Rodapé (Sair / Reset) dentro de colunas - Sem Contorno */
+    /* Botões de Ação no Rodapé (Sair / Reset) dentro de colunas */
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button {
-        font-size: 0.8em !important;
+        font-size: 0.82em !important;
         padding: 8px 10px !important;
         border-radius: 8px !important;
         background-color: rgba(255, 255, 255, 0.03) !important;
-        border: none !important;
-        color: rgba(255, 255, 255, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        color: var(--text-main) !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
@@ -184,7 +249,7 @@ st.markdown("""
     }
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover {
         background-color: rgba(255, 255, 255, 0.06) !important;
-        border: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
         color: #FFFFFF !important;
         transform: translateY(-1px) !important;
         box-shadow: none !important;
