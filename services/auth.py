@@ -12,7 +12,7 @@ USUARIOS = {
 try:
     header_img = Image.open(os.path.join("images", "kan_logo_lar.png"))
 except Exception:
-    header_img = "🔮"
+    header_img = "◇"
 
 def get_header_image():
     return header_img
@@ -30,7 +30,7 @@ def check_password():
             st.session_state["password_correct"] = False
 
     def render_login_header():
-        if header_img != "🔮":
+        if header_img != "◇":
             col1, col2, col3 = st.columns([1, 1, 1])
             with col2:
                 st.image(header_img, use_container_width=True)

@@ -183,10 +183,10 @@ class HomeMenu(BaseMenu):
 
         col_nav1, col_nav2, col_nav3 = st.columns([1, 1, 1])
         with col_nav1:
-            if header_img != "🔮":
+            if header_img != "◇":
                 st.image(header_img, width=80)
             else:
-                st.markdown("<h4 style='margin:10px 0 0 0; color: #F18617;'>🔮 KAN</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='margin:10px 0 0 0; color: #F18617;'>◇ KAN</h4>", unsafe_allow_html=True)
                 
         with col_nav2:
             c1, c2, c3 = st.columns([1, 1, 1])
@@ -203,21 +203,16 @@ class HomeMenu(BaseMenu):
                     st.rerun()
 
         st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin: 30px 0;'><br>", unsafe_allow_html=True)
-        st.markdown("<h3>⚡ Acesso Rápido</h3><p style='color: rgba(255,255,255,0.6); margin-bottom: 25px;'>Navegue diretamente pelos módulos principais do sistema</p>", unsafe_allow_html=True)
+        st.markdown("<h3>Acesso Rápido</h3><p style='color: rgba(255,255,255,0.6); margin-bottom: 25px;'>Navegue diretamente pelos módulos principais do sistema</p>", unsafe_allow_html=True)
 
-        col_q1, col_q2, col_q3 = st.columns(3)
+        col_q1, col_q2 = st.columns(2)
         with col_q1:
             with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px;'>⚡ Diagnósticos</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
+                st.markdown("<h3 style='margin-bottom:10px;'>⎔ Diagnósticos</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
                 if st.button("Acessar Diagnósticos ➔", key="btn_qa_diag", use_container_width=True, type="primary"):
                     self.app.navigate("Diagnósticos")
         with col_q2:
             with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px;'>🗺️ Mapas Detalhados</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Tabelas completas de arcanos, ciclos e matriz numerológica cabalística.</p>", unsafe_allow_html=True)
-                if st.button("Acessar Mapas ➔", key="btn_qa_mapas", use_container_width=True, type="primary"):
-                    self.app.navigate("Mapas")
-        with col_q3:
-            with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px;'>👤 Talentos & OCR</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
+                st.markdown("<h3 style='margin-bottom:10px;'>○ Talentos & OCR</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
                 if st.button("Cadastrar Talentos ➔", key="btn_qa_tal", use_container_width=True, type="primary"):
                     self.app.navigate("Talentos")
