@@ -1307,6 +1307,101 @@ def fetch_assets_list():
         return []
 
 
+def carregar_todos_clientes():
+    cl_salvos = {}
+    if supabase_client:
+        try:
+            m_cache = fetch_matriz()
+            at_cache = fetch_atributos()
+            rep_cache = fetch_repeticao()
+            peso_cache = fetch_peso()
+            perf_cache = fetch_perfis()
+            q_cache = fetch_qualidades()
+            cat_cache = fetch_lista_categoria()
+            
+            response = supabase_client.table("mapas_salvos").select("*").execute()
+            for row in response.data:
+                kan_val = ""
+                perfil_val = ""
+                categoria_val = ""
+                qualidades_val = ""
+                fortaleza_val = ""
+                desafio_val = ""
+                
+                p_json = row.get('perfil_json')
+                if p_json:
+                    if isinstance(p_json, str):
+                        try:
+                            p_json = json.loads(p_json)
+                        except:
+                            p_json = []
+                            
+                if isinstance(p_json, list):
+                    for item in p_json:
+                        if isinstance(item, dict):
+                            raw_val = item.get('Valor')
+                            if raw_val is None or raw_val == "":
+                                res_str = str(item.get('Resultado', ''))
+                                if ' - ' in res_str:
+                                    raw_val = res_str.split(' - ')[0].strip()
+                                elif ':' in res_str:
+                                    raw_val = res_str.split(':')[0].strip()
+                                else:
+                                    raw_val = res_str.strip()
+                            
+                            campo_orig = str(item.get('Campo', ''))
+                            campo_norm = remover_acentos(campo_orig).lower().strip()
+                            if campo_norm == 'kan': kan_val = raw_val
+                            elif campo_norm == 'perfil': perfil_val = raw_val
+                            elif campo_norm == 'categoria': categoria_val = raw_val
+                            elif campo_norm == 'qualidades': qualidades_val = raw_val
+                            elif campo_norm == 'fortaleza': fortaleza_val = raw_val
+                            elif campo_norm == 'desafio': desafio_val = raw_val
+                            elif campo_norm == 'estrutural': row['estrutural_val'] = raw_val
+                            elif campo_norm == 'direcionamento': row['direcionamento_val'] = raw_val
+                            elif 'repeticao 1' in campo_norm: row['rep1_val'] = raw_val
+                            elif 'repeticao 2' in campo_norm: row['rep2_val'] = raw_val
+                            elif "mapa:" in campo_norm:
+                                if 'mapa_detalhado' not in row: row['mapa_detalhado'] = {}
+                                nome_campo_mapa = campo_orig.split("Mapa:")[1].strip()
+                                row['mapa_detalhado'][nome_campo_mapa] = raw_val
+
+                if not perfil_val or not kan_val:
+                    perfil_val, categoria_val, qualidades_val, kan_val = calcular_perfil_faltante(
+                        row['nome'], row['data_nascimento'],
+                        m_cache, at_cache, rep_cache, peso_cache, perf_cache, cat_cache, q_cache
+                    )
+
+                cl_salvos[row['nome']] = {
+                    'data_nascimento': row['data_nascimento'],
+                    'cargo': row.get('cargo', ''),
+                    'empresa': row.get('empresa', ''),
+                    'linkedin_url': row.get('linkedin_url', ''),
+                    'experiencias': row.get('experiencias', ''),
+                    'foto_base64': row.get('foto_base64', ''),
+                    'ai_diagnosis': row.get('ai_diagnosis', ''),
+                    'kan': kan_val,
+                    'perfil': perfil_val,
+                    'categoria': categoria_val,
+                    'qualidades': qualidades_val,
+                    'fortaleza': fortaleza_val,
+                    'desafio': desafio_val,
+                    'estrutural': row.get('estrutural_val', ''),
+                    'direcionamento': row.get('direcionamento_val', ''),
+                    'repeticao_1': row.get('rep1_val', ''),
+                    'repeticao_2': row.get('rep2_val', ''),
+                    'mapa_detalhado': row.get('mapa_detalhado', {}),
+                    'has_json': True if p_json else False
+                }
+                if row.get('ai_diagnosis'):
+                    if "ai_diagnosis" not in st.session_state:
+                        st.session_state["ai_diagnosis"] = {}
+                    st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
+        except Exception as e:
+            pass
+    return cl_salvos
+
+
 def render_home():
     if 'carousel_index' not in st.session_state:
         st.session_state.carousel_index = 0
@@ -3793,102 +3888,6 @@ def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, 
         st.cache_data.clear()
     except Exception as e:
         st.error(f"Erro ao salvar: {e}")
-
-
-def carregar_todos_clientes():
-    cl_salvos = {}
-    if supabase_client:
-        try:
-            m_cache = fetch_matriz()
-            at_cache = fetch_atributos()
-            rep_cache = fetch_repeticao()
-            peso_cache = fetch_peso()
-            perf_cache = fetch_perfis()
-            q_cache = fetch_qualidades()
-            cat_cache = fetch_lista_categoria()
-            
-            response = supabase_client.table("mapas_salvos").select("*").execute()
-            for row in response.data:
-                kan_val = ""
-                perfil_val = ""
-                categoria_val = ""
-                qualidades_val = ""
-                fortaleza_val = ""
-                desafio_val = ""
-                
-                p_json = row.get('perfil_json')
-                if p_json:
-                    if isinstance(p_json, str):
-                        try:
-                            p_json = json.loads(p_json)
-                        except:
-                            p_json = []
-                            
-                if isinstance(p_json, list):
-                    for item in p_json:
-                        if isinstance(item, dict):
-                            raw_val = item.get('Valor')
-                            if raw_val is None or raw_val == "":
-                                res_str = str(item.get('Resultado', ''))
-                                if ' - ' in res_str:
-                                    raw_val = res_str.split(' - ')[0].strip()
-                                elif ':' in res_str:
-                                    raw_val = res_str.split(':')[0].strip()
-                                else:
-                                    raw_val = res_str.strip()
-                            
-                            campo_orig = str(item.get('Campo', ''))
-                            campo_norm = remover_acentos(campo_orig).lower().strip()
-                            if campo_norm == 'kan': kan_val = raw_val
-                            elif campo_norm == 'perfil': perfil_val = raw_val
-                            elif campo_norm == 'categoria': categoria_val = raw_val
-                            elif campo_norm == 'qualidades': qualidades_val = raw_val
-                            elif campo_norm == 'fortaleza': fortaleza_val = raw_val
-                            elif campo_norm == 'desafio': desafio_val = raw_val
-                            elif campo_norm == 'estrutural': row['estrutural_val'] = raw_val
-                            elif campo_norm == 'direcionamento': row['direcionamento_val'] = raw_val
-                            elif 'repeticao 1' in campo_norm: row['rep1_val'] = raw_val
-                            elif 'repeticao 2' in campo_norm: row['rep2_val'] = raw_val
-                            elif "mapa:" in campo_norm:
-                                if 'mapa_detalhado' not in row: row['mapa_detalhado'] = {}
-                                nome_campo_mapa = campo_orig.split("Mapa:")[1].strip()
-                                row['mapa_detalhado'][nome_campo_mapa] = raw_val
-
-                if not perfil_val or not kan_val:
-                    perfil_val, categoria_val, qualidades_val, kan_val = calcular_perfil_faltante(
-                        row['nome'], row['data_nascimento'],
-                        m_cache, at_cache, rep_cache, peso_cache, perf_cache, cat_cache, q_cache
-                    )
-
-                cl_salvos[row['nome']] = {
-                    'data_nascimento': row['data_nascimento'],
-                    'cargo': row.get('cargo', ''),
-                    'empresa': row.get('empresa', ''),
-                    'linkedin_url': row.get('linkedin_url', ''),
-                    'experiencias': row.get('experiencias', ''),
-                    'foto_base64': row.get('foto_base64', ''),
-                    'ai_diagnosis': row.get('ai_diagnosis', ''),
-                    'kan': kan_val,
-                    'perfil': perfil_val,
-                    'categoria': categoria_val,
-                    'qualidades': qualidades_val,
-                    'fortaleza': fortaleza_val,
-                    'desafio': desafio_val,
-                    'estrutural': row.get('estrutural_val', ''),
-                    'direcionamento': row.get('direcionamento_val', ''),
-                    'repeticao_1': row.get('rep1_val', ''),
-                    'repeticao_2': row.get('rep2_val', ''),
-                    'mapa_detalhado': row.get('mapa_detalhado', {}),
-                    'has_json': True if p_json else False
-                }
-                if row.get('ai_diagnosis'):
-                    if "ai_diagnosis" not in st.session_state:
-                        st.session_state["ai_diagnosis"] = {}
-                    st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
-        except Exception as e:
-            pass
-    return cl_salvos
-
 clientes_salvos = carregar_todos_clientes()
 
 opcoes_clientes = sorted(list(clientes_salvos.keys()))
