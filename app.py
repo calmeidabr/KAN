@@ -46,9 +46,23 @@ class App:
 
     def render_sidebar(self):
         with st.sidebar:
-            st.markdown("""
+            import base64
+            import os
+            logo_html = ""
+            try:
+                logo_path = os.path.join("images", "ico_k.png")
+                if os.path.exists(logo_path):
+                    with open(logo_path, "rb") as f:
+                        logo_b64 = base64.b64encode(f.read()).decode()
+                    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">'
+                else:
+                    logo_html = '<span style="font-size: 1.15em; color: #FFFFFF; margin-right: 8px; font-weight: 700;">◇</span>'
+            except Exception:
+                logo_html = '<span style="font-size: 1.15em; color: #FFFFFF; margin-right: 8px; font-weight: 700;">◇</span>'
+
+            st.markdown(f"""
             <div class="sb-brand">
-                <div class="sb-brand-title">🔮 KAN</div>
+                <div class="sb-brand-title">{logo_html} KAN</div>
                 <div class="sb-brand-sub">Análises de Soft Skills</div>
             </div>
             """, unsafe_allow_html=True)

@@ -4,9 +4,9 @@ import os
 
 # 1. Configuração da Página
 try:
-    favicon_img = Image.open(os.path.join("images", "kan_logo_peq.png"))
+    favicon_img = Image.open(os.path.join("images", "ico_k.png"))
 except Exception:
-    favicon_img = "🔮"
+    favicon_img = "◇"
 
 st.set_page_config(
     page_title="KAN Perfil Comportamental", 
@@ -168,7 +168,9 @@ st.markdown("""
     /* Botões Gerais do Sidebar - Sem Contorno e com Fundo Transparente */
     .stApp section[data-testid="stSidebar"] div.stButton > button {
         border: none !important;
+        background: transparent !important;
         background-color: transparent !important;
+        background-image: none !important;
         color: var(--text-soft) !important;
         text-align: left !important;
         justify-content: flex-start !important;
@@ -182,7 +184,9 @@ st.markdown("""
 
     /* Hover nos botões gerais - Sem Contorno */
     .stApp section[data-testid="stSidebar"] div.stButton > button:hover {
+        background: rgba(255, 255, 255, 0.04) !important;
         background-color: rgba(255, 255, 255, 0.04) !important;
+        background-image: none !important;
         color: #FFFFFF !important;
         border: none !important;
         box-shadow: none !important;
@@ -192,7 +196,9 @@ st.markdown("""
     /* Item Selecionado Geral - Fundo Transparente, indicador laranja */
     .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
-        background-color: rgba(255, 255, 255, 0.06) !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
         color: var(--accent) !important;
         font-weight: 700 !important;
         border: none !important;
@@ -218,7 +224,9 @@ st.markdown("""
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button:hover {
         border: none !important;
         border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
         background-color: rgba(255, 255, 255, 0.03) !important;
+        background-image: none !important;
         color: #FFFFFF !important;
         box-shadow: none !important;
     }
@@ -227,7 +235,9 @@ st.markdown("""
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button[data-testid="baseButton-primary"] {
         border: none !important;
         border-left: 2px solid var(--accent) !important;
-        background-color: rgba(255, 255, 255, 0.06) !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
         color: var(--accent) !important;
         font-weight: 650 !important;
         box-shadow: none !important;
