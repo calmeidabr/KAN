@@ -1,0 +1,280 @@
+import datetime
+import calendar
+import itertools
+from collections import Counter, defaultdict
+from models.database import ARCANOS_DB
+
+letter_values = {
+    'A':1, 'B':2, 'C':3, 'D':4, 'E':5, 'F':8, 'G':3, 'H':5, 'I':1, 'J':1, 'K':2,
+    'L':3, 'M':4, 'N':5, 'O':7, 'P':8, 'Q':1, 'R':2, 'S':3, 'T':4, 'U':6, 'V':6,
+    'W':6, 'X':6, 'Y':1, 'Z':7, 'Ç':6, 'Ê':3, 'É':7, 'Í':3, 'Ó':9, 'Á':3, 'Ú':8,
+    'Ã':4, 'Å':8, 'Ñ':8, 'Ù':3, 'Û':4, 'À':2, 'Ö':5, 'Ô':5, 'È':1, 'Â':8, 'Ì':2, 'Ï':2
+}
+
+def reduce_number(n):
+    while n > 9 and n not in (11, 22):
+        n = sum(int(i) for i in str(n))
+    return n
+
+def soma_numeros(n):
+    while n > 9 and n not in [11, 22]:
+        n = sum(int(d) for d in str(n))
+    return n
+
+def calcular_numeros_nome(nome_completo):
+    nome = nome_completo.upper().replace(' ', '')
+    expressao_total = sum(letter_values.get(ch, 0) for ch in nome)
+    vogais = set('AEIOUYÀÁÂÃÄÅÆÉÈÊËÍÎÏÓÒÔÕÖÚÙÛÜ')
+    motivacao_total = sum(letter_values.get(ch, 0) for ch in nome if ch in vogais)
+    consoantes_total = sum(letter_values.get(ch, 0) for ch in nome if ch not in vogais)
+
+    impressao_reduzida = reduce_number(consoantes_total)
+    while impressao_reduzida > 9:
+        impressao_reduzida = sum(int(d) for d in str(impressao_reduzida))
+
+    return (reduce_number(expressao_total), reduce_number(motivacao_total), impressao_reduzida,
+            expressao_total, motivacao_total, consoantes_total)
+
+def calcular_momento_decisivo(a, b):
+    soma = a + b
+    if soma in (11, 22): return soma
+    return reduce_number(soma)
+
+def calcular_momentos_decisivos(dia, mes, ano, ciclos_vida):
+    momento1 = calcular_momento_decisivo(dia, mes)
+    inicio1 = ciclos_vida['ciclo1']['inicio']
+    fim1 = ciclos_vida['ciclo1']['fim']
+
+    ano_reduzido = reduce_number(ano)
+    momento2 = calcular_momento_decisivo(dia, ano_reduzido)
+    inicio2 = fim1
+    fim2 = inicio2 + 9
+
+    soma_12 = momento1 + momento2
+    if soma_12 in (11, 22): momento3 = soma_12
+    else: momento3 = reduce_number(soma_12)
+    inicio3 = fim2
+    fim3 = inicio3 + 9
+
+    momento4 = calcular_momento_decisivo(mes, ano_reduzido)
+    inicio4 = fim3
+    fim4 = None
+
+    return {
+        'momento1': {'numero': momento1, 'inicio': inicio1, 'fim': fim1},
+        'momento2': {'numero': momento2, 'inicio': inicio2, 'fim': fim2},
+        'momento3': {'numero': momento3, 'inicio': inicio3, 'fim': fim3},
+        'momento4': {'numero': momento4, 'inicio': inicio4, 'fim': fim4},
+    }
+
+def calcular_ciclos_vida(dia, mes, ano, destino):
+    ciclo1_num = mes
+    while ciclo1_num > 9:
+        ciclo1_num = sum(int(d) for d in str(ciclo1_num))
+        
+    ciclo1_ano_inicio = ano
+    ciclo1_periodo_anos = 37 - destino
+    ciclo1_ano_fim = ciclo1_ano_inicio + ciclo1_periodo_anos
+    
+    ciclo2_num = dia
+    while ciclo2_num > 9:
+        ciclo2_num = sum(int(d) for d in str(ciclo2_num))
+        
+    ciclo2_ano_inicio = ciclo1_ano_fim
+    ciclo2_ano_fim = ciclo2_ano_inicio + 27
+
+    ano_reduzido = reduce_number(ano)
+    ciclo3_num = ano_reduzido
+    ciclo3_ano_inicio = ciclo2_ano_fim
+
+    return {
+        'ciclo1': {'numero': ciclo1_num, 'inicio': ciclo1_ano_inicio, 'fim': ciclo1_ano_fim},
+        'ciclo2': {'numero': ciclo2_num, 'inicio': ciclo2_ano_inicio, 'fim': ciclo2_ano_fim},
+        'ciclo3': {'numero': ciclo3_num, 'inicio': ciclo3_ano_inicio, 'fim': None}
+    }
+
+def ano_pessoal(dia, mes, ano_atual):
+    total = dia + mes + ano_atual
+    while total > 9:
+        total = sum(int(d) for d in str(total))
+    return total
+
+def calcular_missao(destino, expressao):
+    return reduce_number(destino + expressao)
+
+def calcular_dividas_carmicas(dia, motivacao_total, expressao_total, impressao_total, destino_total):
+    dividas = []
+    def extrair_dividas(n):
+        if n in (13, 14, 16, 19): dividas.append(n)
+        while n > 9 and n not in (11, 22, 33):
+            n = sum(int(i) for i in str(n))
+            if n in (13, 14, 16, 19): dividas.append(n)
+
+    if dia in (13, 14, 16, 19): dividas.append(dia)
+    extrair_dividas(motivacao_total)
+    extrair_dividas(expressao_total)
+    extrair_dividas(impressao_total)
+    extrair_dividas(destino_total)
+    return sorted(list(set(dividas)))
+
+def calcular_licoes_carmicas(nome_completo):
+    nome_simplificado = nome_completo.upper().replace(' ', '')
+    letras_presentes = set(nome_simplificado)
+    numeros_presentes = set(letter_values.get(ch, 0) for ch in letras_presentes)
+    todas_licoes = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    return sorted(list(todas_licoes - numeros_presentes))
+
+def calcular_tendencias_ocultas(nome_completo):
+    nome_simplificado = nome_completo.upper().replace(' ', '')
+    contagem = Counter(letter_values.get(ch, 0) for ch in nome_simplificado if ch in letter_values)
+    return sorted([num for num, count in contagem.items() if count >= 3])
+
+def soma_tendencias_ocultas(tendencias_ocultas):
+    return sum(tendencias_ocultas)
+
+def calcular_resposta_subconsciente(licoes_carmicas):
+    return 9 - len(licoes_carmicas)
+
+def calcular_desafios(dia, mes, ano):
+    d1 = reduce_number(dia)
+    m1 = reduce_number(mes)
+    a1 = reduce_number(ano)
+    desafio1 = abs(d1 - m1)
+    desafio2 = abs(d1 - a1)
+    desafio_principal = abs(desafio1 - desafio2)
+    return desafio1, desafio2, desafio_principal
+
+def calcular_arcano_atual(nome_completo, nascimento, data_atual):
+    arcanos_dict = ARCANOS_DB
+
+    nome = nome_completo.upper().replace(' ', '')
+    numeros = [str(letter_values.get(ch, 0)) for ch in nome]
+    seq_str = ''.join(numeros)
+    
+    total_arcanos = len(seq_str) - 1
+    if total_arcanos <= 0: return "N/A", "N/A"
+        
+    arcanos = [int(seq_str[i:i+2]) for i in range(total_arcanos)]
+    dia_nasc, mes_nasc, ano_nasc = nascimento
+    total_meses = 90 * 12
+    duracao_meses_por_arcano = total_meses / total_arcanos
+    
+    periodos = []
+    for i in range(total_arcanos):
+        meses_para_somar = int(i * duracao_meses_por_arcano)
+        mes_index = (mes_nasc - 1) + meses_para_somar
+        ano = ano_nasc + (mes_index // 12)
+        mes = (mes_index % 12) + 1
+        ultimo_dia_mes = calendar.monthrange(ano, mes)[1]
+        dia = min(dia_nasc, ultimo_dia_mes)
+        data_inicio = datetime.date(ano, mes, dia)
+        periodos.append({'arcano': arcanos[i], 'inicio': data_inicio})
+        
+    hoje = datetime.date(*data_atual[::-1])
+    
+    arcano_atual_idx = 0
+    for i in range(total_arcanos):
+        if hoje >= periodos[i]['inicio']: arcano_atual_idx = i
+        else: break
+            
+    arc = periodos[arcano_atual_idx]['arcano']
+    arc_data = arcanos_dict.get(str(arc), {"nome": f"Carta {arc}", "descricao": ""})
+    nome_arcano = arc_data["nome"]
+    descricao = arc_data["descricao"]
+    data_inicio_str = periodos[arcano_atual_idx]['inicio'].strftime('%d/%m/%Y')
+    
+    if arcano_atual_idx < total_arcanos - 1:
+        data_fim_str = periodos[arcano_atual_idx + 1]['inicio'].strftime('%d/%m/%Y')
+    else:
+        meses_para_somar = int(total_arcanos * duracao_meses_por_arcano)
+        mes_index = (mes_nasc - 1) + meses_para_somar
+        ano = ano_nasc + (mes_index // 12)
+        mes = (mes_index % 12) + 1
+        ultimo_dia_mes = calendar.monthrange(ano, mes)[1]
+        dia = min(dia_nasc, ultimo_dia_mes)
+        data_fim_str = datetime.date(ano, mes, dia).strftime('%d/%m/%Y')
+        
+    resultado = f"Nº {arc} ({nome_arcano})"
+    if descricao and str(descricao).lower() != "nan": resultado += f" - {descricao}"
+    periodo = f"{data_inicio_str} a {data_fim_str}"
+    return resultado, periodo
+
+def calcular_triangulo_vida(nome_completo):
+    nome = nome_completo.upper().replace(' ', '')
+    arr = [letter_values.get(ch, 0) for ch in nome]
+    linhas = [arr]
+    while len(arr) > 1:
+        new_arr = []
+        for i in range(len(arr) - 1):
+            s = arr[i] + arr[i+1]
+            while s > 9: s = sum(int(d) for d in str(s))
+            new_arr.append(s)
+        arr = new_arr
+        linhas.append(arr)
+        
+    base = arr[0] if arr else 0
+    seq_counts = defaultdict(int)
+    for row in linhas:
+        for num, group in itertools.groupby(row):
+            count = sum(1 for _ in group)
+            if count >= 3:
+                seq_str = str(num) * count
+                seq_counts[seq_str] += 1
+                
+    if not seq_counts: reps = "Não há"
+    else: reps = ", ".join(f"{seq} ({qtd} vez{'es' if qtd > 1 else ''})" for seq, qtd in seq_counts.items())
+    return base, reps
+
+def calcular_numerologia(nome_completo, nascimento, data_atual):
+    dia, mes, ano = nascimento
+    dia_atual, mes_atual, ano_atual = data_atual
+
+    resultados_nome = calcular_numeros_nome(nome_completo)
+    expressao, motivacao, impressao = resultados_nome[0:3]
+
+    destino_total = sum(int(d) for d in str(dia) + str(mes) + str(ano))
+    destino = reduce_number(destino_total)
+    ano_pess = ano_pessoal(dia, mes, ano_atual)
+
+    mes_pess = mes_atual + ano_pess
+    while mes_pess > 9: mes_pess = sum(int(d) for d in str(mes_pess))
+
+    dia_pessoal = dia_atual + mes_pess
+    while dia_pessoal > 9: dia_pessoal = sum(int(d) for d in str(dia_pessoal))
+
+    def reduce_single(n):
+        while n > 9: n = sum(int(d) for d in str(n))
+        return n
+
+    carmica_des = reduce_single(dia) + reduce_single(mes) + reduce_single(ano)
+    vogais = set('AEIOUÀÁÂÃÄÅÆÉÈÊËÍÎÏÓÒÔÕÖÚÙÛÜ')
+    carmica_mot = 0
+    carmica_imp = 0
+    carmica_exp = 0
+
+    for palavra in nome_completo.upper().split():
+        v = sum(letter_values.get(c, 0) for c in palavra if c in vogais)
+        c = sum(letter_values.get(c, 0) for c in palavra if c not in vogais)
+        e = sum(letter_values.get(c, 0) for c in palavra)
+        carmica_mot += reduce_single(v)
+        carmica_imp += reduce_single(c)
+        carmica_exp += reduce_single(e)
+
+    missao = calcular_missao(destino, expressao)
+    dividas_carmicas = calcular_dividas_carmicas(dia, carmica_mot, carmica_exp, carmica_imp, carmica_des)
+    licoes_carmicas = calcular_licoes_carmicas(nome_completo)
+    tendencias_ocultas = calcular_tendencias_ocultas(nome_completo)
+    soma_tendencias = soma_tendencias_ocultas(tendencias_ocultas)
+    resposta_subconsciente = calcular_resposta_subconsciente(licoes_carmicas)
+    desafio1, desafio2, desafio_principal = calcular_desafios(dia, mes, ano)
+
+    ciclos_vida = calcular_ciclos_vida(dia, mes, ano, destino)
+    momentos_decisivos = calcular_momentos_decisivos(dia, mes, ano, ciclos_vida)
+    triangulo_base, triangulo_reps = calcular_triangulo_vida(nome_completo)
+    arcano_atual_res, arcano_atual_periodo = calcular_arcano_atual(nome_completo, nascimento, data_atual)
+
+    return (expressao, motivacao, impressao, destino, dia_pessoal, mes_pess,
+            ano_pess, missao, dividas_carmicas, licoes_carmicas,
+            tendencias_ocultas, soma_tendencias, resposta_subconsciente,
+            desafio1, desafio2, desafio_principal, ciclos_vida, momentos_decisivos,
+            triangulo_base, triangulo_reps, arcano_atual_res, arcano_atual_periodo)

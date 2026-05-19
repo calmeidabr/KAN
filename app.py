@@ -1,0 +1,170 @@
+import streamlit as st
+import os
+from PIL import Image
+
+from services.auth import check_password, get_header_image
+from menus.home_menu import HomeMenu
+from menus.talentos_menu import TalentosMenu
+from menus.processos_menu import ProcessosMenu
+from menus.hierarquia_menu import HierarquiaMenu
+from menus.empresas_menu import EmpresasMenu
+from menus.admin_menu import AdminMenu
+from menus.diagnosticos_menu import DiagnosticosMenu
+from menus.placeholder_menu import PlaceholderMenu
+
+class App:
+    def __init__(self):
+        self.routes = {
+            "Home": lambda: HomeMenu(self).render(),
+            "Talentos": lambda: TalentosMenu(self).render(),
+            "Processos seletivos": lambda: ProcessosMenu(self).render(),
+            "Hierarquia / Deptos": lambda: HierarquiaMenu(self).render(),
+            "Equipes": lambda: PlaceholderMenu(self).render(title="Gestão de Equipes", message="Módulo de estruturação de equipes em desenvolvimento."),
+            "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
+            "Usuários": lambda: PlaceholderMenu(self).render(title="Gestão de Usuários do Sistema", message="Módulo de gestão de permissões de usuários em desenvolvimento."),
+            "Analytics": lambda: PlaceholderMenu(self).render(title="Analytics & BI", message="Módulo de business intelligence comportamental em desenvolvimento."),
+            "Painel de Controle": lambda: AdminMenu(self).render(),
+            "Diagnósticos": lambda: DiagnosticosMenu(self).render(mode="diagnostico"),
+            "Mapas": lambda: DiagnosticosMenu(self).render(mode="mapa")
+        }
+
+    def navigate(self, route):
+        st.session_state["sidebar_menu"] = route
+        st.rerun()
+
+    def render_sidebar(self):
+        with st.sidebar:
+            st.markdown("<h2 style='text-align:center;'>🔮 KAN V3</h2>", unsafe_allow_html=True)
+            st.write("---")
+            
+            icones = {
+                "Home": "⌂",
+                "Talentos": "👤",
+                "Processos seletivos": "🎯",
+                "Diagnósticos": "⚡",
+                "Mapas": "🗺️",
+                "Analytics": "📊",
+                "Hierarquia / Deptos": "🏢",
+                "Equipes": "👥",
+                "Empresa": "⚙️",
+                "Usuários": "🔒",
+                "Painel de Controle": "⛭"
+            }
+
+            group_icons = {
+                "CADASTROS": "⊞",
+                "ANÁLISES": "⎔",
+                "ESTRUTURA DA EMPRESA": "⛶",
+                "CONFIGURAÇÕES": "⚙",
+                "ADMIN": "⛭"
+            }
+
+            menu_groups = {
+                "CADASTROS": ["Talentos", "Processos seletivos"],
+                "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
+                "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes"],
+                "CONFIGURAÇÕES": ["Empresa", "Usuários"]
+            }
+            if st.session_state.get("logged_user") == "adminkan":
+                menu_groups["ADMIN"] = ["Painel de Controle"]
+
+            for grupo in menu_groups.keys():
+                if f"exp_{grupo}" not in st.session_state:
+                    st.session_state[f"exp_{grupo}"] = (grupo == "ANÁLISES")
+
+            is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
+            if st.button("⌂ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary"):
+                self.navigate("Home")
+
+            for grupo, itens in menu_groups.items():
+                is_exp = st.session_state[f"exp_{grupo}"]
+                chevron = "▴" if is_exp else "▾"
+                grp_icon = group_icons.get(grupo, '❖')
+                
+                grp_label = f"{grp_icon} \u00A0 {grupo} \u00A0 {chevron}"
+                if st.button(grp_label, key=f"grp_{grupo}", use_container_width=True):
+                    st.session_state[f"exp_{grupo}"] = not is_exp
+                    st.rerun()
+                    
+                if is_exp:
+                    for opcao in itens:
+                        is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
+                        sub_icon = icones.get(opcao, '▫')
+                        sub_label = f"\u00A0\u00A0\u00A0\u00A0 {sub_icon} \u00A0 {opcao}"
+                        if st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary"):
+                            self.navigate(opcao)
+
+            st.markdown("<div style='min-height: 40px;'></div>", unsafe_allow_html=True)
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 10px 0;'>", unsafe_allow_html=True)
+
+            col_out1, col_out2 = st.columns(2)
+            with col_out1:
+                if st.button("🚪 Sair", use_container_width=True, key="btn_logout_side"):
+                    st.session_state["password_correct"] = False
+                    st.rerun()
+            with col_out2:
+                if st.button("🔄 Reset", use_container_width=True, key="btn_reset_side"):
+                    st.cache_data.clear()
+                    st.rerun()
+
+            user_logged = st.session_state.get("logged_user", "Usuário")
+            role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"
+            st.markdown(f"""
+            <div class='user-profile-card'>
+                <div style='display: flex; align-items: center; justify-content: space-between;'>
+                    <div style='display: flex; align-items: center;'>
+                        <div style='background: #F18617; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #1b0520; margin-right: 12px; font-size: 1.1em; box-shadow: 0 2px 8px rgba(241, 134, 23, 0.4);'>
+                            {user_logged[0].upper()}
+                        </div>
+                        <div style='overflow: hidden; text-align: left;'>
+                            <p style='margin: 0; font-size: 0.9em; font-weight: 700; color: white; white-space: nowrap; text-overflow: ellipsis;'>{user_logged}</p>
+                            <p style='margin: 0; font-size: 0.7em; color: rgba(255,255,255,0.5);'>{role_str} • Online</p>
+                        </div>
+                    </div>
+                    <div style='color: #39ff14; font-size: 0.8em; text-shadow: 0 0 8px #39ff14;'>
+                        ●
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    def run(self):
+        if not check_password():
+            return
+
+        if "sidebar_menu" not in st.session_state:
+            st.session_state["sidebar_menu"] = "Home"
+
+        if "nav" in st.query_params:
+            nav_val = st.query_params.get("nav")
+            if nav_val in self.routes:
+                st.session_state["sidebar_menu"] = nav_val
+            del st.query_params["nav"]
+
+        self.render_sidebar()
+
+        escolha = st.session_state.get("sidebar_menu", "Home")
+        header_img = get_header_image()
+
+        if escolha != "Home":
+            col_logo, col_empty = st.columns([1, 4])
+            with col_logo:
+                if header_img != "🔮":
+                    st.image(header_img, width=150)
+                else:
+                    st.markdown("<h3 style='margin:0; color: #F18617;'>🔮 KAN</h3>", unsafe_allow_html=True)
+
+        handler = self.routes.get(escolha, self.routes["Home"])
+        handler()
+
+        if escolha != "Home":
+            st.markdown("<br><br><br>", unsafe_allow_html=True)
+            st.markdown("---")
+            col_footer1, col_footer2 = st.columns([1, 8])
+            try:
+                footer_img = Image.open(os.path.join("images", "logo_mundo_kan_peq_neg2.png"))
+                with col_footer1:
+                    st.image(footer_img)
+            except Exception: pass
+            with col_footer2:
+                st.markdown("<p style='color: white; font-size: 12px; margin: 0; padding-top: 15px;'>Todos os direitos reservados para mundokan. Metodologia exclusiva registrada.</p>", unsafe_allow_html=True)
