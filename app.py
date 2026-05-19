@@ -12,6 +12,18 @@ from menus.admin_menu import AdminMenu
 from menus.diagnosticos_menu import DiagnosticosMenu
 from menus.placeholder_menu import PlaceholderMenu
 
+def set_nav_route(route):
+    st.session_state["sidebar_menu"] = route
+
+def toggle_exp_group(grupo):
+    st.session_state[f"exp_{grupo}"] = not st.session_state.get(f"exp_{grupo}", False)
+
+def handle_logout():
+    st.session_state["password_correct"] = False
+
+def handle_reset():
+    st.cache_data.clear()
+
 class App:
     def __init__(self):
         self.routes = {
@@ -73,8 +85,7 @@ class App:
                     st.session_state[f"exp_{grupo}"] = (grupo == "ANÁLISES")
 
             is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
-            if st.button("⌂ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary"):
-                self.navigate("Home")
+            st.button("⌂ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
 
             for grupo, itens in menu_groups.items():
                 is_exp = st.session_state[f"exp_{grupo}"]
@@ -82,30 +93,23 @@ class App:
                 grp_icon = group_icons.get(grupo, '❖')
                 
                 grp_label = f"{grp_icon} \u00A0 {grupo} \u00A0 {chevron}"
-                if st.button(grp_label, key=f"grp_{grupo}", use_container_width=True):
-                    st.session_state[f"exp_{grupo}"] = not is_exp
-                    st.rerun()
+                st.button(grp_label, key=f"grp_{grupo}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
                     
                 if is_exp:
                     for opcao in itens:
                         is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
                         sub_icon = icones.get(opcao, '▫')
                         sub_label = f"\u00A0\u00A0\u00A0\u00A0 {sub_icon} \u00A0 {opcao}"
-                        if st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary"):
-                            self.navigate(opcao)
+                        st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
 
             st.markdown("<div style='min-height: 40px;'></div>", unsafe_allow_html=True)
             st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 10px 0;'>", unsafe_allow_html=True)
 
             col_out1, col_out2 = st.columns(2)
             with col_out1:
-                if st.button("🚪 Sair", use_container_width=True, key="btn_logout_side"):
-                    st.session_state["password_correct"] = False
-                    st.rerun()
+                st.button("🚪 Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
             with col_out2:
-                if st.button("🔄 Reset", use_container_width=True, key="btn_reset_side"):
-                    st.cache_data.clear()
-                    st.rerun()
+                st.button("🔄 Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
 
             user_logged = st.session_state.get("logged_user", "Usuário")
             role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"

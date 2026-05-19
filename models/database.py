@@ -7,23 +7,25 @@ MENU_PRINCIPAL = [
     "Hierarquia / Deptos", "Equipes", "Empresa", "Usuários"
 ]
 
-supabase_client = None
-try:
-    from supabase import create_client, Client
-    url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-    key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-    supabase_client: Client = create_client(url, key)
-except Exception as e:
-    pass
+@st.cache_resource
+def init_supabase_client():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
+        return create_client(url, key)
+    except Exception:
+        return None
 
 def get_supabase():
-    return supabase_client
+    return init_supabase_client()
 
 @st.cache_data(ttl=3600)
 def fetch_arcanos():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("arcanos").select("*").execute()
+        if client:
+            resp = client.table("arcanos").select("*").execute()
             return {str(int(get_from_row(row, 'numero'))): {"nome": get_from_row(row, 'nome'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
     except Exception:
         pass
@@ -33,9 +35,10 @@ ARCANOS_DB = fetch_arcanos()
 
 @st.cache_data(ttl=3600)
 def fetch_fortalezas():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("fortalezas").select("*").execute()
+        if client:
+            resp = client.table("fortalezas").select("*").execute()
             return {str(int(get_from_row(row, 'triangulo'))): {"fortaleza": get_from_row(row, 'fortaleza'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'triangulo') is not None}
     except Exception:
         pass
@@ -45,9 +48,10 @@ FORTALEZAS_DB = fetch_fortalezas()
 
 @st.cache_data(ttl=3600)
 def fetch_kan():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("kans").select("*").execute()
+        if client:
+            resp = client.table("kans").select("*").execute()
             return {str(int(get_from_row(row, 'numero'))): {"kan": get_from_row(row, 'kan'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
     except Exception:
         pass
@@ -57,9 +61,10 @@ KAN_DB = fetch_kan()
 
 @st.cache_data(ttl=3600)
 def fetch_desafios():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("desafios").select("*").execute()
+        if client:
+            resp = client.table("desafios").select("*").execute()
             return {str(int(get_from_row(row, 'dia_nascimento'))): {"desafio": get_from_row(row, 'desafio'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'dia_nascimento') is not None}
     except Exception:
         pass
@@ -69,9 +74,10 @@ DESAFIOS_DB = fetch_desafios()
 
 @st.cache_data(ttl=3600)
 def fetch_matriz():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("matriz").select("*").execute()
+        if client:
+            resp = client.table("matriz").select("*").execute()
             if resp.data:
                 res_dict = {}
                 for row in resp.data:
@@ -104,9 +110,10 @@ MATRIZ_DB = fetch_matriz()
 
 @st.cache_data(ttl=3600)
 def fetch_atributos():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("atributos").select("*").execute()
+        if client:
+            resp = client.table("atributos").select("*").execute()
             if resp.data:
                 res_dict = {}
                 for row in resp.data:
@@ -131,11 +138,12 @@ ATRIBUTOS_DB = fetch_atributos()
 
 @st.cache_data(ttl=3600)
 def fetch_repeticao():
+    client = get_supabase()
     try:
-        if supabase_client:
+        if client:
             resp = None
-            try: resp = supabase_client.table("repeticao").select("*").execute()
-            except: resp = supabase_client.table("repeticao_descricao").select("*").execute()
+            try: resp = client.table("repeticao").select("*").execute()
+            except: resp = client.table("repeticao_descricao").select("*").execute()
             if resp and resp.data:
                 res_dict = {}
                 for row in resp.data:
@@ -161,9 +169,10 @@ REPETICAO_DB = fetch_repeticao()
 
 @st.cache_data(ttl=3600)
 def fetch_peso():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("peso").select("*").execute()
+        if client:
+            resp = client.table("peso").select("*").execute()
             if resp.data:
                 res_dict = {row['campo']: row['peso'] for row in resp.data}
                 if res_dict: return res_dict
@@ -180,9 +189,10 @@ PESO_DB = fetch_peso()
 
 @st.cache_data(ttl=3600)
 def fetch_perfis():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("perfis").select("*").execute()
+        if client:
+            resp = client.table("perfis").select("*").execute()
             if resp.data: return [row['perfil'] for row in resp.data]
     except Exception: pass
         
@@ -197,9 +207,10 @@ PERFIS_DB = fetch_perfis()
 
 @st.cache_data(ttl=3600)
 def fetch_perfil_descricao():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("perfil_descricao").select("*").execute()
+        if client:
+            resp = client.table("perfil_descricao").select("*").execute()
             if resp.data:
                 return {str(get_from_row(row, 'perfil')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
     except Exception: pass
@@ -215,9 +226,10 @@ PERFIL_DESCRICAO_DB = fetch_perfil_descricao()
 
 @st.cache_data(ttl=3600)
 def fetch_qualidades():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("qualidades").select("*").execute()
+        if client:
+            resp = client.table("qualidades").select("*").execute()
             if resp.data:
                 return {str(get_from_row(row, 'qualidade')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
     except Exception: pass
@@ -233,9 +245,10 @@ QUALIDADES_DB = fetch_qualidades()
 
 @st.cache_data(ttl=3600)
 def fetch_lista_categoria():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("lista_categoria").select("*").execute()
+        if client:
+            resp = client.table("lista_categoria").select("*").execute()
             if resp.data: return [get_from_row(row, 'categoria') for row in resp.data]
     except Exception: pass
         
@@ -250,9 +263,10 @@ LISTA_CATEGORIA_DB = fetch_lista_categoria()
 
 @st.cache_data(ttl=3600)
 def fetch_categoria_descricao():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("categoria_descricao").select("*").execute()
+        if client:
+            resp = client.table("categoria_descricao").select("*").execute()
             if resp.data:
                 return {str(get_from_row(row, 'categoria')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
     except Exception: pass
@@ -268,9 +282,10 @@ CATEGORIA_DESCRICAO_DB = fetch_categoria_descricao()
 
 @st.cache_data(ttl=3600)
 def fetch_peso_categoria():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("peso_categoria").select("*").execute()
+        if client:
+            resp = client.table("peso_categoria").select("*").execute()
             if resp.data: return {row['campo']: row['peso'] for row in resp.data}
     except Exception: pass
         
@@ -285,9 +300,10 @@ PESO_CATEGORIA_DB = fetch_peso_categoria()
 
 @st.cache_data(ttl=3600)
 def fetch_campo_definicao():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("campo_definicao").select("*").execute()
+        if client:
+            resp = client.table("campo_definicao").select("*").execute()
             if resp.data:
                 return {str(get_from_row(row, 'campo')): get_from_row(row, 'explicacao') for row in resp.data}
     except Exception: pass
@@ -303,9 +319,10 @@ CAMPO_DEFINICAO_DB = fetch_campo_definicao()
 
 @st.cache_data(ttl=3600)
 def fetch_diferenciais_descricao():
+    client = get_supabase()
     try:
-        if supabase_client:
-            resp = supabase_client.table("diferenciais_descricao").select("*").execute()
+        if client:
+            resp = client.table("diferenciais_descricao").select("*").execute()
             if resp.data:
                 return {str(get_from_row(row, 'no')): {'diferencial': get_from_row(row, 'diferencial'), 'descricao': get_from_row(row, 'descricao')} for row in resp.data}
     except Exception: pass
@@ -321,6 +338,7 @@ DIFERENCIAIS_DESC_DB = fetch_diferenciais_descricao()
 
 @st.cache_data(ttl=3600)
 def fetch_descricoes_mapa():
+    client = get_supabase()
     REMAINING_DESCRIPTIONS = [
         {'categoria': 'Numero Psiquico', 'valor': '1', 'descricao': 'Independência, pioneirismo, liderança e coragem.'},
         {'categoria': 'Numero Psiquico', 'valor': '2', 'descricao': 'Diplomacia, cooperação, união, intuição e sensibilidade.'},
@@ -343,15 +361,15 @@ def fetch_descricoes_mapa():
         if cat not in resultado: resultado[cat] = {}
         resultado[cat][val] = desc
 
-    if supabase_client:
+    if client:
         try:
             try:
-                check_resp = supabase_client.table("descricoes_mapa").select("id").eq("categoria", "Desafio").limit(1).execute()
+                check_resp = client.table("descricoes_mapa").select("id").eq("categoria", "Desafio").limit(1).execute()
                 if not check_resp.data:
-                    supabase_client.table("descricoes_mapa").upsert(REMAINING_DESCRIPTIONS).execute()
+                    client.table("descricoes_mapa").upsert(REMAINING_DESCRIPTIONS).execute()
             except Exception: pass
 
-            resp = supabase_client.table("descricoes_mapa").select("*").execute()
+            resp = client.table("descricoes_mapa").select("*").execute()
             for row in resp.data:
                 cat = get_from_row(row, 'categoria') or ""
                 val = str(get_from_row(row, 'valor') or "")
@@ -375,32 +393,37 @@ def get_desc_mapa(categoria, valor):
 
 @st.cache_data(ttl=60)
 def fetch_banners():
-    if not supabase_client: return []
+    client = get_supabase()
+    if not client: return []
     try:
-        res = supabase_client.table("kan_banners").select("*").order("id").execute()
+        res = client.table("kan_banners").select("*").order("id").execute()
         return res.data
     except Exception: return []
 
 @st.cache_data(ttl=300)
 def fetch_asset_b64(asset_id):
-    if not asset_id or not supabase_client: return None
+    client = get_supabase()
+    if not asset_id or not client: return None
     try:
-        res = supabase_client.table("kan_assets").select("data_base64").eq("id", asset_id).single().execute()
+        res = client.table("kan_assets").select("data_base64").eq("id", asset_id).single().execute()
         return res.data.get('data_base64')
     except Exception: return None
 
 @st.cache_data(ttl=60)
 def fetch_assets_list():
-    if not supabase_client: return []
+    client = get_supabase()
+    if not client: return []
     try:
-        res = supabase_client.table("kan_assets").select("id, nome").order("nome").execute()
+        res = client.table("kan_assets").select("id, nome").order("nome").execute()
         return res.data
     except Exception: return []
 
+@st.cache_data(ttl=300)
 def carregar_empresas():
-    if supabase_client:
+    client = get_supabase()
+    if client:
         try:
-            res = supabase_client.table("empresas").select("*").order("nome_empresa").execute()
+            res = client.table("empresas").select("*").order("nome_empresa").execute()
             if res.data: return res.data
         except Exception: pass
     if "empresas_local_data" not in st.session_state:
@@ -409,10 +432,12 @@ def carregar_empresas():
         ]
     return st.session_state["empresas_local_data"]
 
+@st.cache_data(ttl=300)
 def carregar_hierarquia(empresa):
-    if supabase_client:
+    client = get_supabase()
+    if client:
         try:
-            res = supabase_client.table("hierarquia_departamentos").select("*").eq("empresa", empresa).order("ordem").execute()
+            res = client.table("hierarquia_departamentos").select("*").eq("empresa", empresa).order("ordem").execute()
             if res.data: return res.data
         except Exception: pass
     if "hier_local_" + empresa in st.session_state:
@@ -428,11 +453,13 @@ def carregar_hierarquia(empresa):
     st.session_state["hier_local_" + empresa] = padrao
     return padrao
 
+@st.cache_data(ttl=300)
 def carregar_todos_clientes():
+    client = get_supabase()
     cl_salvos = {}
-    if supabase_client:
+    if client:
         try:
-            response = supabase_client.table("mapas_salvos").select("*").execute()
+            response = client.table("mapas_salvos").select("*").execute()
             for row in response.data:
                 p_json = row.get('perfil_json')
                 perfil_val, categoria_val, qualidades_val, kan_val, fortaleza_val, desafio_val = "", "", "", None, "", ""
@@ -490,7 +517,8 @@ def carregar_todos_clientes():
     return cl_salvos
 
 def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2):
-    if not supabase_client: return
+    client = get_supabase()
+    if not client: return
     try:
         import json
         dados_para_salvar = list(dados_perfil)
@@ -513,7 +541,7 @@ def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, 
                 dados_para_salvar.append({"Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples})
 
         perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
-        supabase_client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
+        client.table("mapas_salvos").update({"perfil_json": perfil_json_str}).eq("nome", nome).execute()
         st.toast("✅ Dados sincronizados com sucesso!")
         st.cache_data.clear()
     except Exception as e:
