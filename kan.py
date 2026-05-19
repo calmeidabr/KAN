@@ -101,9 +101,20 @@ st.markdown("""
     }
 
     /* Botões Gerais do Sidebar - Sem Contorno e com Fundo Transparente */
-    .stApp section[data-testid="stSidebar"] div.stButton > button {
+    .stApp section[data-testid="stSidebar"] div.stButton > button,
+    .stApp section[data-testid="stSidebar"] div.stButton > button:hover,
+    .stApp section[data-testid="stSidebar"] div.stButton > button:active,
+    .stApp section[data-testid="stSidebar"] div.stButton > button:focus,
+    .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
+    .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"],
+    .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-secondary"] {
         border: none !important;
+        background: transparent !important;
         background-color: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .stApp section[data-testid="stSidebar"] div.stButton > button {
         color: rgba(255,255,255,0.6) !important;
         text-align: left !important;
         justify-content: flex-start !important;
@@ -111,34 +122,27 @@ st.markdown("""
         border-radius: 8px !important;
         transition: all 0.2s ease !important;
         font-weight: 500 !important;
-        box-shadow: none !important;
         font-size: 0.9em !important;
     }
 
-    /* Hover nos botões gerais - Sem Contorno */
+    /* Hover nos botões gerais - Sem Contorno e Fundo Transparente */
     .stApp section[data-testid="stSidebar"] div.stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.04) !important;
         color: #FFFFFF !important;
-        border: none !important;
-        box-shadow: none !important;
         transform: translateX(2px) !important;
     }
 
-    /* Item Selecionado Geral - Destaque Branco e Sem Contorno */
+    /* Item Selecionado Geral - Fundo Transparente, Apenas Texto/Ícone e indicador vertical */
     .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
-        background-color: rgba(255, 255, 255, 0.06) !important;
         color: #FFFFFF !important;
         font-weight: 700 !important;
-        border: none !important;
         border-left: 3px solid #FFFFFF !important;
-        border-radius: 0 8px 8px 0 !important;
-        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding-left: 11px !important;
     }
 
-    /* Submenus Aninhados - Sem Contorno */
+    /* Submenus Aninhados - Sem Contorno e Fundo Transparente */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button {
-        border: none !important;
         border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
         border-radius: 0 !important;
         padding: 8px 12px 8px 24px !important;
@@ -146,48 +150,41 @@ st.markdown("""
         font-size: 0.86em !important;
         font-weight: 450 !important;
         color: rgba(255,255,255,0.45) !important;
-        box-shadow: none !important;
     }
     
-    /* Hover específico nos Submenus Aninhados - Sem Contorno */
+    /* Hover específico nos Submenus Aninhados */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button:hover {
-        border: none !important;
         border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
-        background-color: rgba(255, 255, 255, 0.03) !important;
         color: #FFFFFF !important;
-        box-shadow: none !important;
     }
 
-    /* Submenu Ativo Aninhado - Destaque Branco e Sem Contorno */
+    /* Submenu Ativo Aninhado */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button[data-testid="baseButton-primary"] {
-        border: none !important;
         border-left: 2px solid #FFFFFF !important;
-        background-color: rgba(255, 255, 255, 0.06) !important;
         color: #FFFFFF !important;
         font-weight: 650 !important;
-        box-shadow: none !important;
     }
 
-    /* Botões de Ação no Rodapé (Sair / Reset) dentro de colunas - Sem Contorno */
+    /* Botões de Ação no Rodapé (Sair / Reset) dentro de colunas - Sem Contorno e Fundo Transparente */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button,
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button {
         font-size: 0.8em !important;
         padding: 8px 10px !important;
-        border-radius: 8px !important;
-        background-color: rgba(255, 255, 255, 0.03) !important;
-        border: none !important;
         color: rgba(255, 255, 255, 0.7) !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
         font-weight: 500 !important;
-        box-shadow: none !important;
     }
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.06) !important;
-        border: none !important;
         color: #FFFFFF !important;
         transform: translateY(-1px) !important;
-        box-shadow: none !important;
     }
     
     [data-testid="stSidebarNav"] { display: none; }
