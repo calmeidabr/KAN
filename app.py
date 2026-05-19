@@ -46,8 +46,14 @@ class App:
 
     def render_sidebar(self):
         with st.sidebar:
-            st.markdown("<h2 style='text-align:center;'>🔮 KAN V3</h2>", unsafe_allow_html=True)
-            st.write("---")
+            st.markdown("""
+            <div style="padding: 10px 0 20px 0; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 20px;">
+                <h2 style="font-size: 1.5em; font-weight: 900; color: #FFFFFF; letter-spacing: -0.8px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #F18617; text-shadow: 0 0 10px rgba(241, 134, 23, 0.5);">🔮</span> KAN <span style="font-size: 0.5em; font-weight: 700; color: #1b0520; background: #F18617; padding: 2px 6px; border-radius: 4px; vertical-align: middle; margin-left: 5px;">PRO</span>
+                </h2>
+                <p style="margin: 4px 0 0 0; font-size: 0.7em; color: rgba(255, 255, 255, 0.45); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700;">People Analytics & Numerologia</p>
+            </div>
+            """, unsafe_allow_html=True)
             
             icones = {
                 "Home": "⌂",
@@ -96,14 +102,15 @@ class App:
                 st.button(grp_label, key=f"grp_{grupo}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
                     
                 if is_exp:
-                    for opcao in itens:
-                        is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
-                        sub_icon = icones.get(opcao, '▫')
-                        sub_label = f"\u00A0\u00A0\u00A0\u00A0 {sub_icon} \u00A0 {opcao}"
-                        st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
+                    with st.container():
+                        for opcao in itens:
+                            is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
+                            sub_icon = icones.get(opcao, '▫')
+                            sub_label = f"{sub_icon} \u00A0 {opcao}"
+                            st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
 
-            st.markdown("<div style='min-height: 40px;'></div>", unsafe_allow_html=True)
-            st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 10px 0;'>", unsafe_allow_html=True)
+            st.markdown("<div style='min-height: 20px;'></div>", unsafe_allow_html=True)
+            st.markdown("<hr style='border-color: rgba(255,255,255,0.06); margin: 15px 0;'>", unsafe_allow_html=True)
 
             col_out1, col_out2 = st.columns(2)
             with col_out1:

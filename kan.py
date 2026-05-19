@@ -55,64 +55,130 @@ st.markdown("""
         color: #F18617 !important;
     }
     
-    /* --- DESIGN EXCLUSIVO DO SIDEBAR (KAN V3 PREMIUM) --- */
+    /* --- DESIGN EXCLUSIVO DO SIDEBAR (KAN V3 SAAS PREMIUM) --- */
     section[data-testid="stSidebar"] {
+        width: 310px !important;
+        min-width: 310px !important;
+        max-width: 310px !important;
         background-color: #270828 !important;
-        border-right: 1px solid rgba(255,255,255,0.08);
+        border-right: 1px solid rgba(255,255,255,0.06);
     }
     section[data-testid="stSidebar"] > div,
     [data-testid="stSidebarContent"], [data-testid="stSidebarHeader"] {
         background: transparent !important;
     }
+    
+    /* Scrollbar customizada ultra-fina */
+    [data-testid="stSidebarContent"]::-webkit-scrollbar {
+        width: 5px;
+    }
+    [data-testid="stSidebarContent"]::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    [data-testid="stSidebarContent"]::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+    }
+    [data-testid="stSidebarContent"]::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
 
     /* Container do Perfil do Usuário no rodapé */
     .user-profile-card {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 12px 14px;
-        border-radius: 14px;
-        margin-top: 15px;
-        margin-bottom: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        background: rgba(255, 255, 255, 0.03) !important;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+        margin-top: 15px !important;
+        margin-bottom: 10px !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
     }
     .user-profile-card:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(241, 134, 23, 0.4);
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(241, 134, 23, 0.3) !important;
+        box-shadow: 0 6px 20px rgba(241, 134, 23, 0.08) !important;
     }
 
-    /* Botões do Menu Lateral - Estilo Monocromático & Clean */
+    /* Botões Gerais do Sidebar */
     .stApp section[data-testid="stSidebar"] div.stButton > button {
         border: none !important;
         background-color: transparent !important;
-        color: rgba(255,255,255,0.75) !important;
+        color: rgba(255,255,255,0.7) !important;
         text-align: left !important;
         justify-content: flex-start !important;
-        padding: 10px 16px !important;
-        border-radius: 10px !important;
+        padding: 10px 14px !important;
+        border-radius: 8px !important;
         transition: all 0.2s ease !important;
-        font-weight: 500 !important;
+        font-weight: 600 !important;
         box-shadow: none !important;
-        filter: grayscale(100%) opacity(0.85);
+        font-size: 0.9em !important;
     }
 
+    /* Hover nos botões gerais */
     .stApp section[data-testid="stSidebar"] div.stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
         color: #FFFFFF !important;
-        transform: translateX(3px) !important;
-        filter: grayscale(0%) opacity(1);
+        transform: translateX(2px) !important;
     }
 
-    /* Item Selecionado no Sidebar */
+    /* Item Selecionado Geral */
     .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
-        background: linear-gradient(90deg, rgba(241, 134, 23, 0.2) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+        background: linear-gradient(90deg, rgba(241, 134, 23, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
         color: #F18617 !important;
         font-weight: 700 !important;
         border-left: 3px solid #F18617 !important;
-        border-radius: 3px 10px 10px 3px !important;
-        filter: grayscale(0%) opacity(1);
+        border-radius: 0 8px 8px 0 !important;
     }
+
+    /* Submenus Aninhados (dentro de containers internos do sidebar) */
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button {
+        border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 0 !important;
+        padding: 8px 12px 8px 24px !important;
+        margin-left: 20px !important;
+        font-size: 0.86em !important;
+        font-weight: 500 !important;
+        color: rgba(255,255,255,0.55) !important;
+    }
+    
+    /* Hover específico nos Submenus Aninhados */
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button:hover {
+        border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Submenu Ativo Aninhado */
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button[data-testid="baseButton-primary"] {
+        border-left: 2px solid #F18617 !important;
+        background: linear-gradient(90deg, rgba(241, 134, 23, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%) !important;
+        color: #F18617 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Botões de Ação no Rodapé (Sair / Reset) dentro de colunas */
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button {
+        font-size: 0.8em !important;
+        padding: 8px 10px !important;
+        border-radius: 8px !important;
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        font-weight: 600 !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(241, 134, 23, 0.3) !important;
+        color: #F18617 !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    [data-testid="stSidebarNav"] { display: none; }
     /* --- FIM DESIGN SIDEBAR --- */
     
     div[data-testid="stContainer"] {
