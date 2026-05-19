@@ -1488,7 +1488,7 @@ def render_admin_panel():
     
     st.info("Central de comando administrativa do sistema KAN.")
     
-    t_tab1, t_tab2, t_tab3, t_tab4, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Banners"])
+    t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Banners"])
     
     with t_tab1:
         st.subheader("Editor de Configurações (Tabelas)")
@@ -1906,6 +1906,410 @@ def render_admin_panel():
     with t_tab4:
         st.subheader("Gerenciamento de Empresas")
         render_empresas()
+
+    with t_tab_auditoria:
+        st.subheader("Auditoria e Verificação de Perfis")
+        
+        clientes_salvos_aud = carregar_todos_clientes()
+        nomes_disp_aud = sorted(list(clientes_salvos_aud.keys()))
+        
+        if not nomes_disp_aud:
+            st.warning("Nenhum perfil cadastrado na base de dados.")
+        else:
+            col_sel1, col_sel2 = st.columns([2, 2])
+            with col_sel1:
+                nome_aud = st.selectbox("Selecione o Cliente / Perfil a ser analisado:", options=nomes_disp_aud, key="sel_aud_nome")
+            
+            if nome_aud:
+                c_info = clientes_salvos_aud[nome_aud]
+                nasc_dt = c_info['data_nascimento']
+                try:
+                    from datetime import datetime, date
+                    from collections import Counter
+                    if isinstance(nasc_dt, (datetime, date)):
+                        nascimento_tup = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
+                    elif isinstance(nasc_dt, str):
+                        try: dt_obj = datetime.strptime(nasc_dt, "%d/%m/%Y")
+                        except ValueError: dt_obj = datetime.strptime(nasc_dt, "%Y-%m-%d")
+                        nascimento_tup = (dt_obj.day, dt_obj.month, dt_obj.year)
+                    else:
+                        raise ValueError("Data inválida")
+                        
+                    now_dt = datetime.now()
+                    data_atual_tup = (now_dt.day, now_dt.month, now_dt.year)
+                    
+                    res_calc_aud = realizar_calculos_completos(nome_aud, nascimento_tup, data_atual_tup, c_info.get('cargo', ''), c_info.get('empresa', ''))
+                    dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc_aud
+                    
+                    clientes_salvos = clientes_salvos_aud
+                    
+                    with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
+                        st.markdown("### Selecione os filtros desejados")
+                        st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
+                        
+                        kan_display_map = {"3": "CRIAÇÃO", "6": "MOVIMENTO", "9": "FINALIDADE"}
+                        all_kans_raw = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
+                        all_kans = [kan_display_map.get(k, k) for k in all_kans_raw]
+                        
+                        def limpa_lista(lst):
+                            return sorted(list(set(str(x).strip() for x in lst if x and str(x).strip())))
+                        
+                        perfis_db_lista = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
+                        all_perfis = limpa_lista(perfis_db_lista)
+                        
+                        cats_db_lista = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
+                        all_cats = limpa_lista(cats_db_lista)
+                        
+                        quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
+                        all_quals = limpa_lista(quals_db_lista)
+                        
+                        all_cargos = limpa_lista([c.get('cargo', '') for c in clientes_salvos.values()])
+                        all_empresas = limpa_lista([c.get('empresa', '') for c in clientes_salvos.values()])
+                        
+                        col_b1, col_b2, col_b3, col_b4 = st.columns(4)
+                        with col_b1: filtro_kan = st.multiselect("KAN", options=all_kans, key="f_kan_aud")
+                        with col_b2: filtro_perfil = st.multiselect("PERFIL", options=all_perfis, key="f_perf_aud")
+                        with col_b3: filtro_cat = st.multiselect("Categoria", options=all_cats, key="f_cat_aud")
+                        with col_b4: filtro_qual = st.multiselect("Qualidades", options=all_quals, key="f_qual_aud")
+                        
+                        col_b5, col_b6 = st.columns(2)
+                        with col_b5: filtro_cargo = st.multiselect("Cargo/Profissão", options=all_cargos, key="f_cargo_aud")
+                        with col_b6: filtro_empresa = st.multiselect("Empresa/Grupo", options=all_empresas, key="f_emp_aud")
+                        
+                        if st.button("🔎 Realizar Busca de Perfis", key="btn_busca_aud"):
+                            resultados_busca = []
+                            for n, c in clientes_salvos.items():
+                                match_kan = True
+                                if filtro_kan:
+                                    inv_kan_map = {v: k for k, v in kan_display_map.items()}
+                                    f_kan_raw = [inv_kan_map.get(f, f) for f in filtro_kan]
+                                    f_kan_norm = [str(f).strip() for f in f_kan_raw]
+                                    match_kan = str(c.get('kan')).strip() in f_kan_norm
+                                
+                                match_perfil = True
+                                if filtro_perfil:
+                                    f_perfis_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_perfil]
+                                    c_perfis = [remover_acentos(str(p)).upper().strip() for p in str(c.get('perfil', '')).split(',')]
+                                    match_perfil = any(p in f_perfis_norm for p in c_perfis)
+                                    
+                                match_cat = True
+                                if filtro_cat:
+                                    f_cats_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_cat]
+                                    c_cats = [remover_acentos(str(p)).upper().strip() for p in str(c.get('categoria', '')).split(',')]
+                                    match_cat = any(p in f_cats_norm for p in c_cats)
+                                    
+                                match_qual = True
+                                if filtro_qual:
+                                    f_quals_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_qual]
+                                    c_quals = [remover_acentos(str(q)).upper().strip() for q in str(c.get('qualidades', '')).split(',')]
+                                    match_qual = any(q in f_quals_norm for q in c_quals)
+                                
+                                match_cargo = True
+                                if filtro_cargo:
+                                    match_cargo = str(c.get('cargo', '')).strip() in filtro_cargo
+                                    
+                                match_empresa = True
+                                if filtro_empresa:
+                                    match_empresa = str(c.get('empresa', '')).strip() in filtro_empresa
+                                    
+                                if match_kan and match_perfil and match_cat and match_qual and match_cargo and match_empresa:
+                                    row_res = {
+                                        "Nome": n,
+                                        "Data Nasc.": c.get('data_nascimento', ''),
+                                        "KAN": kan_display_map.get(str(c.get('kan')), str(c.get('kan'))),
+                                        "Perfil": c.get('perfil', ''),
+                                        "Categoria": c.get('categoria', ''),
+                                        "Qualidades": c.get('qualidades', ''),
+                                        "Estrutural": c.get('estrutural', ''),
+                                        "Direcionamento": c.get('direcionamento', ''),
+                                        "REPETIÇÃO 1": c.get('repeticao_1', ''),
+                                        "REPETIÇÃO 2": c.get('repeticao_2', ''),
+                                        "Fortaleza": c.get('fortaleza', ''),
+                                        "Desafio": c.get('desafio', '')
+                                    }
+                                    if c.get('mapa_detalhado'):
+                                        for k_mapa, v_mapa in c['mapa_detalhado'].items():
+                                            row_res[k_mapa] = v_mapa
+                                    
+                                    resultados_busca.append(row_res)
+                            
+                            if resultados_busca:
+                                st.success(f"{len(resultados_busca)} perfil(is) encontrado(s)!")
+                                df_final = pd.DataFrame(resultados_busca)
+                                st.dataframe(df_final, use_container_width=True, column_config={"Nome": st.column_config.Column(pinned=True)})
+                            else:
+                                st.warning("Nenhum perfil encontrado com os critérios selecionados.")
+                                
+                    with st.expander("📊 Ver Scores Técnicos (Auditoria)", expanded=False):
+                        p_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Perfil'), '')
+                        c_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Categoria'), '')
+                        q_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Qualidades'), '')
+
+                        st.header("Score Perfil")
+                        st.table(score_df_calc)
+                        st.info(f"**Perfil Selecionado:** {p_val}")
+                        
+                        st.header("Score Categoria")
+                        st.table(score_cat_df)
+                        st.info(f"**Categoria Selecionada:** {c_val}")
+                        
+                        st.header("Score Qualidades")
+                        st.table(score_qual_df)
+                        st.info(f"**Qualidades Selecionadas:** {q_val}")
+                        
+                        st.header("Detalhamento dos Atributos")
+                        st.table(auditoria_qual_df)
+                        
+                        st.header("Plano KAN")
+                        rep3 = ""
+                        rep4 = ""
+                        df_plano_kan = pd.DataFrame({
+                            "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA", "REPETICAO 2 MAPA", "REPETICAO 3 MAPA"],
+                            "Valor": [
+                                kan, 
+                                estrutural, 
+                                direcionamento, 
+                                str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1), 
+                                str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2),
+                                str(rep3).split(" - ")[0] if " - " in str(rep3) else str(rep3),
+                                str(rep4).split(" - ")[0] if " - " in str(rep4) else str(rep4)
+                            ]
+                        })
+                        st.table(df_plano_kan)
+                        
+                        st.header("Triângulo Harmônico")
+                        
+                        def clean_val(v):
+                            if v is None: return None
+                            s = str(v).split(" - ")[0]
+                            return int(s) if s.isdigit() else None
+
+                        k_val = clean_val(kan)
+                        e_val = clean_val(estrutural)
+                        d_val = clean_val(direcionamento)
+                        r1_val = clean_val(rep1)
+                        r2_val = clean_val(rep2)
+                        r3_val = clean_val(rep3)
+                        r4_val = clean_val(rep4)
+                        
+                        todos_campos = [
+                            {"campo": "KAN", "valor": k_val},
+                            {"campo": "ESTRUTURAL", "valor": e_val},
+                            {"campo": "DIRECIONAMENTO", "valor": d_val},
+                            {"campo": "REPETIÇÃO 1", "valor": r1_val},
+                            {"campo": "REPETICAO MAPA", "valor": r2_val},
+                            {"campo": "REPETICAO 2 MAPA", "valor": r3_val},
+                            {"campo": "REPETICAO 3 MAPA", "valor": r4_val}
+                        ]
+                        
+                        vertices = []
+                        valores_adicionados = set()
+                        
+                        for item in todos_campos:
+                            val = item["valor"]
+                            if val is not None and val not in [11, 22] and val not in valores_adicionados:
+                                vertices.append(item)
+                                valores_adicionados.add(val)
+                            if len(vertices) == 3:
+                                break
+                                
+                        valores_finais = [v["valor"] for v in vertices]
+                        df_triangulo = pd.DataFrame({
+                            "Vértice": [v["campo"] for v in vertices],
+                            "Valor": [v["valor"] for v in vertices]
+                        })
+                        st.table(df_triangulo)
+                        
+                        if len(set(valores_finais)) == 3:
+                            try:
+                                from PIL import Image, ImageDraw, ImageFont
+                                import os
+                                
+                                path_fundo = os.path.join("images", "plano_kan_fundo.jpg")
+                                if os.path.exists(path_fundo):
+                                    fundo_img = Image.open(path_fundo).convert("RGBA")
+                                    draw_layer = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                    draw = ImageDraw.Draw(draw_layer)
+                                    
+                                    coords_map = {
+                                        1: (794, 176),
+                                        2: (1037, 243),
+                                        3: (960, 380),
+                                        4: (794, 585),
+                                        5: (486, 585),
+                                        6: (320, 380),
+                                        7: (243, 243),
+                                        8: (486, 176),
+                                        9: (640, 120),
+                                        11: (1037, 243),
+                                        22: (794, 585)
+                                    }
+                                    
+                                    poly_points = []
+                                    for v in vertices:
+                                        val_num = int(v["valor"])
+                                        if val_num in coords_map:
+                                            poly_points.append(coords_map[val_num])
+                                        else:
+                                            val_reduz = sum(int(d) for d in str(val_num))
+                                            if val_reduz in coords_map:
+                                                poly_points.append(coords_map[val_reduz])
+                                                
+                                    if len(poly_points) == 3:
+                                        draw.polygon(poly_points, fill=(255, 255, 255, 140))
+                                        img_final = Image.alpha_composite(fundo_img, draw_layer)
+                                        st.image(img_final.convert("RGB"), caption="Visualização do Triângulo Harmônico", use_container_width=True)
+                                        
+                                        st.markdown("### 👥 Adicionar perfil para comparação")
+                                        
+                                        def obter_vertices_triangulo(nome_comp, data_nasc_str):
+                                            def clean_val(v):
+                                                if v is None: return None
+                                                s = str(v).split(" - ")[0]
+                                                return int(s) if s.isdigit() else None
+                                            try:
+                                                from datetime import datetime, date
+                                                if isinstance(data_nasc_str, (datetime, date)):
+                                                    nasc_dt = data_nasc_str
+                                                elif isinstance(data_nasc_str, str):
+                                                    try:
+                                                        nasc_dt = datetime.strptime(data_nasc_str, "%d/%m/%Y")
+                                                    except ValueError:
+                                                        nasc_dt = datetime.strptime(data_nasc_str, "%Y-%m-%d")
+                                                else:
+                                                    raise ValueError("Data em formato desconhecido")
+                                                nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
+                                                now_dt = datetime.now()
+                                                data_at = (now_dt.day, now_dt.month, now_dt.year)
+                                                
+                                                res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
+                                                (expressao, motivacao, impressao, destino, _, _, _, missao, _, _, 
+                                                 _, _, _, _, _, _, ciclos_vida, momentos_decisivos, triangulo_base, _, _, _) = res
+                                                
+                                                estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
+                                                    expressao, motivacao, impressao, nasc_tuple[0],
+                                                    destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+                                                    triangulo_base
+                                                )
+                                                
+                                                todos_num = []
+                                                for v_it in [expressao, motivacao, impressao, destino, missao, nasc_tuple[0]]:
+                                                    if isinstance(v_it, int): todos_num.append(v_it)
+                                                    elif isinstance(v_it, str) and str(v_it).isdigit(): todos_num.append(int(v_it))
+                                                    
+                                                for c_key in ciclos_vida:
+                                                    num_c = ciclos_vida[c_key].get('numero')
+                                                    if isinstance(num_c, int): todos_num.append(num_c)
+                                                    
+                                                for m_key in momentos_decisivos:
+                                                    num_m = momentos_decisivos[m_key].get('numero')
+                                                    if isinstance(num_m, int): todos_num.append(num_m)
+                                                    
+                                                num_ps = reduce_number(nasc_tuple[0])
+                                                todos_num.append(num_ps)
+                                                
+                                                if isinstance(triangulo_base, int): todos_num.append(triangulo_base)
+                                                
+                                                from collections import Counter
+                                                c_tot = Counter(todos_num)
+                                                r_tot = sorted([(n, c) for n, c in c_tot.items()], key=lambda x: (-x[1], x[0]))
+                                                
+                                                r2_v = r_tot[0][0] if r_tot else 0
+                                                r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
+                                                r4_v = r_tot[2][0] if len(r_tot) > 2 else 0
+                                                
+                                                k_v = clean_val(kan)
+                                                e_v = clean_val(estrutural)
+                                                d_v = clean_val(direcionamento)
+                                                r1_v = clean_val(rep1)
+                                                
+                                                todos_comp = [
+                                                    {"campo": "KAN", "valor": k_v},
+                                                    {"campo": "ESTRUTURAL", "valor": e_v},
+                                                    {"campo": "DIRECIONAMENTO", "valor": d_val},
+                                                    {"campo": "REPETIÇÃO 1", "valor": r1_v},
+                                                    {"campo": "REPETICAO MAPA", "valor": r2_v},
+                                                    {"campo": "REPETICAO 2 MAPA", "valor": r3_v},
+                                                    {"campo": "REPETICAO 3 MAPA", "valor": r4_v}
+                                                ]
+                                                
+                                                vertices_comp = []
+                                                vals_comp = set()
+                                                for it in todos_comp:
+                                                    v_it = it["valor"]
+                                                    if v_it is not None and v_it not in [11, 22] and v_it not in vals_comp:
+                                                        vertices_comp.append(v_it)
+                                                        vals_comp.add(v_it)
+                                                    if len(vertices_comp) == 3:
+                                                        break
+                                                        
+                                                if len(vertices_comp) == 3:
+                                                    return vertices_comp
+                                            except Exception as ex:
+                                                st.error(f"Erro ao processar {nome_comp}: {ex}")
+                                            return None
+
+                                        perfis_disp = sorted([n for n in clientes_salvos.keys() if n != nome_aud])
+                                        perfis_selecionados = st.multiselect("Pesquise e selecione os perfis:", options=perfis_disp, key="multi_comp_aud")
+                                        
+                                        if perfis_selecionados:
+                                            try:
+                                                font_label = ImageFont.truetype("arial.ttf", 34)
+                                            except:
+                                                font_label = ImageFont.load_default()
+
+                                            layer_base = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                            draw_base = ImageDraw.Draw(layer_base)
+                                            draw_base.polygon(poly_points, fill=(255, 255, 255, 140))
+                                            
+                                            img_multi_final = Image.alpha_composite(fundo_img, layer_base)
+                                            
+                                            layer_notes = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                            draw_notes = ImageDraw.Draw(layer_notes)
+                                            
+                                            if len(poly_points) == 3:
+                                                k_base = poly_points[0]
+                                                draw_notes.ellipse((k_base[0]-4, k_base[1]-4, k_base[0]+4, k_base[1]+4), fill=(60, 60, 60))
+                                                
+                                                cx_b = sum(p[0] for p in poly_points) // 3
+                                                cy_b = sum(p[1] for p in poly_points) // 3
+                                                draw_notes.text((cx_b - 15, cy_b - 10), str(nome_aud).split()[0], fill=(60, 60, 60), font=font_label)
+                                            
+                                            for idx, p_nome in enumerate(perfis_selecionados):
+                                                p_dados = clientes_salvos[p_nome]
+                                                p_vertices = obter_vertices_triangulo(p_nome, p_dados['data_nascimento'])
+                                                if p_vertices and len(p_vertices) == 3:
+                                                    p_points = []
+                                                    for val in p_vertices:
+                                                        if int(val) in coords_map:
+                                                            p_points.append(coords_map[int(val)])
+                                                        else:
+                                                            val_red = sum(int(d) for d in str(val))
+                                                            if val_red in coords_map:
+                                                                p_points.append(coords_map[val_red])
+                                                    if len(p_points) == 3:
+                                                        layer_comp = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                                        draw_comp = ImageDraw.Draw(layer_comp)
+                                                        draw_comp.polygon(p_points, fill=(255, 255, 255, 140))
+                                                        
+                                                        img_multi_final = Image.alpha_composite(img_multi_final, layer_comp)
+                                                        
+                                                        k_comp = p_points[0]
+                                                        draw_notes.ellipse((k_comp[0]-4, k_comp[1]-4, k_comp[0]+4, k_comp[1]+4), fill=(60, 60, 60))
+                                                        
+                                                        cx_c = sum(p[0] for p in p_points) // 3
+                                                        cy_c = sum(p[1] for p in p_points) // 3
+                                                        draw_notes.text((cx_c - 15, cy_c - 10), str(p_nome).split()[0], fill=(60, 60, 60), font=font_label)
+                                                        
+                                            img_multi_final = Image.alpha_composite(img_multi_final, layer_notes)
+                                            st.image(img_multi_final.convert("RGB"), caption="Comparativo de Triângulos Harmônicos", use_container_width=True)
+                                            
+                            except Exception as e:
+                                st.error(f"Erro ao gerar triângulo visual: {e}")
+                        else:
+                            st.warning("⚠️ O triângulo harmônico não foi formado.")
+                except Exception as ex:
+                    st.error(f"Erro ao processar dados de auditoria para {nome_aud}: {ex}")
 
     with t_tab5:
         st.subheader("Gerenciamento de Banners e Imagens")
@@ -3777,7 +4181,6 @@ with col_res2:
                                     texto_ia = f"<b>Aviso de Sistema:</b> Não foi possível acessar os modelos de IA modernos.<br>Erro: {e1}<br><br><b>Modelos disponíveis na sua chave:</b> {modelos_str}"
                                 except Exception as e3:
                                     texto_ia = f"<b>Erro na IA:</b> Não foi possível conectar ao Google Gemini. Verifique se a chave da API em st.secrets é válida.<br>Erro original: {e1}"
-                        
                         st.session_state["ai_diagnosis"][user_name_key] = texto_ia
                         
                         if supabase_client:
@@ -3804,393 +4207,6 @@ with col_res2:
             with col_p3:
                 if st.button("💾 Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
                     salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
-            # --- BUSCA DE PERFIS (AUDITORIA) ---
-
-            with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
-                st.markdown("### Selecione os filtros desejados")
-                st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
-                
-                kan_display_map = {"3": "CRIAÇÃO", "6": "MOVIMENTO", "9": "FINALIDADE"}
-                all_kans_raw = sorted([str(k) for k in KAN_DB.keys()], key=lambda x: int(x)) if KAN_DB else ['1', '2', '3', '4', '5', '6', '7', '8', '9', '11', '22']
-                all_kans = [kan_display_map.get(k, k) for k in all_kans_raw]
-                
-                # Normaliza e remove vazios
-                def limpa_lista(lst):
-                    return sorted(list(set(str(x).strip() for x in lst if x and str(x).strip())))
-                
-                # Perfis
-                perfis_db_lista = PERFIS_DB if PERFIS_DB else ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
-                all_perfis = limpa_lista(perfis_db_lista)
-                
-                # Categorias
-                cats_db_lista = LISTA_CATEGORIA_DB if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
-                all_cats = limpa_lista(cats_db_lista)
-                
-                # Qualidades
-                quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
-                all_quals = limpa_lista(quals_db_lista)
-                
-                # Cargos e Empresas
-                all_cargos = limpa_lista([c.get('cargo', '') for c in clientes_salvos.values()])
-                all_empresas = limpa_lista([c.get('empresa', '') for c in clientes_salvos.values()])
-                
-                col_b1, col_b2, col_b3, col_b4 = st.columns(4)
-                with col_b1:
-                    filtro_kan = st.multiselect("KAN", options=all_kans)
-                with col_b2:
-                    filtro_perfil = st.multiselect("PERFIL", options=all_perfis)
-                with col_b3:
-                    filtro_cat = st.multiselect("Categoria", options=all_cats)
-                with col_b4:
-                    filtro_qual = st.multiselect("Qualidades", options=all_quals)
-                
-                col_b5, col_b6 = st.columns(2)
-                with col_b5:
-                    filtro_cargo = st.multiselect("Cargo/Profissão", options=all_cargos)
-                with col_b6:
-                    filtro_empresa = st.multiselect("Empresa/Grupo", options=all_empresas)
-                
-                if st.button("🔎 Realizar Busca de Perfis"):
-                    resultados_busca = []
-                    for n, c in clientes_salvos.items():
-                        match_kan = True
-                        if filtro_kan:
-                            inv_kan_map = {v: k for k, v in kan_display_map.items()}
-                            f_kan_raw = [inv_kan_map.get(f, f) for f in filtro_kan]
-                            f_kan_norm = [str(f).strip() for f in f_kan_raw]
-                            match_kan = str(c.get('kan')).strip() in f_kan_norm
-                        
-                        match_perfil = True
-                        if filtro_perfil:
-                            f_perfis_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_perfil]
-                            c_perfis = [remover_acentos(str(p)).upper().strip() for p in str(c.get('perfil', '')).split(',')]
-                            match_perfil = any(p in f_perfis_norm for p in c_perfis)
-                            
-                        match_cat = True
-                        if filtro_cat:
-                            f_cats_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_cat]
-                            c_cats = [remover_acentos(str(p)).upper().strip() for p in str(c.get('categoria', '')).split(',')]
-                            match_cat = any(p in f_cats_norm for p in c_cats)
-                            
-                        match_qual = True
-                        if filtro_qual:
-                            f_quals_norm = [remover_acentos(str(f)).upper().strip() for f in filtro_qual]
-                            c_quals = [remover_acentos(str(q)).upper().strip() for q in str(c.get('qualidades', '')).split(',')]
-                            match_qual = any(q in f_quals_norm for q in c_quals)
-                        
-                        match_cargo = True
-                        if filtro_cargo:
-                            match_cargo = str(c.get('cargo', '')).strip() in filtro_cargo
-                            
-                        match_empresa = True
-                        if filtro_empresa:
-                            match_empresa = str(c.get('empresa', '')).strip() in filtro_empresa
-                            
-                        if match_kan and match_perfil and match_cat and match_qual and match_cargo and match_empresa:
-                            # Prepara dado base
-                            row_res = {
-                                "Nome": n,
-                                "Data Nasc.": c.get('data_nascimento', ''),
-                                "KAN": kan_display_map.get(str(c.get('kan')), str(c.get('kan'))),
-                                "Perfil": c.get('perfil', ''),
-                                "Categoria": c.get('categoria', ''),
-                                "Qualidades": c.get('qualidades', ''),
-                                "Estrutural": c.get('estrutural', ''),
-                                "Direcionamento": c.get('direcionamento', ''),
-                                "REPETIÇÃO 1": c.get('repeticao_1', ''),
-                                "REPETIÇÃO 2": c.get('repeticao_2', ''),
-                                "Fortaleza": c.get('fortaleza', ''),
-                                "Desafio": c.get('desafio', '')
-                            }
-                            # Adiciona campos do mapa detalhado ao final
-                            if c.get('mapa_detalhado'):
-                                for k_mapa, v_mapa in c['mapa_detalhado'].items():
-                                    row_res[k_mapa] = v_mapa
-                            
-                            resultados_busca.append(row_res)
-                    
-                    if resultados_busca:
-                        st.success(f"{len(resultados_busca)} perfil(is) encontrado(s)!")
-                        df_final = pd.DataFrame(resultados_busca)
-                        st.dataframe(df_final, use_container_width=True, column_config={"Nome": st.column_config.Column(pinned=True)})
-                    else:
-                        st.warning("Nenhum perfil encontrado com os critérios selecionados.")
-
-            # --- EXIBIÇÃO DOS SCORES TÉCNICOS ---
-            with st.expander("📊 Ver Scores Técnicos (Auditoria)", expanded=False):
-                p_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Perfil'), '')
-                c_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Categoria'), '')
-                q_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Qualidades'), '')
-
-                st.header("Score Perfil")
-                st.table(score_df_calc)
-                st.info(f"**Perfil Selecionado:** {p_val}")
-                
-                st.header("Score Categoria")
-                st.table(score_cat_df)
-                st.info(f"**Categoria Selecionada:** {c_val}")
-                
-                st.header("Score Qualidades")
-                st.table(score_qual_df)
-                st.info(f"**Qualidades Selecionadas:** {q_val}")
-                
-                st.header("Detalhamento dos Atributos")
-                st.table(auditoria_qual_df)
-                
-                st.header("Plano KAN")
-                rep3 = ""
-                rep4 = ""
-                df_plano_kan = pd.DataFrame({
-                    "Campo": ["KAN", "ESTRUTURAL", "DIRECIONAMENTO", "REPETIÇÃO 1", "REPETICAO MAPA", "REPETICAO 2 MAPA", "REPETICAO 3 MAPA"],
-                    "Valor": [
-                        kan, 
-                        estrutural, 
-                        direcionamento, 
-                        str(rep1).split(" - ")[0] if " - " in str(rep1) else str(rep1), 
-                        str(rep2).split(" - ")[0] if " - " in str(rep2) else str(rep2),
-                        str(rep3).split(" - ")[0] if " - " in str(rep3) else str(rep3),
-                        str(rep4).split(" - ")[0] if " - " in str(rep4) else str(rep4)
-                    ]
-                })
-                st.table(df_plano_kan)
-                
-                st.header("Triângulo Harmônico")
-                
-                def clean_val(v):
-                    if v is None: return None
-                    s = str(v).split(" - ")[0]
-                    return int(s) if s.isdigit() else None
-
-                k_val = clean_val(kan)
-                e_val = clean_val(estrutural)
-                d_val = clean_val(direcionamento)
-                r1_val = clean_val(rep1)
-                r2_val = clean_val(rep2)
-                r3_val = clean_val(rep3)
-                r4_val = clean_val(rep4)
-                
-                todos_campos = [
-                    {"campo": "KAN", "valor": k_val},
-                    {"campo": "ESTRUTURAL", "valor": e_val},
-                    {"campo": "DIRECIONAMENTO", "valor": d_val},
-                    {"campo": "REPETIÇÃO 1", "valor": r1_val},
-                    {"campo": "REPETICAO MAPA", "valor": r2_val},
-                    {"campo": "REPETICAO 2 MAPA", "valor": r3_val},
-                    {"campo": "REPETICAO 3 MAPA", "valor": r4_val}
-                ]
-                
-                vertices = []
-                valores_adicionados = set()
-                
-                for item in todos_campos:
-                    val = item["valor"]
-                    if val is not None and val not in [11, 22] and val not in valores_adicionados:
-                        vertices.append(item)
-                        valores_adicionados.add(val)
-                    if len(vertices) == 3:
-                        break
-                        
-                valores_finais = [v["valor"] for v in vertices]
-                df_triangulo = pd.DataFrame({
-                    "Vértice": [v["campo"] for v in vertices],
-                    "Valor": [v["valor"] for v in vertices]
-                })
-                st.table(df_triangulo)
-                
-                if len(set(valores_finais)) == 3:
-                    try:
-                        from PIL import Image, ImageDraw
-                        import os
-                        
-                        path_fundo = os.path.join("images", "plano_kan_fundo.jpg")
-                        if os.path.exists(path_fundo):
-                            fundo_img = Image.open(path_fundo).convert("RGBA")
-                            draw_layer = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                            draw = ImageDraw.Draw(draw_layer)
-                            
-                            # Coordenadas conhecidas dos números (ajustadas ao centro das áreas)
-                            coords_map = {
-                                1: (794, 176),
-                                2: (1037, 243),
-                                3: (960, 380),
-                                4: (794, 585),
-                                5: (486, 585),
-                                6: (320, 380),
-                                7: (243, 243),
-                                8: (486, 176),
-                                9: (640, 120),
-                                11: (1037, 243),
-                                22: (794, 585)
-                            }
-                            
-                            poly_points = []
-                            for v in vertices:
-                                val_num = int(v["valor"])
-                                if val_num in coords_map:
-                                    poly_points.append(coords_map[val_num])
-                                else:
-                                    val_reduz = sum(int(d) for d in str(val_num))
-                                    if val_reduz in coords_map:
-                                        poly_points.append(coords_map[val_reduz])
-                                        
-                            if len(poly_points) == 3:
-                                draw.polygon(poly_points, fill=(255, 255, 255, 140))
-                                img_final = Image.alpha_composite(fundo_img, draw_layer)
-                                st.image(img_final.convert("RGB"), caption="Visualização do Triângulo Harmônico", use_container_width=True)
-                                
-                                st.markdown("### 👥 Adicionar perfil para comparação")
-                                
-                                # Helper para extrair vértices de outro perfil
-                                def obter_vertices_triangulo(nome_comp, data_nasc_str):
-                                    def clean_val(v):
-                                        if v is None: return None
-                                        s = str(v).split(" - ")[0]
-                                        return int(s) if s.isdigit() else None
-                                    try:
-                                        from datetime import datetime, date
-                                        if isinstance(data_nasc_str, (datetime, date)):
-                                            nasc_dt = data_nasc_str
-                                        elif isinstance(data_nasc_str, str):
-                                            try:
-                                                nasc_dt = datetime.strptime(data_nasc_str, "%d/%m/%Y")
-                                            except ValueError:
-                                                nasc_dt = datetime.strptime(data_nasc_str, "%Y-%m-%d")
-                                        else:
-                                            raise ValueError("Data em formato desconhecido")
-                                        nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
-                                        now_dt = datetime.now()
-                                        data_at = (now_dt.day, now_dt.month, now_dt.year)
-                                        
-                                        res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
-                                        (expressao, motivacao, impressao, destino, _, _, _, missao, _, _, 
-                                         _, _, _, _, _, _, ciclos_vida, momentos_decisivos, triangulo_base, _, _, _) = res
-                                        
-                                        estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
-                                            expressao, motivacao, impressao, nasc_tuple[0],
-                                            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
-                                            triangulo_base
-                                        )
-                                        
-                                        todos_num = []
-                                        for v_it in [expressao, motivacao, impressao, destino, missao, nasc_tuple[0]]:
-                                            if isinstance(v_it, int): todos_num.append(v_it)
-                                            elif isinstance(v_it, str) and str(v_it).isdigit(): todos_num.append(int(v_it))
-                                            
-                                        for c_key in ciclos_vida:
-                                            num_c = ciclos_vida[c_key].get('numero')
-                                            if isinstance(num_c, int): todos_num.append(num_c)
-                                            
-                                        for m_key in momentos_decisivos:
-                                            num_m = momentos_decisivos[m_key].get('numero')
-                                            if isinstance(num_m, int): todos_num.append(num_m)
-                                            
-                                        num_ps = reduce_number(nasc_tuple[0])
-                                        todos_num.append(num_ps)
-                                        
-                                        if isinstance(triangulo_base, int): todos_num.append(triangulo_base)
-                                        
-                                        c_tot = Counter(todos_num)
-                                        r_tot = sorted([(n, c) for n, c in c_tot.items()], key=lambda x: (-x[1], x[0]))
-                                        
-                                        r2_v = r_tot[0][0] if r_tot else 0
-                                        r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
-                                        r4_v = r_tot[2][0] if len(r_tot) > 2 else 0
-                                        
-                                        k_v = clean_val(kan)
-                                        e_v = clean_val(estrutural)
-                                        d_v = clean_val(direcionamento)
-                                        r1_v = clean_val(rep1)
-                                        
-                                        todos_comp = [
-                                            {"campo": "KAN", "valor": k_v},
-                                            {"campo": "ESTRUTURAL", "valor": e_v},
-                                            {"campo": "DIRECIONAMENTO", "valor": d_v},
-                                            {"campo": "REPETIÇÃO 1", "valor": r1_v},
-                                            {"campo": "REPETICAO MAPA", "valor": r2_v},
-                                            {"campo": "REPETICAO 2 MAPA", "valor": r3_v},
-                                            {"campo": "REPETICAO 3 MAPA", "valor": r4_v}
-                                        ]
-                                        
-                                        vertices_comp = []
-                                        vals_comp = set()
-                                        for it in todos_comp:
-                                            v_it = it["valor"]
-                                            if v_it is not None and v_it not in [11, 22] and v_it not in vals_comp:
-                                                vertices_comp.append(v_it)
-                                                vals_comp.add(v_it)
-                                            if len(vertices_comp) == 3:
-                                                break
-                                                
-                                        if len(vertices_comp) == 3:
-                                            return vertices_comp
-                                    except Exception as ex:
-                                        st.error(f"Erro ao processar {nome_comp}: {ex}")
-                                    return None
-
-                                perfis_disp = sorted([n for n in clientes_salvos.keys() if n != nome])
-                                perfis_selecionados = st.multiselect("Pesquise e selecione os perfis:", options=perfis_disp)
-                                
-                                if perfis_selecionados:
-                                    from PIL import ImageFont
-                                    try:
-                                        font_label = ImageFont.truetype("arial.ttf", 34)
-                                    except:
-                                        font_label = ImageFont.load_default()
-
-                                    # Camada para o triângulo original
-                                    layer_base = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                                    draw_base = ImageDraw.Draw(layer_base)
-                                    draw_base.polygon(poly_points, fill=(255, 255, 255, 140))
-                                    
-                                    img_multi_final = Image.alpha_composite(fundo_img, layer_base)
-                                    
-                                    # Camada para anotações (nomes e vértices KAN)
-                                    layer_notes = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                                    draw_notes = ImageDraw.Draw(layer_notes)
-                                    
-                                    # Anotações do perfil principal
-                                    if len(poly_points) == 3:
-                                        k_base = poly_points[0]
-                                        draw_notes.ellipse((k_base[0]-4, k_base[1]-4, k_base[0]+4, k_base[1]+4), fill=(60, 60, 60))
-                                        
-                                        cx_b = sum(p[0] for p in poly_points) // 3
-                                        cy_b = sum(p[1] for p in poly_points) // 3
-                                        draw_notes.text((cx_b - 15, cy_b - 10), str(nome).split()[0], fill=(60, 60, 60), font=font_label)
-                                    
-                                    for idx, p_nome in enumerate(perfis_selecionados):
-                                        p_dados = clientes_salvos[p_nome]
-                                        p_vertices = obter_vertices_triangulo(p_nome, p_dados['data_nascimento'])
-                                        if p_vertices and len(p_vertices) == 3:
-                                            p_points = []
-                                            for val in p_vertices:
-                                                if int(val) in coords_map:
-                                                    p_points.append(coords_map[int(val)])
-                                                else:
-                                                    val_red = sum(int(d) for d in str(val))
-                                                    if val_red in coords_map:
-                                                        p_points.append(coords_map[val_red])
-                                            if len(p_points) == 3:
-                                                layer_comp = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                                                draw_comp = ImageDraw.Draw(layer_comp)
-                                                draw_comp.polygon(p_points, fill=(255, 255, 255, 140))
-                                                
-                                                img_multi_final = Image.alpha_composite(img_multi_final, layer_comp)
-                                                
-                                                # Anotações do perfil comparado
-                                                k_comp = p_points[0]
-                                                draw_notes.ellipse((k_comp[0]-4, k_comp[1]-4, k_comp[0]+4, k_comp[1]+4), fill=(60, 60, 60))
-                                                
-                                                cx_c = sum(p[0] for p in p_points) // 3
-                                                cy_c = sum(p[1] for p in p_points) // 3
-                                                draw_notes.text((cx_c - 15, cy_c - 10), str(p_nome).split()[0], fill=(60, 60, 60), font=font_label)
-                                                
-                                    img_multi_final = Image.alpha_composite(img_multi_final, layer_notes)
-                                    st.image(img_multi_final.convert("RGB"), caption="Comparativo de Triângulos Harmônicos", use_container_width=True)
-                                    
-                    except Exception as e:
-                        st.error(f"Erro ao gerar triângulo visual: {e}")
-                else:
-                    st.warning("⚠️ O triângulo harmônico não foi formado.")
 
 
 # --- RODAPÉ ---
