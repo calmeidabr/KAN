@@ -1538,25 +1538,25 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
         score_df_calc = pd.DataFrame(0, index=perfis_list, columns=colunas_score)
         
         dados = [
-            {"Campo": "Motivação", "Valor": motivacao, "Descricao": get_desc_mapa("Motivacao", extract_num(motivacao)).get("descricao", ""), "Resultado": motivacao},
-            {"Campo": "Impressão", "Valor": impressao, "Descricao": get_desc_mapa("Impressao", extract_num(impressao)).get("descricao", ""), "Resultado": impressao},
-            {"Campo": "Expressão", "Valor": expressao, "Descricao": get_desc_mapa("Expressao", extract_num(expressao)).get("descricao", ""), "Resultado": expressao},
-            {"Campo": "Dia Natalício", "Valor": str(nascimento[0]), "Descricao": get_desc_mapa("Dia Natalicio", str(nascimento[0])).get("descricao", ""), "Resultado": str(nascimento[0])},
-            {"Campo": "Número Psíquico", "Valor": str(num_psiquico), "Descricao": get_desc_mapa("Numero Psiquico", str(num_psiquico)).get("descricao", ""), "Resultado": str(num_psiquico)},
-            {"Campo": "Destino", "Valor": destino, "Descricao": get_desc_mapa("Destino", extract_num(destino)).get("descricao", ""), "Resultado": destino},
-            {"Campo": "Missão", "Valor": missao, "Descricao": get_desc_mapa("Missao", extract_num(missao)).get("descricao", ""), "Resultado": missao},
+            {"Campo": "Motivação", "Valor": motivacao, "Descricao": get_desc_mapa("Motivacao", extract_num(motivacao)), "Resultado": motivacao},
+            {"Campo": "Impressão", "Valor": impressao, "Descricao": get_desc_mapa("Impressao", extract_num(impressao)), "Resultado": impressao},
+            {"Campo": "Expressão", "Valor": expressao, "Descricao": get_desc_mapa("Expressao", extract_num(expressao)), "Resultado": expressao},
+            {"Campo": "Dia Natalício", "Valor": str(nascimento[0]), "Descricao": get_desc_mapa("Dia Natalicio", str(nascimento[0])), "Resultado": str(nascimento[0])},
+            {"Campo": "Número Psíquico", "Valor": str(num_psiquico), "Descricao": get_desc_mapa("Numero Psiquico", str(num_psiquico)), "Resultado": str(num_psiquico)},
+            {"Campo": "Destino", "Valor": destino, "Descricao": get_desc_mapa("Destino", extract_num(destino)), "Resultado": destino},
+            {"Campo": "Missão", "Valor": missao, "Descricao": get_desc_mapa("Missao", extract_num(missao)), "Resultado": missao},
             {"Campo": "Dívidas Cármicas", "Valor": dividas_carmicas, "Descricao": "", "Resultado": dividas_carmicas},
             {"Campo": "Lições Cármicas", "Valor": licoes_carmicas, "Descricao": "", "Resultado": licoes_carmicas},
             {"Campo": "Tendências Ocultas", "Valor": tendencias_ocultas, "Descricao": "", "Resultado": tendencias_ocultas},
             {"Campo": "Resposta Subconsciente", "Valor": resposta_subconsciente, "Descricao": "", "Resultado": resposta_subconsciente},
-            {"Campo": "1º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo1']['numero']), "Descricao": get_desc_mapa("1º Ciclo de Vida", str(ciclos_vida['ciclo1']['numero'])).get("descricao", ""), "Resultado": f"({ciclos_vida['ciclo1']['idade']} anos) {ciclos_vida['ciclo1']['numero']}"},
-            {"Campo": "2º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo2']['numero']), "Descricao": get_desc_mapa("2º Ciclo de Vida", str(ciclos_vida['ciclo2']['numero'])).get("descricao", ""), "Resultado": f"({ciclos_vida['ciclo2']['idade']} anos) {ciclos_vida['ciclo2']['numero']}"},
-            {"Campo": "3º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo3']['numero']), "Descricao": get_desc_mapa("3º Ciclo de Vida", str(ciclos_vida['ciclo3']['numero'])).get("descricao", ""), "Resultado": f"({ciclos_vida['ciclo3']['idade']} anos) {ciclos_vida['ciclo3']['numero']}"},
-            {"Campo": "1º Momento Decisivo", "Valor": str(momentos_decisivos['momento1']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento1']['numero'])).get("descricao", ""), "Resultado": f"({momentos_decisivos['momento1']['idade']} anos) {momentos_decisivos['momento1']['numero']}"},
-            {"Campo": "2º Momento Decisivo", "Valor": str(momentos_decisivos['momento2']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento2']['numero'])).get("descricao", ""), "Resultado": f"({momentos_decisivos['momento2']['idade']} anos) {momentos_decisivos['momento2']['numero']}"},
-            {"Campo": "3º Momento Decisivo", "Valor": str(momentos_decisivos['momento3']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento3']['numero'])).get("descricao", ""), "Resultado": f"({momentos_decisivos['momento3']['idade']} anos) {momentos_decisivos['momento3']['numero']}"},
-            {"Campo": "4º Momento Decisivo", "Valor": str(momentos_decisivos['momento4']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento4']['numero'])).get("descricao", ""), "Resultado": f"({momentos_decisivos['momento4']['idade']} anos) {momentos_decisivos['momento4']['numero']}"},
-            {"Campo": "Ano Pessoal", "Valor": str(ano_pess), "Descricao": get_desc_mapa("Ano Pessoal", str(ano_pess)).get("descricao", ""), "Resultado": str(ano_pess)},
+            {"Campo": "1º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo1']['numero']), "Descricao": get_desc_mapa("1º Ciclo de Vida", str(ciclos_vida['ciclo1']['numero'])), "Resultado": f"({ciclos_vida['ciclo1']['idade']} anos) {ciclos_vida['ciclo1']['numero']}"},
+            {"Campo": "2º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo2']['numero']), "Descricao": get_desc_mapa("2º Ciclo de Vida", str(ciclos_vida['ciclo2']['numero'])), "Resultado": f"({ciclos_vida['ciclo2']['idade']} anos) {ciclos_vida['ciclo2']['numero']}"},
+            {"Campo": "3º Ciclo de Vida", "Valor": str(ciclos_vida['ciclo3']['numero']), "Descricao": get_desc_mapa("3º Ciclo de Vida", str(ciclos_vida['ciclo3']['numero'])), "Resultado": f"({ciclos_vida['ciclo3']['idade']} anos) {ciclos_vida['ciclo3']['numero']}"},
+            {"Campo": "1º Momento Decisivo", "Valor": str(momentos_decisivos['momento1']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento1']['numero'])), "Resultado": f"({momentos_decisivos['momento1']['idade']} anos) {momentos_decisivos['momento1']['numero']}"},
+            {"Campo": "2º Momento Decisivo", "Valor": str(momentos_decisivos['momento2']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento2']['numero'])), "Resultado": f"({momentos_decisivos['momento2']['idade']} anos) {momentos_decisivos['momento2']['numero']}"},
+            {"Campo": "3º Momento Decisivo", "Valor": str(momentos_decisivos['momento3']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento3']['numero'])), "Resultado": f"({momentos_decisivos['momento3']['idade']} anos) {momentos_decisivos['momento3']['numero']}"},
+            {"Campo": "4º Momento Decisivo", "Valor": str(momentos_decisivos['momento4']['numero']), "Descricao": get_desc_mapa("Momento Decisivo", str(momentos_decisivos['momento4']['numero'])), "Resultado": f"({momentos_decisivos['momento4']['idade']} anos) {momentos_decisivos['momento4']['numero']}"},
+            {"Campo": "Ano Pessoal", "Valor": str(ano_pess), "Descricao": get_desc_mapa("Ano Pessoal", str(ano_pess)), "Resultado": str(ano_pess)},
             {"Campo": "Mês Pessoal", "Valor": str(mes_pess), "Descricao": "", "Resultado": str(mes_pess)},
             {"Campo": "Dia Pessoal", "Valor": str(dia_pessoal), "Descricao": "", "Resultado": str(dia_pessoal)},
             {"Campo": "Triângulo Harmônico", "Valor": str(triangulo_base), "Descricao": "", "Resultado": str(triangulo_base)},
@@ -1684,7 +1684,7 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
             if remover_acentos(k_desc).upper() == cn: cat_d = v_desc; break
         add_row_perfil_split("Categoria", cat_sel, cat_d)
         
-        campos_para_dif = [extract_num(motivacao), extract_num(impressao), extract_num(expressao), extract_num(destino), extract_num(missao), str(nascimento[0]), str(triangulo_base), str(num_dia_reduzido)]
+        campos_para_dif = [extract_num(motivacao), extract_num(impressao), extract_num(expressao), extract_num(destino), extract_num(missao), str(nascimento[0]), str(triangulo_base), str(num_psiquico)]
         dif_ativos = []; dif_d_list = []
         for v_dif in ["11", "22"]:
             if v_dif in campos_para_dif:
@@ -1701,7 +1701,8 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
         add_row_perfil_split("Qualidades", ", ".join(q_escolhidas), "<br>".join(q_d_list) if q_d_list else "")
         
         user_name_key = f"diag_{nome}"
-        desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (clientes_salvos.get(nome, {}).get('ai_diagnosis')) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
+        cl_map = carregar_todos_clientes()
+        desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (cl_map.get(nome, {}).get('ai_diagnosis')) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
         add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
         f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "N/E", "descricao": ""}); add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
         d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "N/E", "descricao": ""}); add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
