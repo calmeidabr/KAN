@@ -71,7 +71,7 @@ st.markdown("""
         --radius: 18px;
     }
 
-    [data-testid="stSidebar"] {
+    [data-testid="stSidebar"][data-collapsed="false"] {
         background: var(--sidebar-bg) !important;
         border-right: 1px solid rgba(255,255,255,0.06) !important;
         width: 340px !important;
@@ -79,8 +79,28 @@ st.markdown("""
         max-width: 340px !important;
     }
 
-    [data-testid="stSidebar"] > div:first-child {
+    [data-testid="stSidebar"][data-collapsed="true"] {
+        width: 0px !important;
+        min-width: 0px !important;
+        max-width: 0px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    [data-testid="stSidebar"][data-collapsed="false"] > div:first-child {
         width: 340px !important;
+    }
+
+    /* Ajusta a área principal da página para expandir ou encolher com o sidebar */
+    [data-testid="stAppViewContainer"] {
+        transition: padding-left 0.2s ease-in-out !important;
+    }
+    .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stAppViewContainer"] {
+        padding-left: 340px !important;
+    }
+    .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stAppViewContainer"] {
+        padding-left: 0px !important;
     }
 
     [data-testid="stSidebarContent"], [data-testid="stSidebarHeader"] {
