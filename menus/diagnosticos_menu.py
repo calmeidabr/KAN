@@ -168,6 +168,9 @@ class DiagnosticosMenu(BaseMenu):
             elif clientes_salvos.get(nome) and clientes_salvos[nome].get('foto_base64'):
                 foto_b64 = clientes_salvos[nome]['foto_base64']
             
+            if foto_b64 and "base64," in foto_b64:
+                foto_b64 = foto_b64.split("base64,")[1]
+            
             if foto_b64:
                 html = f'''
                 <div style="display: flex; align-items: center; margin-bottom: 25px;">
@@ -191,18 +194,47 @@ class DiagnosticosMenu(BaseMenu):
                 st.subheader("Perfil Comportamental")
                 
                 st.markdown("""<style>
-                .perfil-custom-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
-                .perfil-custom-table th { background-color: #F18617; color: #401041; padding: 12px; text-align: left; }
-                .perfil-custom-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-                .p-label { color: #F18617; font-weight: bold; padding: 12px; }
-                .p-value { background-color: #F18617; color: #401041; padding: 6px; font-weight: bold; text-align: center; }
-                .p-desc { padding: 12px; color: #FFFFFF; font-size: 0.95em; line-height: 1.5; }
+                .perfil-custom-table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-top: 15px; 
+                    background: rgba(255,255,255,0.03); 
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                }
+                .perfil-custom-table th { 
+                    background-color: #F18617; 
+                    color: #270828; 
+                    padding: 14px 20px; 
+                    text-align: left; 
+                    font-size: 1.05em; 
+                    font-weight: 800;
+                }
+                .perfil-custom-table td { 
+                    border-bottom: 1px solid rgba(255,255,255,0.08); 
+                    vertical-align: top; 
+                    padding: 16px 20px; 
+                }
+                .p-label { color: #F18617; font-weight: 800; font-size: 1.1em; margin-bottom: 8px; }
+                .p-badge { 
+                    display: inline-block; 
+                    background: linear-gradient(135deg, #F18617 0%, #D97706 100%); 
+                    color: #1b0520; 
+                    font-weight: 900; 
+                    font-size: 1.2em; 
+                    padding: 4px 14px; 
+                    border-radius: 8px; 
+                    box-shadow: 0 4px 10px rgba(241,134,23,0.3);
+                    margin-bottom: 8px; 
+                }
+                .p-desc { color: #FFFFFF; font-size: 0.95em; line-height: 1.6; text-align: justify; }
                 </style>""", unsafe_allow_html=True)
                 
-                html_table = '<table class="perfil-custom-table"><thead><tr><th>Campo</th><th>Resultado</th></tr></thead><tbody>'
+                html_table = '<table class="perfil-custom-table"><thead><tr><th style="width: 28%;">Indicador KAN / Valor</th><th>Análise e Interpretação</th></tr></thead><tbody>'
                 for item in dados_perfil:
-                    html_table += f"<tr><td style='width: 25%;'><div class='p-label'>{item['Campo']}</div></td>"
-                    html_table += f"<td><div class='p-value'>{item['Valor']}</div><div class='p-desc'>{item['Descricao']}</div></td></tr>"
+                    html_table += f"<tr><td><div class='p-label'>{item['Campo']}</div><div class='p-badge'>{item['Valor']}</div></td>"
+                    html_table += f"<td><div class='p-desc'>{item['Descricao']}</div></td></tr>"
                 html_table += "</tbody></table>"
                 
                 st.markdown(html_table, unsafe_allow_html=True)
@@ -286,20 +318,61 @@ class DiagnosticosMenu(BaseMenu):
                 st.subheader("Mapa Numerológico Cabalístico")
                 st.markdown("""
                 <style>
-                .mapa-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.05); }
-                .mapa-table th { background-color: #F18617; color: #401041; padding: 10px 14px; text-align: left; font-size: 0.95em; }
-                .mapa-table td { border: 1px solid rgba(255,255,255,0.1); vertical-align: top; padding: 0; }
-                .mapa-campo { color: #F18617; font-weight: bold; padding: 10px 14px; white-space: nowrap; font-size: 0.9em; }
-                .mapa-numero { display: inline-block; background: #F18617; color: #401041;
-                               font-weight: bold; font-size: 1.1em; padding: 1px 8px;
-                               border-radius: 4px; margin-left: 6px; }
-                .mapa-desc { padding: 10px 14px; color: #FFFFFF; font-size: 0.88em;
-                             line-height: 1.45; text-align: justify; }
-                .mapa-valor { padding: 10px 14px; color: #FFFFFF; font-size: 0.95em; }
+                .mapa-table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-top: 15px; 
+                    background: rgba(255,255,255,0.03); 
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                }
+                .mapa-table th { 
+                    background-color: #F18617; 
+                    color: #270828; 
+                    padding: 14px 20px; 
+                    text-align: left; 
+                    font-size: 1.05em; 
+                    font-weight: 800;
+                }
+                .mapa-table td { 
+                    border-bottom: 1px solid rgba(255,255,255,0.08); 
+                    vertical-align: top; 
+                    padding: 16px 20px; 
+                }
+                .mapa-campo-titulo { 
+                    color: #F18617; 
+                    font-weight: 800; 
+                    font-size: 1.1em; 
+                    margin-bottom: 8px;
+                }
+                .mapa-numero-destaque { 
+                    display: inline-block; 
+                    background: linear-gradient(135deg, #F18617 0%, #D97706 100%); 
+                    color: #1b0520; 
+                    font-weight: 900; 
+                    font-size: 1.3em; 
+                    padding: 3px 12px; 
+                    border-radius: 6px; 
+                    box-shadow: 0 3px 8px rgba(241,134,23,0.3);
+                    margin-bottom: 8px;
+                }
+                .mapa-explicacao { 
+                    font-size: 0.82em; 
+                    color: rgba(255,255,255,0.55); 
+                    font-style: italic; 
+                    line-height: 1.4;
+                }
+                .mapa-desc-cel { 
+                    color: #FFFFFF; 
+                    font-size: 0.95em; 
+                    line-height: 1.6; 
+                    text-align: justify; 
+                }
                 </style>
                 """, unsafe_allow_html=True)
 
-                html_mapa = '<table class="mapa-table"><thead><tr><th style="width:18%">Campo</th><th>Resultado</th></tr></thead><tbody>'
+                html_mapa = '<table class="mapa-table"><thead><tr><th style="width:28%">Campo / Número / Definição</th><th>Descrição Detalhada</th></tr></thead><tbody>'
                 for item in dados:
                     campo_raw = item['Campo']
                     resultado_raw = item['Resultado']
@@ -307,23 +380,24 @@ class DiagnosticosMenu(BaseMenu):
                     if ' - ' in campo_raw:
                         partes_campo = campo_raw.rsplit(' - ', 1)
                         label_campo = partes_campo[0]
-                        numero_badge = f"<span class='mapa-numero'>{partes_campo[1]}</span>"
+                        numero_badge = f"<div class='mapa-numero-destaque'>{partes_campo[1]}</div>"
                     else:
                         label_campo = campo_raw
                         numero_badge = ""
 
-                    if resultado_raw:
-                        cel_resultado = f"<div class='mapa-desc'>{resultado_raw}</div>"
-                    else:
-                        cel_resultado = "<div class='mapa-valor'></div>"
-
                     explicacao_html = ""
                     if item.get("Explicacao"):
-                        explicacao_html = f"<div style='font-size: 0.78em; color: rgba(255,255,255,0.6); padding: 0 14px 10px 14px; font-style: italic;'>{item['Explicacao']}</div>"
+                        explicacao_html = f"<div class='mapa-explicacao'>{item['Explicacao']}</div>"
+
+                    cel_resultado = f"<div class='mapa-desc-cel'>{resultado_raw}</div>" if resultado_raw else ""
 
                     html_mapa += (
                         f"<tr>"
-                        f"<td><div class='mapa-campo'>{label_campo}{numero_badge}</div>{explicacao_html}</td>"
+                        f"<td>"
+                        f"<div class='mapa-campo-titulo'>{label_campo}</div>"
+                        f"{numero_badge}"
+                        f"{explicacao_html}"
+                        f"</td>"
                         f"<td>{cel_resultado}</td>"
                         f"</tr>"
                     )

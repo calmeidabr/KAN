@@ -1,6 +1,6 @@
 import streamlit as st
 from menus.base_menu import BaseMenu
-from models.database import fetch_banners, fetch_asset_b64
+from models.database import fetch_banners, fetch_asset_b64, carregar_todos_clientes, carregar_empresas
 from utils.helpers import get_base64_of_bin_file
 from services.auth import header_img
 
@@ -10,6 +10,77 @@ class HomeMenu(BaseMenu):
             st.session_state.carousel_index = 0
         
         db_banners = fetch_banners()
+        clientes = carregar_todos_clientes()
+        empresas = carregar_empresas()
+        
+        total_clientes = len(clientes) if clientes else 0
+        total_empresas = len(empresas) if empresas else 1
+
+        st.markdown("""
+        <style>
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .kpi-card {
+            background: rgba(255,255,255,0.04);
+            border-left: 4px solid #F18617;
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.07);
+        }
+        .kpi-title {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .kpi-value {
+            font-size: 2.2em;
+            font-weight: 900;
+            color: #FFFFFF;
+            line-height: 1.1;
+        }
+        .kpi-sub {
+            font-size: 0.75em;
+            color: #39ff14;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        </style>
+        
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-title">Perfis Cadastrados</div>
+                <div class="kpi-value">""" + str(total_clientes) + """</div>
+                <div class="kpi-sub">● Banco Sincronizado</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Empresas / Grupos</div>
+                <div class="kpi-value">""" + str(total_empresas) + """</div>
+                <div class="kpi-sub">● Ativas no Sistema</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #00d2ff;">
+                <div class="kpi-title">Status do Banco</div>
+                <div class="kpi-value" style="font-size: 1.6em; padding-top: 5px;">Online</div>
+                <div class="kpi-sub" style="color: #00d2ff;">● Supabase Conectado</div>
+            </div>
+            <div class="kpi-card" style="border-left-color: #39ff14;">
+                <div class="kpi-title">Motor IA</div>
+                <div class="kpi-value" style="font-size: 1.6em; padding-top: 5px;">Gemini 2.5</div>
+                <div class="kpi-sub">● Flash Ativo</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
         
         if db_banners:
             banners_list = db_banners
@@ -60,7 +131,7 @@ class HomeMenu(BaseMenu):
             background-position: center;
             border-radius: 30px;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
             padding: 60px;
@@ -70,31 +141,34 @@ class HomeMenu(BaseMenu):
         .hero-content {{
             position: relative;
             z-index: 10;
-            max-width: 600px;
+            max-width: 650px;
         }}
         .hero-label {{
             background-color: {accent};
             color: black;
-            padding: 5px 15px;
+            padding: 6px 18px;
             border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.8em;
+            font-weight: 800;
+            font-size: 0.85em;
             text-transform: uppercase;
             display: inline-block;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(241,134,23,0.4);
         }}
         .hero-title {{
-            font-size: 3.5em;
+            font-size: 3.8em;
             font-weight: 900;
             color: white;
-            line-height: 1.05;
+            line-height: 1.1;
             letter-spacing: -1px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.8);
         }}
         .hero-subtitle {{
-            font-size: 1.3em;
-            color: rgba(255,255,255,0.8);
-            line-height: 1.3;
+            font-size: 1.35em;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.4;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
         }}
         </style>
         
@@ -105,7 +179,6 @@ class HomeMenu(BaseMenu):
                 <div class='hero-subtitle'>{subtitle}</div>
             </div>
         </div>
-        <br>
         """, unsafe_allow_html=True)
 
         col_nav1, col_nav2, col_nav3 = st.columns([1, 1, 1])
@@ -123,8 +196,28 @@ class HomeMenu(BaseMenu):
                     st.session_state.carousel_index = (st.session_state.carousel_index - 1) % num_banners
                     st.rerun()
             with c2:
-                st.markdown(f"<p style='text-align: center; margin-top: 10px; opacity: 0.5;'>{st.session_state.carousel_index + 1} / {num_banners}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p style='text-align: center; margin-top: 10px; font-weight: bold; opacity: 0.6;'>{st.session_state.carousel_index + 1} / {num_banners}</p>", unsafe_allow_html=True)
             with c3:
                 if st.button("❯", key="next_home"):
                     st.session_state.carousel_index = (st.session_state.carousel_index + 1) % num_banners
                     st.rerun()
+
+        st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin: 30px 0;'><br>", unsafe_allow_html=True)
+        st.markdown("<h3>⚡ Acesso Rápido</h3><p style='color: rgba(255,255,255,0.6); margin-bottom: 25px;'>Navegue diretamente pelos módulos principais do sistema</p>", unsafe_allow_html=True)
+
+        col_q1, col_q2, col_q3 = st.columns(3)
+        with col_q1:
+            with st.container(border=True):
+                st.markdown("<h3 style='margin-bottom:10px;'>⚡ Diagnósticos</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
+                if st.button("Acessar Diagnósticos ➔", key="btn_qa_diag", use_container_width=True, type="primary"):
+                    self.app.navigate("Diagnósticos")
+        with col_q2:
+            with st.container(border=True):
+                st.markdown("<h3 style='margin-bottom:10px;'>🗺️ Mapas Detalhados</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Tabelas completas de arcanos, ciclos e matriz numerológica cabalística.</p>", unsafe_allow_html=True)
+                if st.button("Acessar Mapas ➔", key="btn_qa_mapas", use_container_width=True, type="primary"):
+                    self.app.navigate("Mapas")
+        with col_q3:
+            with st.container(border=True):
+                st.markdown("<h3 style='margin-bottom:10px;'>👤 Talentos & OCR</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
+                if st.button("Cadastrar Talentos ➔", key="btn_qa_tal", use_container_width=True, type="primary"):
+                    self.app.navigate("Talentos")
