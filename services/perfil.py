@@ -4,7 +4,7 @@ import datetime
 from collections import Counter
 from utils.helpers import remover_acentos, normalize_key, get_from_row
 from models.database import (
-    MATRIZ_DB, ATRIBUTOS_DB, REPETICAO_DB, PESO_DB, PERFIS_DB,
+    MATRIZ_DB, ATRIBUTOS_DB, REPETICAO_DB, PESO_DB, PERFIS_DB, PERFIL_DESCRICAO_DB,
     QUALIDADES_DB, LISTA_CATEGORIA_DB, CATEGORIA_DESCRICAO_DB, PESO_CATEGORIA_DB,
     CAMPO_DEFINICAO_DB, DIFERENCIAIS_DESC_DB, KAN_DB, FORTALEZAS_DB, DESAFIOS_DB,
     get_desc_mapa, carregar_todos_clientes
