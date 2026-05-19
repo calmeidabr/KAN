@@ -444,11 +444,11 @@ def carregar_hierarquia(empresa):
         return st.session_state["hier_local_" + empresa]
     
     padrao = [
-        {"id": "dept_exec", "nome_departamento": "Diretoria Executiva", "departamento_id": "Nenhum (Nível Mais Alto)", "empresa": empresa, "ordem": 10},
-        {"id": "dept_com", "nome_departamento": "Diretoria Comercial", "departamento_id": "dept_exec", "empresa": empresa, "ordem": 20},
-        {"id": "dept_ops", "nome_departamento": "Diretoria de Operações", "departamento_id": "dept_exec", "empresa": empresa, "ordem": 30},
-        {"id": "dept_rh", "nome_departamento": "Recursos Humanos", "departamento_id": "dept_ops", "empresa": empresa, "ordem": 40},
-        {"id": "dept_ti", "nome_departamento": "Tecnologia da Informação", "departamento_id": "dept_ops", "empresa": empresa, "ordem": 50}
+        {"departamento_id": "dept_exec", "nome": "Diretoria Executiva", "parent_id": "Nenhum (Nível Mais Alto)", "empresa": empresa, "ordem": 10},
+        {"departamento_id": "dept_com", "nome": "Diretoria Comercial", "parent_id": "dept_exec", "empresa": empresa, "ordem": 20},
+        {"departamento_id": "dept_ops", "nome": "Diretoria de Operações", "parent_id": "dept_exec", "empresa": empresa, "ordem": 30},
+        {"departamento_id": "dept_rh", "nome": "Recursos Humanos", "parent_id": "dept_ops", "empresa": empresa, "ordem": 40},
+        {"departamento_id": "dept_ti", "nome": "Tecnologia da Informação", "parent_id": "dept_ops", "empresa": empresa, "ordem": 50}
     ]
     st.session_state["hier_local_" + empresa] = padrao
     return padrao
