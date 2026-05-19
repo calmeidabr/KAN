@@ -4,40 +4,81 @@ import plotly.graph_objects as go
 import plotly.express as px
 from collections import Counter
 
+import json
 from menus.base_menu import BaseMenu
-from models.database import carregar_todos_clientes, carregar_empresas
+from models.database import get_supabase, carregar_empresas
+from utils.helpers import normalize_key
 
 class AnalyticsMenu(BaseMenu):
     def render(self):
-        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Analytics & BI Comportamental</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Visão analítica consolidada e cruzamento de dados comportamentais das equipes.</p>", unsafe_allow_html=True)
+        st.markdown("""
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        
+        .analytics-wrapper * {
+            font-family: 'Outfit', sans-serif !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<div class='analytics-wrapper'>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px; font-family: Outfit;'>Analytics & BI Comportamental</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px; font-family: Outfit;'>Visão analítica consolidada (direto da tabela mapas_salvos).</p>", unsafe_allow_html=True)
         st.write("---")
 
-        # Carregar dados reais da base
-        clientes = carregar_todos_clientes()
-        empresas_salvas = carregar_empresas()
-        
-        if not clientes:
-            st.warning("Nenhum perfil cadastrado no sistema para análise. Vá ao menu 'Talentos' para adicionar perfis.")
+        client = get_supabase()
+        if not client:
+            st.error("Conexão com banco de dados indisponível.")
+            st.markdown("</div>", unsafe_allow_html=True)
             return
 
-        # Converter para lista de dicionários com o nome incluído
+        try:
+            response = client.table("mapas_salvos").select("*").execute()
+            rows = response.data
+        except Exception as e:
+            st.error(f"Erro ao acessar tabela mapas_salvos: {e}")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
+        if not rows:
+            st.warning("Nenhum registro encontrado na tabela 'mapas_salvos'.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
         data_list = []
-        for nome, info in clientes.items():
-            item = info.copy()
-            item["nome"] = nome
-            # Preencher campos vazios
-            if not item.get("empresa") or str(item["empresa"]).strip() == "" or str(item["empresa"]) == "nan":
-                item["empresa"] = "Sem Empresa"
-            if not item.get("cargo") or str(item["cargo"]).strip() == "" or str(item["cargo"]) == "nan":
-                item["cargo"] = "Sem Cargo"
-            if not item.get("perfil") or str(item["perfil"]).strip() == "":
-                item["perfil"] = "Não Calculado"
-            if not item.get("categoria") or str(item["categoria"]).strip() == "":
-                item["categoria"] = "Não Calculada"
-            if not item.get("qualidades") or str(item["qualidades"]).strip() == "":
-                item["qualidades"] = "Não Calculada"
-            data_list.append(item)
+        for row in rows:
+            p_json = row.get('perfil_json')
+            perfil_val, categoria_val, qualidades_val, kan_val = "Não Calculado", "Não Calculada", "Não Calculada", None
+            if p_json:
+                try:
+                    dt = json.loads(p_json)
+                    for item in dt:
+                        campo_orig = item.get('Campo', '')
+                        campo_norm = normalize_key(campo_orig)
+                        raw_val = item.get('Resultado', item.get('Valor', ''))
+                        if campo_norm == 'perfil': perfil_val = raw_val
+                        elif campo_norm == 'categoria': categoria_val = raw_val
+                        elif campo_norm == 'qualidades': qualidades_val = raw_val
+                        elif campo_norm == 'kan':
+                            try: kan_val = int(raw_val)
+                            except: kan_val = raw_val
+                except: pass
+
+            empresa = row.get("empresa")
+            if not empresa or str(empresa).strip() == "" or str(empresa) == "nan": empresa = "Sem Empresa"
+            cargo = row.get("cargo")
+            if not cargo or str(cargo).strip() == "" or str(cargo) == "nan": cargo = "Sem Cargo"
+            
+            data_list.append({
+                "nome": row.get("nome", "Desconhecido"),
+                "empresa": empresa,
+                "cargo": cargo,
+                "perfil": perfil_val if str(perfil_val).strip() else "Não Calculado",
+                "categoria": categoria_val if str(categoria_val).strip() else "Não Calculada",
+                "qualidades": qualidades_val if str(qualidades_val).strip() else "Não Calculada",
+                "kan": kan_val,
+                "ai_diagnosis": row.get("ai_diagnosis", "")
+            })
 
         df = pd.DataFrame(data_list)
 
