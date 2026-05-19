@@ -4,7 +4,9 @@ import os
 
 # 1. Configuração da Página
 try:
-    favicon_img = Image.open(os.path.join("images", "ico_k.png"))
+    favicon_img = os.path.join("images", "ico_k.png")
+    if not os.path.exists(favicon_img):
+        favicon_img = "◇"
 except Exception:
     favicon_img = "◇"
 

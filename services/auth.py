@@ -10,7 +10,11 @@ USUARIOS = {
 }
 
 try:
-    header_img = Image.open(os.path.join("images", "kan_logo_lar.png"))
+    img_path = os.path.join("images", "kan_logo_lar.png")
+    if os.path.exists(img_path):
+        header_img = img_path
+    else:
+        header_img = "◇"
 except Exception:
     header_img = "◇"
 
