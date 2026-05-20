@@ -91,14 +91,14 @@ class AnalyticsMenu(BaseMenu):
             if "Sem Cargo" in list_cargos:
                 list_cargos.remove("Sem Cargo")
                 list_cargos.append("Sem Cargo")
-            cargo_selecionado = col_f2.selectbox("Filtrar por Cargo:", ["Todos"] + list_cargos)
+            cargo_selecionado = col_f2.multiselect("Filtrar por Cargo (selecione vários):", options=list_cargos, default=[])
 
         # Aplicar filtros
         df_filtered = df.copy()
         if empresa_selecionada != "Todas":
             df_filtered = df_filtered[df_filtered["empresa"] == empresa_selecionada]
-        if cargo_selecionado != "Todos":
-            df_filtered = df_filtered[df_filtered["cargo"] == cargo_selecionado]
+        if cargo_selecionado:
+            df_filtered = df_filtered[df_filtered["cargo"].isin(cargo_selecionado)]
 
         if df_filtered.empty:
             st.warning("Nenhum talento corresponde aos filtros selecionados.")
@@ -108,8 +108,9 @@ class AnalyticsMenu(BaseMenu):
         total_talentos = len(df_filtered)
         
         # Perfis válidos (excluindo Não Calculado)
-        df_valid_perfil = df_filtered[df_filtered["perfil"] != "Não Calculado"]
-        perfil_dominante = df_valid_perfil["perfil"].mode().iloc[0] if not df_valid_perfil.empty else "N/A"
+        df_valid_perfil_series = df_filtered["perfil"].dropna().astype(str).str.split(r",\s*").explode().str.strip()
+        df_valid_perfil_series = df_valid_perfil_series[(df_valid_perfil_series != "") & (df_valid_perfil_series != "Não Calculado") & (df_valid_perfil_series != "None")]
+        perfil_dominante = df_valid_perfil_series.mode().iloc[0] if not df_valid_perfil_series.empty else "N/A"
         
         # Cobertura IA
         total_ia = df_filtered["ai_diagnosis"].apply(lambda x: bool(x) and str(x).strip() != "").sum()
@@ -202,7 +203,9 @@ class AnalyticsMenu(BaseMenu):
         with col_g1:
             with st.container(border=True):
                 # Gráfico 1: Distribuição de Perfis Comportamentais
-                perfis_counts = df_filtered["perfil"].value_counts().reset_index()
+                perfis_series = df_filtered["perfil"].dropna().astype(str).str.split(r",\s*").explode().str.strip()
+                perfis_series = perfis_series[(perfis_series != "") & (perfis_series != "Não Calculado") & (perfis_series != "None")]
+                perfis_counts = perfis_series.value_counts().reset_index()
                 perfis_counts.columns = ["Perfil", "Quantidade"]
                 
                 fig_perf = px.bar(
