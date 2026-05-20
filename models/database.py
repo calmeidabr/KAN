@@ -526,7 +526,10 @@ def _fetch_supabase_clientes():
                 if row.get('ai_diagnosis'):
                     if "ai_diagnosis" not in st.session_state: st.session_state["ai_diagnosis"] = {}
                     st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
-        except Exception: pass
+        except Exception as e:
+            print(f"Erro no _fetch_supabase_clientes: {e}")
+    else:
+        print("Erro: get_supabase_admin() retornou None. Verifique os secrets.")
     return cl_salvos
 
 def carregar_todos_clientes():
