@@ -24,7 +24,8 @@ def init_supabase_admin_client():
         url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
         key = st.secrets["connections"]["supabase"]["SUPABASE_SERVICE_ROLE_KEY"]
         return create_client(url, key)
-    except Exception:
+    except Exception as e:
+        st.error(f"Erro no init_supabase_admin_client: {e}")
         return None
 
 def get_supabase():
