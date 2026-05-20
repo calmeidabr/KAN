@@ -466,6 +466,102 @@ class AdminMenu(BaseMenu):
         with t_tab_auditoria:
             st.subheader("Auditoria e Verificação de Perfis")
             
+            if st.button("CALCULAR MAPAS SALVOS (POPULAR TABELA DE VALORES)", use_container_width=True):
+                st.info("Iniciando cálculo em lote... Isso pode demorar alguns instantes.")
+                from datetime import datetime, date
+                from services.perfil import realizar_calculos_completos
+                from models.database import KAN_DB
+
+                clientes_para_calc = carregar_todos_clientes()
+                rows_to_insert = []
+                data_atual_tup = (datetime.now().day, datetime.now().month, datetime.now().year)
+
+                def map_kan_name(k):
+                    res = KAN_DB.get(str(k), {})
+                    return res.get("kan", str(k))
+
+                for n_aud, c_info in clientes_para_calc.items():
+                    nasc_dt = c_info.get('data_nascimento')
+                    try:
+                        if isinstance(nasc_dt, (datetime, date)):
+                            nascimento_tup = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
+                        elif isinstance(nasc_dt, str):
+                            try: dt_obj = datetime.strptime(nasc_dt, "%d/%m/%Y")
+                            except ValueError: dt_obj = datetime.strptime(nasc_dt, "%Y-%m-%d")
+                            nascimento_tup = (dt_obj.day, dt_obj.month, dt_obj.year)
+                        else:
+                            continue
+                            
+                        res_calc = realizar_calculos_completos(n_aud, nascimento_tup, data_atual_tup, c_info.get('cargo'), c_info.get('empresa'))
+                        dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, _, _, _, _ = res_calc
+                        
+                        def ext_val(label):
+                            for d in dados:
+                                if str(d.get("Campo")).startswith(label):
+                                    return str(d.get("Valor"))
+                            return ""
+                            
+                        def ext_perfil(label):
+                            for d in dados_perfil:
+                                if str(d.get("Campo")).lower() == label.lower():
+                                    return str(d.get("Resultado", d.get("Valor", "")))
+                            return ""
+
+                        row_val = {
+                            "nome": n_aud,
+                            "data_nascimento": nasc_dt,
+                            "kan": str(map_kan_name(kan)),
+                            "perfil": ext_perfil("perfil"),
+                            "categoria": ext_perfil("categoria"),
+                            "qualidades": ext_perfil("qualidades"),
+                            "diferenciais": ext_perfil("diferenciais"),
+                            "motivacao": ext_val("Motivação"),
+                            "impressao": ext_val("Impressão"),
+                            "expressao": ext_val("Expressão"),
+                            "dia_natalicio": ext_val("Dia Natalício"),
+                            "numero_psiquico": ext_val("Número Psíquico"),
+                            "destino": ext_val("Destino"),
+                            "missao": ext_val("Missão"),
+                            "direcionamento": str(direcionamento),
+                            "estrutural": str(estrutural),
+                            "repeticao_1": str(rep1),
+                            "repeticao_2": str(rep2),
+                            "repeticao_mapa": ext_val("Repetição Mapa"),
+                            "repeticao_mapa_2": ext_val("Repetição 2 Mapa"),
+                            "vertice_triangulo_1": "",
+                            "vertice_triangulo_2": "",
+                            "vertice_triangulo_3": ext_val("Triângulo Harmônico"),
+                            "dividas_carmicas": ext_val("Dívidas Cármicas"),
+                            "licoes_carmicas": ext_val("Lições Cármicas"),
+                            "tendencias_ocultas": ext_val("Tendências Ocultas"),
+                            "resposta_subconsciente": ext_val("Resposta Subconsciente")
+                        }
+                        rows_to_insert.append(row_val)
+                    except Exception as e:
+                        pass
+                
+                if rows_to_insert:
+                    try:
+                        supabase_client.table("mapas_salvos_valores").upsert(rows_to_insert, on_conflict="nome").execute()
+                        st.success(f"{len(rows_to_insert)} mapas calculados e salvos com sucesso!")
+                    except Exception as e:
+                        st.error(f"Erro ao inserir: {e}. Você criou a tabela mapas_salvos_valores executando o script SQL no Supabase?")
+                        
+            st.write("---")
+            st.subheader("Tabela de Mapas Salvos Valores")
+            try:
+                res_valores = supabase_client.table("mapas_salvos_valores").select("*").execute()
+                if res_valores.data:
+                    df_valores = pd.DataFrame(res_valores.data)
+                    st.dataframe(df_valores, use_container_width=True)
+                else:
+                    st.info("A tabela 'mapas_salvos_valores' está vazia. Clique no botão acima para popular.")
+            except Exception as e:
+                st.error("Tabela mapas_salvos_valores não encontrada. Crie-a no SQL Editor do Supabase.")
+                
+            st.write("---")
+            st.subheader("Análise Individual")
+            
             clientes_salvos_aud = carregar_todos_clientes()
             nomes_disp_aud = sorted(list(clientes_salvos_aud.keys()))
             
