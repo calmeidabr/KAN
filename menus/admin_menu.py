@@ -516,7 +516,7 @@ class AdminMenu(BaseMenu):
                             "perfil": ext_perfil("perfil", just_value=True),
                             "categoria": ext_perfil("categoria", just_value=True),
                             "qualidades": ext_perfil("qualidades", just_value=True),
-                            "diferenciais": ext_perfil("diferenciais"),
+                            "diferenciais": ext_perfil("diferenciais", just_value=True),
                             "motivacao": ext_val("Motivação"),
                             "impressao": ext_val("Impressão"),
                             "expressao": ext_val("Expressão"),
