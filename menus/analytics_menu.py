@@ -97,7 +97,7 @@ class AnalyticsMenu(BaseMenu):
         # Filtros no topo (Sidebar e topo combinados para visual limpo)
         with st.container(border=True):
             st.markdown("<h5 style='margin-top:0;'>Filtros Globais</h5>", unsafe_allow_html=True)
-            col_f1, col_f2 = st.columns(2)
+            col_f1, col_f2, col_f3 = st.columns(3)
             
             # Opções de Empresa
             list_empresas = sorted(list(df["empresa"].unique()))
@@ -111,7 +111,12 @@ class AnalyticsMenu(BaseMenu):
             if "Sem Cargo" in list_cargos:
                 list_cargos.remove("Sem Cargo")
                 list_cargos.append("Sem Cargo")
-            cargo_selecionado = col_f2.multiselect("Filtrar por Cargo (selecione vários):", options=list_cargos, default=[])
+            cargo_selecionado = col_f2.multiselect("Filtrar por Cargo:", options=list_cargos, default=[])
+
+            # Opções de Geração
+            ordem_geracoes_todas = ["Anteriores", "Geração Silenciosa", "Baby Boomers", "Geração X", "Geração Y / Millennials", "Geração Z", "Geração Alpha", "Desconhecida"]
+            list_geracoes = [g for g in ordem_geracoes_todas if g in df["geracao"].unique()]
+            geracao_selecionada = col_f3.multiselect("Filtrar por Geração:", options=list_geracoes, default=[])
             
             # Filtro por Soft Skills
             st.markdown("---")
@@ -125,6 +130,8 @@ class AnalyticsMenu(BaseMenu):
             df_filtered = df_filtered[df_filtered["empresa"] == empresa_selecionada]
         if cargo_selecionado:
             df_filtered = df_filtered[df_filtered["cargo"].isin(cargo_selecionado)]
+        if geracao_selecionada:
+            df_filtered = df_filtered[df_filtered["geracao"].isin(geracao_selecionada)]
             
         if soft_skills_selecionadas:
             # Filtra perfis que atendem a pelo menos um traço (KAN, Perfil, Categoria ou Qualidade) de TODAS as soft skills selecionadas (interseção para afunilar)
