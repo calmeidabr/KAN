@@ -38,6 +38,11 @@ class AnalyticsMenu(BaseMenu):
             
             res_ms = client.table("mapas_salvos").select("nome, empresa, cargo, ai_diagnosis").execute()
             rows_ms = res_ms.data
+            
+            # Buscar dicionário de soft skills
+            res_soft = client.table("soft_skills").select("*").execute()
+            soft_skills_list = res_soft.data if res_soft and res_soft.data else []
+            
         except Exception as e:
             st.error(f"Erro ao acessar base de dados: {e}")
             st.markdown("</div>", unsafe_allow_html=True)
@@ -92,6 +97,12 @@ class AnalyticsMenu(BaseMenu):
                 list_cargos.remove("Sem Cargo")
                 list_cargos.append("Sem Cargo")
             cargo_selecionado = col_f2.multiselect("Filtrar por Cargo (selecione vários):", options=list_cargos, default=[])
+            
+            # Filtro por Soft Skills
+            st.markdown("---")
+            st.markdown("<h6 style='margin-top:0;'>Filtro Comportamental Inteligente</h6>", unsafe_allow_html=True)
+            soft_skills_names = sorted([s["nome"] for s in soft_skills_list])
+            soft_skills_selecionadas = st.multiselect("Filtrar perfis que possuem traços ideais para estas Soft Skills:", options=soft_skills_names, default=[])
 
         # Aplicar filtros
         df_filtered = df.copy()
@@ -99,6 +110,32 @@ class AnalyticsMenu(BaseMenu):
             df_filtered = df_filtered[df_filtered["empresa"] == empresa_selecionada]
         if cargo_selecionado:
             df_filtered = df_filtered[df_filtered["cargo"].isin(cargo_selecionado)]
+            
+        if soft_skills_selecionadas:
+            # Filtra perfis que atendem a pelo menos um traço (KAN, Perfil, Categoria ou Qualidade) de TODAS as soft skills selecionadas (interseção para afunilar)
+            for sk_name in soft_skills_selecionadas:
+                sk_data = next((x for x in soft_skills_list if x["nome"] == sk_name), None)
+                if sk_data:
+                    ideal_kan = [x.strip().upper() for x in str(sk_data.get("kan_relacionado", "")).split(",") if x.strip()]
+                    ideal_perfis = [x.strip().upper() for x in str(sk_data.get("perfis_relacionados", "")).split(",") if x.strip()]
+                    ideal_cats = [x.strip().upper() for x in str(sk_data.get("categorias_relacionadas", "")).split(",") if x.strip()]
+                    ideal_quals = [x.strip().upper() for x in str(sk_data.get("qualidades_relacionadas", "")).split(",") if x.strip()]
+                    
+                    def matches_skill(row):
+                        u_kan = [x.strip().upper() for x in str(row.get("kan", "")).split(",") if x.strip() and x.strip() != "NAN"]
+                        u_perfil = [x.strip().upper() for x in str(row.get("perfil", "")).split(",") if x.strip() and x.strip() != "NAN"]
+                        u_cat = [x.strip().upper() for x in str(row.get("categoria", "")).split(",") if x.strip() and x.strip() != "NAN"]
+                        u_qual = [x.strip().upper() for x in str(row.get("qualidades", "")).split(",") if x.strip() and x.strip() != "NAN"]
+                        
+                        match_kan = bool(set(u_kan) & set(ideal_kan))
+                        match_perfil = bool(set(u_perfil) & set(ideal_perfis))
+                        match_cat = bool(set(u_cat) & set(ideal_cats))
+                        match_qual = bool(set(u_qual) & set(ideal_quals))
+                        
+                        # Atende à soft skill se possuir ao menos 1 traço relacionado na metodologia KAN
+                        return match_kan or match_perfil or match_cat or match_qual
+                        
+                    df_filtered = df_filtered[df_filtered.apply(matches_skill, axis=1)]
 
         if df_filtered.empty:
             st.warning("Nenhum talento corresponde aos filtros selecionados.")
