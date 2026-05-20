@@ -5,7 +5,7 @@ from PIL import Image
 import google.generativeai as genai
 
 from menus.base_menu import BaseMenu
-from models.database import carregar_empresas, get_supabase
+from models.database import carregar_empresas, get_supabase_admin
 from utils.helpers import compress_image_to_b64
 
 class TalentosMenu(BaseMenu):
@@ -14,7 +14,7 @@ class TalentosMenu(BaseMenu):
         st.info("Cadastre novos perfis para análise comportamental e numerológica no sistema.")
         st.write("---")
 
-        supabase_client = get_supabase()
+        supabase_client = get_supabase_admin()
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:

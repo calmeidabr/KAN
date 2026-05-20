@@ -7,7 +7,7 @@ import os
 from menus.base_menu import BaseMenu
 from menus.empresas_menu import EmpresasMenu
 from models.database import (
-    get_supabase, carregar_empresas, carregar_todos_clientes,
+    get_supabase, get_supabase_admin, carregar_empresas, carregar_todos_clientes,
     fetch_banners, fetch_assets_list, fetch_descricoes_mapa,
     KAN_DB, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB, MENU_PRINCIPAL
 )
@@ -45,7 +45,7 @@ class AdminMenu(BaseMenu):
         
         st.info("Central de comando administrativa do sistema KAN.")
         
-        supabase_client = get_supabase()
+        supabase_client = get_supabase_admin()
         
         t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Banners"])
         

@@ -17,8 +17,21 @@ def init_supabase_client():
     except Exception:
         return None
 
+@st.cache_resource
+def init_supabase_admin_client():
+    try:
+        from supabase import create_client, Client
+        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
+        key = st.secrets["connections"]["supabase"]["SUPABASE_SERVICE_ROLE_KEY"]
+        return create_client(url, key)
+    except Exception:
+        return None
+
 def get_supabase():
     return init_supabase_client()
+
+def get_supabase_admin():
+    return init_supabase_admin_client()
 
 @st.cache_data(ttl=3600)
 def fetch_arcanos():
@@ -455,7 +468,7 @@ def carregar_hierarquia(empresa):
 
 @st.cache_data(ttl=300)
 def _fetch_supabase_clientes():
-    client = get_supabase()
+    client = get_supabase_admin()
     cl_salvos = {}
     if client:
         try:
@@ -524,7 +537,7 @@ def carregar_todos_clientes():
     return cl_salvos
 
 def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2):
-    client = get_supabase()
+    client = get_supabase_admin()
     
     try:
         import json

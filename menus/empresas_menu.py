@@ -1,7 +1,7 @@
 import streamlit as st
 import datetime
 from menus.base_menu import BaseMenu
-from models.database import carregar_empresas, get_supabase
+from models.database import carregar_empresas, get_supabase_admin
 from utils.helpers import compress_image_to_b64, validar_cnpj
 
 class EmpresasMenu(BaseMenu):
@@ -9,7 +9,7 @@ class EmpresasMenu(BaseMenu):
         st.title("Gestão de Empresas")
         st.info("Aqui você pode gerenciar as empresas cadastradas no sistema KAN.")
         
-        supabase_client = get_supabase()
+        supabase_client = get_supabase_admin()
         
         if "add_empresa_mode" not in st.session_state:
             st.session_state["add_empresa_mode"] = False

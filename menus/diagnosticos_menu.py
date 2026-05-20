@@ -7,7 +7,7 @@ from PIL import Image
 import google.generativeai as genai
 
 from menus.base_menu import BaseMenu
-from models.database import carregar_todos_clientes, get_supabase, salvar_na_base_dados
+from models.database import carregar_todos_clientes, get_supabase_admin, salvar_na_base_dados
 from services.perfil import realizar_calculos_completos
 from services.pdf_generator import gerar_pdf
 from utils.helpers import remover_acentos
@@ -25,7 +25,7 @@ class DiagnosticosMenu(BaseMenu):
             st.session_state['show_mapa'] = True
             st.session_state['show_perfil'] = False
 
-        supabase_client = get_supabase()
+        supabase_client = get_supabase_admin()
         clientes_salvos = carregar_todos_clientes()
 
         opcoes_clientes = sorted(list(clientes_salvos.keys()))

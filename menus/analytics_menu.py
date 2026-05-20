@@ -6,7 +6,7 @@ from collections import Counter
 
 import json
 from menus.base_menu import BaseMenu
-from models.database import get_supabase, carregar_empresas
+from models.database import get_supabase_admin, carregar_empresas
 from utils.helpers import normalize_key
 
 class AnalyticsMenu(BaseMenu):
@@ -26,7 +26,7 @@ class AnalyticsMenu(BaseMenu):
         st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px; font-family: Outfit;'>Visão analítica consolidada (direto da tabela mapas_salvos).</p>", unsafe_allow_html=True)
         st.write("---")
 
-        client = get_supabase()
+        client = get_supabase_admin()
         if not client:
             st.error("Conexão com banco de dados indisponível.")
             st.markdown("</div>", unsafe_allow_html=True)
