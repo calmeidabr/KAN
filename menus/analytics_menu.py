@@ -61,6 +61,20 @@ class AnalyticsMenu(BaseMenu):
                 "ai_diagnosis": r.get("ai_diagnosis", "")
             }
 
+        def get_geracao(dt_str):
+            if not dt_str: return "Desconhecida"
+            import re
+            match = re.search(r'\b(19\d{2}|20\d{2})\b', str(dt_str))
+            if not match: return "Desconhecida"
+            ano = int(match.group(1))
+            if ano < 1923: return "Anteriores"
+            elif 1923 <= ano <= 1946: return "Geração Silenciosa"
+            elif 1947 <= ano <= 1964: return "Baby Boomers"
+            elif 1965 <= ano <= 1980: return "Geração X"
+            elif 1981 <= ano <= 1996: return "Geração Y / Millennials"
+            elif 1997 <= ano <= 2009: return "Geração Z"
+            else: return "Geração Alpha"
+
         data_list = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
@@ -74,7 +88,8 @@ class AnalyticsMenu(BaseMenu):
                 "categoria": row.get("categoria") if row.get("categoria") and str(row.get("categoria")).strip() else "Não Calculada",
                 "qualidades": row.get("qualidades") if row.get("qualidades") and str(row.get("qualidades")).strip() else "Não Calculada",
                 "kan": row.get("kan"),
-                "ai_diagnosis": ms_info["ai_diagnosis"]
+                "ai_diagnosis": ms_info["ai_diagnosis"],
+                "geracao": get_geracao(row.get("data_nascimento"))
             })
 
         df = pd.DataFrame(data_list)
@@ -313,6 +328,36 @@ class AnalyticsMenu(BaseMenu):
                     st.plotly_chart(fig_kan, use_container_width=True, config={"displayModeBar": False})
                 else:
                     st.info("Nenhum dado de KAN classificado como Criação, Movimento ou Finalidade.")
+
+        col_g5, col_g6 = st.columns(2)
+        with col_g5:
+            with st.container(border=True):
+                # Gráfico 5: Distribuição por Gerações
+                ger_series = df_filtered["geracao"].dropna()
+                ger_series = ger_series[ger_series != "Desconhecida"]
+                
+                # Definir ordem cronológica
+                ordem_geracoes = ["Anteriores", "Geração Silenciosa", "Baby Boomers", "Geração X", "Geração Y / Millennials", "Geração Z", "Geração Alpha"]
+                
+                ger_counts = ger_series.value_counts().reset_index()
+                ger_counts.columns = ["Geração", "Quantidade"]
+                # Forçar ordenação cronológica no Plotly
+                ger_counts['Geração'] = pd.Categorical(ger_counts['Geração'], categories=ordem_geracoes, ordered=True)
+                ger_counts = ger_counts.sort_values('Geração').dropna()
+                
+                fig_ger = px.bar(
+                    ger_counts,
+                    x="Quantidade",
+                    y="Geração",
+                    orientation="h",
+                    color_discrete_sequence=[color_palette[2]]
+                )
+                apply_dark_layout(fig_ger, "Distribuição por Gerações Etárias")
+                fig_ger.update_layout(yaxis=dict(autorange="reversed"))
+                st.plotly_chart(fig_ger, use_container_width=True, config={"displayModeBar": False})
+                
+        with col_g6:
+            st.empty() # Placeholder for future charts
 
         st.write("---")
         
