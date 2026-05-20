@@ -501,9 +501,11 @@ class AdminMenu(BaseMenu):
                                     return str(d.get("Valor"))
                             return ""
                             
-                        def ext_perfil(label):
+                        def ext_perfil(label, just_value=False):
                             for d in dados_perfil:
                                 if str(d.get("Campo")).lower() == label.lower():
+                                    if just_value:
+                                        return str(d.get("Valor", ""))
                                     return str(d.get("Resultado", d.get("Valor", "")))
                             return ""
 
@@ -511,9 +513,9 @@ class AdminMenu(BaseMenu):
                             "nome": n_aud,
                             "data_nascimento": nasc_dt,
                             "kan": str(map_kan_name(kan)),
-                            "perfil": ext_perfil("perfil"),
-                            "categoria": ext_perfil("categoria"),
-                            "qualidades": ext_perfil("qualidades"),
+                            "perfil": ext_perfil("perfil", just_value=True),
+                            "categoria": ext_perfil("categoria", just_value=True),
+                            "qualidades": ext_perfil("qualidades", just_value=True),
                             "diferenciais": ext_perfil("diferenciais"),
                             "motivacao": ext_val("Motivação"),
                             "impressao": ext_val("Impressão"),
