@@ -575,18 +575,17 @@ class AdminMenu(BaseMenu):
                     c_info = clientes_salvos_aud[nome_aud]
                     nasc_dt = c_info['data_nascimento']
                     try:
-                        from datetime import datetime, date
                         from collections import Counter
-                        if isinstance(nasc_dt, (datetime, date)):
+                        if isinstance(nasc_dt, (datetime.datetime, datetime.date)):
                             nascimento_tup = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
                         elif isinstance(nasc_dt, str):
-                            try: dt_obj = datetime.strptime(nasc_dt, "%d/%m/%Y")
-                            except ValueError: dt_obj = datetime.strptime(nasc_dt, "%Y-%m-%d")
+                            try: dt_obj = datetime.datetime.strptime(nasc_dt, "%d/%m/%Y")
+                            except ValueError: dt_obj = datetime.datetime.strptime(nasc_dt, "%Y-%m-%d")
                             nascimento_tup = (dt_obj.day, dt_obj.month, dt_obj.year)
                         else:
                             raise ValueError("Data inválida")
                             
-                        now_dt = datetime.now()
+                        now_dt = datetime.datetime.now()
                         data_atual_tup = (now_dt.day, now_dt.month, now_dt.year)
                         
                         res_calc_aud = realizar_calculos_completos(nome_aud, nascimento_tup, data_atual_tup, c_info.get('cargo', ''), c_info.get('empresa', ''))
@@ -814,18 +813,15 @@ class AdminMenu(BaseMenu):
                                                     s = str(v).split(" - ")[0]
                                                     return int(s) if s.isdigit() else None
                                                 try:
-                                                    from datetime import datetime, date
-                                                    if isinstance(data_nasc_str, (datetime, date)):
+                                                    if isinstance(data_nasc_str, (datetime.datetime, datetime.date)):
                                                         nasc_dt = data_nasc_str
-                                                    elif isinstance(data_nasc_str, str):
-                                                        try:
-                                                            nasc_dt = datetime.strptime(data_nasc_str, "%d/%m/%Y")
-                                                        except ValueError:
-                                                            nasc_dt = datetime.strptime(data_nasc_str, "%Y-%m-%d")
                                                     else:
-                                                        raise ValueError("Data em formato desconhecido")
+                                                        try:
+                                                            nasc_dt = datetime.datetime.strptime(data_nasc_str, "%d/%m/%Y")
+                                                        except ValueError:
+                                                            nasc_dt = datetime.datetime.strptime(data_nasc_str, "%Y-%m-%d")
                                                     nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
-                                                    now_dt = datetime.now()
+                                                    now_dt = datetime.datetime.now()
                                                     data_at = (now_dt.day, now_dt.month, now_dt.year)
                                                     
                                                     res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
