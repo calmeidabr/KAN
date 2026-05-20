@@ -237,7 +237,9 @@ class AnalyticsMenu(BaseMenu):
         with col_g3:
             with st.container(border=True):
                 # Gráfico 3: Distribuição de Qualidades
-                qual_counts = df_filtered["qualidades"].value_counts().reset_index()
+                qual_series = df_filtered["qualidades"].dropna().astype(str).str.split(r",\s*").explode().str.strip()
+                qual_series = qual_series[(qual_series != "") & (qual_series != "Não Calculada") & (qual_series != "None")]
+                qual_counts = qual_series.value_counts().reset_index()
                 qual_counts.columns = ["Qualidade", "Quantidade"]
                 
                 fig_qual = px.bar(
@@ -251,28 +253,26 @@ class AnalyticsMenu(BaseMenu):
 
         with col_g4:
             with st.container(border=True):
-                # Gráfico 4: Distribuição por Número KAN
-                # Limpar KAN para inteiros válidos
-                df_kan = df_filtered.copy()
-                df_kan["kan_num"] = df_kan["kan"].apply(lambda x: int(x) if str(x).isdigit() else None)
-                df_kan = df_kan.dropna(subset=["kan_num"])
+                # Gráfico 4: Distribuição por KAN (Criação, Movimento, Finalidade)
+                kan_series = df_filtered["kan"].dropna().astype(str).str.strip().str.upper()
+                valid_kans = ["CRIAÇÃO", "MOVIMENTO", "FINALIDADE", "CRIACAO"]
+                df_kan_filtered = kan_series[kan_series.isin(valid_kans)]
                 
-                if not df_kan.empty:
-                    kan_counts = df_kan["kan_num"].value_counts().reset_index()
+                if not df_kan_filtered.empty:
+                    kan_counts = df_kan_filtered.value_counts().reset_index()
                     kan_counts.columns = ["KAN", "Quantidade"]
-                    kan_counts = kan_counts.sort_values("KAN")
                     
-                    fig_kan = px.bar(
+                    fig_kan = px.pie(
                         kan_counts,
-                        x="KAN",
-                        y="Quantidade",
-                        color_discrete_sequence=[color_palette[2]]
+                        values="Quantidade",
+                        names="KAN",
+                        hole=0.4,
+                        color_discrete_sequence=[color_palette[2], color_palette[3], color_palette[0]]
                     )
-                    fig_kan.update_layout(xaxis=dict(tickmode="linear", dtick=1))
-                    apply_dark_layout(fig_kan, "Distribuição por Número KAN")
+                    apply_dark_layout(fig_kan, "Distribuição KAN")
                     st.plotly_chart(fig_kan, use_container_width=True, config={"displayModeBar": False})
                 else:
-                    st.info("Dados de KAN insuficientes para gerar a distribuição.")
+                    st.info("Nenhum dado de KAN classificado como Criação, Movimento ou Finalidade.")
 
         st.write("---")
         
