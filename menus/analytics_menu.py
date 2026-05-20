@@ -33,51 +33,43 @@ class AnalyticsMenu(BaseMenu):
             return
 
         try:
-            response = client.table("mapas_salvos").select("*").execute()
-            rows = response.data
+            res_val = client.table("mapas_salvos_valores").select("*").execute()
+            rows_val = res_val.data
+            
+            res_ms = client.table("mapas_salvos").select("nome, empresa, cargo, ai_diagnosis").execute()
+            rows_ms = res_ms.data
         except Exception as e:
-            st.error(f"Erro ao acessar tabela mapas_salvos: {e}")
+            st.error(f"Erro ao acessar base de dados: {e}")
             st.markdown("</div>", unsafe_allow_html=True)
             return
 
-        if not rows:
-            st.warning("Nenhum registro encontrado na tabela 'mapas_salvos'.")
+        if not rows_val:
+            st.warning("A tabela 'mapas_salvos_valores' está vazia. Vá ao Painel de Controle > Auditoria e clique em 'CALCULAR MAPAS SALVOS' para popular a base analítica.")
             st.markdown("</div>", unsafe_allow_html=True)
             return
+
+        ms_dict = {}
+        for r in rows_ms:
+            ms_dict[r.get("nome")] = {
+                "empresa": r.get("empresa") if r.get("empresa") and str(r.get("empresa")).strip() and str(r.get("empresa")) != "nan" else "Sem Empresa",
+                "cargo": r.get("cargo") if r.get("cargo") and str(r.get("cargo")).strip() and str(r.get("cargo")) != "nan" else "Sem Cargo",
+                "ai_diagnosis": r.get("ai_diagnosis", "")
+            }
 
         data_list = []
-        for row in rows:
-            p_json = row.get('perfil_json')
-            perfil_val, categoria_val, qualidades_val, kan_val = "Não Calculado", "Não Calculada", "Não Calculada", None
-            if p_json:
-                try:
-                    dt = json.loads(p_json)
-                    for item in dt:
-                        campo_orig = item.get('Campo', '')
-                        campo_norm = normalize_key(campo_orig)
-                        raw_val = item.get('Resultado', item.get('Valor', ''))
-                        if campo_norm == 'perfil': perfil_val = raw_val
-                        elif campo_norm == 'categoria': categoria_val = raw_val
-                        elif campo_norm == 'qualidades': qualidades_val = raw_val
-                        elif campo_norm == 'kan':
-                            try: kan_val = int(raw_val)
-                            except: kan_val = raw_val
-                except: pass
-
-            empresa = row.get("empresa")
-            if not empresa or str(empresa).strip() == "" or str(empresa) == "nan": empresa = "Sem Empresa"
-            cargo = row.get("cargo")
-            if not cargo or str(cargo).strip() == "" or str(cargo) == "nan": cargo = "Sem Cargo"
+        for row in rows_val:
+            nome = row.get("nome", "Desconhecido")
+            ms_info = ms_dict.get(nome, {"empresa": "Sem Empresa", "cargo": "Sem Cargo", "ai_diagnosis": ""})
             
             data_list.append({
-                "nome": row.get("nome", "Desconhecido"),
-                "empresa": empresa,
-                "cargo": cargo,
-                "perfil": perfil_val if str(perfil_val).strip() else "Não Calculado",
-                "categoria": categoria_val if str(categoria_val).strip() else "Não Calculada",
-                "qualidades": qualidades_val if str(qualidades_val).strip() else "Não Calculada",
-                "kan": kan_val,
-                "ai_diagnosis": row.get("ai_diagnosis", "")
+                "nome": nome,
+                "empresa": ms_info["empresa"],
+                "cargo": ms_info["cargo"],
+                "perfil": row.get("perfil") if row.get("perfil") and str(row.get("perfil")).strip() else "Não Calculado",
+                "categoria": row.get("categoria") if row.get("categoria") and str(row.get("categoria")).strip() else "Não Calculada",
+                "qualidades": row.get("qualidades") if row.get("qualidades") and str(row.get("qualidades")).strip() else "Não Calculada",
+                "kan": row.get("kan"),
+                "ai_diagnosis": ms_info["ai_diagnosis"]
             })
 
         df = pd.DataFrame(data_list)
