@@ -47,7 +47,7 @@ class AdminMenu(BaseMenu):
         
         supabase_client = get_supabase_admin()
         
-        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab5 = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Banners"])
+        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab5, t_tab_soft = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Banners", "Soft Skills"])
         
         with t_tab1:
             st.subheader("Editor de Configurações (Tabelas)")
@@ -1082,3 +1082,33 @@ class AdminMenu(BaseMenu):
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Erro ao salvar no BD: {e}")
+        with t_tab_soft:
+            st.subheader("Mapeamento Comportamental de Soft Skills")
+            st.markdown("Visão consolidada do banco de Soft Skills cruzado com a metodologia KAN (Perfis, Categorias e Qualidades).")
+            
+            if supabase_client:
+                try:
+                    resp_soft = supabase_client.table("soft_skills").select("*").execute()
+                    if resp_soft and resp_soft.data:
+                        df_soft = pd.DataFrame(resp_soft.data)
+                        
+                        # Reordenando colunas para melhor visualização
+                        colunas_ordem = ['nome', 'explicacao', 'modelo_analise', 'perfis_relacionados', 'categorias_relacionadas', 'qualidades_relacionadas']
+                        df_soft = df_soft[colunas_ordem]
+                        
+                        df_soft.rename(columns={
+                            'nome': 'Soft Skill',
+                            'explicacao': 'Explicação Prática',
+                            'modelo_analise': 'Modelo de Análise',
+                            'perfis_relacionados': 'Perfis Relacionados',
+                            'categorias_relacionadas': 'Categorias Relacionadas',
+                            'qualidades_relacionadas': 'Qualidades Relacionadas'
+                        }, inplace=True)
+                        
+                        st.dataframe(df_soft, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("A tabela de Soft Skills está vazia ou não foi carregada no banco.")
+                except Exception as e:
+                    st.error(f"Erro ao buscar soft skills: {e}")
+            else:
+                st.warning("Conexão com o banco indisponível.")
