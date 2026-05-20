@@ -468,13 +468,10 @@ class AdminMenu(BaseMenu):
             
             if st.button("CALCULAR MAPAS SALVOS (POPULAR TABELA DE VALORES)", use_container_width=True):
                 st.info("Iniciando cálculo em lote... Isso pode demorar alguns instantes.")
-                from datetime import datetime, date
-                from services.perfil import realizar_calculos_completos
-                from models.database import KAN_DB
 
                 clientes_para_calc = carregar_todos_clientes()
                 rows_to_insert = []
-                data_atual_tup = (datetime.now().day, datetime.now().month, datetime.now().year)
+                data_atual_tup = (datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year)
 
                 def map_kan_name(k):
                     res = KAN_DB.get(str(k), {})
@@ -483,11 +480,11 @@ class AdminMenu(BaseMenu):
                 for n_aud, c_info in clientes_para_calc.items():
                     nasc_dt = c_info.get('data_nascimento')
                     try:
-                        if isinstance(nasc_dt, (datetime, date)):
+                        if isinstance(nasc_dt, (datetime.datetime, datetime.date)):
                             nascimento_tup = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
                         elif isinstance(nasc_dt, str):
-                            try: dt_obj = datetime.strptime(nasc_dt, "%d/%m/%Y")
-                            except ValueError: dt_obj = datetime.strptime(nasc_dt, "%Y-%m-%d")
+                            try: dt_obj = datetime.datetime.strptime(nasc_dt, "%d/%m/%Y")
+                            except ValueError: dt_obj = datetime.datetime.strptime(nasc_dt, "%Y-%m-%d")
                             nascimento_tup = (dt_obj.day, dt_obj.month, dt_obj.year)
                         else:
                             continue
