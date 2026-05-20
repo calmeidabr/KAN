@@ -6,7 +6,6 @@ ALTER TABLE desafios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE matriz ENABLE ROW LEVEL SECURITY;
 ALTER TABLE atributos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE repeticao ENABLE ROW LEVEL SECURITY;
-ALTER TABLE repeticao_descricao ENABLE ROW LEVEL SECURITY;
 ALTER TABLE peso ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perfis ENABLE ROW LEVEL SECURITY;
 ALTER TABLE perfil_descricao ENABLE ROW LEVEL SECURITY;
@@ -34,7 +33,6 @@ CREATE POLICY "Permitir leitura publica de dicionarios" ON desafios FOR SELECT U
 CREATE POLICY "Permitir leitura publica de dicionarios" ON matriz FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura publica de dicionarios" ON atributos FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura publica de dicionarios" ON repeticao FOR SELECT USING (true);
-CREATE POLICY "Permitir leitura publica de dicionarios" ON repeticao_descricao FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura publica de dicionarios" ON peso FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura publica de dicionarios" ON perfis FOR SELECT USING (true);
 CREATE POLICY "Permitir leitura publica de dicionarios" ON perfil_descricao FOR SELECT USING (true);
