@@ -1093,13 +1093,16 @@ class AdminMenu(BaseMenu):
                         df_soft = pd.DataFrame(resp_soft.data)
                         
                         # Reordenando colunas para melhor visualização
-                        colunas_ordem = ['nome', 'explicacao', 'modelo_analise', 'perfis_relacionados', 'categorias_relacionadas', 'qualidades_relacionadas']
-                        df_soft = df_soft[colunas_ordem]
+                        colunas_ordem = ['nome', 'explicacao', 'modelo_analise', 'kan_relacionado', 'perfis_relacionados', 'categorias_relacionadas', 'qualidades_relacionadas']
+                        # Só seleciona se a coluna kan_relacionado existir (para não quebrar enquanto ele não rodar o SQL)
+                        colunas_presentes = [c for c in colunas_ordem if c in df_soft.columns]
+                        df_soft = df_soft[colunas_presentes]
                         
                         df_soft.rename(columns={
                             'nome': 'Soft Skill',
                             'explicacao': 'Explicação Prática',
                             'modelo_analise': 'Modelo de Análise',
+                            'kan_relacionado': 'KAN Relacionado',
                             'perfis_relacionados': 'Perfis Relacionados',
                             'categorias_relacionadas': 'Categorias Relacionadas',
                             'qualidades_relacionadas': 'Qualidades Relacionadas'
