@@ -191,9 +191,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         st.write("---")
         col_sec_title, col_sec_btn = st.columns([3, 1])
         with col_sec_title:
-            st.subheader("👥 Candidatos Associados ao Processo")
+            st.subheader("Candidatos Associados ao Processo")
         with col_sec_btn:
-            if st.button("➕ Associar Talentos", key="btn_toggle_assoc", use_container_width=True):
+            if st.button("Associar Talentos", key="btn_toggle_assoc", use_container_width=True):
                 st.session_state["mostrar_selector_talentos"] = True
 
         # Renderizar seletor de associação
@@ -307,7 +307,7 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
 </div>"""
                         st.markdown(card_html, unsafe_allow_html=True)
         else:
-            st.info("Nenhum talento associado a este processo seletivo ainda. Clique em '➕ Associar Talentos' acima para selecionar participantes.")
+            st.info("Nenhum talento associado a este processo seletivo ainda. Clique em 'Associar Talentos' acima para selecionar participantes.")
 
         # Ordenar por aderência
         df_matching = pd.DataFrame(matching_results).sort_values(by="Aderência (%)", ascending=False)
@@ -316,7 +316,7 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
         # TABELAS GERAIS E COMPARATIVOS
         # -------------------------------------------------------------------------
         st.write("---")
-        st.subheader(f"📊 Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})")
+        st.subheader(f"Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})")
         
         # Filtrar o ranking geral pela empresa selecionada
         df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
@@ -328,7 +328,7 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
             st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
 
         st.write("---")
-        st.subheader("🔍 Comparativo Detalhado Side-by-Side")
+        st.subheader("Comparativo Detalhado Side-by-Side")
         
         selected_talent_nome = st.selectbox("Selecione um talento para visualizar o comparativo detalhado:", options=df_matching["Nome"].tolist(), key="select_side_by_side_talent")
         
@@ -339,7 +339,7 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
         
         with col_comp1:
             with st.container(border=True):
-                st.markdown(f"#### 💼 Requisitos da Vaga\n**{vaga_selecionada_nome}**")
+                st.markdown(f"#### Requisitos da Vaga\n**{vaga_selecionada_nome}**")
                 st.write(f"**KAN Exigido:** `{vaga_kan.upper()}`")
                 st.write(f"**Perfis Exigidos:** `{', '.join(vaga_perfis) if vaga_perfis else 'Nenhum'}`")
                 st.write(f"**Categorias Exigidas:** `{', '.join(vaga_cats) if vaga_cats else 'Nenhuma'}`")
@@ -347,7 +347,7 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
 
         with col_comp2:
             with st.container(border=True):
-                st.markdown(f"#### 👤 Perfil do Talento\n**{selected_talent_nome}**")
+                st.markdown(f"#### Perfil do Talento\n**{selected_talent_nome}**")
                 st.write(f"**KAN do Talento:** `{talento_detalhes['kan']}`")
                 st.write(f"**Perfis do Talento:** `{', '.join(talento_detalhes['perfis']) if talento_detalhes['perfis'] else 'Nenhum'}`")
                 st.write(f"**Categorias do Talento:** `{', '.join(talento_detalhes['categorias']) if talento_detalhes['categorias'] else 'Nenhuma'}`")
