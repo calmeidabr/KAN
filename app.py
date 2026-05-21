@@ -85,15 +85,13 @@ class App:
             group_icons = {
                 "CADASTROS": "⊞",
                 "ANÁLISES": "⎔",
-                "ESTRUTURA DA EMPRESA": "⛶",
                 "CONFIGURAÇÕES": "⚙",
                 "ADMIN": "⛭"
             }
 
             menu_groups = {
-                "CADASTROS": ["Talentos", "Vagas"],
+                "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
-                "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
             if st.session_state.get("logged_user") == "adminkan":
