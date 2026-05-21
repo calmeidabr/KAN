@@ -11,6 +11,7 @@ from menus.empresas_menu import EmpresasMenu
 from menus.admin_menu import AdminMenu
 from menus.diagnosticos_menu import DiagnosticosMenu
 from menus.analytics_menu import AnalyticsMenu
+from menus.processo_seletivo_analise_menu import ProcessoSeletivoAnaliseMenu
 from menus.placeholder_menu import PlaceholderMenu
 
 def set_nav_route(route):
@@ -36,6 +37,7 @@ class App:
             "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
             "Usuários": lambda: PlaceholderMenu(self).render(title="Gestão de Usuários do Sistema", message="Módulo de gestão de permissões de usuários em desenvolvimento."),
             "Analytics": lambda: AnalyticsMenu(self).render(),
+            "Processo seletivo": lambda: ProcessoSeletivoAnaliseMenu(self).render(),
             "Painel de Controle": lambda: AdminMenu(self).render(),
             "Diagnósticos": lambda: DiagnosticosMenu(self).render(mode="diagnostico"),
             "Mapas": lambda: DiagnosticosMenu(self).render(mode="mapa")
@@ -75,6 +77,7 @@ class App:
                 "Diagnósticos": "⎔",
                 "Mapas": "⛶",
                 "Analytics": "⬡",
+                "Processo seletivo": "⚖",
                 "Hierarquia / Deptos": "⊞",
                 "Equipes": "⧇",
                 "Empresa": "⚙",
@@ -88,10 +91,9 @@ class App:
                 "CONFIGURAÇÕES": "⚙",
                 "ADMIN": "⛭"
             }
-
             menu_groups = {
                 "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes"],
-                "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
+                "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
             if st.session_state.get("logged_user") == "adminkan":
