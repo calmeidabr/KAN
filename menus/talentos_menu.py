@@ -146,7 +146,7 @@ class TalentosMenu(BaseMenu):
                             st.session_state['ocr_data_nascimento'] = ''
 
         st.write("---")
-        st.subheader("🔍 Consultar Talentos Cadastrados")
+        st.subheader("Consultar Talentos Cadastrados")
         
         clientes = carregar_todos_clientes()
         
