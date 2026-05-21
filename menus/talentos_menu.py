@@ -12,7 +12,6 @@ from utils.helpers import compress_image_to_b64
 class TalentosMenu(BaseMenu):
     def render(self):
         st.title("Cadastro de Talentos")
-        st.info("Cadastre novos perfis para análise comportamental e numerológica no sistema.")
         st.write("---")
 
         supabase_client = get_supabase_admin()
