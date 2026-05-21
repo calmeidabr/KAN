@@ -282,61 +282,29 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 cols = st.columns(cards_per_row)
                 for idx, cand in enumerate(chunk):
                     with cols[idx]:
-                        # Gerar HTML do avatar/foto crop
+                        # Gerar HTML do avatar/foto crop (sem indentação inicial nas linhas para evitar que o markdown interprete como bloco de código)
                         if cand["foto_base64"]:
-                            avatar_html = f"""
-                            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
-                                <img src="data:image/png;base64,{cand['foto_base64']}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                            </div>
-                            """
+                            avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><img src="data:image/png;base64,{cand["foto_base64"]}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>'
                         else:
-                            avatar_html = f"""
-                            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
-                                <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">
-                                    {cand['Nome'][0].upper()}
-                                </div>
-                            </div>
-                            """
+                            avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">{cand["Nome"][0].upper()}</div></div>'
                             
-                        card_html = f"""
-                        <div style="
-                            background: rgba(255, 255, 255, 0.04);
-                            border: 1px solid rgba(255, 255, 255, 0.08);
-                            border-radius: 16px;
-                            padding: 20px;
-                            text-align: center;
-                            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-                            backdrop-filter: blur(10px);
-                            margin-bottom: 20px;
-                            font-family: Outfit, sans-serif;
-                        ">
-                            {avatar_html}
-                            <h4 style="margin: 10px 0 2px 0; color: #FFFFFF; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{cand['Nome']}</h4>
-                            <p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em;">📅 {cand['data_nascimento']}</p>
-                            
-                            <div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-bottom: 15px;">
-                                <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
-                                <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
-                                <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
-                                <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
-                            </div>
-                            
-                            <div style="
-                                background: rgba(241, 134, 23, 0.1);
-                                border: 1px solid rgba(241, 134, 23, 0.2);
-                                border-radius: 8px;
-                                padding: 8px;
-                                color: #F18617;
-                                font-weight: 700;
-                                font-size: 1em;
-                            ">
-                                🎯 {cand['total_pts']} Pontos
-                                <div style="font-size: 0.65em; font-weight: 400; color: rgba(255,255,255,0.6); margin-top: 2px;">
-                                    KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
-                                </div>
-                            </div>
-                        </div>
-                        """
+                        card_html = f"""<div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.25); backdrop-filter: blur(10px); margin-bottom: 20px; font-family: Outfit, sans-serif;">
+{avatar_html}
+<h4 style="margin: 10px 0 2px 0; color: #FFFFFF; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{cand['Nome']}</h4>
+<p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em;">📅 {cand['data_nascimento']}</p>
+<div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-bottom: 15px;">
+<div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
+<div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
+<div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
+<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
+</div>
+<div style="background: rgba(241, 134, 23, 0.1); border: 1px solid rgba(241, 134, 23, 0.2); border-radius: 8px; padding: 8px; color: #F18617; font-weight: 700; font-size: 1em;">
+🎯 {cand['total_pts']} Pontos
+<div style="font-size: 0.65em; font-weight: 400; color: rgba(255,255,255,0.6); margin-top: 2px;">
+KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
+</div>
+</div>
+</div>"""
                         st.markdown(card_html, unsafe_allow_html=True)
         else:
             st.info("Nenhum talento associado a este processo seletivo ainda. Clique em '➕ Associar Talentos' acima para selecionar participantes.")
