@@ -3,6 +3,7 @@ import pandas as pd
 import json
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, get_supabase_admin
+from utils.helpers import remover_acentos
 
 class ProcessoSeletivoAnaliseMenu(BaseMenu):
     def render(self):
@@ -14,6 +15,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         if not supabase_client:
             st.error("Conexão administrativa do Supabase não configurada.")
             return
+
+        # Inicializar dicionário de candidatos por vaga no session_state
+        if "candidatos_vagas" not in st.session_state:
+            st.session_state["candidatos_vagas"] = {}
 
         # Carregar empresas cadastradas
         lista_empresas_salvas = carregar_empresas()
@@ -78,7 +83,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         try:
             res_val = supabase_client.table("mapas_salvos_valores").select("*").execute()
             rows_val = res_val.data if res_val and res_val.data else []
-            res_ms = supabase_client.table("mapas_salvos").select("nome, empresa, cargo").execute()
+            res_ms = supabase_client.table("mapas_salvos").select("nome, empresa, cargo, data_nascimento, foto_base64").execute()
             rows_ms = res_ms.data if res_ms and res_ms.data else []
         except Exception as e:
             st.error(f"Erro ao carregar talentos da base de dados: {e}")
@@ -88,21 +93,23 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.warning("Nenhum mapa calculado na base. Calcule os mapas salvos no Painel de Controle antes de realizar a análise.")
             return
 
-        # Dicionário de cargos/empresas
+        # Dicionário de cargos/empresas/fotos/datas
         ms_dict = {}
         for r in rows_ms:
             ms_dict[r.get("nome")] = {
                 "empresa": r.get("empresa") or "Sem Empresa",
-                "cargo": r.get("cargo") or "Sem Cargo"
+                "cargo": r.get("cargo") or "Sem Cargo",
+                "data_nascimento": r.get("data_nascimento") or "",
+                "foto_base64": r.get("foto_base64") or ""
             }
 
         # Calcular scores
         matching_results = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
-            info = ms_dict.get(nome, {"empresa": "Sem Empresa", "cargo": "Sem Cargo"})
+            info = ms_dict.get(nome, {"empresa": "Sem Empresa", "cargo": "Sem Cargo", "data_nascimento": "", "foto_base64": ""})
             
-            # Filtro por empresa do talento (opcional: ou mostrar todos os talentos da empresa selecionada)
+            # Filtro por empresa do talento
             if info["empresa"] != empresa_selecionada:
                 continue
 
@@ -116,7 +123,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             if vaga_kan in ("Nenhum", "Nenhum / Não Exigido", ""):
                 kan_score = 25.0
                 kan_status = "✓ N/A"
-            elif talento_kan == vaga_kan.upper():
+            elif remover_acentos(talento_kan).upper().strip() == remover_acentos(vaga_kan).upper().strip():
                 kan_score = 25.0
                 kan_status = "✓ Compatível"
             else:
@@ -158,11 +165,13 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             matching_results.append({
                 "Nome": nome,
                 "Cargo Atual": info["cargo"],
-                "Aderência (%)": round(total_score * 4, 1), # Multiplicado por 4 para ir de 0 a 100% (25% * 4 = 100%)
+                "Aderência (%)": round(total_score * 4, 1),
                 "KAN": kan_status,
                 "Perfil": perfil_status,
                 "Categoria": cat_status,
                 "Qualidades": qual_status,
+                "data_nascimento": info["data_nascimento"],
+                "foto_base64": info["foto_base64"],
                 "talento_detalhes": {
                     "kan": talento_kan,
                     "perfis": talento_perfis,
@@ -175,20 +184,180 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.info(f"Nenhum talento cadastrado na empresa {empresa_selecionada} para realizar o matching.")
             return
 
+        # -------------------------------------------------------------------------
+        # SEÇÃO: CANDIDATOS ASSOCIADOS AO PROCESSO
+        # -------------------------------------------------------------------------
+        if "mostrar_selector_talentos" not in st.session_state:
+            st.session_state["mostrar_selector_talentos"] = False
+
+        st.write("---")
+        col_sec_title, col_sec_btn = st.columns([3, 1])
+        with col_sec_title:
+            st.subheader("👥 Candidatos Associados ao Processo")
+        with col_sec_btn:
+            if st.button("➕ Associar Talentos", key="btn_toggle_assoc", use_container_width=True):
+                st.session_state["mostrar_selector_talentos"] = True
+
+        # Renderizar seletor de associação
+        if st.session_state["mostrar_selector_talentos"]:
+            with st.container(border=True):
+                st.markdown("#### Selecionar Talentos para o Processo")
+                opcoes_talentos = sorted([r["Nome"] for r in matching_results])
+                
+                candidatos_selecionados = st.multiselect(
+                    "Selecione os talentos que participarão deste processo:",
+                    options=opcoes_talentos,
+                    default=st.session_state["candidatos_vagas"].get(vaga["id"], []),
+                    key="selector_talentos_multiselect"
+                )
+                
+                col_actions1, col_actions2 = st.columns(2)
+                with col_actions1:
+                    if st.button("Salvar Associação", type="primary", use_container_width=True, key="btn_salvar_assoc"):
+                        st.session_state["candidatos_vagas"][vaga["id"]] = candidatos_selecionados
+                        st.session_state["mostrar_selector_talentos"] = False
+                        st.success("Candidatos associados com sucesso!")
+                        st.rerun()
+                with col_actions2:
+                    if st.button("Cancelar", use_container_width=True, key="btn_cancelar_assoc"):
+                        st.session_state["mostrar_selector_talentos"] = False
+                        st.rerun()
+
+        # Renderizar os Cards dos Candidatos Associados
+        associated_names = st.session_state["candidatos_vagas"].get(vaga["id"], [])
+        
+        if associated_names:
+            candidatos_processo = []
+            for r in matching_results:
+                if r["Nome"] in associated_names:
+                    t_kan = r["talento_detalhes"]["kan"]
+                    t_perfis = r["talento_detalhes"]["perfis"]
+                    t_quals = r["talento_detalhes"]["qualidades"]
+                    t_cats = r["talento_detalhes"]["categorias"]
+                    
+                    # 1. KAN Match (3 pts)
+                    pts_kan = 0
+                    if vaga_kan and vaga_kan.upper() not in ("NENHUM", "NENHUM / NÃO EXIGIDO", ""):
+                        if remover_acentos(t_kan).upper().strip() == remover_acentos(vaga_kan).upper().strip():
+                            pts_kan = 3
+                            
+                    # 2. Perfil Match (2 pts por match)
+                    pts_perfil = 0
+                    if vaga_perfis:
+                        vaga_perfis_norm = [remover_acentos(p).upper().strip() for p in vaga_perfis]
+                        talento_perfis_norm = [remover_acentos(p).upper().strip() for p in t_perfis]
+                        perfis_intersect = set(vaga_perfis_norm).intersection(set(talento_perfis_norm))
+                        pts_perfil = 2 * len(perfis_intersect)
+                        
+                    # 3. Qualidades Match (1 pt por match)
+                    pts_qual = 0
+                    if vaga_quals:
+                        vaga_quals_norm = [remover_acentos(q).upper().strip() for q in vaga_quals]
+                        talento_quals_norm = [remover_acentos(q).upper().strip() for q in t_quals]
+                        quals_intersect = set(vaga_quals_norm).intersection(set(talento_quals_norm))
+                        pts_qual = 1 * len(quals_intersect)
+                        
+                    total_pts = pts_kan + pts_perfil + pts_qual
+                    
+                    candidatos_processo.append({
+                        "Nome": r["Nome"],
+                        "data_nascimento": r["data_nascimento"],
+                        "foto_base64": r["foto_base64"],
+                        "kan": t_kan,
+                        "perfil": ", ".join(t_perfis),
+                        "categoria": ", ".join(t_cats),
+                        "qualidades": ", ".join(t_quals),
+                        "pts_kan": pts_kan,
+                        "pts_perfil": pts_perfil,
+                        "pts_qual": pts_qual,
+                        "total_pts": total_pts
+                    })
+                    
+            # Ordenar por pontuação descendente
+            candidatos_processo = sorted(candidatos_processo, key=lambda x: x["total_pts"], reverse=True)
+            
+            # Exibir cards lado a lado com tamanho uniforme
+            cards_per_row = 3
+            for i in range(0, len(candidatos_processo), cards_per_row):
+                chunk = candidatos_processo[i:i + cards_per_row]
+                cols = st.columns(cards_per_row)
+                for idx, cand in enumerate(chunk):
+                    with cols[idx]:
+                        # Gerar HTML do avatar/foto crop
+                        if cand["foto_base64"]:
+                            avatar_html = f"""
+                            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                                <img src="data:image/png;base64,{cand['foto_base64']}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                            </div>
+                            """
+                        else:
+                            avatar_html = f"""
+                            <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                                <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">
+                                    {cand['Nome'][0].upper()}
+                                </div>
+                            </div>
+                            """
+                            
+                        card_html = f"""
+                        <div style="
+                            background: rgba(255, 255, 255, 0.04);
+                            border: 1px solid rgba(255, 255, 255, 0.08);
+                            border-radius: 16px;
+                            padding: 20px;
+                            text-align: center;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                            backdrop-filter: blur(10px);
+                            margin-bottom: 20px;
+                            font-family: Outfit, sans-serif;
+                        ">
+                            {avatar_html}
+                            <h4 style="margin: 10px 0 2px 0; color: #FFFFFF; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{cand['Nome']}</h4>
+                            <p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em;">📅 {cand['data_nascimento']}</p>
+                            
+                            <div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-bottom: 15px;">
+                                <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
+                                <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
+                                <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
+                                <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
+                            </div>
+                            
+                            <div style="
+                                background: rgba(241, 134, 23, 0.1);
+                                border: 1px solid rgba(241, 134, 23, 0.2);
+                                border-radius: 8px;
+                                padding: 8px;
+                                color: #F18617;
+                                font-weight: 700;
+                                font-size: 1em;
+                            ">
+                                🎯 {cand['total_pts']} Pontos
+                                <div style="font-size: 0.65em; font-weight: 400; color: rgba(255,255,255,0.6); margin-top: 2px;">
+                                    KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
+                                </div>
+                            </div>
+                        </div>
+                        """
+                        st.markdown(card_html, unsafe_allow_html=True)
+        else:
+            st.info("Nenhum talento associado a este processo seletivo ainda. Clique em '➕ Associar Talentos' acima para selecionar participantes.")
+
         # Ordenar por aderência
         df_matching = pd.DataFrame(matching_results).sort_values(by="Aderência (%)", ascending=False)
         
-        # Exibir a Tabela de Matching
-        st.subheader("📊 Ranking de Aderência dos Talentos")
+        # -------------------------------------------------------------------------
+        # TABELAS GERAIS E COMPARATIVOS
+        # -------------------------------------------------------------------------
+        st.write("---")
+        st.subheader("📊 Ranking Geral de Aderência (Todos os Talentos da Empresa)")
         
-        # Formatando a exibição do DataFrame
-        df_display = df_matching.drop(columns=["talento_detalhes"])
+        df_display = df_matching.drop(columns=["talento_detalhes", "foto_base64", "data_nascimento"])
         st.dataframe(df_display, use_container_width=True, hide_index=True)
 
         st.write("---")
         st.subheader("🔍 Comparativo Detalhado Side-by-Side")
         
-        selected_talent_nome = st.selectbox("Selecione um talento para visualizar o comparativo detalhado:", options=df_matching["Nome"].tolist())
+        selected_talent_nome = st.selectbox("Selecione um talento para visualizar o comparativo detalhado:", options=df_matching["Nome"].tolist(), key="select_side_by_side_talent")
         
         talent_row = df_matching[df_matching["Nome"] == selected_talent_nome].iloc[0]
         talento_detalhes = talent_row["talento_detalhes"]
