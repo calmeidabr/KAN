@@ -306,6 +306,11 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
 </div>
 </div>"""
                         st.markdown(card_html, unsafe_allow_html=True)
+                        if st.button("Excluir da seleção", key=f"excluir_cand_{cand['Nome']}_{vaga['id']}", use_container_width=True):
+                            if vaga["id"] in st.session_state["candidatos_vagas"]:
+                                if cand["Nome"] in st.session_state["candidatos_vagas"][vaga["id"]]:
+                                    st.session_state["candidatos_vagas"][vaga["id"]].remove(cand["Nome"])
+                                    st.rerun()
         else:
             st.info("Nenhum talento associado a este processo seletivo ainda. Clique em 'Associar Talentos' acima para selecionar participantes.")
 
