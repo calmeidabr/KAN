@@ -110,10 +110,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             nome = row.get("nome", "Desconhecido")
             info = ms_dict.get(nome, {"empresa": "Sem Empresa", "cargo": "Sem Cargo", "data_nascimento": "", "foto_base64": ""})
             
-            # Filtro por empresa do talento
-            if info["empresa"] != empresa_selecionada:
-                continue
-
             # Traços do talento
             talento_kan = str(row.get("kan", "")).strip().upper()
             talento_perfis = [str(x).strip().upper() for x in str(row.get("perfil", "")).split(",") if x.strip()]
@@ -166,6 +162,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             matching_results.append({
                 "Nome": nome,
                 "Cargo Atual": info["cargo"],
+                "Empresa": info["empresa"],
                 "Aderência (%)": round(total_score * 4, 1),
                 "KAN": kan_status,
                 "Perfil": perfil_status,
@@ -182,7 +179,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             })
 
         if not matching_results:
-            st.info(f"Nenhum talento cadastrado na empresa {empresa_selecionada} para realizar o matching.")
+            st.info("Nenhum talento cadastrado no sistema para realizar o matching.")
             return
 
         # -------------------------------------------------------------------------
@@ -203,6 +200,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         if st.session_state["mostrar_selector_talentos"]:
             with st.container(border=True):
                 st.markdown("#### Selecionar Talentos para o Processo")
+                # Mostrar todos os talentos cadastrados no sistema
                 opcoes_talentos = sorted([r["Nome"] for r in matching_results])
                 
                 candidatos_selecionados = st.multiselect(
@@ -350,10 +348,16 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         # TABELAS GERAIS E COMPARATIVOS
         # -------------------------------------------------------------------------
         st.write("---")
-        st.subheader("📊 Ranking Geral de Aderência (Todos os Talentos da Empresa)")
+        st.subheader(f"📊 Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})")
         
-        df_display = df_matching.drop(columns=["talento_detalhes", "foto_base64", "data_nascimento"])
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        # Filtrar o ranking geral pela empresa selecionada
+        df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
+        
+        if not df_matching_empresa.empty:
+            df_display = df_matching_empresa.drop(columns=["talento_detalhes", "foto_base64", "data_nascimento", "Empresa"])
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
+        else:
+            st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
 
         st.write("---")
         st.subheader("🔍 Comparativo Detalhado Side-by-Side")
