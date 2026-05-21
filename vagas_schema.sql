@@ -1,4 +1,4 @@
--- Tabela de Vagas e Processos Seletivos para as Empresas no Sistema KAN
+-- Tabela de Vagas para as Empresas no Sistema KAN
 CREATE TABLE IF NOT EXISTS vagas (
     id BIGSERIAL PRIMARY KEY,
     nome_vaga TEXT NOT NULL,

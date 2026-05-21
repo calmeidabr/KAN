@@ -30,7 +30,7 @@ class App:
         self.routes = {
             "Home": lambda: HomeMenu(self).render(),
             "Talentos": lambda: TalentosMenu(self).render(),
-            "Processos seletivos": lambda: ProcessosMenu(self).render(),
+            "Vagas": lambda: ProcessosMenu(self).render(),
             "Hierarquia / Deptos": lambda: HierarquiaMenu(self).render(),
             "Equipes": lambda: PlaceholderMenu(self).render(title="Gestão de Equipes", message="Módulo de estruturação de equipes em desenvolvimento."),
             "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
@@ -71,7 +71,7 @@ class App:
             icones = {
                 "Home": "◇",
                 "Talentos": "○",
-                "Processos seletivos": "◎",
+                "Vagas": "◎",
                 "Diagnósticos": "⎔",
                 "Mapas": "⛶",
                 "Analytics": "⬡",
@@ -91,7 +91,7 @@ class App:
             }
 
             menu_groups = {
-                "CADASTROS": ["Talentos", "Processos seletivos"],
+                "CADASTROS": ["Talentos", "Vagas"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics"],
                 "ESTRUTURA DA EMPRESA": ["Hierarquia / Deptos", "Equipes"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]

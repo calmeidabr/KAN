@@ -8,7 +8,7 @@ from models.database import (
 
 class ProcessosMenu(BaseMenu):
     def render(self):
-        st.title("Processos seletivos (Gestão de Vagas)")
+        st.title("Vagas")
         st.info("Cadastre e consulte perfis ideais de vagas para alinhamento comportamental.")
         st.write("---")
 
@@ -39,7 +39,7 @@ class ProcessosMenu(BaseMenu):
         opcoes_categorias = sorted(list(set(LISTA_CATEGORIA_DB))) if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
         opcoes_qualidades = sorted(list(set(QUALIDADES_DB.keys()))) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
 
-        with st.expander("Cadastrar Novo Processo seletivo (Vaga)", expanded=False):
+        with st.expander("Cadastrar Nova Vaga", expanded=False):
             with st.container(border=True):
                 col_v1, col_v2, col_v3 = st.columns([2, 1, 2])
                 with col_v1:
