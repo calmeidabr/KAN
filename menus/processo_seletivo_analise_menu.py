@@ -63,7 +63,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
 
         # Container visual dos requisitos da Vaga
         with st.container(border=True):
-            st.markdown(f"### 📋 Requisitos Comportamentais da Vaga: **{vaga['nome_vaga']}**")
+            st.markdown(f"### Requisitos Comportamentais da Vaga: **{vaga['nome_vaga']}**")
             col_r1, col_r2, col_r3, col_r4 = st.columns(4)
             with col_r1:
                 st.markdown(f"**KAN Ideal**\n\n`{vaga_kan.upper()}`")
@@ -77,7 +77,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 quals_str = ", ".join(vaga_quals) if vaga_quals else "Nenhuma exigida"
                 st.markdown(f"**Qualidades**\n\n`{quals_str}`")
             if vaga.get('descricao_vaga'):
-                st.markdown(f"**Descrição:** {vaga['descricao_vaga']}")
+                with st.expander("Descrição da Vaga", expanded=False):
+                    st.write(vaga['descricao_vaga'])
 
         # Buscar talentos (candidatos) para fazer o matching
         try:
