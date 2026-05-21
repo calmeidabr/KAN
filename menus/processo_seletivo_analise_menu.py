@@ -20,6 +20,19 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         if "candidatos_vagas" not in st.session_state:
             st.session_state["candidatos_vagas"] = {}
 
+        # Verificar se há pedido de exclusão via URL (query params)
+        if "excluir_cand" in st.query_params:
+            cand_nome = st.query_params["excluir_cand"]
+            vaga_id = st.query_params.get("vaga_id")
+            if vaga_id and vaga_id in st.session_state["candidatos_vagas"]:
+                if cand_nome in st.session_state["candidatos_vagas"][vaga_id]:
+                    st.session_state["candidatos_vagas"][vaga_id].remove(cand_nome)
+            # Limpar parâmetros específicos de exclusão e recarregar a tela limpa
+            del st.query_params["excluir_cand"]
+            if "vaga_id" in st.query_params:
+                del st.query_params["vaga_id"]
+            st.rerun()
+
         # Carregar empresas cadastradas
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
@@ -275,47 +288,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             # Ordenar por pontuação descendente
             candidatos_processo = sorted(candidatos_processo, key=lambda x: x["total_pts"], reverse=True)
             
-            # Injetar CSS para posicionar o botão 'x' no canto superior direito do card
-            st.markdown("""
-            <style>
-            div[data-testid="stColumn"]:has(.candidato-card) {
-                position: relative !important;
-            }
-            div[data-testid="stColumn"]:has(.candidato-card) div[data-testid="stButton"] {
-                position: absolute !important;
-                top: 15px !important;
-                right: 25px !important;
-                z-index: 999 !important;
-            }
-            div[data-testid="stColumn"]:has(.candidato-card) div[data-testid="stButton"] button {
-                background-color: transparent !important;
-                color: #F18617 !important;
-                border: 2px solid #F18617 !important;
-                border-radius: 50% !important;
-                width: 24px !important;
-                height: 24px !important;
-                min-width: 24px !important;
-                max-width: 24px !important;
-                min-height: 24px !important;
-                max-height: 24px !important;
-                padding: 0 !important;
-                font-size: 13px !important;
-                font-weight: bold !important;
-                line-height: 1 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
-                transition: all 0.2s ease-in-out !important;
-            }
-            div[data-testid="stColumn"]:has(.candidato-card) div[data-testid="stButton"] button:hover {
-                background-color: #F18617 !important;
-                color: white !important;
-                transform: scale(1.15) !important;
-            }
-            </style>
-            """, unsafe_allow_html=True)
-
             # Exibir cards lado a lado com tamanho uniforme
             cards_per_row = 3
             for i in range(0, len(candidatos_processo), cards_per_row):
@@ -330,6 +302,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">{cand["Nome"][0].upper()}</div></div>'
                             
                         card_html = f"""<div class="candidato-card" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.25); backdrop-filter: blur(10px); margin-bottom: 20px; font-family: Outfit, sans-serif; position: relative;">
+<a href="?excluir_cand={cand['Nome']}&vaga_id={vaga['id']}" target="_self" style="position: absolute; top: 15px; right: 15px; background-color: #F18617; color: #7C3AED; border: none; border-radius: 50%; width: 22px; height: 22px; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; line-height: 1;">x</a>
 {avatar_html}
 <h4 style="margin: 10px 0 2px 0; color: #FFFFFF; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{cand['Nome']}</h4>
 <p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em;">📅 {cand['data_nascimento']}</p>
@@ -347,11 +320,6 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
 </div>
 </div>"""
                         st.markdown(card_html, unsafe_allow_html=True)
-                        if st.button("x", key=f"excluir_cand_{cand['Nome']}_{vaga['id']}"):
-                            if vaga["id"] in st.session_state["candidatos_vagas"]:
-                                if cand["Nome"] in st.session_state["candidatos_vagas"][vaga["id"]]:
-                                    st.session_state["candidatos_vagas"][vaga["id"]].remove(cand["Nome"])
-                                    st.rerun()
         else:
             st.info("Nenhum talento associado a este processo seletivo ainda. Clique em 'Associar Talentos' acima para selecionar participantes.")
 
