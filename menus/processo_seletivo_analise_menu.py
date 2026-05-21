@@ -19,14 +19,55 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         # Inicializar dicionário de candidatos por vaga no session_state
         if "candidatos_vagas" not in st.session_state:
             st.session_state["candidatos_vagas"] = {}
+            # Carregar as associações existentes de processos_seletivos do Supabase
+            try:
+                res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos").execute()
+                if res_proc and res_proc.data:
+                    for r in res_proc.data:
+                        v_id = r.get("vaga_id")
+                        cands = r.get("candidatos")
+                        if v_id is not None:
+                            try:
+                                v_id_int = int(v_id)
+                            except:
+                                v_id_int = v_id
+                            
+                            if isinstance(cands, list):
+                                st.session_state["candidatos_vagas"][v_id_int] = cands
+                            elif isinstance(cands, str):
+                                try:
+                                    st.session_state["candidatos_vagas"][v_id_int] = json.loads(cands)
+                                except:
+                                    st.session_state["candidatos_vagas"][v_id_int] = []
+            except Exception:
+                pass
 
         # Verificar se há pedido de exclusão via URL (query params)
         if "excluir_cand" in st.query_params:
             cand_nome = st.query_params["excluir_cand"]
             vaga_id = st.query_params.get("vaga_id")
-            if vaga_id and vaga_id in st.session_state["candidatos_vagas"]:
-                if cand_nome in st.session_state["candidatos_vagas"][vaga_id]:
-                    st.session_state["candidatos_vagas"][vaga_id].remove(cand_nome)
+            if vaga_id:
+                try:
+                    vaga_id_int = int(vaga_id)
+                except:
+                    vaga_id_int = vaga_id
+                
+                if vaga_id_int in st.session_state["candidatos_vagas"]:
+                    if cand_nome in st.session_state["candidatos_vagas"][vaga_id_int]:
+                        st.session_state["candidatos_vagas"][vaga_id_int].remove(cand_nome)
+                        
+                        # Atualizar no Supabase
+                        new_cands = st.session_state["candidatos_vagas"][vaga_id_int]
+                        try:
+                            check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                            if check_ex and check_ex.data:
+                                row_id = check_ex.data[0]["id"]
+                                supabase_client.table("processos_seletivos").update({
+                                    "candidatos": new_cands,
+                                    "updated_at": "now()"
+                                }).eq("id", row_id).execute()
+                        except Exception:
+                            pass
             # Limpar parâmetros específicos de exclusão e recarregar a tela limpa
             del st.query_params["excluir_cand"]
             if "vaga_id" in st.query_params:
@@ -227,6 +268,27 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 with col_actions1:
                     if st.button("Salvar Associação", type="primary", use_container_width=True, key="btn_salvar_assoc"):
                         st.session_state["candidatos_vagas"][vaga["id"]] = candidatos_selecionados
+                        
+                        # Salvar/Atualizar no Supabase na tabela processos_seletivos
+                        try:
+                            check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga["id"]).execute()
+                            if check_ex and check_ex.data:
+                                row_id = check_ex.data[0]["id"]
+                                supabase_client.table("processos_seletivos").update({
+                                    "candidatos": candidatos_selecionados,
+                                    "empresa": empresa_selecionada,
+                                    "updated_at": "now()"
+                                }).eq("id", row_id).execute()
+                            else:
+                                supabase_client.table("processos_seletivos").insert({
+                                    "vaga_id": vaga["id"],
+                                    "empresa": empresa_selecionada,
+                                    "candidatos": candidatos_selecionados
+                                }).execute()
+                        except Exception as e:
+                            # Caso a tabela ainda não exista no Supabase do usuário, mostramos um aviso útil
+                            st.warning(f"Não foi possível salvar no Supabase (certifique-se de executar o arquivo 'processos_seletivos_schema.sql' no seu painel Supabase): {e}")
+                        
                         st.session_state["mostrar_selector_talentos"] = False
                         st.success("Candidatos associados com sucesso!")
                         st.rerun()
