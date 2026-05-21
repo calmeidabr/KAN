@@ -4,8 +4,9 @@ import json
 from PIL import Image
 import google.generativeai as genai
 
+import pandas as pd
 from menus.base_menu import BaseMenu
-from models.database import carregar_empresas, get_supabase_admin
+from models.database import carregar_empresas, get_supabase_admin, carregar_todos_clientes
 from utils.helpers import compress_image_to_b64
 
 class TalentosMenu(BaseMenu):
@@ -144,3 +145,42 @@ class TalentosMenu(BaseMenu):
                             st.success("cadastro salvo com sucesso (armazenamento local ativo).")
                             st.session_state['ocr_nome'] = ''
                             st.session_state['ocr_data_nascimento'] = ''
+
+        st.write("---")
+        st.subheader("🔍 Consultar Talentos Cadastrados")
+        
+        clientes = carregar_todos_clientes()
+        
+        if clientes:
+            busca = st.text_input("Buscar por Nome, Cargo/Função ou Empresa/Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
+            
+            dados_filtrados = []
+            for nome, info in clientes.items():
+                cargo = info.get("cargo") or ""
+                empresa = info.get("empresa") or ""
+                
+                # Normaliza nans e None para string vazia
+                if pd.isna(cargo) or str(cargo).lower() == 'nan': cargo = ""
+                if pd.isna(empresa) or str(empresa).lower() == 'nan': empresa = ""
+                
+                if busca.strip():
+                    termo = busca.lower().strip()
+                    if termo not in nome.lower() and termo not in str(cargo).lower() and termo not in str(empresa).lower():
+                        continue
+                
+                dados_filtrados.append({
+                    "Nome": nome,
+                    "Data de Nascimento": info.get("data_nascimento", ""),
+                    "Cargo/Função": cargo,
+                    "Empresa/Grupo": empresa,
+                    "LinkedIn": info.get("linkedin_url", "") or ""
+                })
+                
+            if dados_filtrados:
+                df_filtrados = pd.DataFrame(dados_filtrados)
+                st.dataframe(df_filtrados, use_container_width=True, hide_index=True)
+                st.caption(f"Total de talentos encontrados: {len(df_filtrados)}")
+            else:
+                st.info("Nenhum talento correspondente encontrado para a busca.")
+        else:
+            st.info("Nenhum talento cadastrado no sistema ainda.")
