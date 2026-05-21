@@ -163,7 +163,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 "Nome": nome,
                 "Cargo Atual": info["cargo"],
                 "Empresa": info["empresa"],
-                "Aderência (%)": round(total_score * 4, 1),
+                "Aderência (%)": round(total_score, 1),
                 "KAN": kan_status,
                 "Perfil": perfil_status,
                 "Categoria": cat_status,
@@ -388,4 +388,4 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         # Barra de progresso de aderência
         aderencia_percent = talent_row["Aderência (%)"]
         st.markdown(f"### Aderência Geral: **{aderencia_percent}%**")
-        st.progress(int(aderencia_percent))
+        st.progress(max(0, min(100, int(aderencia_percent))))
