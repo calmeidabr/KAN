@@ -73,36 +73,180 @@ st.markdown("""
         --radius: 18px;
     }
 
-    [data-testid="stSidebar"][data-collapsed="false"] {
-        background: var(--sidebar-bg) !important;
-        border-right: 1px solid rgba(255,255,255,0.06) !important;
-        width: 340px !important;
-        min-width: 340px !important;
-        max-width: 340px !important;
+    /* --- ESTRUTURA E RESPONSIVIDADE GLOBAL (DESKTOP E MOBILE) --- */
+    
+    [data-testid="stSidebar"] {
+        transition: all 0.2s ease-in-out !important;
     }
-
-    [data-testid="stSidebar"][data-collapsed="true"] {
-        width: 0px !important;
-        min-width: 0px !important;
-        max-width: 0px !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-    }
-
-    [data-testid="stSidebar"][data-collapsed="false"] > div:first-child {
-        width: 340px !important;
-    }
-
-    /* Ajusta a área principal da página para expandir ou encolher com o sidebar */
+    
     [data-testid="stMain"] {
         transition: padding-left 0.2s ease-in-out !important;
     }
-    .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stMain"] {
-        padding-left: 340px !important;
+
+    /* CONFIG DESKTOP: Telas maiores ou iguais a 992px */
+    @media (min-width: 992px) {
+        [data-testid="stSidebar"][data-collapsed="false"] {
+            background: var(--sidebar-bg) !important;
+            border-right: 1px solid rgba(255,255,255,0.06) !important;
+            width: 340px !important;
+            min-width: 340px !important;
+            max-width: 340px !important;
+        }
+
+        [data-testid="stSidebar"][data-collapsed="true"] {
+            width: 0px !important;
+            min-width: 0px !important;
+            max-width: 0px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+        }
+
+        [data-testid="stSidebar"][data-collapsed="false"] > div:first-child {
+            width: 340px !important;
+        }
+
+        /* Ajusta a área principal da página para expandir ou encolher com o sidebar */
+        .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stMain"] {
+            padding-left: 340px !important;
+        }
+        .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMain"] {
+            padding-left: 0px !important;
+        }
     }
-    .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMain"] {
-        padding-left: 0px !important;
+
+    /* CONFIG MOBILE: Telas menores que 992px */
+    @media (max-width: 991px) {
+        /* Sidebar como overlay de tela cheia */
+        [data-testid="stSidebar"][data-collapsed="false"] {
+            width: 100vw !important;
+            min-width: 100vw !important;
+            max-width: 100vw !important;
+            background: var(--sidebar-bg) !important;
+            z-index: 999999 !important;
+        }
+
+        [data-testid="stSidebar"][data-collapsed="false"] > div:first-child {
+            width: 100vw !important;
+        }
+
+        /* No mobile, o conteúdo principal não deve ter padding-left */
+        [data-testid="stMain"] {
+            padding-left: 0px !important;
+        }
+        .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stMain"] {
+            padding-left: 0px !important;
+        }
+        .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMain"] {
+            padding-left: 0px !important;
+        }
+
+        /* Estilização do Botão Hambúrguer para Abrir o Menu */
+        [data-testid="collapsedControl"] button, 
+        [data-testid="stSidebarCollapseButton"] button {
+            background-color: #F18617 !important;
+            border-radius: 12px !important;
+            width: 46px !important;
+            height: 46px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: 0 4px 15px rgba(241, 134, 23, 0.45) !important;
+            border: none !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            position: fixed !important;
+            top: 12px !important;
+            left: 12px !important;
+            z-index: 99999 !important;
+        }
+
+        [data-testid="collapsedControl"] button:hover, 
+        [data-testid="stSidebarCollapseButton"] button:hover {
+            background-color: #D97706 !important;
+            transform: scale(1.05) !important;
+        }
+
+        /* Esconde o ícone SVG de chevron original no botão de abrir */
+        [data-testid="collapsedControl"] button svg, 
+        [data-testid="stSidebarCollapseButton"] button svg {
+            display: none !important;
+        }
+
+        /* Cria as 3 linhas do menu hambúrguer */
+        [data-testid="collapsedControl"] button::before,
+        [data-testid="stSidebarCollapseButton"] button::before {
+            content: "" !important;
+            display: block !important;
+            width: 20px !important;
+            height: 2px !important;
+            background-color: #FFFFFF !important;
+            box-shadow: 0 6px 0 #FFFFFF, 0 -6px 0 #FFFFFF !important;
+            transition: all 0.2s ease !important;
+        }
+
+        /* Estilo específico do botão de fechar quando o sidebar está expandido */
+        [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button,
+        [data-testid="stSidebar"] [data-testid="collapsedControl"] button {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 8px !important;
+            width: 38px !important;
+            height: 38px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #FFFFFF !important;
+            position: absolute !important;
+            top: 15px !important;
+            right: 15px !important;
+            z-index: 9999999 !important;
+        }
+
+        /* Remove o hambúrguer no botão de fechar */
+        [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button::before,
+        [data-testid="stSidebar"] [data-testid="collapsedControl"] button::before {
+            display: none !important;
+        }
+
+        /* Exibe o SVG original (seta de colapsar) no botão de fechar */
+        [data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button svg,
+        [data-testid="stSidebar"] [data-testid="collapsedControl"] button svg {
+            display: block !important;
+            fill: #FFFFFF !important;
+        }
+
+        /* Força colunas na área principal a empilharem verticalmente no celular */
+        [data-testid="stMain"] [data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+            gap: 16px !important;
+        }
+        [data-testid="stMain"] [data-testid="column"] {
+            width: 100% !important;
+            min-width: 100% !important;
+        }
+
+        /* Adaptação Hero Banner do Home */
+        .main-hero {
+            height: 240px !important;
+            padding: 24px !important;
+            border-radius: 18px !important;
+            margin-bottom: 18px !important;
+            background-image: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 100%), url('data:image/png;base64,{img_b64}') !important;
+            align-items: flex-end !important;
+        }
+        .hero-title {
+            font-size: 2.0em !important;
+            margin-bottom: 8px !important;
+        }
+        .hero-subtitle {
+            font-size: 0.95em !important;
+        }
+        
+        /* Ajuste do container em Mobile */
+        div[data-testid="stContainer"] {
+            padding: 14px !important;
+            margin-bottom: 14px !important;
+        }
     }
 
     [data-testid="stSidebarContent"], [data-testid="stSidebarHeader"] {
