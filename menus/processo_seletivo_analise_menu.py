@@ -22,9 +22,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.session_state["custom_perfis_vagas"] = {}
             st.session_state["custom_categorias_vagas"] = {}
             st.session_state["custom_qualidades_vagas"] = {}
+            st.session_state["custom_kan_vagas"] = {}
             # Carregar as associações e customizações existentes de processos_seletivos do Supabase
             try:
-                res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos, perfis_ideais, categorias_ideais, qualidades_ideais").execute()
+                res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos, perfis_ideais, categorias_ideais, qualidades_ideais, kan_ideal").execute()
                 if res_proc and res_proc.data:
                     for r in res_proc.data:
                         v_id = r.get("vaga_id")
@@ -32,6 +33,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         custom_p = r.get("perfis_ideais")
                         custom_c = r.get("categorias_ideais")
                         custom_q = r.get("qualidades_ideais")
+                        custom_k = r.get("kan_ideal")
                         if v_id is not None:
                             try:
                                 v_id_int = int(v_id)
@@ -76,6 +78,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                         st.session_state["custom_qualidades_vagas"][v_id_int] = json.loads(custom_q)
                                     except:
                                         st.session_state["custom_qualidades_vagas"][v_id_int] = None
+                                        
+                            # KAN customizado
+                            if custom_k is not None:
+                                st.session_state["custom_kan_vagas"][v_id_int] = str(custom_k).strip()
             except Exception:
                 pass
 
@@ -85,6 +91,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.session_state["custom_categorias_vagas"] = {}
         if "custom_qualidades_vagas" not in st.session_state:
             st.session_state["custom_qualidades_vagas"] = {}
+        if "custom_kan_vagas" not in st.session_state:
+            st.session_state["custom_kan_vagas"] = {}
 
         # Verificar se há pedido de exclusão via URL (query params)
         if "excluir_cand" in st.query_params:
@@ -154,8 +162,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             try: return json.loads(val)
             except Exception: return []
 
-        vaga_kan = str(vaga.get('kan_ideal', 'Nenhum')).strip()
-
         # Importar as listas de opções do banco de dados
         from models.database import PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
 
@@ -178,6 +184,31 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             vaga_id_int = vaga["id"]
 
         # 1. Determinar Requisitos Ativos (Widget > session_state customizado > original da vaga)
+        if f"custom_kan_sel_{vaga_id_int}" in st.session_state:
+            raw_kan = st.session_state[f"custom_kan_sel_{vaga_id_int}"]
+        elif vaga_id_int in st.session_state.get("custom_kan_vagas", {}) and st.session_state["custom_kan_vagas"][vaga_id_int] is not None:
+            raw_kan = st.session_state["custom_kan_vagas"][vaga_id_int]
+        else:
+            raw_kan = vaga.get('kan_ideal', 'Nenhum')
+
+        kan_opcoes = ["Nenhum / Não Exigido", "Criação", "Movimento", "Finalidade"]
+        
+        # Mapeamento do KAN para default do selectbox
+        raw_kan_clean = str(raw_kan).strip().upper()
+        default_kan = "Nenhum / Não Exigido"
+        if raw_kan_clean in ("NENHUM", "NENHUM / NÃO EXIGIDO", ""):
+            default_kan = "Nenhum / Não Exigido"
+        else:
+            for opt in kan_opcoes:
+                if opt.strip().upper() == raw_kan_clean:
+                    default_kan = opt
+                    break
+
+        if default_kan == "Nenhum / Não Exigido":
+            vaga_kan = "Nenhum"
+        else:
+            vaga_kan = default_kan
+
         if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
             raw_perfis = st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
         elif vaga_id_int in st.session_state.get("custom_perfis_vagas", {}) and st.session_state["custom_perfis_vagas"][vaga_id_int] is not None:
@@ -246,22 +277,29 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             with st.expander("Personalizar Requisitos Comportamentais para este Processo", expanded=False):
                 st.markdown("<p style='font-family: Outfit; font-size: 0.95em;'>Modifique os requisitos específicos para este processo seletivo. Essas alterações afetarão o cálculo de aderência em tempo real e podem ser salvas no banco de dados.</p>", unsafe_allow_html=True)
                 
-                col_sel1, col_sel2, col_sel3 = st.columns(3)
+                col_sel1, col_sel2, col_sel3, col_sel4 = st.columns(4)
                 with col_sel1:
+                    novo_kan = st.selectbox(
+                        "KAN Ideal:",
+                        options=kan_opcoes,
+                        index=kan_opcoes.index(default_kan),
+                        key=f"custom_kan_sel_{vaga_id_int}"
+                    )
+                with col_sel2:
                     novos_perfis = st.multiselect(
                         "Perfis Ideais:",
                         options=perfis_opcoes,
                         default=mapped_perfis,
                         key=f"custom_perfis_sel_{vaga_id_int}"
                     )
-                with col_sel2:
+                with col_sel3:
                     novas_categorias = st.multiselect(
                         "Categorias:",
                         options=categorias_opcoes,
                         default=mapped_cats,
                         key=f"custom_categorias_sel_{vaga_id_int}"
                     )
-                with col_sel3:
+                with col_sel4:
                     novas_qualidades = st.multiselect(
                         "Qualidades:",
                         options=qualidades_opcoes,
@@ -276,6 +314,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         st.session_state["custom_categorias_vagas"][vaga_id_int] = novas_categorias
                         st.session_state["custom_qualidades_vagas"][vaga_id_int] = novas_qualidades
                         
+                        db_kan_val = "Nenhum" if novo_kan == "Nenhum / Não Exigido" else novo_kan
+                        st.session_state["custom_kan_vagas"][vaga_id_int] = db_kan_val
+                        
                         try:
                             check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
                             if check_ex and check_ex.data:
@@ -284,6 +325,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "perfis_ideais": novos_perfis,
                                     "categorias_ideais": novas_categorias,
                                     "qualidades_ideais": novas_qualidades,
+                                    "kan_ideal": db_kan_val,
                                     "updated_at": "now()"
                                 }).eq("id", row_id).execute()
                             else:
@@ -293,7 +335,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "candidatos": [],
                                     "perfis_ideais": novos_perfis,
                                     "categorias_ideais": novas_categorias,
-                                    "qualidades_ideais": novas_qualidades
+                                    "qualidades_ideais": novas_qualidades,
+                                    "kan_ideal": db_kan_val
                                 }).execute()
                             st.success("Requisitos personalizados salvos com sucesso!")
                             st.rerun()
@@ -304,6 +347,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         st.session_state["custom_perfis_vagas"][vaga_id_int] = None
                         st.session_state["custom_categorias_vagas"][vaga_id_int] = None
                         st.session_state["custom_qualidades_vagas"][vaga_id_int] = None
+                        st.session_state["custom_kan_vagas"][vaga_id_int] = None
                         
                         if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
                             del st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
@@ -311,6 +355,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             del st.session_state[f"custom_categorias_sel_{vaga_id_int}"]
                         if f"custom_qualidades_sel_{vaga_id_int}" in st.session_state:
                             del st.session_state[f"custom_qualidades_sel_{vaga_id_int}"]
+                        if f"custom_kan_sel_{vaga_id_int}" in st.session_state:
+                            del st.session_state[f"custom_kan_sel_{vaga_id_int}"]
                             
                         try:
                             check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
@@ -320,6 +366,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "perfis_ideais": None,
                                     "categorias_ideais": None,
                                     "qualidades_ideais": None,
+                                    "kan_ideal": None,
                                     "updated_at": "now()"
                                 }).eq("id", row_id).execute()
                             st.success("Requisitos restaurados para os originais da vaga!")

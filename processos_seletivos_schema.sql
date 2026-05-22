@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS processos_seletivos (
     perfis_ideais JSONB DEFAULT NULL,
     categorias_ideais JSONB DEFAULT NULL,
     qualidades_ideais JSONB DEFAULT NULL,
+    kan_ideal TEXT DEFAULT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -15,6 +16,7 @@ CREATE TABLE IF NOT EXISTS processos_seletivos (
 ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS perfis_ideais JSONB DEFAULT NULL;
 ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS categorias_ideais JSONB DEFAULT NULL;
 ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS qualidades_ideais JSONB DEFAULT NULL;
+ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS kan_ideal TEXT DEFAULT NULL;
 
 -- Habilitar Row Level Security (RLS) e permissões de acesso
 ALTER TABLE processos_seletivos ENABLE ROW LEVEL SECURITY;
