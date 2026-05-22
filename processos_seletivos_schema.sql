@@ -4,9 +4,17 @@ CREATE TABLE IF NOT EXISTS processos_seletivos (
     vaga_id BIGINT NOT NULL REFERENCES vagas(id) ON DELETE CASCADE UNIQUE,
     empresa TEXT NOT NULL,
     candidatos JSONB DEFAULT '[]'::jsonb NOT NULL,
+    perfis_ideais JSONB DEFAULT NULL,
+    categorias_ideais JSONB DEFAULT NULL,
+    qualidades_ideais JSONB DEFAULT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Adicionar colunas caso a tabela já exista na base de dados do usuário
+ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS perfis_ideais JSONB DEFAULT NULL;
+ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS categorias_ideais JSONB DEFAULT NULL;
+ALTER TABLE processos_seletivos ADD COLUMN IF NOT EXISTS qualidades_ideais JSONB DEFAULT NULL;
 
 -- Habilitar Row Level Security (RLS) e permissões de acesso
 ALTER TABLE processos_seletivos ENABLE ROW LEVEL SECURITY;

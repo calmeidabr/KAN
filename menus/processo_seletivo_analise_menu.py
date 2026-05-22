@@ -16,22 +16,29 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.error("Conexão administrativa do Supabase não configurada.")
             return
 
-        # Inicializar dicionário de candidatos por vaga no session_state
+        # Inicializar dicionário de candidatos e customizações por vaga no session_state
         if "candidatos_vagas" not in st.session_state:
             st.session_state["candidatos_vagas"] = {}
-            # Carregar as associações existentes de processos_seletivos do Supabase
+            st.session_state["custom_perfis_vagas"] = {}
+            st.session_state["custom_categorias_vagas"] = {}
+            st.session_state["custom_qualidades_vagas"] = {}
+            # Carregar as associações e customizações existentes de processos_seletivos do Supabase
             try:
-                res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos").execute()
+                res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos, perfis_ideais, categorias_ideais, qualidades_ideais").execute()
                 if res_proc and res_proc.data:
                     for r in res_proc.data:
                         v_id = r.get("vaga_id")
                         cands = r.get("candidatos")
+                        custom_p = r.get("perfis_ideais")
+                        custom_c = r.get("categorias_ideais")
+                        custom_q = r.get("qualidades_ideais")
                         if v_id is not None:
                             try:
                                 v_id_int = int(v_id)
                             except:
                                 v_id_int = v_id
                             
+                            # Candidatos
                             if isinstance(cands, list):
                                 st.session_state["candidatos_vagas"][v_id_int] = cands
                             elif isinstance(cands, str):
@@ -39,8 +46,45 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     st.session_state["candidatos_vagas"][v_id_int] = json.loads(cands)
                                 except:
                                     st.session_state["candidatos_vagas"][v_id_int] = []
+                                    
+                            # Perfis customizados
+                            if custom_p is not None:
+                                if isinstance(custom_p, list):
+                                    st.session_state["custom_perfis_vagas"][v_id_int] = custom_p
+                                elif isinstance(custom_p, str):
+                                    try:
+                                        st.session_state["custom_perfis_vagas"][v_id_int] = json.loads(custom_p)
+                                    except:
+                                        st.session_state["custom_perfis_vagas"][v_id_int] = None
+                                        
+                            # Categorias customizadas
+                            if custom_c is not None:
+                                if isinstance(custom_c, list):
+                                    st.session_state["custom_categorias_vagas"][v_id_int] = custom_c
+                                elif isinstance(custom_c, str):
+                                    try:
+                                        st.session_state["custom_categorias_vagas"][v_id_int] = json.loads(custom_c)
+                                    except:
+                                        st.session_state["custom_categorias_vagas"][v_id_int] = None
+                                        
+                            # Qualidades customizadas
+                            if custom_q is not None:
+                                if isinstance(custom_q, list):
+                                    st.session_state["custom_qualidades_vagas"][v_id_int] = custom_q
+                                elif isinstance(custom_q, str):
+                                    try:
+                                        st.session_state["custom_qualidades_vagas"][v_id_int] = json.loads(custom_q)
+                                    except:
+                                        st.session_state["custom_qualidades_vagas"][v_id_int] = None
             except Exception:
                 pass
+
+        if "custom_perfis_vagas" not in st.session_state:
+            st.session_state["custom_perfis_vagas"] = {}
+        if "custom_categorias_vagas" not in st.session_state:
+            st.session_state["custom_categorias_vagas"] = {}
+        if "custom_qualidades_vagas" not in st.session_state:
+            st.session_state["custom_qualidades_vagas"] = {}
 
         # Verificar se há pedido de exclusão via URL (query params)
         if "excluir_cand" in st.query_params:
@@ -111,9 +155,72 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             except Exception: return []
 
         vaga_kan = str(vaga.get('kan_ideal', 'Nenhum')).strip()
-        vaga_perfis = [str(x).strip().upper() for x in parse_json_list(vaga.get('perfis_ideais'))]
-        vaga_cats = [str(x).strip().upper() for x in parse_json_list(vaga.get('categorias_ideais'))]
-        vaga_quals = [str(x).strip().upper() for x in parse_json_list(vaga.get('qualidades_ideais'))]
+
+        # Importar as listas de opções do banco de dados
+        from models.database import PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
+
+        # Preparar listas de opções de forma segura
+        perfis_opcoes = sorted(list(set([str(x).strip() for x in PERFIS_DB if x])))
+        if not perfis_opcoes:
+            perfis_opcoes = ["LIDER", "CRIATIVO", "EXECUTOR", "RESULTADO", "VENDEDOR", "INFLUENCIADOR", "COMUNICADOR"]
+
+        categorias_opcoes = sorted(list(set([str(x).strip() for x in LISTA_CATEGORIA_DB if x])))
+        if not categorias_opcoes:
+            categorias_opcoes = ["VERSÁTIL", "ESPECIALISTA", "GENERALISTA"]
+
+        qualidades_opcoes = sorted(list(set([str(x).strip() for x in QUALIDADES_DB.keys() if x])))
+        if not qualidades_opcoes:
+            qualidades_opcoes = ["COMUNICAÇÃO", "VERSATILIDADE", "LIDERANÇA", "FOCO", "EMPATIA", "ORGANIZAÇÃO"]
+
+        try:
+            vaga_id_int = int(vaga["id"])
+        except Exception:
+            vaga_id_int = vaga["id"]
+
+        # 1. Determinar Requisitos Ativos (Widget > session_state customizado > original da vaga)
+        if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
+            raw_perfis = st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
+        elif vaga_id_int in st.session_state.get("custom_perfis_vagas", {}) and st.session_state["custom_perfis_vagas"][vaga_id_int] is not None:
+            raw_perfis = st.session_state["custom_perfis_vagas"][vaga_id_int]
+        else:
+            raw_perfis = parse_json_list(vaga.get('perfis_ideais'))
+
+        if f"custom_categorias_sel_{vaga_id_int}" in st.session_state:
+            raw_cats = st.session_state[f"custom_categorias_sel_{vaga_id_int}"]
+        elif vaga_id_int in st.session_state.get("custom_categorias_vagas", {}) and st.session_state["custom_categorias_vagas"][vaga_id_int] is not None:
+            raw_cats = st.session_state["custom_categorias_vagas"][vaga_id_int]
+        else:
+            raw_cats = parse_json_list(vaga.get('categorias_ideais'))
+
+        if f"custom_qualidades_sel_{vaga_id_int}" in st.session_state:
+            raw_quals = st.session_state[f"custom_qualidades_sel_{vaga_id_int}"]
+        elif vaga_id_int in st.session_state.get("custom_qualidades_vagas", {}) and st.session_state["custom_qualidades_vagas"][vaga_id_int] is not None:
+            raw_quals = st.session_state["custom_qualidades_vagas"][vaga_id_int]
+        else:
+            raw_quals = parse_json_list(vaga.get('qualidades_ideais'))
+
+        def map_to_options(requirements, options):
+            mapped = []
+            opt_map = {opt.strip().upper(): opt for opt in options}
+            for req in requirements:
+                if not req: continue
+                req_upper = str(req).strip().upper()
+                if req_upper in opt_map:
+                    mapped.append(opt_map[req_upper])
+                else:
+                    options.append(str(req).strip())
+                    opt_map[req_upper] = str(req).strip()
+                    mapped.append(str(req).strip())
+            return mapped
+
+        # Mapear para obter a capitalização correta dos defaults
+        mapped_perfis = map_to_options(raw_perfis, perfis_opcoes)
+        mapped_cats = map_to_options(raw_cats, categorias_opcoes)
+        mapped_quals = map_to_options(raw_quals, qualidades_opcoes)
+
+        vaga_perfis = [p.upper() for p in mapped_perfis]
+        vaga_cats = [c.upper() for c in mapped_cats]
+        vaga_quals = [q.upper() for q in mapped_quals]
 
         # Container visual dos requisitos da Vaga
         with st.container(border=True):
@@ -130,9 +237,95 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             with col_r4:
                 quals_str = ", ".join(vaga_quals) if vaga_quals else "Nenhuma exigida"
                 st.markdown(f"**Qualidades**\n\n`{quals_str}`")
+            
             if vaga.get('descricao_vaga'):
                 with st.expander("Descrição da Vaga", expanded=False):
                     st.write(vaga['descricao_vaga'])
+            
+            # Painel expansivo de customização de requisitos para este processo
+            with st.expander("Personalizar Requisitos Comportamentais para este Processo", expanded=False):
+                st.markdown("<p style='font-family: Outfit; font-size: 0.95em;'>Modifique os requisitos específicos para este processo seletivo. Essas alterações afetarão o cálculo de aderência em tempo real e podem ser salvas no banco de dados.</p>", unsafe_allow_html=True)
+                
+                col_sel1, col_sel2, col_sel3 = st.columns(3)
+                with col_sel1:
+                    novos_perfis = st.multiselect(
+                        "Perfis Ideais:",
+                        options=perfis_opcoes,
+                        default=mapped_perfis,
+                        key=f"custom_perfis_sel_{vaga_id_int}"
+                    )
+                with col_sel2:
+                    novas_categorias = st.multiselect(
+                        "Categorias:",
+                        options=categorias_opcoes,
+                        default=mapped_cats,
+                        key=f"custom_categorias_sel_{vaga_id_int}"
+                    )
+                with col_sel3:
+                    novas_qualidades = st.multiselect(
+                        "Qualidades:",
+                        options=qualidades_opcoes,
+                        default=mapped_quals,
+                        key=f"custom_qualidades_sel_{vaga_id_int}"
+                    )
+
+                col_btn1, col_btn2 = st.columns(2)
+                with col_btn1:
+                    if st.button("Salvar Requisitos do Processo", type="primary", use_container_width=True, key=f"btn_salvar_req_{vaga_id_int}"):
+                        st.session_state["custom_perfis_vagas"][vaga_id_int] = novos_perfis
+                        st.session_state["custom_categorias_vagas"][vaga_id_int] = novas_categorias
+                        st.session_state["custom_qualidades_vagas"][vaga_id_int] = novas_qualidades
+                        
+                        try:
+                            check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                            if check_ex and check_ex.data:
+                                row_id = check_ex.data[0]["id"]
+                                supabase_client.table("processos_seletivos").update({
+                                    "perfis_ideais": novos_perfis,
+                                    "categorias_ideais": novas_categorias,
+                                    "qualidades_ideais": novas_qualidades,
+                                    "updated_at": "now()"
+                                }).eq("id", row_id).execute()
+                            else:
+                                supabase_client.table("processos_seletivos").insert({
+                                    "vaga_id": vaga_id_int,
+                                    "empresa": empresa_selecionada,
+                                    "candidatos": [],
+                                    "perfis_ideais": novos_perfis,
+                                    "categorias_ideais": novas_categorias,
+                                    "qualidades_ideais": novas_qualidades
+                                }).execute()
+                            st.success("Requisitos personalizados salvos com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar requisitos personalizados no Supabase: {e}")
+                with col_btn2:
+                    if st.button("Restaurar Originais da Vaga", use_container_width=True, key=f"btn_restaurar_req_{vaga_id_int}"):
+                        st.session_state["custom_perfis_vagas"][vaga_id_int] = None
+                        st.session_state["custom_categorias_vagas"][vaga_id_int] = None
+                        st.session_state["custom_qualidades_vagas"][vaga_id_int] = None
+                        
+                        if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
+                            del st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
+                        if f"custom_categorias_sel_{vaga_id_int}" in st.session_state:
+                            del st.session_state[f"custom_categorias_sel_{vaga_id_int}"]
+                        if f"custom_qualidades_sel_{vaga_id_int}" in st.session_state:
+                            del st.session_state[f"custom_qualidades_sel_{vaga_id_int}"]
+                            
+                        try:
+                            check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                            if check_ex and check_ex.data:
+                                row_id = check_ex.data[0]["id"]
+                                supabase_client.table("processos_seletivos").update({
+                                    "perfis_ideais": None,
+                                    "categorias_ideais": None,
+                                    "qualidades_ideais": None,
+                                    "updated_at": "now()"
+                                }).eq("id", row_id).execute()
+                            st.success("Requisitos restaurados para os originais da vaga!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao restaurar requisitos no Supabase: {e}")
 
         # Buscar talentos (candidatos) para fazer o matching
         try:
