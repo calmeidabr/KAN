@@ -95,13 +95,13 @@ st.markdown("""
     }
 
     /* Ajusta a área principal da página para expandir ou encolher com o sidebar */
-    [data-testid="stAppViewContainer"] {
+    [data-testid="stMain"] {
         transition: padding-left 0.2s ease-in-out !important;
     }
-    .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stAppViewContainer"] {
+    .stApp:has([data-testid="stSidebar"][data-collapsed="false"]) [data-testid="stMain"] {
         padding-left: 340px !important;
     }
-    .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stAppViewContainer"] {
+    .stApp:has([data-testid="stSidebar"][data-collapsed="true"]) [data-testid="stMain"] {
         padding-left: 0px !important;
     }
 
