@@ -81,7 +81,16 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                         
                             # KAN customizado
                             if custom_k is not None:
-                                st.session_state["custom_kan_vagas"][v_id_int] = str(custom_k).strip()
+                                if isinstance(custom_k, list):
+                                    st.session_state["custom_kan_vagas"][v_id_int] = custom_k
+                                elif isinstance(custom_k, str):
+                                    try:
+                                        st.session_state["custom_kan_vagas"][v_id_int] = json.loads(custom_k)
+                                    except:
+                                        if "," in custom_k:
+                                            st.session_state["custom_kan_vagas"][v_id_int] = [x.strip() for x in custom_k.split(",")]
+                                        else:
+                                            st.session_state["custom_kan_vagas"][v_id_int] = [custom_k.strip()]
             except Exception:
                 pass
 
@@ -191,23 +200,19 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         else:
             raw_kan = vaga.get('kan_ideal', 'Nenhum')
 
-        kan_opcoes = ["Nenhum / Não Exigido", "Criação", "Movimento", "Finalidade"]
-        
-        # Mapeamento do KAN para default do selectbox
-        raw_kan_clean = str(raw_kan).strip().upper()
-        default_kan = "Nenhum / Não Exigido"
-        if raw_kan_clean in ("NENHUM", "NENHUM / NÃO EXIGIDO", ""):
-            default_kan = "Nenhum / Não Exigido"
+        # Normalizar para lista de KANs ativos em letras maiúsculas
+        if isinstance(raw_kan, list):
+            vaga_kan_list = [str(k).strip().upper() for k in raw_kan if k]
+        elif isinstance(raw_kan, str):
+            if "," in raw_kan:
+                vaga_kan_list = [str(k).strip().upper() for k in raw_kan.split(",") if k.strip()]
+            else:
+                vaga_kan_list = [raw_kan.strip().upper()]
         else:
-            for opt in kan_opcoes:
-                if opt.strip().upper() == raw_kan_clean:
-                    default_kan = opt
-                    break
+            vaga_kan_list = []
 
-        if default_kan == "Nenhum / Não Exigido":
-            vaga_kan = "Nenhum"
-        else:
-            vaga_kan = default_kan
+        vaga_kan_list = [k for k in vaga_kan_list if k not in ("NENHUM", "NENHUM / NÃO EXIGIDO", "")]
+        kan_opcoes = ["Criação", "Movimento", "Finalidade"]
 
         if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
             raw_perfis = st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
@@ -245,6 +250,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             return mapped
 
         # Mapear para obter a capitalização correta dos defaults
+        mapped_kan = map_to_options(vaga_kan_list, kan_opcoes)
         mapped_perfis = map_to_options(raw_perfis, perfis_opcoes)
         mapped_cats = map_to_options(raw_cats, categorias_opcoes)
         mapped_quals = map_to_options(raw_quals, qualidades_opcoes)
@@ -258,7 +264,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.markdown(f"### Requisitos Comportamentais da Vaga: **{vaga['nome_vaga']}**")
             col_r1, col_r2, col_r3, col_r4 = st.columns(4)
             with col_r1:
-                st.markdown(f"**KAN Ideal**\n\n`{vaga_kan.upper()}`")
+                kan_display_str = ", ".join(mapped_kan).upper() if mapped_kan else "NENHUM"
+                st.markdown(f"**KAN Ideal**\n\n`{kan_display_str}`")
             with col_r2:
                 perfis_str = ", ".join(vaga_perfis) if vaga_perfis else "Nenhum exigido"
                 st.markdown(f"**Perfis Ideais**\n\n`{perfis_str}`")
@@ -279,10 +286,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 
                 col_sel1, col_sel2, col_sel3, col_sel4 = st.columns(4)
                 with col_sel1:
-                    novo_kan = st.selectbox(
+                    novos_kans = st.multiselect(
                         "KAN Ideal:",
                         options=kan_opcoes,
-                        index=kan_opcoes.index(default_kan),
+                        default=mapped_kan,
                         key=f"custom_kan_sel_{vaga_id_int}"
                     )
                 with col_sel2:
@@ -313,9 +320,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         st.session_state["custom_perfis_vagas"][vaga_id_int] = novos_perfis
                         st.session_state["custom_categorias_vagas"][vaga_id_int] = novas_categorias
                         st.session_state["custom_qualidades_vagas"][vaga_id_int] = novas_qualidades
-                        
-                        db_kan_val = "Nenhum" if novo_kan == "Nenhum / Não Exigido" else novo_kan
-                        st.session_state["custom_kan_vagas"][vaga_id_int] = db_kan_val
+                        st.session_state["custom_kan_vagas"][vaga_id_int] = novos_kans
                         
                         try:
                             check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
@@ -325,7 +330,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "perfis_ideais": novos_perfis,
                                     "categorias_ideais": novas_categorias,
                                     "qualidades_ideais": novas_qualidades,
-                                    "kan_ideal": db_kan_val,
+                                    "kan_ideal": novos_kans,
                                     "updated_at": "now()"
                                 }).eq("id", row_id).execute()
                             else:
@@ -336,7 +341,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "perfis_ideais": novos_perfis,
                                     "categorias_ideais": novas_categorias,
                                     "qualidades_ideais": novas_qualidades,
-                                    "kan_ideal": db_kan_val
+                                    "kan_ideal": novos_kans
                                 }).execute()
                             st.success("Requisitos personalizados salvos com sucesso!")
                             st.rerun()
@@ -411,15 +416,18 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             talento_quals = [str(x).strip().upper() for x in str(row.get("qualidades", "")).split(",") if x.strip()]
 
             # 1. KAN Match (25%)
-            if vaga_kan in ("Nenhum", "Nenhum / Não Exigido", ""):
+            if not vaga_kan_list:
                 kan_score = 25.0
                 kan_status = "✓ N/A"
-            elif remover_acentos(talento_kan).upper().strip() == remover_acentos(vaga_kan).upper().strip():
-                kan_score = 25.0
-                kan_status = "✓ Compatível"
             else:
-                kan_score = 0.0
-                kan_status = "✗ Incompatível"
+                talento_kan_norm = remover_acentos(talento_kan).upper().strip()
+                vaga_kan_list_norm = [remover_acentos(k).upper().strip() for k in vaga_kan_list]
+                if talento_kan_norm in vaga_kan_list_norm:
+                    kan_score = 25.0
+                    kan_status = "✓ Compatível"
+                else:
+                    kan_score = 0.0
+                    kan_status = "✗ Incompatível"
 
             # 2. Perfis Match (25%)
             if not vaga_perfis:
@@ -551,8 +559,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     
                     # 1. KAN Match (3 pts)
                     pts_kan = 0
-                    if vaga_kan and vaga_kan.upper() not in ("NENHUM", "NENHUM / NÃO EXIGIDO", ""):
-                        if remover_acentos(t_kan).upper().strip() == remover_acentos(vaga_kan).upper().strip():
+                    if vaga_kan_list:
+                        t_kan_norm = remover_acentos(t_kan).upper().strip()
+                        vaga_kan_list_norm = [remover_acentos(k).upper().strip() for k in vaga_kan_list]
+                        if t_kan_norm in vaga_kan_list_norm:
                             pts_kan = 3
                             
                     # 2. Perfil Match (2 pts por match)
@@ -656,7 +666,8 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
         with col_comp1:
             with st.container(border=True):
                 st.markdown(f"#### Requisitos da Vaga\n**{vaga_selecionada_nome}**")
-                st.write(f"**KAN Exigido:** `{vaga_kan.upper()}`")
+                kan_exigido_str = ", ".join(vaga_kan_list) if vaga_kan_list else "Nenhum"
+                st.write(f"**KAN Exigido:** `{kan_exigido_str.upper()}`")
                 st.write(f"**Perfis Exigidos:** `{', '.join(vaga_perfis) if vaga_perfis else 'Nenhum'}`")
                 st.write(f"**Categorias Exigidas:** `{', '.join(vaga_cats) if vaga_cats else 'Nenhuma'}`")
                 st.write(f"**Qualidades Exigidas:** `{', '.join(vaga_quals) if vaga_quals else 'Nenhuma'}`")
