@@ -383,7 +383,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         try:
             res_val = supabase_client.table("mapas_salvos_valores").select("*").execute()
             rows_val = res_val.data if res_val and res_val.data else []
-            res_ms = supabase_client.table("mapas_salvos").select("nome, empresa, cargo, data_nascimento, foto_base64").execute()
+            res_ms = supabase_client.table("mapas_salvos").select("nome, grupo, cargo, data_nascimento, foto_base64").execute()
             rows_ms = res_ms.data if res_ms and res_ms.data else []
         except Exception as e:
             st.error(f"Erro ao carregar talentos da base de dados: {e}")
@@ -393,11 +393,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.warning("Nenhum mapa calculado na base. Calcule os mapas salvos no Painel de Controle antes de realizar a análise.")
             return
 
-        # Dicionário de cargos/empresas/fotos/datas
+        # Dicionário de cargos/grupos/fotos/datas
         ms_dict = {}
         for r in rows_ms:
             ms_dict[r.get("nome")] = {
-                "empresa": r.get("empresa") or "Sem Empresa",
+                "grupo": r.get("grupo") or r.get("empresa") or "Sem Grupo",
                 "cargo": r.get("cargo") or "Sem Cargo",
                 "data_nascimento": r.get("data_nascimento") or "",
                 "foto_base64": r.get("foto_base64") or ""
@@ -407,7 +407,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         matching_results = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
-            info = ms_dict.get(nome, {"empresa": "Sem Empresa", "cargo": "Sem Cargo", "data_nascimento": "", "foto_base64": ""})
+            info = ms_dict.get(nome, {"grupo": "Sem Grupo", "cargo": "Sem Cargo", "data_nascimento": "", "foto_base64": ""})
             
             # Traços do talento
             talento_kan = str(row.get("kan", "")).strip().upper()
@@ -464,7 +464,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             matching_results.append({
                 "Nome": nome,
                 "Cargo Atual": info["cargo"],
-                "Empresa": info["empresa"],
+                "Grupo": info["grupo"],
                 "Aderência (%)": round(total_score, 1),
                 "KAN": kan_status,
                 "Perfil": perfil_status,

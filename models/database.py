@@ -512,7 +512,8 @@ def _fetch_supabase_clientes():
                 cl_salvos[row['nome']] = {
                     'data_nascimento': row['data_nascimento'],
                     'cargo': row.get('cargo', ''),
-                    'empresa': row.get('empresa', ''),
+                    'grupo': row.get('grupo', row.get('empresa', '')),
+                    'empresa': row.get('grupo', row.get('empresa', '')),
                     'linkedin_url': row.get('linkedin_url', ''),
                     'experiencias': row.get('experiencias', ''),
                     'foto_base64': row.get('foto_base64', ''),

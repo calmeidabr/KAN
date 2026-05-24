@@ -68,7 +68,7 @@ class TalentosMenu(BaseMenu):
             with col_f4:
                 cad_cargo = st.text_input("Cargo/Profissão:", key="cad_cargo")
             with col_f5:
-                cad_emp = st.selectbox("Empresa/Grupo*:", options=nomes_empresas, key="cad_emp")
+                cad_emp = st.selectbox("Grupo*:", options=nomes_empresas, key="cad_emp")
             with col_f6:
                 cad_link = st.text_input("LinkedIn (URL):", key="cad_link")
                 
@@ -91,7 +91,7 @@ class TalentosMenu(BaseMenu):
                             "nome": cad_nome.strip(),
                             "data_nascimento": cad_data.strip(),
                             "cargo": cad_cargo.strip() if cad_cargo else None,
-                            "empresa": cad_emp,
+                            "grupo": cad_emp,
                             "linkedin_url": cad_link.strip() if cad_link else None,
                             "experiencias": cad_exp.strip() if cad_exp else None,
                             "foto_base64": foto_b64,
@@ -123,6 +123,7 @@ class TalentosMenu(BaseMenu):
                             st.session_state["clientes_local_data"][cad_nome.strip()] = {
                                 'data_nascimento': cad_data.strip(),
                                 'cargo': cad_cargo.strip() if cad_cargo else '',
+                                'grupo': cad_emp,
                                 'empresa': cad_emp,
                                 'linkedin_url': cad_link.strip() if cad_link else '',
                                 'experiencias': cad_exp.strip() if cad_exp else '',
@@ -151,27 +152,27 @@ class TalentosMenu(BaseMenu):
         clientes = carregar_todos_clientes()
         
         if clientes:
-            busca = st.text_input("Buscar por Nome, Cargo/Função ou Empresa/Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
+            busca = st.text_input("Buscar por Nome, Cargo/Função ou Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
             
             dados_filtrados = []
             for nome, info in clientes.items():
                 cargo = info.get("cargo") or ""
-                empresa = info.get("empresa") or ""
+                grupo = info.get("grupo") or info.get("empresa") or ""
                 
                 # Normaliza nans e None para string vazia
                 if pd.isna(cargo) or str(cargo).lower() == 'nan': cargo = ""
-                if pd.isna(empresa) or str(empresa).lower() == 'nan': empresa = ""
+                if pd.isna(grupo) or str(grupo).lower() == 'nan': grupo = ""
                 
                 if busca.strip():
                     termo = busca.lower().strip()
-                    if termo not in nome.lower() and termo not in str(cargo).lower() and termo not in str(empresa).lower():
+                    if termo not in nome.lower() and termo not in str(cargo).lower() and termo not in str(grupo).lower():
                         continue
                 
                 dados_filtrados.append({
                     "Nome": nome,
                     "Data de Nascimento": info.get("data_nascimento", ""),
                     "Cargo/Função": cargo,
-                    "Empresa/Grupo": empresa,
+                    "Grupo": grupo,
                     "LinkedIn": info.get("linkedin_url", "") or ""
                 })
                 

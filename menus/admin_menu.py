@@ -55,7 +55,7 @@ class AdminMenu(BaseMenu):
             with st.expander("Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
                 st.markdown("""
                 **Instruções:** Carregue um arquivo CSV com as seguintes colunas:
-                `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Empresa/Grupo`.
+                `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Grupo` (ou `Empresa/Grupo`).
                 """)
                 arquivo_csv = st.file_uploader("Escolha o arquivo CSV:", type=["csv"])
                 if arquivo_csv is not None:
@@ -64,12 +64,16 @@ class AdminMenu(BaseMenu):
                         if df_lote.shape[1] <= 1:
                             df_lote = pd.read_csv(arquivo_csv, sep=",")
                         
-                        colunas_obrigatorias = ["Nome completo", "Data de Nascimento", "Cargo/Profissao", "Empresa/Grupo"]
+                        col_grupo_name = next((c for c in df_lote.columns if c in ["Grupo", "Empresa/Grupo"]), None)
+                        colunas_obrigatorias = ["Nome completo", "Data de Nascimento", "Cargo/Profissao"]
                         colunas_validas = True
                         for col in colunas_obrigatorias:
                             if col not in df_lote.columns:
                                 colunas_validas = False
                                 st.error(f"Coluna obrigatória ausente no CSV: `{col}`")
+                        if not col_grupo_name:
+                            colunas_validas = False
+                            st.error("Coluna obrigatória ausente no CSV: `Grupo` (ou `Empresa/Grupo`) ")
                         
                         if colunas_validas:
                             st.dataframe(df_lote, use_container_width=True)
@@ -80,7 +84,7 @@ class AdminMenu(BaseMenu):
                                         n_nome = str(row["Nome completo"]).strip()
                                         n_data = str(row["Data de Nascimento"]).strip()
                                         n_cargo = str(row["Cargo/Profissao"]).strip()
-                                        n_empresa = str(row["Empresa/Grupo"]).strip()
+                                        n_empresa = str(row[col_grupo_name]).strip() if col_grupo_name else ""
                                         
                                         if n_nome and n_data:
                                             try:
@@ -90,14 +94,14 @@ class AdminMenu(BaseMenu):
                                                         supabase_client.table("mapas_salvos").update({
                                                             "data_nascimento": n_data,
                                                             "cargo": n_cargo,
-                                                            "empresa": n_empresa
+                                                            "grupo": n_empresa
                                                         }).eq("nome", n_nome).execute()
                                                     else:
                                                         supabase_client.table("mapas_salvos").insert({
                                                             "nome": n_nome,
                                                             "data_nascimento": n_data,
                                                             "cargo": n_cargo,
-                                                            "empresa": n_empresa
+                                                            "grupo": n_empresa
                                                         }).execute()
                                                     sucessos += 1
                                             except Exception as ex:
@@ -163,7 +167,7 @@ class AdminMenu(BaseMenu):
             st.subheader("Visualização da Base de Mapas Salvos")
             if supabase_client:
                 try:
-                    res_mapas = supabase_client.table("mapas_salvos").select("id, nome, data_nascimento, cargo, empresa, usuario").order("id", desc=True).execute()
+                    res_mapas = supabase_client.table("mapas_salvos").select("id, nome, data_nascimento, cargo, grupo, usuario").order("id", desc=True).execute()
                     if res_mapas.data:
                         df_view = pd.DataFrame(res_mapas.data)
                         st.dataframe(df_view, use_container_width=True)
@@ -489,7 +493,7 @@ class AdminMenu(BaseMenu):
                         else:
                             continue
                             
-                        res_calc = realizar_calculos_completos(n_aud, nascimento_tup, data_atual_tup, c_info.get('cargo'), c_info.get('empresa'))
+                        res_calc = realizar_calculos_completos(n_aud, nascimento_tup, data_atual_tup, c_info.get('cargo'), c_info.get('grupo'))
                         dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, _, _, _, _ = res_calc
                         
                         def ext_val(label):
@@ -588,7 +592,7 @@ class AdminMenu(BaseMenu):
                         now_dt = datetime.datetime.now()
                         data_atual_tup = (now_dt.day, now_dt.month, now_dt.year)
                         
-                        res_calc_aud = realizar_calculos_completos(nome_aud, nascimento_tup, data_atual_tup, c_info.get('cargo', ''), c_info.get('empresa', ''))
+                        res_calc_aud = realizar_calculos_completos(nome_aud, nascimento_tup, data_atual_tup, c_info.get('cargo', ''), c_info.get('grupo', ''))
                         dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc_aud
                         
                         clientes_salvos = clientes_salvos_aud
@@ -614,7 +618,7 @@ class AdminMenu(BaseMenu):
                             all_quals = limpa_lista(quals_db_lista)
                             
                             all_cargos = limpa_lista([c.get('cargo', '') for c in clientes_salvos.values()])
-                            all_empresas = limpa_lista([c.get('empresa', '') for c in clientes_salvos.values()])
+                            all_grupos = limpa_lista([c.get('grupo', '') for c in clientes_salvos.values()])
                             
                             col_b1, col_b2, col_b3, col_b4 = st.columns(4)
                             with col_b1: filtro_kan = st.multiselect("KAN", options=all_kans, key="f_kan_aud")
@@ -624,7 +628,7 @@ class AdminMenu(BaseMenu):
                             
                             col_b5, col_b6 = st.columns(2)
                             with col_b5: filtro_cargo = st.multiselect("Cargo/Profissão", options=all_cargos, key="f_cargo_aud")
-                            with col_b6: filtro_empresa = st.multiselect("Empresa/Grupo", options=all_empresas, key="f_emp_aud")
+                            with col_b6: filtro_grupo = st.multiselect("Grupo", options=all_grupos, key="f_emp_aud")
                             
                             if st.button("🔎 Realizar Busca de Perfis", key="btn_busca_aud"):
                                 resultados_busca = []
@@ -659,8 +663,8 @@ class AdminMenu(BaseMenu):
                                         match_cargo = str(c.get('cargo', '')).strip() in filtro_cargo
                                         
                                     match_empresa = True
-                                    if filtro_empresa:
-                                        match_empresa = str(c.get('empresa', '')).strip() in filtro_empresa
+                                    if filtro_grupo:
+                                        match_empresa = str(c.get('grupo', '')).strip() in filtro_grupo
                                         
                                     if match_kan and match_perfil and match_cat and match_qual and match_cargo and match_empresa:
                                         row_res = {

@@ -45,7 +45,7 @@ class DiagnosticosMenu(BaseMenu):
         info_cliente = clientes_salvos[nome]
         data_str = info_cliente['data_nascimento']
         cargo = info_cliente.get('cargo', '')
-        empresa = info_cliente.get('empresa', '')
+        grupo = info_cliente.get('grupo', info_cliente.get('empresa', ''))
         linkedin = info_cliente.get('linkedin_url', '')
         experiencias = info_cliente.get('experiencias', '')
         
@@ -85,7 +85,7 @@ class DiagnosticosMenu(BaseMenu):
                 new_data = st.text_input("Data de Nascimento (dd/mm/yyyy)", value=data_str, key=f"edit_data_{nome}")
                 new_cargo = st.text_input("Cargo/Profissão", value=cargo if pd.notna(cargo) and str(cargo) != 'nan' else "", key=f"edit_cargo_{nome}")
             with col_edit2:
-                new_empresa = st.text_input("Empresa/Grupo", value=empresa if pd.notna(empresa) and str(empresa) != 'nan' else "", key=f"edit_emp_{nome}")
+                new_grupo = st.text_input("Grupo", value=grupo if pd.notna(grupo) and str(grupo) != 'nan' else "", key=f"edit_emp_{nome}")
                 new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin if pd.notna(linkedin) and str(linkedin) != 'nan' else "", key=f"edit_link_{nome}")
                 new_experiencias = st.text_area("Experiências Profissionais / Bio", value=experiencias if pd.notna(experiencias) and str(experiencias) != 'nan' else "", key=f"edit_exp_{nome}", height=68)
             
@@ -97,7 +97,7 @@ class DiagnosticosMenu(BaseMenu):
                             "nome": new_nome,
                             "data_nascimento": new_data,
                             "cargo": new_cargo,
-                            "empresa": new_empresa,
+                            "grupo": new_grupo,
                             "linkedin_url": new_linkedin,
                             "experiencias": new_experiencias
                         }).eq("nome", nome).execute()

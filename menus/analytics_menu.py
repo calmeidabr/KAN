@@ -36,7 +36,7 @@ class AnalyticsMenu(BaseMenu):
             res_val = client.table("mapas_salvos_valores").select("*").execute()
             rows_val = res_val.data
             
-            res_ms = client.table("mapas_salvos").select("nome, empresa, cargo, ai_diagnosis").execute()
+            res_ms = client.table("mapas_salvos").select("nome, grupo, cargo, ai_diagnosis").execute()
             rows_ms = res_ms.data
             
             # Buscar dicionário de soft skills
@@ -56,7 +56,7 @@ class AnalyticsMenu(BaseMenu):
         ms_dict = {}
         for r in rows_ms:
             ms_dict[r.get("nome")] = {
-                "empresa": r.get("empresa") if r.get("empresa") and str(r.get("empresa")).strip() and str(r.get("empresa")) != "nan" else "Sem Empresa",
+                "grupo": r.get("grupo", r.get("empresa", "")) if (r.get("grupo") or r.get("empresa")) and str(r.get("grupo") or r.get("empresa")).strip() and str(r.get("grupo") or r.get("empresa")) != "nan" else "Sem Grupo",
                 "cargo": r.get("cargo") if r.get("cargo") and str(r.get("cargo")).strip() and str(r.get("cargo")) != "nan" else "Sem Cargo",
                 "ai_diagnosis": r.get("ai_diagnosis", "")
             }
@@ -78,11 +78,11 @@ class AnalyticsMenu(BaseMenu):
         data_list = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
-            ms_info = ms_dict.get(nome, {"empresa": "Sem Empresa", "cargo": "Sem Cargo", "ai_diagnosis": ""})
+            ms_info = ms_dict.get(nome, {"grupo": "Sem Grupo", "cargo": "Sem Cargo", "ai_diagnosis": ""})
             
             data_list.append({
                 "nome": nome,
-                "empresa": ms_info["empresa"],
+                "grupo": ms_info["grupo"],
                 "cargo": ms_info["cargo"],
                 "perfil": row.get("perfil") if row.get("perfil") and str(row.get("perfil")).strip() else "Não Calculado",
                 "categoria": row.get("categoria") if row.get("categoria") and str(row.get("categoria")).strip() else "Não Calculada",
@@ -99,12 +99,12 @@ class AnalyticsMenu(BaseMenu):
             st.markdown("<h5 style='margin-top:0;'>Filtros Globais</h5>", unsafe_allow_html=True)
             col_f1, col_f2, col_f3 = st.columns(3)
             
-            # Opções de Empresa
-            list_empresas = sorted(list(df["empresa"].unique()))
-            if "Sem Empresa" in list_empresas:
-                list_empresas.remove("Sem Empresa")
-                list_empresas.append("Sem Empresa")
-            empresa_selecionada = col_f1.selectbox("Filtrar por Empresa:", ["Todas"] + list_empresas)
+            # Opções de Grupo
+            list_grupos = sorted(list(df["grupo"].unique()))
+            if "Sem Grupo" in list_grupos:
+                list_grupos.remove("Sem Grupo")
+                list_grupos.append("Sem Grupo")
+            grupo_selecionado = col_f1.selectbox("Filtrar por Grupo:", ["Todos"] + list_grupos)
             
             # Opções de Cargo
             list_cargos = sorted(list(df["cargo"].unique()))
@@ -126,8 +126,8 @@ class AnalyticsMenu(BaseMenu):
 
         # Aplicar filtros
         df_filtered = df.copy()
-        if empresa_selecionada != "Todas":
-            df_filtered = df_filtered[df_filtered["empresa"] == empresa_selecionada]
+        if grupo_selecionado != "Todos":
+            df_filtered = df_filtered[df_filtered["grupo"] == grupo_selecionado]
         if cargo_selecionado:
             df_filtered = df_filtered[df_filtered["cargo"].isin(cargo_selecionado)]
         if geracao_selecionada:
@@ -175,8 +175,8 @@ class AnalyticsMenu(BaseMenu):
         total_ia = df_filtered["ai_diagnosis"].apply(lambda x: bool(x) and str(x).strip() != "").sum()
         pct_ia = (total_ia / total_talentos) * 100 if total_talentos > 0 else 0
 
-        # Empresas Ativas filtradas
-        total_empresas = df_filtered["empresa"].nunique()
+        # Grupos Ativos filtrados
+        total_grupos = df_filtered["grupo"].nunique()
 
         # Renderizar KPIs com estilo Premium
         st.write("")
@@ -224,8 +224,8 @@ class AnalyticsMenu(BaseMenu):
                 <div class="kpi-num">""" + f"{pct_ia:.1f}%" + """</div>
             </div>
             <div class="kpi-box">
-                <div class="kpi-lbl">Empresas Cadastradas</div>
-                <div class="kpi-num">""" + str(total_empresas) + """</div>
+                <div class="kpi-lbl">Grupos Cadastrados</div>
+                <div class="kpi-num">""" + str(total_grupos) + """</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -372,14 +372,14 @@ class AnalyticsMenu(BaseMenu):
         st.subheader("📋 Tabela Analítica de Talentos")
         
         # Selecionar e ordenar colunas principais para visualização
-        table_df = df_filtered[["nome", "empresa", "cargo", "kan", "perfil", "categoria", "qualidades", "ai_diagnosis"]].copy()
+        table_df = df_filtered[["nome", "grupo", "cargo", "kan", "perfil", "categoria", "qualidades", "ai_diagnosis"]].copy()
         
         # Formatar a coluna de Diagnóstico de IA para sim/não visual
         table_df["Diagnóstico IA"] = table_df["ai_diagnosis"].apply(lambda x: "✅ Ativo" if bool(x) and str(x).strip() != "" else "❌ Ausente")
         table_df = table_df.drop(columns=["ai_diagnosis"])
         
         # Renomear cabeçalhos
-        table_df.columns = ["Nome", "Empresa", "Cargo", "Número KAN", "Perfil Dominante", "Categoria", "Qualidades", "Status Diagnóstico IA"]
+        table_df.columns = ["Nome", "Grupo", "Cargo", "Número KAN", "Perfil Dominante", "Categoria", "Qualidades", "Status Diagnóstico IA"]
         
         # Exibir tabela interativa
         st.dataframe(
