@@ -23,6 +23,7 @@ from .database import (
     fetch_assets_list,
     carregar_empresas,
     carregar_cargos,
+    carregar_equipes,
     carregar_hierarquia,
     carregar_todos_clientes,
     salvar_na_base_dados,

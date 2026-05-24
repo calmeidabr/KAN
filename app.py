@@ -9,6 +9,7 @@ from menus.processos_menu import ProcessosMenu
 from menus.hierarquia_menu import HierarquiaMenu
 from menus.empresas_menu import EmpresasMenu
 from menus.admin_menu import AdminMenu
+from menus.equipes_menu import EquipesMenu
 from menus.diagnosticos_menu import DiagnosticosMenu
 from menus.analytics_menu import AnalyticsMenu
 from menus.processo_seletivo_analise_menu import ProcessoSeletivoAnaliseMenu
@@ -33,7 +34,7 @@ class App:
             "Talentos": lambda: TalentosMenu(self).render(),
             "Vagas": lambda: ProcessosMenu(self).render(),
             "Hierarquia / Deptos": lambda: HierarquiaMenu(self).render(),
-            "Equipes": lambda: PlaceholderMenu(self).render(title="Gestão de Equipes", message="Módulo de estruturação de equipes em desenvolvimento."),
+            "Equipes": lambda: EquipesMenu(self).render(),
             "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
             "Usuários": lambda: PlaceholderMenu(self).render(title="Gestão de Usuários do Sistema", message="Módulo de gestão de permissões de usuários em desenvolvimento."),
             "Analytics": lambda: AnalyticsMenu(self).render(),

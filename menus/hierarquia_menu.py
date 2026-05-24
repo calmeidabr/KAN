@@ -4,9 +4,64 @@ import time
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, carregar_hierarquia, get_supabase, get_supabase_admin, carregar_todos_clientes, carregar_cargos
 
+@st.dialog("Dados do Talento", width="large")
+def modal_detalhes_talento(nome, info, dept_map_list):
+    st.markdown(f"### {nome}")
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        foto_b64 = info.get("foto_base64")
+        if foto_b64:
+            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 100%; max-width: 180px; border-radius: 12px; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="width: 150px; height: 150px; border-radius: 12px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size: 4em; color: rgba(255,255,255,0.2);">👤</span></div>', unsafe_allow_html=True)
+    with col2:
+        st.write(f"**Data de Nascimento:** {info.get('data_nascimento', 'Não informada')}")
+        st.write(f"**Cargo/Profissão:** {info.get('cargo', 'Não informado')}")
+        st.write(f"**Grupo:** {info.get('grupo', 'Não informado')}")
+        st.write(f"**Empresa:** {info.get('empresa', 'Não associada')}")
+        
+        depto_id = info.get("departamento")
+        depto_nome = dept_map_list.get(depto_id, "Não associado") if depto_id else "Não associado"
+        st.write(f"**Departamento:** {depto_nome}")
+        
+        linkedin = info.get("linkedin_url")
+        if linkedin:
+            st.write(f"**LinkedIn:** [Ver Perfil]({linkedin})")
+        else:
+            st.write("**LinkedIn:** Não informado")
+            
+    st.write("---")
+    st.markdown("**Experiências Profissionais / Bio:**")
+    st.info(info.get("experiencias") or "Nenhuma informação adicional cadastrada.")
+
 class HierarquiaMenu(BaseMenu):
     def render(self):
         st.title("Hierarquia / Departamentos")
+        
+        # CSS para formatar os botões de talento como hyperlinks
+        st.markdown("""
+        <style>
+        div.talent-link-container div.row-widget.stButton > button {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            color: #F18617 !important;
+            text-decoration: underline !important;
+            text-align: left !important;
+            font-weight: bold !important;
+            box-shadow: none !important;
+            display: inline !important;
+            margin: 0 !important;
+        }
+        div.talent-link-container div.row-widget.stButton > button:hover {
+            color: #ff9f43 !important;
+            background: transparent !important;
+        }
+        div.talent-link-container {
+            display: inline-block !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         st.info("Estruture e gerencie o organograma de departamentos das empresas cadastradas.")
 
         supabase_client = get_supabase()
@@ -78,10 +133,20 @@ class HierarquiaMenu(BaseMenu):
                     t_depto_nome = dept_map_list.get(t_depto_id, "Sem Departamento")
                     t_cargo = t_info.get("cargo", "Sem Cargo")
                     foto_b64 = t_info.get("foto_base64")
-                    avatar_tag = ""
-                    if foto_b64:
-                        avatar_tag = f'<img src="data:image/png;base64,{foto_b64}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #F18617; display: inline-block;"> '
-                    st.markdown(f"• {avatar_tag}**{t_nome}** — {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)", unsafe_allow_html=True)
+                    
+                    # Layout usando colunas para manter o alinhamento
+                    cols_t = st.columns([1, 20])
+                    with cols_t[0]:
+                        if foto_b64:
+                            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #F18617; vertical-align: middle;">', unsafe_allow_html=True)
+                        else:
+                            st.markdown('<span style="font-size: 1.15em; vertical-align: middle;">👤</span>', unsafe_allow_html=True)
+                    with cols_t[1]:
+                        st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
+                        if st.button(t_nome, key=f"lnk_emp_lst_{t_nome}"):
+                            modal_detalhes_talento(t_nome, t_info, dept_map_list)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown(f"<span style='vertical-align: middle; font-size: 0.95em;'> &mdash; {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)</span>", unsafe_allow_html=True)
         
         state_key_edit = f"edit_hier_{empresa_selecionada}"
         state_key_builder = f"builder_hier_{empresa_selecionada}"
@@ -127,17 +192,25 @@ class HierarquiaMenu(BaseMenu):
                             st.markdown(f"<div style='padding-left: {level * 25}px;'><span style='color: #F18617; font-weight: bold;'>{prefix}</span> <span style='font-size: 1.2em; font-weight: bold; color: #FFFFFF;'>{ch['nome']}</span></div>", unsafe_allow_html=True)
                             
                             if dept_talents:
-                                t_bullets = []
                                 for t_nome in sorted(dept_talents):
                                     t_info = clientes[t_nome]
                                     t_cargo = t_info.get("cargo", "Sem Cargo")
                                     foto_b64 = t_info.get("foto_base64")
-                                    if foto_b64:
-                                        avatar_tag = f'<img src="data:image/png;base64,{foto_b64}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #F18617; display: inline-block;"> '
-                                    else:
-                                        avatar_tag = '<span style="font-size: 1.1em; vertical-align: middle; margin-right: 6px;">👤</span>'
-                                    t_bullets.append(f"{avatar_tag}**{t_nome}** — <span style='color: #F18617; font-weight: bold;'>{t_cargo}</span>")
-                                st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 5px; font-size: 0.95em; color: rgba(255,255,255,0.85);'>" + "<br>".join(t_bullets) + "</div>", unsafe_allow_html=True)
+                                    
+                                    cols_tree = st.columns([1, 15])
+                                    with cols_tree[0]:
+                                        st.markdown(f"<div style='padding-left: {level * 25 + 20}px;'></div>", unsafe_allow_html=True)
+                                    with cols_tree[1]:
+                                        if foto_b64:
+                                            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #F18617; display: inline-block;">', unsafe_allow_html=True)
+                                        else:
+                                            st.markdown('<span style="font-size: 1.1em; vertical-align: middle; margin-right: 6px;">👤</span>', unsafe_allow_html=True)
+                                        
+                                        st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
+                                        if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
+                                            modal_detalhes_talento(t_nome, t_info, dept_map_list)
+                                        st.markdown('</div>', unsafe_allow_html=True)
+                                        st.markdown(f"<span style='vertical-align: middle;'> &mdash; <span style='color: #F18617; font-weight: bold;'>{t_cargo}</span></span>", unsafe_allow_html=True)
                             
                             # Botão de popover para adicionar/alterar membro
                             st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 8px;'></div>", unsafe_allow_html=True)
