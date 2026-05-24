@@ -22,6 +22,7 @@ from .database import (
     fetch_asset_b64,
     fetch_assets_list,
     carregar_empresas,
+    carregar_cargos,
     carregar_hierarquia,
     carregar_todos_clientes,
     salvar_na_base_dados,

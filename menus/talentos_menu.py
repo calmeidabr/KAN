@@ -64,12 +64,15 @@ class TalentosMenu(BaseMenu):
                         except Exception as e:
                             st.error(f"Erro na leitura: {e}")
 
-            col_f4, col_f5, col_f6 = st.columns([1, 1, 1])
+            col_f4, col_f5, col_f6, col_f7 = st.columns([1, 1, 1, 1])
             with col_f4:
                 cad_cargo = st.text_input("Cargo/Profissão:", key="cad_cargo")
             with col_f5:
                 cad_emp = st.selectbox("Grupo*:", options=nomes_empresas, key="cad_emp")
             with col_f6:
+                opcoes_empresa = ["Nenhuma / Não associada"] + nomes_empresas
+                cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key="cad_empresa_sel")
+            with col_f7:
                 cad_link = st.text_input("LinkedIn (URL):", key="cad_link")
                 
             cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key="cad_exp")
@@ -92,6 +95,7 @@ class TalentosMenu(BaseMenu):
                             "data_nascimento": cad_data.strip(),
                             "cargo": cad_cargo.strip() if cad_cargo else None,
                             "grupo": cad_emp,
+                            "empresa": cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else None,
                             "linkedin_url": cad_link.strip() if cad_link else None,
                             "experiencias": cad_exp.strip() if cad_exp else None,
                             "foto_base64": foto_b64,
@@ -124,7 +128,7 @@ class TalentosMenu(BaseMenu):
                                 'data_nascimento': cad_data.strip(),
                                 'cargo': cad_cargo.strip() if cad_cargo else '',
                                 'grupo': cad_emp,
-                                'empresa': cad_emp,
+                                'empresa': cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else '',
                                 'linkedin_url': cad_link.strip() if cad_link else '',
                                 'experiencias': cad_exp.strip() if cad_exp else '',
                                 'foto_base64': foto_b64,

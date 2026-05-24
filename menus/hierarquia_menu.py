@@ -2,7 +2,7 @@ import streamlit as st
 import datetime
 import time
 from menus.base_menu import BaseMenu
-from models.database import carregar_empresas, carregar_hierarquia, get_supabase
+from models.database import carregar_empresas, carregar_hierarquia, get_supabase, get_supabase_admin, carregar_todos_clientes, carregar_cargos
 
 class HierarquiaMenu(BaseMenu):
     def render(self):
@@ -21,6 +21,63 @@ class HierarquiaMenu(BaseMenu):
             empresa_selecionada = st.selectbox("Selecione a Empresa (Drill Down):", options=nomes_empresas, key="sel_emp_hier")
 
         deptos = carregar_hierarquia(empresa_selecionada)
+        clientes = carregar_todos_clientes()
+        
+        # Talentos da empresa (onde 'empresa' == empresa_selecionada)
+        talentos_da_empresa = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada]
+        
+        # Talentos que não estão associados a esta empresa
+        talentos_fora = sorted([nome for nome, info in clientes.items() if info.get("empresa") != empresa_selecionada])
+
+        with col_sel2:
+            st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
+            with st.popover("Adicionar Talentos à Empresa"):
+                if not talentos_fora:
+                    st.info("Todos os talentos cadastrados já estão associados a esta empresa.")
+                else:
+                    talentos_a_adicionar = st.multiselect(
+                        "Selecione os Talentos:",
+                        options=talentos_fora,
+                        key=f"add_talentos_emp_{empresa_selecionada}"
+                    )
+                    if st.button("Confirmar Associação à Empresa", key=f"btn_add_talentos_emp_{empresa_selecionada}", type="primary", use_container_width=True):
+                        if talentos_a_adicionar:
+                            sucessos = 0
+                            client_admin = get_supabase_admin()
+                            for t_nome in talentos_a_adicionar:
+                                if client_admin:
+                                    try:
+                                        client_admin.table("mapas_salvos").update({"empresa": empresa_selecionada}).eq("nome", t_nome).execute()
+                                        sucessos += 1
+                                    except Exception as ex:
+                                        st.error(f"Erro ao salvar no banco: {ex}")
+                                else:
+                                    # Fallback local
+                                    if "clientes_local_data" not in st.session_state:
+                                        st.session_state["clientes_local_data"] = {}
+                                    if t_nome not in st.session_state["clientes_local_data"]:
+                                        st.session_state["clientes_local_data"][t_nome] = clientes.get(t_nome, {}).copy()
+                                    st.session_state["clientes_local_data"][t_nome]["empresa"] = empresa_selecionada
+                                    sucessos += 1
+                            if sucessos > 0:
+                                st.cache_data.clear()
+                                st.success(f"{sucessos} talentos associados com sucesso!")
+                                time.sleep(1)
+                                st.rerun()
+                        else:
+                            st.warning("Selecione pelo menos um talento.")
+
+        with st.expander(f"Talentos da Empresa ({len(talentos_da_empresa)})", expanded=False):
+            if not talentos_da_empresa:
+                st.write("Nenhum talento associado a esta empresa.")
+            else:
+                dept_map_list = {d["departamento_id"]: d["nome"] for d in deptos}
+                for t_nome in sorted(talentos_da_empresa):
+                    t_info = clientes[t_nome]
+                    t_depto_id = t_info.get("departamento")
+                    t_depto_nome = dept_map_list.get(t_depto_id, "Sem Departamento")
+                    t_cargo = t_info.get("cargo", "Sem Cargo")
+                    st.markdown(f"• **{t_nome}** — {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)", unsafe_allow_html=True)
         
         state_key_edit = f"edit_hier_{empresa_selecionada}"
         state_key_builder = f"builder_hier_{empresa_selecionada}"
@@ -51,15 +108,77 @@ class HierarquiaMenu(BaseMenu):
                 st.write("---")
                 st.subheader(f"Organograma Atual: {empresa_selecionada}")
                 
-                dept_map = {d["departamento_id"]: d["nome"] for d in deptos}
+                cargos_list = carregar_cargos()
                 
                 def render_tree(parent_id, level=0):
                     children = [d for d in deptos if (d.get("parent_id") == parent_id) or (parent_id == "Nenhum (Nível Mais Alto)" and (d.get("parent_id") is None or d.get("parent_id") == "Nenhum (Nível Mais Alto)"))]
                     for ch in sorted(children, key=lambda x: x.get("ordem", 0)):
                         indent = "\u00A0\u00A0\u00A0\u00A0" * level
                         prefix = "└─ " if level > 0 else "⭐ "
+                        
+                        # Talentos associados a este departamento
+                        dept_talents = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]]
+                        
                         with st.container(border=True):
                             st.markdown(f"<div style='padding-left: {level * 25}px;'><span style='color: #F18617; font-weight: bold;'>{prefix}</span> <span style='font-size: 1.2em; font-weight: bold; color: #FFFFFF;'>{ch['nome']}</span></div>", unsafe_allow_html=True)
+                            
+                            if dept_talents:
+                                t_bullets = []
+                                for t_nome in sorted(dept_talents):
+                                    t_info = clientes[t_nome]
+                                    t_cargo = t_info.get("cargo", "Sem Cargo")
+                                    t_bullets.append(f"👤 **{t_nome}** — <span style='color: #F18617; font-weight: bold;'>{t_cargo}</span>")
+                                st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 5px; font-size: 0.95em; color: rgba(255,255,255,0.85);'>" + "<br>".join(t_bullets) + "</div>", unsafe_allow_html=True)
+                            
+                            # Botão de popover para adicionar/alterar membro
+                            st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 8px;'></div>", unsafe_allow_html=True)
+                            
+                            # Exibir popover alinhado com o nível de indentação do departamento
+                            cols_assoc = st.columns([1, 10])
+                            with cols_assoc[0]:
+                                st.markdown("<div style='width: " + str(level * 25) + "px;'></div>", unsafe_allow_html=True)
+                            with cols_assoc[1]:
+                                with st.popover("Membros", use_container_width=False):
+                                    st.markdown(f"**Departamento: {ch['nome']}**")
+                                    company_talents = sorted(talentos_da_empresa)
+                                    talento_sel = st.selectbox(
+                                        "Selecione o Talento:",
+                                        options=["Selecione..."] + company_talents,
+                                        key=f"sel_talent_dept_{ch['departamento_id']}"
+                                    )
+                                    cargo_sel = st.selectbox(
+                                        "Selecione o Cargo:",
+                                        options=cargos_list,
+                                        key=f"sel_cargo_dept_{ch['departamento_id']}"
+                                    )
+                                    if st.button("Associar ao Departamento", key=f"btn_assoc_dept_{ch['departamento_id']}", type="primary", use_container_width=True):
+                                        if talento_sel != "Selecione...":
+                                            client_admin = get_supabase_admin()
+                                            if client_admin:
+                                                try:
+                                                    client_admin.table("mapas_salvos").update({
+                                                        "departamento": ch["departamento_id"],
+                                                        "cargo": cargo_sel
+                                                    }).eq("nome", talento_sel).execute()
+                                                    st.cache_data.clear()
+                                                    st.success(f"{talento_sel} associado como {cargo_sel}!")
+                                                    time.sleep(1)
+                                                    st.rerun()
+                                                except Exception as ex:
+                                                    st.error(f"Erro ao salvar no banco: {ex}")
+                                            else:
+                                                if "clientes_local_data" not in st.session_state:
+                                                    st.session_state["clientes_local_data"] = {}
+                                                if talento_sel not in st.session_state["clientes_local_data"]:
+                                                    st.session_state["clientes_local_data"][talento_sel] = clientes.get(talento_sel, {}).copy()
+                                                st.session_state["clientes_local_data"][talento_sel]["departamento"] = ch["departamento_id"]
+                                                st.session_state["clientes_local_data"][talento_sel]["cargo"] = cargo_sel
+                                                st.cache_data.clear()
+                                                st.success(f"{talento_sel} associado localmente!")
+                                                time.sleep(1)
+                                                st.rerun()
+                                        else:
+                                            st.warning("Selecione um talento válido.")
                         render_tree(ch["departamento_id"], level + 1)
                 
                 render_tree("Nenhum (Nível Mais Alto)", 0)

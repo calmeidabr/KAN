@@ -509,11 +509,16 @@ def _fetch_supabase_clientes():
                                 row['mapa_detalhado'][nome_campo_mapa] = raw_val
                     except Exception: pass
 
+                is_migrated = 'grupo' in row
+                grupo_val = row.get('grupo', '') if is_migrated else row.get('empresa', '')
+                empresa_val = row.get('empresa', '') if is_migrated else ''
+                
                 cl_salvos[row['nome']] = {
                     'data_nascimento': row['data_nascimento'],
                     'cargo': row.get('cargo', ''),
-                    'grupo': row.get('grupo', row.get('empresa', '')),
-                    'empresa': row.get('grupo', row.get('empresa', '')),
+                    'grupo': grupo_val,
+                    'empresa': empresa_val,
+                    'departamento': row.get('departamento', ''),
                     'linkedin_url': row.get('linkedin_url', ''),
                     'experiencias': row.get('experiencias', ''),
                     'foto_base64': row.get('foto_base64', ''),
@@ -615,3 +620,33 @@ def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, 
     except Exception as e:
         import streamlit as st
         st.error(f"Erro ao salvar: {e}")
+
+CARGOS_LIST_DEFAULT = [
+    "Trainee", "Aprendiz", "Auxiliar", "Assistente", "Atendente", "Operador", "Técnico", "Técnico líder",
+    "Analista", "Analista júnior", "Analista pleno", "Analista sênior",
+    "Especialista", "Especialista júnior", "Especialista pleno", "Especialista sênior", "Especialista líder", "Especialista principal",
+    "Principal", "Consultor", "Consultor sênior", "Consultor estratégico", "Assessor", "Assessor sênior",
+    "Auditor", "Perito", "Supervisor", "Supervisor de equipe", "Líder de equipe", "Líder de operação",
+    "Coordenador", "Coordenador sênior", "Coordenador regional", "Coordenador corporativo", "Coordenador de projetos",
+    "Encarregado", "Chefe de área", "Facilitador", "Gestão tática",
+    "Gerente", "Gerente júnior", "Gerente pleno", "Gerente sênior", "Gerente de operações", "Gerente de unidade", "Gerente regional", "Gerente executivo",
+    "Head", "Head de especialidade", "Head de operações", "Head de produto", "Head de projetos",
+    "Diretor adjunto", "Diretor", "Diretor sênior", "Diretor executivo", "Diretor-presidente",
+    "Vice-presidente", "Vice-presidente sênior", "Presidente", "CEO", "COO", "CFO", "CIO", "CTO", "CMO", "CHRO", "CRO", "CHO", "CPO",
+    "Sócio", "Sócio fundador", "Sócio-diretor", "Sócio-administrador", "Conselheiro", "Membro do conselho", "Chairman",
+    "Vendedor", "Vendedor consultivo", "Executivo de vendas", "Executivo de contas", "Key Account Manager", "Account Manager",
+    "Pre-sales", "Customer Success", "Customer Success Manager", "Business Development Representative", "Sales Development Representative",
+    "Closer", "Farmer", "Hunter"
+]
+
+@st.cache_data(ttl=600)
+def carregar_cargos():
+    client = get_supabase()
+    if client:
+        try:
+            res = client.table("cargos").select("nome").order("nome").execute()
+            if res.data:
+                return [row["nome"] for row in res.data]
+        except Exception:
+            pass
+    return CARGOS_LIST_DEFAULT
