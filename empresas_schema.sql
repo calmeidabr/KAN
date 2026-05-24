@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS empresas (
     responsavel_celular TEXT,
     responsavel_email TEXT,
     logo TEXT DEFAULT '⛶',
+    status TEXT DEFAULT 'Ativa',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -22,6 +23,7 @@ ALTER TABLE empresas ADD COLUMN IF NOT EXISTS responsavel_nome TEXT;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS responsavel_celular TEXT;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS responsavel_email TEXT;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS logo TEXT DEFAULT '⛶';
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Ativa';
 
 -- Atualiza o cache de schema do PostgREST (Supabase API) instantaneamente
 NOTIFY pgrst, 'reload schema';

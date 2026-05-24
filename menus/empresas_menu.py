@@ -24,7 +24,7 @@ class EmpresasMenu(BaseMenu):
         if "view_empresa_selected" not in st.session_state:
             st.session_state["view_empresa_selected"] = None
 
-        lista_empresas = carregar_empresas()
+        lista_empresas = carregar_empresas(somente_ativas=False)
         emp_em_edicao = next((e for e in lista_empresas if e["nome_empresa"] == st.session_state["edit_empresa_id"]), None) if st.session_state["edit_empresa_id"] else None
         emp_em_visualizacao = next((e for e in lista_empresas if e["nome_empresa"] == st.session_state["view_empresa_selected"]), None) if st.session_state["view_empresa_selected"] else None
 
@@ -55,6 +55,10 @@ class EmpresasMenu(BaseMenu):
                     st.write(emp_em_visualizacao.get("razao_social") or "Não informada")
                     st.write("**CNPJ:**")
                     st.write(emp_em_visualizacao.get("cnpj") or "Não informado")
+                    st.write("**Status:**")
+                    st_val = emp_em_visualizacao.get("status", "Ativa")
+                    st_color = "#39ff14" if st_val == "Ativa" else "#ff3333"
+                    st.markdown(f"<span style='color: {st_color}; font-weight: bold;'>{st_val}</span>", unsafe_allow_html=True)
                     st.write("**Segmento:**")
                     st.write(emp_em_visualizacao.get("segmento") or "Não informado")
                     st.write("**Responsável:**")
@@ -97,6 +101,7 @@ class EmpresasMenu(BaseMenu):
                     ed_tel = st.text_input("Telefone de contato", value=emp_em_edicao.get("telefone") or "", key="ed_emp_t")
                     ed_em = st.text_input("Email de contato", value=emp_em_edicao.get("email") or "", key="ed_emp_e")
                     ed_resp_em = st.text_input("Email do Responsável", value=emp_em_edicao.get("responsavel_email") or "", key="ed_emp_resp_e")
+                    ed_status = st.selectbox("Status", options=["Ativa", "Inativa"], index=0 if emp_em_edicao.get("status", "Ativa") == "Ativa" else 1, key="ed_emp_status")
 
                 st.write("**Logo da Empresa:**")
                 up_logo_ed = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_logo_ed_emp")
@@ -140,11 +145,13 @@ class EmpresasMenu(BaseMenu):
                                 "responsavel_celular": ed_resp_cel_str.strip() if ed_resp_cel_str.strip() else None,
                                 "responsavel_email": ed_resp_em_str.strip() if ed_resp_em_str.strip() else None,
                                 "logo": novo_logo,
+                                "status": ed_status,
                                 "updated_at": datetime.datetime.now().isoformat()
                             }
                             if supabase_client:
                                 try:
                                     supabase_client.table("empresas").update(payload).eq("nome_empresa", emp_em_edicao["nome_empresa"]).execute()
+                                    st.cache_data.clear()
                                     st.success("empresa salva com sucesso.")
                                     emp_em_edicao.update(payload)
                                     st.session_state["edit_empresa_id"] = None
@@ -153,6 +160,7 @@ class EmpresasMenu(BaseMenu):
                                     st.error(f"Erro ao salvar no Supabase: {ex}\n\nDICA: Lembre-se de rodar o script 'empresas_schema.sql' no SQL Editor do Supabase para atualizar a tabela e o cache.")
                             else:
                                 emp_em_edicao.update(payload)
+                                st.cache_data.clear()
                                 st.success("empresa salva com sucesso.")
                                 st.session_state["edit_empresa_id"] = None
                                 st.rerun()
@@ -179,6 +187,7 @@ class EmpresasMenu(BaseMenu):
                     n_tel = st.text_input("Telefone de contato", key="add_emp_t")
                     n_em = st.text_input("Email de contato", key="add_emp_e")
                     n_resp_em = st.text_input("Email do Responsável", key="add_emp_resp_e")
+                    n_status = st.selectbox("Status", options=["Ativa", "Inativa"], index=0, key="add_emp_status")
 
                 st.write("**Logo da Empresa:**")
                 up_logo_add = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_logo_add_emp")
@@ -222,12 +231,14 @@ class EmpresasMenu(BaseMenu):
                                 "responsavel_celular": n_resp_cel_str.strip() if n_resp_cel_str.strip() else None,
                                 "responsavel_email": n_resp_em_str.strip() if n_resp_em_str.strip() else None,
                                 "logo": novo_logo,
+                                "status": n_status,
                                 "created_at": datetime.datetime.now().isoformat(),
                                 "updated_at": datetime.datetime.now().isoformat()
                             }
                             if supabase_client:
                                 try:
                                     supabase_client.table("empresas").insert(payload).execute()
+                                    st.cache_data.clear()
                                     st.success("empresa salva com sucesso.")
                                     st.session_state["add_empresa_mode"] = False
                                     st.rerun()
@@ -236,6 +247,7 @@ class EmpresasMenu(BaseMenu):
                             else:
                                 if "empresas_local_data" not in st.session_state: st.session_state["empresas_local_data"] = []
                                 st.session_state["empresas_local_data"].append(payload)
+                                st.cache_data.clear()
                                 st.success("empresa salva com sucesso.")
                                 st.session_state["add_empresa_mode"] = False
                                 st.rerun()
@@ -268,6 +280,9 @@ class EmpresasMenu(BaseMenu):
                             st.caption(f"{emp.get('razao_social') or ''}")
                         with col_c3:
                             st.write(f"**CNPJ:** {emp.get('cnpj') or 'N/I'}")
+                            status_val = emp.get("status", "Ativa")
+                            status_color = "#39ff14" if status_val == "Ativa" else "#ff3333"
+                            st.markdown(f"Status: <span style='color: {status_color}; font-weight: bold;'>{status_val}</span>", unsafe_allow_html=True)
                             st.caption(f"Segmento: {emp.get('segmento') or 'N/I'}")
                         with col_c4:
                             if st.button("Visualizar Detalhes", key=f"v_emp_{emp['nome_empresa']}", use_container_width=True):

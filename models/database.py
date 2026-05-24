@@ -433,18 +433,24 @@ def fetch_assets_list():
     except Exception: return []
 
 @st.cache_data(ttl=300)
-def carregar_empresas():
+def carregar_empresas(somente_ativas=True):
     client = get_supabase()
     if client:
         try:
             res = client.table("empresas").select("*").order("nome_empresa").execute()
-            if res.data: return res.data
+            if res.data:
+                if somente_ativas:
+                    return [emp for emp in res.data if emp.get("status", "Ativa") != "Inativa"]
+                return res.data
         except Exception: pass
     if "empresas_local_data" not in st.session_state:
         st.session_state["empresas_local_data"] = [
-            {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br"}
+            {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br", "status": "Ativa"}
         ]
-    return st.session_state["empresas_local_data"]
+    local_data = st.session_state["empresas_local_data"]
+    if somente_ativas:
+        return [emp for emp in local_data if emp.get("status", "Ativa") != "Inativa"]
+    return local_data
 
 @st.cache_data(ttl=300)
 def carregar_hierarquia(empresa):
