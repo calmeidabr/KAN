@@ -77,7 +77,11 @@ class HierarquiaMenu(BaseMenu):
                     t_depto_id = t_info.get("departamento")
                     t_depto_nome = dept_map_list.get(t_depto_id, "Sem Departamento")
                     t_cargo = t_info.get("cargo", "Sem Cargo")
-                    st.markdown(f"• **{t_nome}** — {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)", unsafe_allow_html=True)
+                    foto_b64 = t_info.get("foto_base64")
+                    avatar_tag = ""
+                    if foto_b64:
+                        avatar_tag = f'<img src="data:image/png;base64,{foto_b64}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #F18617; display: inline-block;"> '
+                    st.markdown(f"• {avatar_tag}**{t_nome}** — {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)", unsafe_allow_html=True)
         
         state_key_edit = f"edit_hier_{empresa_selecionada}"
         state_key_builder = f"builder_hier_{empresa_selecionada}"
@@ -127,7 +131,12 @@ class HierarquiaMenu(BaseMenu):
                                 for t_nome in sorted(dept_talents):
                                     t_info = clientes[t_nome]
                                     t_cargo = t_info.get("cargo", "Sem Cargo")
-                                    t_bullets.append(f"👤 **{t_nome}** — <span style='color: #F18617; font-weight: bold;'>{t_cargo}</span>")
+                                    foto_b64 = t_info.get("foto_base64")
+                                    if foto_b64:
+                                        avatar_tag = f'<img src="data:image/png;base64,{foto_b64}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #F18617; display: inline-block;"> '
+                                    else:
+                                        avatar_tag = '<span style="font-size: 1.1em; vertical-align: middle; margin-right: 6px;">👤</span>'
+                                    t_bullets.append(f"{avatar_tag}**{t_nome}** — <span style='color: #F18617; font-weight: bold;'>{t_cargo}</span>")
                                 st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 5px; font-size: 0.95em; color: rgba(255,255,255,0.85);'>" + "<br>".join(t_bullets) + "</div>", unsafe_allow_html=True)
                             
                             # Botão de popover para adicionar/alterar membro
