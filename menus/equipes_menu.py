@@ -55,11 +55,18 @@ class EquipesMenu(BaseMenu):
                     key="add_eq_dept_sel"
                 )
 
-                # Filtro por cargo
+                # Filtro por cargo (selectbox)
                 cargo_sel = st.selectbox(
-                    "Filtrar por Cargo:",
+                    "Filtrar por Cargo (Lista):",
                     options=["Todos"] + sorted(cargos),
                     key="add_eq_cargo_sel"
+                )
+
+                # Busca textual por cargo
+                busca_cargo = st.text_input(
+                    "Buscar por Cargo/Função:",
+                    placeholder="Digite o cargo para filtrar (ex: Analista, Trainee)...",
+                    key="add_eq_busca_cargo"
                 )
 
                 # Filtragem de candidatos elegíveis com base nos filtros selecionados
@@ -75,9 +82,14 @@ class EquipesMenu(BaseMenu):
                         target_dept_id = dept_id_map.get(dept_sel)
                         if info.get("departamento") != target_dept_id:
                             continue
-                    # Filtro de Cargo
+                    # Filtro de Cargo (Selectbox)
                     if cargo_sel != "Todos" and info.get("cargo") != cargo_sel:
                         continue
+                    # Filtro de Cargo (Busca Textual)
+                    if busca_cargo.strip():
+                        c_cargo = str(info.get("cargo") or "").lower().strip()
+                        if busca_cargo.lower().strip() not in c_cargo:
+                            continue
                     candidatos_elegiveis.append(nome)
                 
                 candidatos_elegiveis = sorted(candidatos_elegiveis)
