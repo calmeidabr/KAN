@@ -284,6 +284,66 @@ class EquipesMenu(BaseMenu):
                             if not lista_membros:
                                 st.write("Nenhum membro vinculado a esta equipe.")
                             else:
+                                # Monta os cards HTML em grade de 3 colunas
+                                cards_html = """
+                                <style>
+                                .eq-card-grid {
+                                    display: grid;
+                                    grid-template-columns: repeat(3, 1fr);
+                                    gap: 10px;
+                                    margin-top: 8px;
+                                }
+                                .eq-member-card {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                    background: rgba(241,134,23,0.07);
+                                    border: 1px solid rgba(241,134,23,0.25);
+                                    border-radius: 10px;
+                                    padding: 10px 14px;
+                                }
+                                .eq-member-card img {
+                                    width: 50px;
+                                    height: 50px;
+                                    border-radius: 50%;
+                                    object-fit: cover;
+                                    border: 2px solid #F18617;
+                                    flex-shrink: 0;
+                                }
+                                .eq-member-avatar {
+                                    width: 50px;
+                                    height: 50px;
+                                    border-radius: 50%;
+                                    background: rgba(241,134,23,0.2);
+                                    border: 2px solid #F18617;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 1.5em;
+                                    flex-shrink: 0;
+                                }
+                                .eq-member-info {
+                                    min-width: 0;
+                                }
+                                .eq-member-info strong {
+                                    display: block;
+                                    font-size: 0.92em;
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                }
+                                .eq-member-info span {
+                                    font-size: 0.78em;
+                                    opacity: 0.7;
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                    display: block;
+                                }
+                                </style>
+                                <div class="eq-card-grid">
+                                """
+
                                 for m_nome in sorted(lista_membros):
                                     m_info = clientes.get(m_nome)
                                     if m_info:
@@ -300,16 +360,33 @@ class EquipesMenu(BaseMenu):
 
                                         m_foto = m_info.get("foto_base64")
 
-                                        col_m_avatar, col_m_desc = st.columns([1, 20])
-                                        with col_m_avatar:
-                                            if m_foto:
-                                                st.markdown(f'<img src="data:image/png;base64,{m_foto}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; border: 1px solid #F18617; vertical-align: middle;">', unsafe_allow_html=True)
-                                            else:
-                                                st.markdown('<span style="font-size: 1.1em; vertical-align: middle;">👤</span>', unsafe_allow_html=True)
-                                        with col_m_desc:
-                                            st.markdown(f"<span style='vertical-align: middle;'>**{m_nome}** — {m_role}</span>", unsafe_allow_html=True)
+                                        if m_foto:
+                                            avatar_html = f'<img src="data:image/png;base64,{m_foto}" />'
+                                        else:
+                                            avatar_html = '<div class="eq-member-avatar">👤</div>'
+
+                                        cards_html += f"""
+                                        <div class="eq-member-card">
+                                            {avatar_html}
+                                            <div class="eq-member-info">
+                                                <strong>{m_nome}</strong>
+                                                <span>{m_role}</span>
+                                            </div>
+                                        </div>
+                                        """
                                     else:
-                                        st.write(f"• **{m_nome}** (Cadastro não encontrado na base)")
+                                        cards_html += f"""
+                                        <div class="eq-member-card">
+                                            <div class="eq-member-avatar">❓</div>
+                                            <div class="eq-member-info">
+                                                <strong>{m_nome}</strong>
+                                                <span>Cadastro não encontrado</span>
+                                            </div>
+                                        </div>
+                                        """
+
+                                cards_html += "</div>"
+                                st.markdown(cards_html, unsafe_allow_html=True)
 
                         # ── Seção: Triângulos Harmônicos ────────────────────────
                         if st.session_state.get(f"eq_tri_{idx}", False):
