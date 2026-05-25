@@ -394,7 +394,9 @@ class EquipesMenu(BaseMenu):
                                         """
 
                                 cards_html += "</div>"
-                                st.markdown(cards_html, unsafe_allow_html=True)
+                                # Remove quebras de linha e indentação para evitar que o markdown interprete como bloco de código
+                                cards_html_clean = "".join(line.strip() for line in cards_html.split("\n"))
+                                st.markdown(cards_html_clean, unsafe_allow_html=True)
 
                         # ── Seção: Triângulos Harmônicos ────────────────────────
                         if st.session_state.get(f"eq_tri_{idx}", False):
