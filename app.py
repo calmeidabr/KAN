@@ -82,7 +82,7 @@ class App:
                 "Processo seletivo": "⚖",
                 "Hierarquia / Deptos": "⊞",
                 "Equipes": "⧇",
-                "Empresas": "🏢",
+                "Empresas": "⧉",
                 "Empresa": "⚙",
                 "Usuários": "⚿",
                 "Painel de Controle": "⛭"
