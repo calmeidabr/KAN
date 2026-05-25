@@ -117,8 +117,7 @@ class TalentosMenu(BaseMenu):
                             "empresa": cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else None,
                             "linkedin_url": cad_link.strip() if cad_link else None,
                             "experiencias": cad_exp.strip() if cad_exp else None,
-                            "foto_base64": foto_b64,
-                            "created_at": datetime.datetime.now().isoformat()
+                            "foto_base64": foto_b64
                         }
                         if cad_foto:
                             if 'fotos' not in st.session_state: st.session_state['fotos'] = {}
