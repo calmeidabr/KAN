@@ -94,6 +94,15 @@ class EquipesMenu(BaseMenu):
                 
                 candidatos_elegiveis = sorted(candidatos_elegiveis)
 
+                # Exibe a lista de talentos encontrados pelos filtros
+                if candidatos_elegiveis:
+                    st.write(f"Membros encontrados pelos filtros ({len(candidatos_elegiveis)}):")
+                    st.caption(", ".join(candidatos_elegiveis))
+                else:
+                    st.info("Nenhum membro atende aos filtros atuais.")
+
+                st.write("")
+
                 # Botões de Importação Rápida
                 col_btn_lote1, col_btn_lote2 = st.columns(2)
                 with col_btn_lote1:
