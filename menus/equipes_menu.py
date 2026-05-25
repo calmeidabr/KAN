@@ -122,12 +122,13 @@ class EquipesMenu(BaseMenu):
                         st.session_state["membros_selecionados_temp"] = candidatos_elegiveis
                         st.session_state["eq_membros_multiselect"] = candidatos_elegiveis
 
-                # Exibe a lista de talentos encontrados pelos filtros
-                if candidatos_elegiveis:
-                    st.write(f"Membros encontrados pelos filtros ({len(candidatos_elegiveis)}):")
-                    st.caption(", ".join(candidatos_elegiveis))
-                else:
-                    st.info("Nenhum membro atende aos filtros atuais.")
+                # Exibe a lista de talentos encontrados pelos filtros (só quando há filtro ativo)
+                if filtro_ativo:
+                    if candidatos_elegiveis:
+                        st.write(f"Membros encontrados pelos filtros ({len(candidatos_elegiveis)}):")
+                        st.caption(", ".join(candidatos_elegiveis))
+                    else:
+                        st.info("Nenhum membro atende aos filtros atuais.")
 
                 st.write("")
 
