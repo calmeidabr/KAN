@@ -94,6 +94,17 @@ class EquipesMenu(BaseMenu):
                 
                 candidatos_elegiveis = sorted(candidatos_elegiveis)
 
+                # Controla estado dos filtros para pré-seleção automática
+                filtro_ativo = (emp_sel != "Todas" or dept_sel != "Todos" or cargo_sel != "Todos" or busca_profissao.strip() != "")
+                current_filters = f"{emp_sel}_{dept_sel}_{cargo_sel}_{busca_profissao.strip()}"
+                
+                # Se for a primeira execução ou se os filtros mudaram, atualizamos a seleção temporária
+                if "last_filters_state" not in st.session_state or st.session_state["last_filters_state"] != current_filters:
+                    st.session_state["last_filters_state"] = current_filters
+                    if filtro_ativo:
+                        st.session_state["membros_selecionados_temp"] = candidatos_elegiveis
+                        st.session_state["eq_membros_multiselect"] = candidatos_elegiveis
+
                 # Exibe a lista de talentos encontrados pelos filtros
                 if candidatos_elegiveis:
                     st.write(f"Membros encontrados pelos filtros ({len(candidatos_elegiveis)}):")
@@ -107,12 +118,16 @@ class EquipesMenu(BaseMenu):
                 col_btn_lote1, col_btn_lote2 = st.columns(2)
                 with col_btn_lote1:
                     if st.button("Adicionar Todos do Filtro em Lote", key="btn_eq_add_filter_all", use_container_width=True):
-                        st.session_state["membros_selecionados_temp"] = list(set(st.session_state["membros_selecionados_temp"] + candidatos_elegiveis))
+                        st.session_state["eq_membros_multiselect"] = list(set(st.session_state.get("eq_membros_multiselect", []) + candidatos_elegiveis))
+                        st.session_state["membros_selecionados_temp"] = st.session_state["eq_membros_multiselect"]
                         st.toast(f"{len(candidatos_elegiveis)} membros adicionados!")
+                        st.rerun()
                 with col_btn_lote2:
                     if st.button("Limpar Seleção Atual", key="btn_eq_clear_temp", use_container_width=True, type="secondary"):
+                        st.session_state["eq_membros_multiselect"] = []
                         st.session_state["membros_selecionados_temp"] = []
                         st.toast("Seleção limpa!")
+                        st.rerun()
 
                 st.write("---")
                 st.markdown("**Seleção Fina (Um a Um)**")
