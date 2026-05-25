@@ -267,7 +267,7 @@ class EquipesMenu(BaseMenu):
                             st.caption(f"Departamento: {eq.get('departamento') or 'Todos'}")
                         with col_card4:
                             is_open = st.session_state.get(f"eq_open_{idx}", False)
-                            btn_label = "Ocultar" if is_open else "Ver Membros"
+                            btn_label = "Ocultar" if is_open else "Editar"
                             if st.button(btn_label, key=f"btn_v_eq_{idx}", use_container_width=True):
                                 st.session_state[f"eq_open_{idx}"] = not is_open
                                 st.rerun()
@@ -302,19 +302,30 @@ class EquipesMenu(BaseMenu):
 
                             key_temp_membros = f"temp_membros_{idx}"
                             key_temp_lider = f"temp_lider_{idx}"
+                            key_temp_nome = f"temp_nome_{idx}"
                             
                             # Inicializa estados temporários se não existirem
                             if key_temp_membros not in st.session_state:
                                 st.session_state[key_temp_membros] = list(lista_membros)
                             if key_temp_lider not in st.session_state:
                                 st.session_state[key_temp_lider] = lider_atual
+                            if key_temp_nome not in st.session_state:
+                                st.session_state[key_temp_nome] = eq["nome"]
 
                             membros_atuais = st.session_state[key_temp_membros]
                             temp_lider = st.session_state[key_temp_lider]
 
-                            # Checkbox para alternar para modo de definição de liderança
-                            col_lid1, col_lid2 = st.columns([3, 4])
-                            with col_lid1:
+                            # Linha de cabeçalho: Renomear equipe e checkbox de liderança
+                            col_nome_eq1, col_nome_eq2 = st.columns([4, 3])
+                            with col_nome_eq1:
+                                novo_nome_eq = st.text_input(
+                                    "Nome da Equipe:", 
+                                    value=st.session_state[key_temp_nome], 
+                                    key=f"txt_nome_eq_{idx}"
+                                )
+                                st.session_state[key_temp_nome] = novo_nome_eq
+                            with col_nome_eq2:
+                                st.write("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                                 edit_lider_mode = st.checkbox("⚙️ Definir Líder da Equipe", key=f"chk_edit_lider_{idx}")
 
                             st.write("")
@@ -433,7 +444,8 @@ class EquipesMenu(BaseMenu):
                             with col_save1:
                                 has_changes = (
                                     st.session_state[key_temp_membros] != lista_membros or
-                                    st.session_state[key_temp_lider] != lider_atual
+                                    st.session_state[key_temp_lider] != lider_atual or
+                                    st.session_state[key_temp_nome].strip() != eq["nome"]
                                 )
                                 if has_changes:
                                     st.warning("⚠️ Há alterações não salvas nesta equipe!")
@@ -448,47 +460,55 @@ class EquipesMenu(BaseMenu):
 
                             with col_save2:
                                 if st.button("💾 Salvar Alterações da Equipe", key=f"btn_save_changes_{idx}", type="primary", use_container_width=True):
-                                    novo_lider = st.session_state[key_temp_lider]
-                                    novos_membros = []
-                                    for nome_m in st.session_state[key_temp_membros]:
-                                        novos_membros.append({
-                                            "nome": nome_m,
-                                            "lider": (nome_m == novo_lider)
-                                        })
-                                        
-                                    sucesso_save = False
-                                    payload = {
-                                        "membros": novos_membros,
-                                        "updated_at": datetime.datetime.now().isoformat()
-                                    }
-                                    if supabase_client:
-                                        try:
-                                            supabase_client.table("equipes").update(payload).eq("nome", eq["nome"]).execute()
-                                            sucesso_save = True
-                                        except Exception as ex:
-                                            st.error(f"Erro ao salvar no Supabase: {ex}")
+                                    nome_final = st.session_state[key_temp_nome].strip()
+                                    if not nome_final:
+                                        st.error("O nome da equipe não pode ser vazio.")
+                                    else:
+                                        novo_lider = st.session_state[key_temp_lider]
+                                        novos_membros = []
+                                        for nome_m in st.session_state[key_temp_membros]:
+                                            novos_membros.append({
+                                                "nome": nome_m,
+                                                "lider": (nome_m == novo_lider)
+                                            })
                                             
-                                    if not sucesso_save:
-                                        # Local fallback
-                                        if "equipes_local_data" in st.session_state:
-                                            for eq_local in st.session_state["equipes_local_data"]:
-                                                if eq_local["nome"] == eq["nome"]:
-                                                    eq_local["membros"] = json.dumps(novos_membros, ensure_ascii=False)
-                                                    eq_local["updated_at"] = datetime.datetime.now().isoformat()
-                                                    sucesso_save = True
-                                                    break
-                                    
-                                    if sucesso_save:
-                                        st.cache_data.clear()
-                                        st.success("Alterações salvas com sucesso!")
-                                        st.session_state.pop(key_temp_membros, None)
-                                        st.session_state.pop(key_temp_lider, None)
-                                        time.sleep(1)
-                                        st.rerun()
+                                        sucesso_save = False
+                                        payload = {
+                                            "nome": nome_final,
+                                            "membros": novos_membros,
+                                            "updated_at": datetime.datetime.now().isoformat()
+                                        }
+                                        if supabase_client:
+                                            try:
+                                                supabase_client.table("equipes").update(payload).eq("nome", eq["nome"]).execute()
+                                                sucesso_save = True
+                                            except Exception as ex:
+                                                st.error(f"Erro ao salvar no Supabase: {ex}")
+                                                
+                                        if not sucesso_save:
+                                            # Local fallback
+                                            if "equipes_local_data" in st.session_state:
+                                                for eq_local in st.session_state["equipes_local_data"]:
+                                                    if eq_local["nome"] == eq["nome"]:
+                                                        eq_local["nome"] = nome_final
+                                                        eq_local["membros"] = json.dumps(novos_membros, ensure_ascii=False)
+                                                        eq_local["updated_at"] = datetime.datetime.now().isoformat()
+                                                        sucesso_save = True
+                                                        break
+                                        
+                                        if sucesso_save:
+                                            st.cache_data.clear()
+                                            st.success("Alterações salvas com sucesso!")
+                                            st.session_state.pop(key_temp_membros, None)
+                                            st.session_state.pop(key_temp_lider, None)
+                                            st.session_state.pop(key_temp_nome, None)
+                                            time.sleep(1)
+                                            st.rerun()
 
                                 if st.button("Resetar Alterações", key=f"btn_reset_changes_{idx}", use_container_width=True):
                                     st.session_state.pop(key_temp_membros, None)
                                     st.session_state.pop(key_temp_lider, None)
+                                    st.session_state.pop(key_temp_nome, None)
                                     st.rerun()
 
                         # ── Seção: Triângulos Harmônicos ────────────────────────
