@@ -229,29 +229,23 @@ class HierarquiaMenu(BaseMenu):
                                     t_cargo = t_info.get("cargo", "Sem Cargo")
                                     foto_b64 = t_info.get("foto_base64")
                                     
-                                    cols_tree = st.columns([1, 15])
+                                    cols_tree = st.columns([1, 6, 9])
                                     with cols_tree[0]:
                                         st.markdown(f"<div style='padding-left: {level * 25 + 20}px;'></div>", unsafe_allow_html=True)
                                     with cols_tree[1]:
-                                        avatar_html = f'<img src="data:image/png;base64,{foto_b64}" />' if foto_b64 else '<div class="hierarquia-card-avatar">👤</div>'
-                                        card_start = f"""
-                                        <div class="hierarquia-card">
-                                            {avatar_html}
-                                            <div style="flex-grow: 1; min-width: 0;">
-                                        """
-                                        st.markdown("".join(line.strip() for line in card_start.split("\n")), unsafe_allow_html=True)
-                                        
-                                        st.markdown('<div class="talent-link-container" style="display: inline-block;">', unsafe_allow_html=True)
-                                        if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
-                                            modal_detalhes_talento(t_nome, t_info, dept_map_list)
-                                        st.markdown('</div>', unsafe_allow_html=True)
-                                        
-                                        card_end = f"""
-                                                <span style='display: block; font-size: 0.78em; opacity: 0.7; color: #F18617; font-weight: bold;'>{t_cargo}</span>
-                                            </div>
-                                        </div>
-                                        """
-                                        st.markdown("".join(line.strip() for line in card_end.split("\n")), unsafe_allow_html=True)
+                                        with st.container(border=True):
+                                            card_cols = st.columns([1, 3.5])
+                                            with card_cols[0]:
+                                                if foto_b64:
+                                                    st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; display: block;" />', unsafe_allow_html=True)
+                                                else:
+                                                    st.markdown('<div class="hierarquia-card-avatar">👤</div>', unsafe_allow_html=True)
+                                            with card_cols[1]:
+                                                st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
+                                                if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
+                                                    modal_detalhes_talento(t_nome, t_info, dept_map_list)
+                                                st.markdown('</div>', unsafe_allow_html=True)
+                                                st.markdown(f"<span style='color: #F18617; font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
                             
                             # Botão de popover para adicionar/alterar membro
                             st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 8px;'></div>", unsafe_allow_html=True)
