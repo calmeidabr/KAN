@@ -85,9 +85,9 @@ class EquipesMenu(BaseMenu):
                     # Filtro de Cargo (Selectbox)
                     if cargo_sel != "Todos" and info.get("cargo") != cargo_sel:
                         continue
-                    # Filtro de Profissão (Busca Textual)
+                    # Filtro de Profissão (Busca Textual) — apenas no campo profissao do cadastro
                     if busca_profissao.strip():
-                        c_profissao = str(info.get("profissao") or info.get("cargo") or "").lower().strip()
+                        c_profissao = str(info.get("profissao") or "").lower().strip()
                         if busca_profissao.lower().strip() not in c_profissao:
                             continue
                     candidatos_elegiveis.append(nome)
@@ -115,15 +115,15 @@ class EquipesMenu(BaseMenu):
                 st.write("")
 
                 # Botões de Importação Rápida
-                col_btn_lote1, col_btn_lote2 = st.columns(2)
+                col_btn_lote1, col_btn_lote2, col_btn_lote_esp = st.columns([2, 2, 4])
                 with col_btn_lote1:
-                    if st.button("Adicionar Todos do Filtro em Lote", key="btn_eq_add_filter_all", use_container_width=True):
+                    if st.button("➕ Adicionar Filtro", key="btn_eq_add_filter_all", use_container_width=True):
                         st.session_state["eq_membros_multiselect"] = list(set(st.session_state.get("eq_membros_multiselect", []) + candidatos_elegiveis))
                         st.session_state["membros_selecionados_temp"] = st.session_state["eq_membros_multiselect"]
                         st.toast(f"{len(candidatos_elegiveis)} membros adicionados!")
                         st.rerun()
                 with col_btn_lote2:
-                    if st.button("Limpar Seleção Atual", key="btn_eq_clear_temp", use_container_width=True, type="secondary"):
+                    if st.button("🗑 Limpar Seleção", key="btn_eq_clear_temp", use_container_width=True, type="secondary"):
                         st.session_state["eq_membros_multiselect"] = []
                         st.session_state["membros_selecionados_temp"] = []
                         st.toast("Seleção limpa!")
@@ -147,9 +147,9 @@ class EquipesMenu(BaseMenu):
                 st.write(f"Total de integrantes selecionados: **{len(membros_finais)}**")
                 
                 st.write("---")
-                col_s1, col_s2, col_s3 = st.columns([2, 2, 4])
+                col_s1, col_s2, col_s3 = st.columns([1, 1, 5])
                 with col_s1:
-                    if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_eq_final"):
+                    if st.button("💾 Salvar", type="primary", use_container_width=True, key="btn_save_eq_final"):
                         if not nome_equipe or not nome_equipe.strip():
                             st.error("O campo 'Nome da Equipe' é obrigatório.")
                         elif not membros_finais:
@@ -189,7 +189,7 @@ class EquipesMenu(BaseMenu):
                                 time.sleep(1)
                                 st.rerun()
                 with col_s2:
-                    if st.button("Cancelar", use_container_width=True, key="btn_canc_eq_final"):
+                    if st.button("✖ Cancelar", use_container_width=True, key="btn_canc_eq_final"):
                         st.session_state["add_equipe_mode"] = False
                         st.session_state["membros_selecionados_temp"] = []
                         st.rerun()
