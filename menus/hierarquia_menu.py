@@ -38,7 +38,7 @@ class HierarquiaMenu(BaseMenu):
     def render(self):
         st.title("Hierarquia / Departamentos")
         
-        # CSS para formatar os botões de talento como hyperlinks
+        # CSS para formatar os botões de talento como hyperlinks e adicionar estilo dos cards
         st.markdown("""
         <style>
         div.talent-link-container div.row-widget.stButton > button {
@@ -59,6 +59,38 @@ class HierarquiaMenu(BaseMenu):
         }
         div.talent-link-container {
             display: inline-block !important;
+        }
+        .hierarquia-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(241,134,23,0.07);
+            border: 1px solid rgba(241,134,23,0.25);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            max-width: 320px;
+            margin-top: 4px;
+        }
+        .hierarquia-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #F18617;
+            flex-shrink: 0;
+        }
+        .hierarquia-card-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(241,134,23,0.2);
+            border: 2px solid #F18617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -201,16 +233,25 @@ class HierarquiaMenu(BaseMenu):
                                     with cols_tree[0]:
                                         st.markdown(f"<div style='padding-left: {level * 25 + 20}px;'></div>", unsafe_allow_html=True)
                                     with cols_tree[1]:
-                                        if foto_b64:
-                                            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 6px; border: 1px solid #F18617; display: inline-block;">', unsafe_allow_html=True)
-                                        else:
-                                            st.markdown('<span style="font-size: 1.1em; vertical-align: middle; margin-right: 6px;">👤</span>', unsafe_allow_html=True)
+                                        avatar_html = f'<img src="data:image/png;base64,{foto_b64}" />' if foto_b64 else '<div class="hierarquia-card-avatar">👤</div>'
+                                        card_start = f"""
+                                        <div class="hierarquia-card">
+                                            {avatar_html}
+                                            <div style="flex-grow: 1; min-width: 0;">
+                                        """
+                                        st.markdown("".join(line.strip() for line in card_start.split("\n")), unsafe_allow_html=True)
                                         
-                                        st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
+                                        st.markdown('<div class="talent-link-container" style="display: inline-block;">', unsafe_allow_html=True)
                                         if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
                                             modal_detalhes_talento(t_nome, t_info, dept_map_list)
                                         st.markdown('</div>', unsafe_allow_html=True)
-                                        st.markdown(f"<span style='vertical-align: middle;'> &mdash; <span style='color: #F18617; font-weight: bold;'>{t_cargo}</span></span>", unsafe_allow_html=True)
+                                        
+                                        card_end = f"""
+                                                <span style='display: block; font-size: 0.78em; opacity: 0.7; color: #F18617; font-weight: bold;'>{t_cargo}</span>
+                                            </div>
+                                        </div>
+                                        """
+                                        st.markdown("".join(line.strip() for line in card_end.split("\n")), unsafe_allow_html=True)
                             
                             # Botão de popover para adicionar/alterar membro
                             st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 8px;'></div>", unsafe_allow_html=True)

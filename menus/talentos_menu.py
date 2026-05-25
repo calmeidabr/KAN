@@ -177,13 +177,112 @@ class TalentosMenu(BaseMenu):
                     "Data de Nascimento": info.get("data_nascimento", ""),
                     "Profissão": profissao,
                     "Grupo": grupo,
-                    "LinkedIn": info.get("linkedin_url", "") or ""
+                    "LinkedIn": info.get("linkedin_url", "") or "",
+                    "foto_base64": info.get("foto_base64", "")
                 })
                 
             if dados_filtrados:
-                df_filtrados = pd.DataFrame(dados_filtrados)
-                st.dataframe(df_filtrados, use_container_width=True, hide_index=True)
-                st.caption(f"Total de talentos encontrados: {len(df_filtrados)}")
+                # Monta a grade de cards no estilo de Equipes
+                cards_html = """
+                <style>
+                .talent-card-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 12px;
+                    margin-top: 8px;
+                }
+                .talent-member-card {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    background: rgba(241,134,23,0.07);
+                    border: 1px solid rgba(241,134,23,0.25);
+                    border-radius: 10px;
+                    padding: 10px 14px;
+                }
+                .talent-member-card img {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 2px solid #F18617;
+                    flex-shrink: 0;
+                }
+                .talent-member-avatar {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 50%;
+                    background: rgba(241,134,23,0.2);
+                    border: 2px solid #F18617;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.5em;
+                    flex-shrink: 0;
+                }
+                .talent-member-info {
+                    min-width: 0;
+                    flex-grow: 1;
+                }
+                .talent-member-info strong {
+                    display: block;
+                    font-size: 0.92em;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+                .talent-member-info span {
+                    font-size: 0.78em;
+                    opacity: 0.7;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    display: block;
+                }
+                .talent-member-info a {
+                    font-size: 0.75em;
+                    color: #F18617;
+                    text-decoration: none;
+                    font-weight: bold;
+                }
+                .talent-member-info a:hover {
+                    text-decoration: underline;
+                }
+                </style>
+                <div class="talent-card-grid">
+                """
+                
+                for t in dados_filtrados:
+                    # Recupera foto base64
+                    foto_b64 = t["foto_base64"]
+                    avatar_html = f'<img src="data:image/png;base64,{foto_b64}" />' if foto_b64 else '<div class="talent-member-avatar">👤</div>'
+                    
+                    lk_html = ""
+                    if t["LinkedIn"]:
+                        lk_html = f'<a href="{t["LinkedIn"]}" target="_blank">🔗 LinkedIn</a>'
+                    
+                    role_lbl = t["Profissão"] or "Sem Profissão"
+                    grupo_lbl = f"🏷️ {t['Grupo']}" if t['Grupo'] else ""
+                    
+                    cards_html += f"""
+                    <div class="talent-member-card">
+                        {avatar_html}
+                        <div class="talent-member-info">
+                            <strong>{t['Nome']}</strong>
+                            <span title="{role_lbl}">💼 {role_lbl}</span>
+                            {f'<span>{grupo_lbl}</span>' if grupo_lbl else ''}
+                            {lk_html}
+                        </div>
+                    </div>
+                    """
+                
+                cards_html += "</div>"
+                # Limpa quebras de linha e recuos para não quebrar no Markdown do Streamlit
+                cards_html_clean = "".join(line.strip() for line in cards_html.split("\n"))
+                st.markdown(cards_html_clean, unsafe_allow_html=True)
+                
+                st.write("")
+                st.caption(f"Total de talentos encontrados: {len(dados_filtrados)}")
             else:
                 st.info("Nenhum talento correspondente encontrado para a busca.")
         else:
