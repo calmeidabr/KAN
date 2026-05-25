@@ -17,13 +17,19 @@ class EquipesMenu(BaseMenu):
         st.write("---")
 
         supabase_client = get_supabase_admin()
-        
+
         # Carrega dados necessários
         empresas_list = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in empresas_list if e.get("nome_empresa")]
         clientes = carregar_todos_clientes()
         cargos = carregar_cargos()
         equipes = carregar_equipes()
+
+        # Diagnóstico: exibe erro de carregamento se houver
+        if st.session_state.get("equipes_load_error"):
+            st.error(f"⚠️ Erro ao carregar equipes do Supabase: {st.session_state['equipes_load_error']}")
+            st.info("💡 Execute o script `equipes_schema.sql` no SQL Editor do Supabase para criar a tabela.")
+            st.session_state.pop("equipes_load_error", None)
 
         # Inicia variáveis de estado
         if "add_equipe_mode" not in st.session_state:

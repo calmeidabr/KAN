@@ -656,16 +656,17 @@ def carregar_cargos():
             pass
     return CARGOS_LIST_DEFAULT
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=60)
 def carregar_equipes():
-    client = get_supabase()
+    client = get_supabase_admin()
     if client:
         try:
             res = client.table("equipes").select("*").order("nome").execute()
-            if res.data:
+            # res.data pode ser [] lista vazia — isso é válido, não é erro
+            if res.data is not None:
                 return res.data
-        except Exception:
-            pass
+        except Exception as e:
+            st.session_state["equipes_load_error"] = str(e)
     if "equipes_local_data" not in st.session_state:
         st.session_state["equipes_local_data"] = []
     return st.session_state["equipes_local_data"]
