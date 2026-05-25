@@ -20,6 +20,8 @@ class TalentosMenu(BaseMenu):
         if not nomes_empresas:
             nomes_empresas = ["Mundo KAN", "Empresa Cliente A"]
 
+        clientes = carregar_todos_clientes()
+
         with st.container(border=True):
             st.subheader("Novo Cadastro")
             cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key="cad_nome")
@@ -68,7 +70,22 @@ class TalentosMenu(BaseMenu):
             with col_f4:
                 cad_profissao = st.text_input("Profissão:", key="cad_profissao")
             with col_f5:
-                cad_emp = st.selectbox("Grupo*:", options=nomes_empresas, key="cad_emp")
+                import pandas as pd
+                grupos_existentes = set()
+                for c_nome, info in clientes.items():
+                    g = info.get("grupo")
+                    if g and not pd.isna(g) and str(g).strip():
+                        grupos_existentes.add(str(g).strip())
+                grupos_opcoes = sorted(list(grupos_existentes))
+                if not grupos_opcoes:
+                    grupos_opcoes = ["Mundo KAN"]
+                
+                opcoes_grupo = grupos_opcoes + ["Outro (Digitar Novo)..."]
+                grupo_sel = st.selectbox("Grupo*:", options=opcoes_grupo, key="cad_grupo_select")
+                if grupo_sel == "Outro (Digitar Novo)...":
+                    cad_emp = st.text_input("Digite o nome do Grupo*:", key="cad_grupo_manual")
+                else:
+                    cad_emp = grupo_sel
             with col_f6:
                 opcoes_empresa = ["Nenhuma / Não associada"] + nomes_empresas
                 cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key="cad_empresa_sel")
@@ -85,6 +102,8 @@ class TalentosMenu(BaseMenu):
                         st.error("O campo 'Nome Completo' é obrigatório.")
                     elif not cad_data or not cad_data.strip() or len(cad_data.split('/')) != 3:
                         st.error("Formato de data inválido. Use dd/mm/yyyy (ex: 25/12/1980).")
+                    elif not cad_emp or not cad_emp.strip():
+                        st.error("O campo 'Grupo' é obrigatório.")
                     else:
                         foto_b64 = ""
                         if cad_foto:
@@ -152,8 +171,6 @@ class TalentosMenu(BaseMenu):
 
         st.write("---")
         st.subheader("Consultar Talentos Cadastrados")
-        
-        clientes = carregar_todos_clientes()
         
         if clientes:
             busca = st.text_input("Buscar por Nome, Profissão ou Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
