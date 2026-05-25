@@ -691,9 +691,9 @@ class EquipesMenu(BaseMenu):
                                                     # Desenha o preenchimento do triângulo
                                                     draw_m.polygon(poly_points, fill=cor)
                                                     
-                                                    # Se for o líder, adiciona uma borda (outline) branca e espessa
+                                                    # Se for o líder, adiciona uma borda (outline) branca e mais fina
                                                     if m_nome == lider_atual:
-                                                        draw_m.line(poly_points + [poly_points[0]], fill=(255, 255, 255, 255), width=6)
+                                                        draw_m.line(poly_points + [poly_points[0]], fill=(255, 255, 255, 255), width=3)
                                                         
                                                     img_final = Image.alpha_composite(img_final, layer_m)
 
