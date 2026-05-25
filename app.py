@@ -14,6 +14,7 @@ from menus.diagnosticos_menu import DiagnosticosMenu
 from menus.analytics_menu import AnalyticsMenu
 from menus.processo_seletivo_analise_menu import ProcessoSeletivoAnaliseMenu
 from menus.placeholder_menu import PlaceholderMenu
+from menus.tenant_crud_menu import TenantCrudMenu
 
 def set_nav_route(route):
     st.session_state["sidebar_menu"] = route
@@ -36,6 +37,7 @@ class App:
             "Hierarquia / Deptos": lambda: HierarquiaMenu(self).render(),
             "Equipes": lambda: EquipesMenu(self).render(),
             "Empresas": lambda: EmpresasMenu(self).render(),
+            "SaaS Multi-Tenant": lambda: TenantCrudMenu(self).render(),
             "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
             "Usuários": lambda: PlaceholderMenu(self).render(title="Gestão de Usuários do Sistema", message="Módulo de gestão de permissões de usuários em desenvolvimento."),
             "Analytics": lambda: AnalyticsMenu(self).render(),
@@ -83,6 +85,7 @@ class App:
                 "Hierarquia / Deptos": "⊞",
                 "Equipes": "⧇",
                 "Empresas": "⧉",
+                "SaaS Multi-Tenant": "❖",
                 "Empresa": "⚙",
                 "Usuários": "⚿",
                 "Painel de Controle": "⛭"
@@ -95,7 +98,7 @@ class App:
                 "ADMIN": "⛭"
             }
             menu_groups = {
-                "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes", "Empresas"],
+                "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes", "Empresas", "SaaS Multi-Tenant"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
