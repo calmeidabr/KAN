@@ -106,23 +106,21 @@ class AnalyticsMenu(BaseMenu):
             col_f1, col_f2, col_f3, col_f4 = st.columns(4)
             
             # Opções de Grupo
-            list_grupos = sorted(list(df["grupo"].unique()))
+            list_grupos = sorted([str(g) for g in df["grupo"].unique() if g is not None and str(g) != "nan" and str(g).strip()])
             if "Sem Grupo" in list_grupos:
                 list_grupos.remove("Sem Grupo")
                 list_grupos.append("Sem Grupo")
             grupo_selecionado = col_f1.selectbox("Filtrar por Grupo:", ["Todos"] + list_grupos)
             
             # Opções de Profissão
-            list_profissoes = sorted(list(df["profissao"].unique()))
+            list_profissoes = sorted([str(p) for p in df["profissao"].unique() if p is not None and str(p) != "nan" and str(p).strip()])
             if "Sem Profissão" in list_profissoes:
                 list_profissoes.remove("Sem Profissão")
                 list_profissoes.append("Sem Profissão")
             profissao_selecionada = col_f2.multiselect("Filtrar por Profissão:", options=list_profissoes, default=[])
             
             # Opções de Cargo
-            list_cargos = sorted(list(df["cargo"].unique()))
-            # Remove empty strings if any
-            list_cargos = [c for c in list_cargos if c]
+            list_cargos = sorted([str(c) for c in df["cargo"].unique() if c is not None and str(c) != "nan" and str(c).strip()])
             cargo_selecionado = col_f3.multiselect("Filtrar por Cargo:", options=list_cargos, default=[])
 
             # Opções de Geração
