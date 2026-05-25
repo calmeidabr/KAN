@@ -64,7 +64,7 @@ class EquipesMenu(BaseMenu):
 
                 # Busca textual por cargo
                 busca_cargo = st.text_input(
-                    "Buscar por Cargo/Função:",
+                    "Buscar por Cargo/Profissão:",
                     placeholder="Digite o cargo para filtrar (ex: Analista, Trainee)...",
                     key="add_eq_busca_cargo"
                 )
