@@ -52,7 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_cadastros_tenant ON public.cadastros(tenant_id);
 -- ==========================================
 -- Retorna os IDs dos tenants aos quais o usuário autenticado pertence.
 -- SECURITY DEFINER ignora RLS da própria tabela tenant_members para evitar recursão.
-CREATE OR REPLACE FUNCTION auth.get_my_tenants()
+CREATE OR REPLACE FUNCTION public.get_my_tenants()
 RETURNS TABLE (tenant_id UUID) 
 SECURITY DEFINER
 AS $$
@@ -77,7 +77,7 @@ ALTER TABLE public.cadastros ENABLE ROW LEVEL SECURITY;
 -- ==========================================
 CREATE POLICY "Usuários veem apenas os seus tenants" ON public.tenants
     FOR SELECT TO authenticated
-    USING (id IN (SELECT auth.get_my_tenants()));
+    USING (id IN (SELECT public.get_my_tenants()));
 
 CREATE POLICY "Dono do tenant pode atualizar detalhes" ON public.tenants
     FOR UPDATE TO authenticated
@@ -102,7 +102,7 @@ CREATE POLICY "Usuário pode editar seu próprio perfil" ON public.profiles
 -- ==========================================
 CREATE POLICY "Membros veem quem está no mesmo tenant" ON public.tenant_members
     FOR SELECT TO authenticated
-    USING (tenant_id IN (SELECT auth.get_my_tenants()));
+    USING (tenant_id IN (SELECT public.get_my_tenants()));
 
 CREATE POLICY "Owners e Admins gerenciam membros" ON public.tenant_members
     FOR ALL TO authenticated
@@ -116,19 +116,19 @@ CREATE POLICY "Owners e Admins gerenciam membros" ON public.tenant_members
 -- ==========================================
 CREATE POLICY "Membros leem registros do próprio tenant" ON public.cadastros
     FOR SELECT TO authenticated
-    USING (tenant_id IN (SELECT auth.get_my_tenants()));
+    USING (tenant_id IN (SELECT public.get_my_tenants()));
 
 CREATE POLICY "Membros criam registros no próprio tenant" ON public.cadastros
     FOR INSERT TO authenticated
-    WITH CHECK (tenant_id IN (SELECT auth.get_my_tenants()));
+    WITH CHECK (tenant_id IN (SELECT public.get_my_tenants()));
 
 CREATE POLICY "Membros atualizam registros do próprio tenant" ON public.cadastros
     FOR UPDATE TO authenticated
-    USING (tenant_id IN (SELECT auth.get_my_tenants()));
+    USING (tenant_id IN (SELECT public.get_my_tenants()));
 
 CREATE POLICY "Membros deletam registros do próprio tenant" ON public.cadastros
     FOR DELETE TO authenticated
-    USING (tenant_id IN (SELECT auth.get_my_tenants()));
+    USING (tenant_id IN (SELECT public.get_my_tenants()));
 
 -- ==========================================
 -- FLUXO DE ONBOARDING AUTOMÁTICO (TRIGGER)
