@@ -566,6 +566,10 @@ class EquipesMenu(BaseMenu):
                                                     primeiro_nome = str(m_nome).split()[0]
                                                     draw_notes.text((cx - 20, cy - 12), primeiro_nome, fill=(30, 30, 30), font=font_label)
 
+                                                    # Adiciona a esfera preta no vértice do KAN (poly_points[0])
+                                                    k_vertex = poly_points[0]
+                                                    draw_notes.ellipse((k_vertex[0]-4, k_vertex[1]-4, k_vertex[0]+4, k_vertex[1]+4), fill=(0, 0, 0))
+
                                             img_final = Image.alpha_composite(img_final, layer_notes)
                                             st.image(img_final.convert("RGB"), caption=f"Comparativo de Triângulos Harmônicos — {eq['nome']}", use_container_width=True)
 
