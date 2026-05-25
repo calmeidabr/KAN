@@ -177,10 +177,10 @@ class EquipesMenu(BaseMenu):
                                 "nome": nome_equipe.strip(),
                                 "empresa": emp_sel if emp_sel != "Todas" else None,
                                 "departamento": dept_sel if dept_sel != "Todos" else None,
-                                "membros": json.dumps(membros_finais, ensure_ascii=False),
+                                "membros": membros_finais,  # lista Python → JSONB direto
                                 "updated_at": datetime.datetime.now().isoformat()
                             }
-                            
+
                             sucesso_salvar = False
                             if supabase_client:
                                 try:
@@ -188,15 +188,17 @@ class EquipesMenu(BaseMenu):
                                     sucesso_salvar = True
                                 except Exception as ex:
                                     st.error(f"Erro ao salvar no Supabase: {ex}")
-                            
+                                    st.info("💡 A tabela 'equipes' pode não existir no Supabase. Execute o script equipes_schema.sql no SQL Editor do Supabase.")
+
                             if not sucesso_salvar:
-                                # Fallback local
+                                # Fallback local — guarda como JSON string para compatibilidade
                                 if "equipes_local_data" not in st.session_state:
                                     st.session_state["equipes_local_data"] = []
-                                payload["created_at"] = datetime.datetime.now().isoformat()
-                                # Se já existir equipe com o mesmo nome localmente, substitui
-                                st.session_state["equipes_local_data"] = [eq for eq in st.session_state["equipes_local_data"] if eq["nome"] != payload["nome"]]
-                                st.session_state["equipes_local_data"].append(payload)
+                                payload_local = dict(payload)
+                                payload_local["membros"] = json.dumps(membros_finais, ensure_ascii=False)
+                                payload_local["created_at"] = datetime.datetime.now().isoformat()
+                                st.session_state["equipes_local_data"] = [eq for eq in st.session_state["equipes_local_data"] if eq["nome"] != payload_local["nome"]]
+                                st.session_state["equipes_local_data"].append(payload_local)
                                 sucesso_salvar = True
                             
                             if sucesso_salvar:
