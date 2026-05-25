@@ -513,9 +513,14 @@ def _fetch_supabase_clientes():
                 grupo_val = row.get('grupo', '') if is_migrated else row.get('empresa', '')
                 empresa_val = row.get('empresa', '') if is_migrated else ''
                 
+                is_migrated_profissao = 'profissao' in row
+                profissao_val = row.get('profissao', '') if is_migrated_profissao else row.get('cargo', '')
+                cargo_val = row.get('cargo', '') if is_migrated_profissao else ''
+                
                 cl_salvos[row['nome']] = {
                     'data_nascimento': row['data_nascimento'],
-                    'cargo': row.get('cargo', ''),
+                    'profissao': profissao_val,
+                    'cargo': cargo_val,
                     'grupo': grupo_val,
                     'empresa': empresa_val,
                     'departamento': row.get('departamento', ''),

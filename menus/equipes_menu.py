@@ -62,11 +62,11 @@ class EquipesMenu(BaseMenu):
                     key="add_eq_cargo_sel"
                 )
 
-                # Busca textual por cargo
-                busca_cargo = st.text_input(
-                    "Buscar por Cargo/Profissão:",
-                    placeholder="Digite o cargo para filtrar (ex: Analista, Trainee)...",
-                    key="add_eq_busca_cargo"
+                # Busca textual por profissão
+                busca_profissao = st.text_input(
+                    "Buscar por Profissão:",
+                    placeholder="Digite a profissão para filtrar (ex: Piloto, Cantor)...",
+                    key="add_eq_busca_profissao"
                 )
 
                 # Filtragem de candidatos elegíveis com base nos filtros selecionados
@@ -85,10 +85,10 @@ class EquipesMenu(BaseMenu):
                     # Filtro de Cargo (Selectbox)
                     if cargo_sel != "Todos" and info.get("cargo") != cargo_sel:
                         continue
-                    # Filtro de Cargo (Busca Textual)
-                    if busca_cargo.strip():
-                        c_cargo = str(info.get("cargo") or "").lower().strip()
-                        if busca_cargo.lower().strip() not in c_cargo:
+                    # Filtro de Profissão (Busca Textual)
+                    if busca_profissao.strip():
+                        c_profissao = str(info.get("profissao") or info.get("cargo") or "").lower().strip()
+                        if busca_profissao.lower().strip() not in c_profissao:
                             continue
                     candidatos_elegiveis.append(nome)
                 
@@ -242,7 +242,17 @@ class EquipesMenu(BaseMenu):
                                 for m_nome in sorted(lista_membros):
                                     m_info = clientes.get(m_nome)
                                     if m_info:
-                                        m_cargo = m_info.get("cargo", "Sem Cargo")
+                                        m_profissao = m_info.get("profissao", "")
+                                        if "profissao" not in m_info:
+                                            m_profissao = m_info.get("cargo", "")
+                                            m_cargo_oficial = ""
+                                        else:
+                                            m_cargo_oficial = m_info.get("cargo", "")
+                                        
+                                        m_role = m_profissao or "Sem Profissão"
+                                        if m_cargo_oficial:
+                                            m_role = f"{m_role} ({m_cargo_oficial})"
+                                            
                                         m_foto = m_info.get("foto_base64")
                                         
                                         # Renderiza membro com miniatura de foto
@@ -253,6 +263,6 @@ class EquipesMenu(BaseMenu):
                                             else:
                                                 st.markdown('<span style="font-size: 1.1em; vertical-align: middle;">👤</span>', unsafe_allow_html=True)
                                         with col_m_desc:
-                                            st.markdown(f"<span style='vertical-align: middle;'>**{m_nome}** — {m_cargo}</span>", unsafe_allow_html=True)
+                                            st.markdown(f"<span style='vertical-align: middle;'>**{m_nome}** — {m_role}</span>", unsafe_allow_html=True)
                                     else:
                                         st.write(f"• **{m_nome}** (Cadastro não encontrado na base)")

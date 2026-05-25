@@ -66,7 +66,7 @@ class TalentosMenu(BaseMenu):
 
             col_f4, col_f5, col_f6, col_f7 = st.columns([1, 1, 1, 1])
             with col_f4:
-                cad_cargo = st.text_input("Cargo/Profissão:", key="cad_cargo")
+                cad_profissao = st.text_input("Profissão:", key="cad_profissao")
             with col_f5:
                 cad_emp = st.selectbox("Grupo*:", options=nomes_empresas, key="cad_emp")
             with col_f6:
@@ -93,7 +93,7 @@ class TalentosMenu(BaseMenu):
                         payload = {
                             "nome": cad_nome.strip(),
                             "data_nascimento": cad_data.strip(),
-                            "cargo": cad_cargo.strip() if cad_cargo else None,
+                            "profissao": cad_profissao.strip() if cad_profissao else None,
                             "grupo": cad_emp,
                             "empresa": cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else None,
                             "linkedin_url": cad_link.strip() if cad_link else None,
@@ -122,11 +122,11 @@ class TalentosMenu(BaseMenu):
                             if "clientes_local_data" not in st.session_state:
                                 st.session_state["clientes_local_data"] = {}
                             
-                            # Simulando o payload completo que a tabela Supabase forneceria 
-                            # (em carregar_todos_clientes)
+                            existing_client = st.session_state.get("clientes_local_data", {}).get(cad_nome.strip(), {})
                             st.session_state["clientes_local_data"][cad_nome.strip()] = {
                                 'data_nascimento': cad_data.strip(),
-                                'cargo': cad_cargo.strip() if cad_cargo else '',
+                                'profissao': cad_profissao.strip() if cad_profissao else '',
+                                'cargo': existing_client.get('cargo', ''),
                                 'grupo': cad_emp,
                                 'empresa': cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else '',
                                 'linkedin_url': cad_link.strip() if cad_link else '',
@@ -156,26 +156,26 @@ class TalentosMenu(BaseMenu):
         clientes = carregar_todos_clientes()
         
         if clientes:
-            busca = st.text_input("Buscar por Nome, Cargo/Função ou Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
+            busca = st.text_input("Buscar por Nome, Profissão ou Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
             
             dados_filtrados = []
             for nome, info in clientes.items():
-                cargo = info.get("cargo") or ""
+                profissao = info.get("profissao") or info.get("cargo") or ""
                 grupo = info.get("grupo") or info.get("empresa") or ""
                 
                 # Normaliza nans e None para string vazia
-                if pd.isna(cargo) or str(cargo).lower() == 'nan': cargo = ""
+                if pd.isna(profissao) or str(profissao).lower() == 'nan': profissao = ""
                 if pd.isna(grupo) or str(grupo).lower() == 'nan': grupo = ""
                 
                 if busca.strip():
                     termo = busca.lower().strip()
-                    if termo not in nome.lower() and termo not in str(cargo).lower() and termo not in str(grupo).lower():
+                    if termo not in nome.lower() and termo not in str(profissao).lower() and termo not in str(grupo).lower():
                         continue
                 
                 dados_filtrados.append({
                     "Nome": nome,
                     "Data de Nascimento": info.get("data_nascimento", ""),
-                    "Cargo/Função": cargo,
+                    "Profissão": profissao,
                     "Grupo": grupo,
                     "LinkedIn": info.get("linkedin_url", "") or ""
                 })

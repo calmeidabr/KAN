@@ -36,7 +36,7 @@ class AnalyticsMenu(BaseMenu):
             res_val = client.table("mapas_salvos_valores").select("*").execute()
             rows_val = res_val.data
             
-            res_ms = client.table("mapas_salvos").select("nome, grupo, cargo, ai_diagnosis").execute()
+            res_ms = client.table("mapas_salvos").select("*").execute()
             rows_ms = res_ms.data
             
             # Buscar dicionário de soft skills
@@ -55,9 +55,14 @@ class AnalyticsMenu(BaseMenu):
 
         ms_dict = {}
         for r in rows_ms:
+            is_migrated_profissao = 'profissao' in r
+            profissao_val = r.get('profissao') if is_migrated_profissao else r.get('cargo')
+            cargo_val = r.get('cargo') if is_migrated_profissao else ''
+            
             ms_dict[r.get("nome")] = {
                 "grupo": r.get("grupo", r.get("empresa", "")) if (r.get("grupo") or r.get("empresa")) and str(r.get("grupo") or r.get("empresa")).strip() and str(r.get("grupo") or r.get("empresa")) != "nan" else "Sem Grupo",
-                "cargo": r.get("cargo") if r.get("cargo") and str(r.get("cargo")).strip() and str(r.get("cargo")) != "nan" else "Sem Cargo",
+                "profissao": profissao_val if profissao_val and str(profissao_val).strip() and str(profissao_val) != "nan" else "Sem Profissão",
+                "cargo": cargo_val if cargo_val and str(cargo_val).strip() and str(cargo_val) != "nan" else "",
                 "ai_diagnosis": r.get("ai_diagnosis", "")
             }
 
@@ -78,11 +83,12 @@ class AnalyticsMenu(BaseMenu):
         data_list = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
-            ms_info = ms_dict.get(nome, {"grupo": "Sem Grupo", "cargo": "Sem Cargo", "ai_diagnosis": ""})
+            ms_info = ms_dict.get(nome, {"grupo": "Sem Grupo", "profissao": "Sem Profissão", "cargo": "", "ai_diagnosis": ""})
             
             data_list.append({
                 "nome": nome,
                 "grupo": ms_info["grupo"],
+                "profissao": ms_info["profissao"],
                 "cargo": ms_info["cargo"],
                 "perfil": row.get("perfil") if row.get("perfil") and str(row.get("perfil")).strip() else "Não Calculado",
                 "categoria": row.get("categoria") if row.get("categoria") and str(row.get("categoria")).strip() else "Não Calculada",
@@ -97,7 +103,7 @@ class AnalyticsMenu(BaseMenu):
         # Filtros no topo (Sidebar e topo combinados para visual limpo)
         with st.container(border=True):
             st.markdown("<h5 style='margin-top:0;'>Filtros Globais</h5>", unsafe_allow_html=True)
-            col_f1, col_f2, col_f3 = st.columns(3)
+            col_f1, col_f2, col_f3, col_f4 = st.columns(4)
             
             # Opções de Grupo
             list_grupos = sorted(list(df["grupo"].unique()))
@@ -106,17 +112,23 @@ class AnalyticsMenu(BaseMenu):
                 list_grupos.append("Sem Grupo")
             grupo_selecionado = col_f1.selectbox("Filtrar por Grupo:", ["Todos"] + list_grupos)
             
+            # Opções de Profissão
+            list_profissoes = sorted(list(df["profissao"].unique()))
+            if "Sem Profissão" in list_profissoes:
+                list_profissoes.remove("Sem Profissão")
+                list_profissoes.append("Sem Profissão")
+            profissao_selecionada = col_f2.multiselect("Filtrar por Profissão:", options=list_profissoes, default=[])
+            
             # Opções de Cargo
             list_cargos = sorted(list(df["cargo"].unique()))
-            if "Sem Cargo" in list_cargos:
-                list_cargos.remove("Sem Cargo")
-                list_cargos.append("Sem Cargo")
-            cargo_selecionado = col_f2.multiselect("Filtrar por Cargo:", options=list_cargos, default=[])
+            # Remove empty strings if any
+            list_cargos = [c for c in list_cargos if c]
+            cargo_selecionado = col_f3.multiselect("Filtrar por Cargo:", options=list_cargos, default=[])
 
             # Opções de Geração
             ordem_geracoes_todas = ["Anteriores", "Geração Silenciosa", "Baby Boomers", "Geração X", "Geração Y / Millennials", "Geração Z", "Geração Alpha", "Desconhecida"]
             list_geracoes = [g for g in ordem_geracoes_todas if g in df["geracao"].unique()]
-            geracao_selecionada = col_f3.multiselect("Filtrar por Geração:", options=list_geracoes, default=[])
+            geracao_selecionada = col_f4.multiselect("Filtrar por Geração:", options=list_geracoes, default=[])
             
             # Filtro por Soft Skills
             st.markdown("---")
@@ -128,6 +140,8 @@ class AnalyticsMenu(BaseMenu):
         df_filtered = df.copy()
         if grupo_selecionado != "Todos":
             df_filtered = df_filtered[df_filtered["grupo"] == grupo_selecionado]
+        if profissao_selecionada:
+            df_filtered = df_filtered[df_filtered["profissao"].isin(profissao_selecionada)]
         if cargo_selecionado:
             df_filtered = df_filtered[df_filtered["cargo"].isin(cargo_selecionado)]
         if geracao_selecionada:
@@ -372,14 +386,14 @@ class AnalyticsMenu(BaseMenu):
         st.subheader("📋 Tabela Analítica de Talentos")
         
         # Selecionar e ordenar colunas principais para visualização
-        table_df = df_filtered[["nome", "grupo", "cargo", "kan", "perfil", "categoria", "qualidades", "ai_diagnosis"]].copy()
+        table_df = df_filtered[["nome", "grupo", "profissao", "cargo", "kan", "perfil", "categoria", "qualidades", "ai_diagnosis"]].copy()
         
         # Formatar a coluna de Diagnóstico de IA para sim/não visual
         table_df["Diagnóstico IA"] = table_df["ai_diagnosis"].apply(lambda x: "✅ Ativo" if bool(x) and str(x).strip() != "" else "❌ Ausente")
         table_df = table_df.drop(columns=["ai_diagnosis"])
         
         # Renomear cabeçalhos
-        table_df.columns = ["Nome", "Grupo", "Cargo", "Número KAN", "Perfil Dominante", "Categoria", "Qualidades", "Status Diagnóstico IA"]
+        table_df.columns = ["Nome", "Grupo", "Profissão", "Cargo", "Número KAN", "Perfil Dominante", "Categoria", "Qualidades", "Status Diagnóstico IA"]
         
         # Exibir tabela interativa
         st.dataframe(

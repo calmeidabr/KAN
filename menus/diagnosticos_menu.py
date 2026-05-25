@@ -44,7 +44,14 @@ class DiagnosticosMenu(BaseMenu):
         nome = cliente_selecionado
         info_cliente = clientes_salvos[nome]
         data_str = info_cliente['data_nascimento']
-        cargo = info_cliente.get('cargo', '')
+        
+        profissao = info_cliente.get('profissao', '')
+        if 'profissao' not in info_cliente:
+            profissao = info_cliente.get('cargo', '')
+            cargo = ''
+        else:
+            cargo = info_cliente.get('cargo', '')
+            
         grupo = info_cliente.get('grupo', info_cliente.get('empresa', ''))
         linkedin = info_cliente.get('linkedin_url', '')
         experiencias = info_cliente.get('experiencias', '')
@@ -83,7 +90,7 @@ class DiagnosticosMenu(BaseMenu):
             with col_edit1:
                 new_nome = st.text_input("Nome", value=nome, key=f"edit_nome_{nome}")
                 new_data = st.text_input("Data de Nascimento (dd/mm/yyyy)", value=data_str, key=f"edit_data_{nome}")
-                new_cargo = st.text_input("Cargo/Profissão", value=cargo if pd.notna(cargo) and str(cargo) != 'nan' else "", key=f"edit_cargo_{nome}")
+                new_profissao = st.text_input("Profissão", value=profissao if pd.notna(profissao) and str(profissao) != 'nan' else "", key=f"edit_profissao_{nome}")
             with col_edit2:
                 new_grupo = st.text_input("Grupo", value=grupo if pd.notna(grupo) and str(grupo) != 'nan' else "", key=f"edit_emp_{nome}")
                 new_linkedin = st.text_input("LinkedIn (URL)", value=linkedin if pd.notna(linkedin) and str(linkedin) != 'nan' else "", key=f"edit_link_{nome}")
@@ -91,21 +98,33 @@ class DiagnosticosMenu(BaseMenu):
             
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Salvar Alterações", key=f"btn_save_edit_{nome}"):
+                sucesso_edit = False
                 if supabase_client:
                     try:
                         supabase_client.table("mapas_salvos").update({
                             "nome": new_nome,
                             "data_nascimento": new_data,
-                            "cargo": new_cargo,
+                            "profissao": new_profissao,
                             "grupo": new_grupo,
                             "linkedin_url": new_linkedin,
                             "experiencias": new_experiencias
                         }).eq("nome", nome).execute()
-                        st.toast("✅ Informações atualizadas!")
-                        st.cache_data.clear()
-                        st.rerun()
+                        sucesso_edit = True
                     except Exception as e:
                         st.error(f"Erro ao atualizar: {e}")
+                else:
+                    if "clientes_local_data" in st.session_state and nome in st.session_state["clientes_local_data"]:
+                        st.session_state["clientes_local_data"][nome]["data_nascimento"] = new_data
+                        st.session_state["clientes_local_data"][nome]["profissao"] = new_profissao
+                        st.session_state["clientes_local_data"][nome]["grupo"] = new_grupo
+                        st.session_state["clientes_local_data"][nome]["linkedin_url"] = new_linkedin
+                        st.session_state["clientes_local_data"][nome]["experiencias"] = new_experiencias
+                        sucesso_edit = True
+                
+                if sucesso_edit:
+                    st.toast("✅ Informações atualizadas!")
+                    st.cache_data.clear()
+                    st.rerun()
 
         st.markdown("---")
         
@@ -117,7 +136,8 @@ class DiagnosticosMenu(BaseMenu):
             show_m_chk = st.checkbox("Exibir Tabela Completa do Mapa", value=st.session_state['show_mapa'], key=f"chk_m_{nome}")
             st.session_state['show_mapa'] = show_m_chk
 
-        res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, cargo, empresa)
+        empresa = info_cliente.get('empresa', '')
+        res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, profissao, empresa)
         dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
         st.session_state['last_calc_results'] = res_calc
 
@@ -128,7 +148,7 @@ class DiagnosticosMenu(BaseMenu):
         col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
         with col_res2:
             info_parts = [nome, data_str]
-            for p in [cargo, empresa]:
+            for p in [profissao, cargo, grupo]:
                 if p and str(p).lower() != "nan" and str(p).strip() != "":
                     info_parts.append(str(p))
             info_text = " | ".join(info_parts)

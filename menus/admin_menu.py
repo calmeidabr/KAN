@@ -65,12 +65,16 @@ class AdminMenu(BaseMenu):
                             df_lote = pd.read_csv(arquivo_csv, sep=",")
                         
                         col_grupo_name = next((c for c in df_lote.columns if c in ["Grupo", "Empresa/Grupo"]), None)
-                        colunas_obrigatorias = ["Nome completo", "Data de Nascimento", "Cargo/Profissao"]
+                        col_cargo_name = next((c for c in df_lote.columns if c in ["Cargo/Profissao", "Profissao", "Cargo/Profissão"]), None)
+                        colunas_obrigatorias = ["Nome completo", "Data de Nascimento"]
                         colunas_validas = True
                         for col in colunas_obrigatorias:
                             if col not in df_lote.columns:
                                 colunas_validas = False
                                 st.error(f"Coluna obrigatória ausente no CSV: `{col}`")
+                        if not col_cargo_name:
+                            colunas_validas = False
+                            st.error("Coluna obrigatória ausente no CSV: `Profissao` ou `Cargo/Profissao`")
                         if not col_grupo_name:
                             colunas_validas = False
                             st.error("Coluna obrigatória ausente no CSV: `Grupo` (ou `Empresa/Grupo`) ")
@@ -83,7 +87,7 @@ class AdminMenu(BaseMenu):
                                     for _, row in df_lote.iterrows():
                                         n_nome = str(row["Nome completo"]).strip()
                                         n_data = str(row["Data de Nascimento"]).strip()
-                                        n_cargo = str(row["Cargo/Profissao"]).strip()
+                                        n_profissao = str(row[col_cargo_name]).strip()
                                         n_empresa = str(row[col_grupo_name]).strip() if col_grupo_name else ""
                                         
                                         if n_nome and n_data:
@@ -93,14 +97,14 @@ class AdminMenu(BaseMenu):
                                                     if resp_chk.data:
                                                         supabase_client.table("mapas_salvos").update({
                                                             "data_nascimento": n_data,
-                                                            "cargo": n_cargo,
+                                                            "profissao": n_profissao,
                                                             "grupo": n_empresa
                                                         }).eq("nome", n_nome).execute()
                                                     else:
                                                         supabase_client.table("mapas_salvos").insert({
                                                             "nome": n_nome,
                                                             "data_nascimento": n_data,
-                                                            "cargo": n_cargo,
+                                                            "profissao": n_profissao,
                                                             "grupo": n_empresa
                                                         }).execute()
                                                     sucessos += 1
@@ -167,7 +171,7 @@ class AdminMenu(BaseMenu):
             st.subheader("Visualização da Base de Mapas Salvos")
             if supabase_client:
                 try:
-                    res_mapas = supabase_client.table("mapas_salvos").select("id, nome, data_nascimento, cargo, grupo, usuario").order("id", desc=True).execute()
+                    res_mapas = supabase_client.table("mapas_salvos").select("*").order("id", desc=True).execute()
                     if res_mapas.data:
                         df_view = pd.DataFrame(res_mapas.data)
                         st.dataframe(df_view, use_container_width=True)
@@ -493,7 +497,7 @@ class AdminMenu(BaseMenu):
                         else:
                             continue
                             
-                        res_calc = realizar_calculos_completos(n_aud, nascimento_tup, data_atual_tup, c_info.get('cargo'), c_info.get('grupo'))
+                        res_calc = realizar_calculos_completos(n_aud, nascimento_tup, data_atual_tup, c_info.get('profissao', c_info.get('cargo', '')), c_info.get('grupo'))
                         dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, _, _, _, _ = res_calc
                         
                         def ext_val(label):
@@ -592,7 +596,7 @@ class AdminMenu(BaseMenu):
                         now_dt = datetime.datetime.now()
                         data_atual_tup = (now_dt.day, now_dt.month, now_dt.year)
                         
-                        res_calc_aud = realizar_calculos_completos(nome_aud, nascimento_tup, data_atual_tup, c_info.get('cargo', ''), c_info.get('grupo', ''))
+                        res_calc_aud = realizar_calculos_completos(nome_aud, nascimento_tup, data_atual_tup, c_info.get('profissao', c_info.get('cargo', '')), c_info.get('grupo', ''))
                         dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc_aud
                         
                         clientes_salvos = clientes_salvos_aud
@@ -617,7 +621,7 @@ class AdminMenu(BaseMenu):
                             quals_db_lista = list(QUALIDADES_DB.keys()) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
                             all_quals = limpa_lista(quals_db_lista)
                             
-                            all_cargos = limpa_lista([c.get('cargo', '') for c in clientes_salvos.values()])
+                            all_profissoes = limpa_lista([c.get('profissao', c.get('cargo', '')) for c in clientes_salvos.values()])
                             all_grupos = limpa_lista([c.get('grupo', '') for c in clientes_salvos.values()])
                             
                             col_b1, col_b2, col_b3, col_b4 = st.columns(4)
@@ -627,7 +631,7 @@ class AdminMenu(BaseMenu):
                             with col_b4: filtro_qual = st.multiselect("Qualidades", options=all_quals, key="f_qual_aud")
                             
                             col_b5, col_b6 = st.columns(2)
-                            with col_b5: filtro_cargo = st.multiselect("Cargo/Profissão", options=all_cargos, key="f_cargo_aud")
+                            with col_b5: filtro_profissao = st.multiselect("Profissão", options=all_profissoes, key="f_profissao_aud")
                             with col_b6: filtro_grupo = st.multiselect("Grupo", options=all_grupos, key="f_emp_aud")
                             
                             if st.button("🔎 Realizar Busca de Perfis", key="btn_busca_aud"):
@@ -658,15 +662,16 @@ class AdminMenu(BaseMenu):
                                         c_quals = [remover_acentos(str(q)).upper().strip() for q in str(c.get('qualidades', '')).split(',')]
                                         match_qual = any(q in f_quals_norm for q in c_quals)
                                     
-                                    match_cargo = True
-                                    if filtro_cargo:
-                                        match_cargo = str(c.get('cargo', '')).strip() in filtro_cargo
+                                    match_profissao = True
+                                    if filtro_profissao:
+                                        c_prof = c.get('profissao') if 'profissao' in c else c.get('cargo', '')
+                                        match_profissao = str(c_prof).strip() in filtro_profissao
                                         
                                     match_empresa = True
                                     if filtro_grupo:
                                         match_empresa = str(c.get('grupo', '')).strip() in filtro_grupo
                                         
-                                    if match_kan and match_perfil and match_cat and match_qual and match_cargo and match_empresa:
+                                    if match_kan and match_perfil and match_cat and match_qual and match_profissao and match_empresa:
                                         row_res = {
                                             "Nome": n,
                                             "Data Nasc.": c.get('data_nascimento', ''),
