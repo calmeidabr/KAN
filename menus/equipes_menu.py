@@ -523,21 +523,6 @@ class EquipesMenu(BaseMenu):
                                         st.warning(f"⚠️ {e_msg}")
 
                                 if resultados_tri:
-                                    # Tabela resumo
-                                    import pandas as pd
-                                    rows_tab = []
-                                    for m_nome, verts in resultados_tri.items():
-                                        rows_tab.append({
-                                            "Nome": m_nome,
-                                            "Vértice 1 (Campo)": verts[0]["campo"],
-                                            "V1": verts[0]["valor"],
-                                            "Vértice 2 (Campo)": verts[1]["campo"],
-                                            "V2": verts[1]["valor"],
-                                            "Vértice 3 (Campo)": verts[2]["campo"],
-                                            "V3": verts[2]["valor"],
-                                        })
-                                    st.dataframe(pd.DataFrame(rows_tab), use_container_width=True, hide_index=True)
-
                                     # Imagem comparativa
                                     if os.path.exists(path_fundo):
                                         try:
