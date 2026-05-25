@@ -236,7 +236,7 @@ class EquipesMenu(BaseMenu):
                     
                     with st.container(border=True):
                         # Padrão KAN de Cards
-                        col_card1, col_card2, col_card3, col_card4, col_card5, col_card6 = st.columns([0.5, 2.5, 2.0, 1.3, 1.5, 0.9])
+                        col_card1, col_card2, col_card3, col_card4, col_card5, col_card6 = st.columns([0.5, 2.6, 2.0, 1.3, 1.5, 0.6])
                         with col_card1:
                             st.markdown("<div style='font-size: 2.2em; text-align: center; background: rgba(241,134,23,0.15); border-radius: 10px; padding: 2px;'>T</div>", unsafe_allow_html=True)
                         with col_card2:
@@ -258,7 +258,7 @@ class EquipesMenu(BaseMenu):
                                 st.session_state[f"eq_tri_{idx}"] = not tri_open
                                 st.rerun()
                         with col_card6:
-                            if st.button("Excluir", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
+                            if st.button("🗑", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
                                 excluido = False
                                 if supabase_client:
                                     try:
