@@ -2,8 +2,13 @@ import streamlit as st
 import datetime
 import json
 import time
+import os
+from collections import Counter
+from PIL import Image, ImageDraw, ImageFont
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, carregar_todos_clientes, carregar_hierarquia, carregar_cargos, carregar_equipes, get_supabase_admin
+from services.numerologia import calcular_numerologia, reduce_number
+from services.perfil import calcular_perfil_comportamental
 
 class EquipesMenu(BaseMenu):
     def render(self):
@@ -218,7 +223,7 @@ class EquipesMenu(BaseMenu):
                     
                     with st.container(border=True):
                         # Padrão KAN de Cards
-                        col_card1, col_card2, col_card3, col_card4, col_card5 = st.columns([0.5, 2.8, 2.2, 1.5, 1.0])
+                        col_card1, col_card2, col_card3, col_card4, col_card5, col_card6 = st.columns([0.5, 2.5, 2.0, 1.3, 1.5, 0.9])
                         with col_card1:
                             st.markdown("<div style='font-size: 2.2em; text-align: center; background: rgba(241,134,23,0.15); border-radius: 10px; padding: 2px;'>T</div>", unsafe_allow_html=True)
                         with col_card2:
@@ -234,6 +239,12 @@ class EquipesMenu(BaseMenu):
                                 st.session_state[f"eq_open_{idx}"] = not is_open
                                 st.rerun()
                         with col_card5:
+                            tri_open = st.session_state.get(f"eq_tri_{idx}", False)
+                            tri_label = "⬆ Ocultar" if tri_open else "🔺 Triângulos"
+                            if st.button(tri_label, key=f"btn_tri_eq_{idx}", use_container_width=True):
+                                st.session_state[f"eq_tri_{idx}"] = not tri_open
+                                st.rerun()
+                        with col_card6:
                             if st.button("Excluir", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
                                 excluido = False
                                 if supabase_client:
@@ -251,12 +262,12 @@ class EquipesMenu(BaseMenu):
                                     st.success("Equipe excluída!")
                                     time.sleep(1)
                                     st.rerun()
-                                        
-                        # Conteúdo expansível / colapsável
+
+                        # ── Seção: Lista de Membros ──────────────────────────────
                         if st.session_state.get(f"eq_open_{idx}", False):
                             st.write("---")
                             st.markdown("**Lista de Integrantes da Equipe:**")
-                            
+
                             if not lista_membros:
                                 st.write("Nenhum membro vinculado a esta equipe.")
                             else:
@@ -269,14 +280,13 @@ class EquipesMenu(BaseMenu):
                                             m_cargo_oficial = ""
                                         else:
                                             m_cargo_oficial = m_info.get("cargo", "")
-                                        
+
                                         m_role = m_profissao or "Sem Profissão"
                                         if m_cargo_oficial:
                                             m_role = f"{m_role} ({m_cargo_oficial})"
-                                            
+
                                         m_foto = m_info.get("foto_base64")
-                                        
-                                        # Renderiza membro com miniatura de foto
+
                                         col_m_avatar, col_m_desc = st.columns([1, 20])
                                         with col_m_avatar:
                                             if m_foto:
@@ -287,3 +297,196 @@ class EquipesMenu(BaseMenu):
                                             st.markdown(f"<span style='vertical-align: middle;'>**{m_nome}** — {m_role}</span>", unsafe_allow_html=True)
                                     else:
                                         st.write(f"• **{m_nome}** (Cadastro não encontrado na base)")
+
+                        # ── Seção: Triângulos Harmônicos ────────────────────────
+                        if st.session_state.get(f"eq_tri_{idx}", False):
+                            st.write("---")
+                            st.markdown("### 🔺 Triângulos Harmônicos da Equipe")
+
+                            def _calcular_vertices(nome_comp, data_nasc_str):
+                                """Retorna lista de 3 vértices do triângulo harmônico ou None."""
+                                def _clean(v):
+                                    if v is None: return None
+                                    s = str(v).split(" - ")[0]
+                                    return int(s) if s.isdigit() and int(s) > 0 else None
+                                try:
+                                    if isinstance(data_nasc_str, (datetime.datetime, datetime.date)):
+                                        nasc_dt = data_nasc_str
+                                    else:
+                                        try:
+                                            nasc_dt = datetime.datetime.strptime(data_nasc_str, "%d/%m/%Y")
+                                        except ValueError:
+                                            nasc_dt = datetime.datetime.strptime(data_nasc_str, "%Y-%m-%d")
+                                    nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
+                                    now_dt = datetime.datetime.now()
+                                    data_at = (now_dt.day, now_dt.month, now_dt.year)
+
+                                    res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
+                                    (expressao, motivacao, impressao, destino, _, _, _, missao, _, _,
+                                     _, _, _, _, _, _, ciclos_vida, momentos_decisivos, triangulo_base, _, _, _) = res
+
+                                    estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
+                                        expressao, motivacao, impressao, nasc_tuple[0],
+                                        destino, missao,
+                                        ciclos_vida['ciclo2']['numero'],
+                                        momentos_decisivos['momento3']['numero'],
+                                        triangulo_base
+                                    )
+
+                                    todos_num = []
+                                    for v_it in [expressao, motivacao, impressao, destino, missao, nasc_tuple[0]]:
+                                        if isinstance(v_it, int): todos_num.append(v_it)
+                                        elif isinstance(v_it, str) and str(v_it).isdigit(): todos_num.append(int(v_it))
+                                    for c_key in ciclos_vida:
+                                        num_c = ciclos_vida[c_key].get('numero')
+                                        if isinstance(num_c, int): todos_num.append(num_c)
+                                    for m_key in momentos_decisivos:
+                                        num_m = momentos_decisivos[m_key].get('numero')
+                                        if isinstance(num_m, int): todos_num.append(num_m)
+                                    num_ps = reduce_number(nasc_tuple[0])
+                                    todos_num.append(num_ps)
+                                    if isinstance(triangulo_base, int): todos_num.append(triangulo_base)
+
+                                    c_tot = Counter(todos_num)
+                                    r_tot = sorted([(n, c) for n, c in c_tot.items()], key=lambda x: (-x[1], x[0]))
+                                    r2_v = r_tot[0][0] if r_tot else 0
+                                    r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
+                                    r4_v = r_tot[2][0] if len(r_tot) > 2 else 0
+
+                                    todos_comp = [
+                                        {"campo": "KAN",            "valor": _clean(kan)},
+                                        {"campo": "ESTRUTURAL",     "valor": _clean(estrutural)},
+                                        {"campo": "DIRECIONAMENTO", "valor": _clean(direcionamento)},
+                                        {"campo": "REPETIÇÃO 1",    "valor": _clean(rep1)},
+                                        {"campo": "REP. MAPA",      "valor": r2_v if r2_v else None},
+                                        {"campo": "REP. MAPA 2",    "valor": r3_v if r3_v else None},
+                                        {"campo": "REP. MAPA 3",    "valor": r4_v if r4_v else None},
+                                    ]
+
+                                    verts = []
+                                    vals_seen = set()
+                                    for it in todos_comp:
+                                        v_it = it["valor"]
+                                        if v_it is not None and v_it not in [11, 22] and v_it not in vals_seen:
+                                            verts.append({"campo": it["campo"], "valor": v_it})
+                                            vals_seen.add(v_it)
+                                        if len(verts) == 3:
+                                            break
+
+                                    if len(verts) == 3:
+                                        return verts
+                                except Exception as ex:
+                                    st.warning(f"⚠️ Erro ao calcular {nome_comp}: {ex}")
+                                return None
+
+                            # Multiselect para excluir membros da visualização
+                            membros_visiveis = st.multiselect(
+                                "Membros incluídos na visualização:",
+                                options=sorted(lista_membros),
+                                default=sorted(lista_membros),
+                                key=f"tri_membros_sel_{idx}"
+                            )
+
+                            if st.button("🔺 Criar Triângulos Harmônicos", key=f"btn_tri_calc_{idx}", type="primary"):
+                                st.session_state[f"tri_calcular_{idx}"] = True
+
+                            if st.session_state.get(f"tri_calcular_{idx}", False):
+                                coords_map = {
+                                    1: (794, 176), 2: (1037, 243), 3: (960, 380),
+                                    4: (794, 585), 5: (486, 585), 6: (320, 380),
+                                    7: (243, 243), 8: (486, 176), 9: (640, 120),
+                                    11: (1037, 243), 22: (794, 585)
+                                }
+
+                                path_fundo = os.path.join("images", "plano_kan_fundo.jpg")
+
+                                resultados_tri = {}
+                                erros = []
+                                with st.spinner("Calculando triângulos dos membros..."):
+                                    for m_nome in membros_visiveis:
+                                        m_info = clientes.get(m_nome)
+                                        if not m_info:
+                                            erros.append(f"{m_nome}: cadastro não encontrado")
+                                            continue
+                                        data_nasc = m_info.get("data_nascimento")
+                                        if not data_nasc:
+                                            erros.append(f"{m_nome}: sem data de nascimento")
+                                            continue
+                                        verts = _calcular_vertices(m_nome, data_nasc)
+                                        if verts:
+                                            resultados_tri[m_nome] = verts
+                                        else:
+                                            erros.append(f"{m_nome}: triângulo não formado")
+
+                                if erros:
+                                    for e_msg in erros:
+                                        st.warning(f"⚠️ {e_msg}")
+
+                                if resultados_tri:
+                                    # Tabela resumo
+                                    import pandas as pd
+                                    rows_tab = []
+                                    for m_nome, verts in resultados_tri.items():
+                                        rows_tab.append({
+                                            "Nome": m_nome,
+                                            "Vértice 1 (Campo)": verts[0]["campo"],
+                                            "V1": verts[0]["valor"],
+                                            "Vértice 2 (Campo)": verts[1]["campo"],
+                                            "V2": verts[1]["valor"],
+                                            "Vértice 3 (Campo)": verts[2]["campo"],
+                                            "V3": verts[2]["valor"],
+                                        })
+                                    st.dataframe(pd.DataFrame(rows_tab), use_container_width=True, hide_index=True)
+
+                                    # Imagem comparativa
+                                    if os.path.exists(path_fundo):
+                                        try:
+                                            fundo_img = Image.open(path_fundo).convert("RGBA")
+                                            try:
+                                                font_label = ImageFont.truetype("arial.ttf", 34)
+                                            except Exception:
+                                                font_label = ImageFont.load_default()
+
+                                            img_final = fundo_img.copy()
+                                            layer_notes = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                            draw_notes = ImageDraw.Draw(layer_notes)
+
+                                            cores = [
+                                                (255, 200, 100, 130), (100, 200, 255, 130),
+                                                (200, 255, 100, 130), (255, 100, 200, 130),
+                                                (100, 255, 200, 130), (255, 160, 100, 130),
+                                                (160, 100, 255, 130), (100, 160, 255, 130),
+                                            ]
+
+                                            for i, (m_nome, verts) in enumerate(resultados_tri.items()):
+                                                poly_points = []
+                                                for v in verts:
+                                                    val_num = int(v["valor"])
+                                                    if val_num in coords_map:
+                                                        poly_points.append(coords_map[val_num])
+                                                    else:
+                                                        val_red = sum(int(d) for d in str(val_num))
+                                                        if val_red in coords_map:
+                                                            poly_points.append(coords_map[val_red])
+
+                                                if len(poly_points) == 3:
+                                                    cor = cores[i % len(cores)]
+                                                    layer_m = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
+                                                    draw_m = ImageDraw.Draw(layer_m)
+                                                    draw_m.polygon(poly_points, fill=cor)
+                                                    img_final = Image.alpha_composite(img_final, layer_m)
+
+                                                    cx = sum(p[0] for p in poly_points) // 3
+                                                    cy = sum(p[1] for p in poly_points) // 3
+                                                    primeiro_nome = str(m_nome).split()[0]
+                                                    draw_notes.text((cx - 20, cy - 12), primeiro_nome, fill=(30, 30, 30), font=font_label)
+
+                                            img_final = Image.alpha_composite(img_final, layer_notes)
+                                            st.image(img_final.convert("RGB"), caption=f"Comparativo de Triângulos Harmônicos — {eq['nome']}", use_container_width=True)
+
+                                        except Exception as ex:
+                                            st.error(f"Erro ao gerar imagem: {ex}")
+                                    else:
+                                        st.info("ℹ️ Imagem de fundo não encontrada (images/plano_kan_fundo.jpg). Os dados da tabela acima estão disponíveis.")
+                                else:
+                                    st.warning("Nenhum triângulo harmônico pôde ser calculado para os membros selecionados.")
