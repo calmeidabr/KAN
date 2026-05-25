@@ -74,6 +74,13 @@ class EquipesMenu(BaseMenu):
                     key="add_eq_busca_profissao"
                 )
 
+                # Busca textual por grupo
+                busca_grupo = st.text_input(
+                    "Buscar por Grupo:",
+                    placeholder="Digite o grupo para filtrar (ex: Beatles, Paralamas do Sucesso)...",
+                    key="add_eq_busca_grupo"
+                )
+
                 # Filtragem de candidatos elegíveis com base nos filtros selecionados
                 candidatos_elegiveis = []
                 for nome, info in clientes.items():
@@ -95,13 +102,18 @@ class EquipesMenu(BaseMenu):
                         c_profissao = str(info.get("profissao") or "").lower().strip()
                         if busca_profissao.lower().strip() not in c_profissao:
                             continue
+                    # Filtro de Grupo (Busca Textual) — campo grupo do cadastro
+                    if busca_grupo.strip():
+                        c_grupo = str(info.get("grupo") or "").lower().strip()
+                        if busca_grupo.lower().strip() not in c_grupo:
+                            continue
                     candidatos_elegiveis.append(nome)
                 
                 candidatos_elegiveis = sorted(candidatos_elegiveis)
 
                 # Controla estado dos filtros para pré-seleção automática
-                filtro_ativo = (emp_sel != "Todas" or dept_sel != "Todos" or cargo_sel != "Todos" or busca_profissao.strip() != "")
-                current_filters = f"{emp_sel}_{dept_sel}_{cargo_sel}_{busca_profissao.strip()}"
+                filtro_ativo = (emp_sel != "Todas" or dept_sel != "Todos" or cargo_sel != "Todos" or busca_profissao.strip() != "" or busca_grupo.strip() != "")
+                current_filters = f"{emp_sel}_{dept_sel}_{cargo_sel}_{busca_profissao.strip()}_{busca_grupo.strip()}"
                 
                 # Se for a primeira execução ou se os filtros mudaram, atualizamos a seleção temporária
                 if "last_filters_state" not in st.session_state or st.session_state["last_filters_state"] != current_filters:
