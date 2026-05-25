@@ -34,6 +34,48 @@ def modal_detalhes_talento(nome, info, dept_map_list):
     st.markdown("**Experiências Profissionais / Bio:**")
     st.info(info.get("experiencias") or "Nenhuma informação adicional cadastrada.")
 
+@st.dialog("Editar Cargo do Talento", width="small")
+def modal_editar_cargo(nome, cargo_atual, cargos_list):
+    st.markdown(f"**Talento:** `{nome}`")
+    novo_cargo = st.selectbox(
+        "Selecione o Novo Cargo:",
+        options=cargos_list,
+        index=cargos_list.index(cargo_atual) if cargo_atual in cargos_list else 0,
+        key=f"ed_cargo_sel_{nome}"
+    )
+    
+    st.write("---")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Salvar", type="primary", use_container_width=True, key=f"btn_save_ed_cargo_{nome}"):
+            client_admin = get_supabase_admin()
+            if client_admin:
+                try:
+                    client_admin.table("mapas_salvos").update({
+                        "cargo": novo_cargo
+                    }).eq("nome", nome).execute()
+                    st.cache_data.clear()
+                    st.success("Cargo atualizado!")
+                    time.sleep(1)
+                    st.rerun()
+                except Exception as ex:
+                    st.error(f"Erro ao salvar no banco: {ex}")
+            else:
+                # Fallback local
+                if "clientes_local_data" not in st.session_state:
+                    st.session_state["clientes_local_data"] = {}
+                if nome not in st.session_state["clientes_local_data"]:
+                    clientes = carregar_todos_clientes()
+                    st.session_state["clientes_local_data"][nome] = clientes.get(nome, {}).copy()
+                st.session_state["clientes_local_data"][nome]["cargo"] = novo_cargo
+                st.cache_data.clear()
+                st.success("Cargo atualizado localmente!")
+                time.sleep(1)
+                st.rerun()
+    with col2:
+        if st.button("Cancelar", use_container_width=True, key=f"btn_cancel_ed_cargo_{nome}"):
+            st.rerun()
+
 class HierarquiaMenu(BaseMenu):
     def render(self):
         st.title("Hierarquia / Departamentos")
@@ -234,7 +276,7 @@ class HierarquiaMenu(BaseMenu):
                                         st.markdown(f"<div style='padding-left: {level * 25 + 20}px;'></div>", unsafe_allow_html=True)
                                     with cols_tree[1]:
                                         with st.container(border=True):
-                                            card_cols = st.columns([1, 3.5])
+                                            card_cols = st.columns([1, 2.8, 0.7])
                                             with card_cols[0]:
                                                 if foto_b64:
                                                     st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; display: block;" />', unsafe_allow_html=True)
@@ -246,6 +288,10 @@ class HierarquiaMenu(BaseMenu):
                                                     modal_detalhes_talento(t_nome, t_info, dept_map_list)
                                                 st.markdown('</div>', unsafe_allow_html=True)
                                                 st.markdown(f"<span style='color: #F18617; font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
+                                            with card_cols[2]:
+                                                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                                                if st.button("✏️", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
+                                                    modal_editar_cargo(t_nome, t_cargo, cargos_list)
                             
                             # Botão de popover para adicionar/alterar membro
                             st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 8px;'></div>", unsafe_allow_html=True)
