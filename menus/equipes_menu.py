@@ -218,7 +218,7 @@ class EquipesMenu(BaseMenu):
                     
                     with st.container(border=True):
                         # Padrão KAN de Cards
-                        col_card1, col_card2, col_card3, col_card4 = st.columns([1, 3, 2, 2])
+                        col_card1, col_card2, col_card3, col_card4, col_card5 = st.columns([0.5, 2.8, 2.2, 1.5, 1.0])
                         with col_card1:
                             st.markdown("<div style='font-size: 2.2em; text-align: center; background: rgba(241,134,23,0.15); border-radius: 10px; padding: 2px;'>T</div>", unsafe_allow_html=True)
                         with col_card2:
@@ -229,31 +229,28 @@ class EquipesMenu(BaseMenu):
                             st.caption(f"Departamento: {eq.get('departamento') or 'Todos'}")
                         with col_card4:
                             is_open = st.session_state.get(f"eq_open_{idx}", False)
-                            btn_label = "Ocultar Integrantes" if is_open else "Ver Integrantes"
-                            
-                            col_sub_btn1, col_sub_btn2 = st.columns(2)
-                            with col_sub_btn1:
-                                if st.button(btn_label, key=f"btn_v_eq_{idx}", use_container_width=True):
-                                    st.session_state[f"eq_open_{idx}"] = not is_open
-                                    st.rerun()
-                            with col_sub_btn2:
-                                if st.button("Excluir Equipe", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
-                                    excluido = False
-                                    if supabase_client:
-                                        try:
-                                            supabase_client.table("equipes").delete().eq("nome", eq["nome"]).execute()
-                                            excluido = True
-                                        except Exception as ex:
-                                            st.error(f"Erro ao excluir: {ex}")
-                                    if not excluido:
-                                        if "equipes_local_data" in st.session_state:
-                                            st.session_state["equipes_local_data"] = [item for item in st.session_state["equipes_local_data"] if item["nome"] != eq["nome"]]
+                            btn_label = "Ocultar" if is_open else "Ver Membros"
+                            if st.button(btn_label, key=f"btn_v_eq_{idx}", use_container_width=True):
+                                st.session_state[f"eq_open_{idx}"] = not is_open
+                                st.rerun()
+                        with col_card5:
+                            if st.button("Excluir", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
+                                excluido = False
+                                if supabase_client:
+                                    try:
+                                        supabase_client.table("equipes").delete().eq("nome", eq["nome"]).execute()
                                         excluido = True
-                                    if excluido:
-                                        st.cache_data.clear()
-                                        st.success("Equipe excluída!")
-                                        time.sleep(1)
-                                        st.rerun()
+                                    except Exception as ex:
+                                        st.error(f"Erro ao excluir: {ex}")
+                                if not excluido:
+                                    if "equipes_local_data" in st.session_state:
+                                        st.session_state["equipes_local_data"] = [item for item in st.session_state["equipes_local_data"] if item["nome"] != eq["nome"]]
+                                    excluido = True
+                                if excluido:
+                                    st.cache_data.clear()
+                                    st.success("Equipe excluída!")
+                                    time.sleep(1)
+                                    st.rerun()
                                         
                         # Conteúdo expansível / colapsável
                         if st.session_state.get(f"eq_open_{idx}", False):
