@@ -235,12 +235,24 @@ class EquipesMenu(BaseMenu):
             else:
                 for idx, eq in enumerate(equipes):
                     # Garante conversão segura da lista de membros do JSON
-                    lista_membros = eq.get("membros", [])
-                    if isinstance(lista_membros, str):
+                    lista_membros_raw = eq.get("membros", [])
+                    if isinstance(lista_membros_raw, str):
                         try:
-                            lista_membros = json.loads(lista_membros)
+                            lista_membros_raw = json.loads(lista_membros_raw)
                         except Exception:
-                            lista_membros = []
+                            lista_membros_raw = []
+                    
+                    # Normaliza membros suportando lista de strings ou de dicionários (liderança)
+                    lista_membros = []
+                    lider_atual = None
+                    for m in lista_membros_raw:
+                        if isinstance(m, dict):
+                            nome_m = m.get("nome")
+                            lista_membros.append(nome_m)
+                            if m.get("lider"):
+                                lider_atual = nome_m
+                        else:
+                            lista_membros.append(m)
                     
                     with st.container(border=True):
                         # Padrão KAN de Cards
@@ -292,111 +304,221 @@ class EquipesMenu(BaseMenu):
                             if not lista_membros:
                                 st.write("Nenhum membro vinculado a esta equipe.")
                             else:
-                                # Monta os cards HTML em grade de 3 colunas
-                                cards_html = """
-                                <style>
-                                .eq-card-grid {
-                                    display: grid;
-                                    grid-template-columns: repeat(3, 1fr);
-                                    gap: 10px;
-                                    margin-top: 8px;
-                                }
-                                .eq-member-card {
-                                    display: flex;
-                                    align-items: center;
-                                    gap: 12px;
-                                    background: rgba(241,134,23,0.07);
-                                    border: 1px solid rgba(241,134,23,0.25);
-                                    border-radius: 10px;
-                                    padding: 10px 14px;
-                                }
-                                .eq-member-card img {
-                                    width: 50px;
-                                    height: 50px;
-                                    border-radius: 50%;
-                                    object-fit: cover;
-                                    border: 2px solid #F18617;
-                                    flex-shrink: 0;
-                                }
-                                .eq-member-avatar {
-                                    width: 50px;
-                                    height: 50px;
-                                    border-radius: 50%;
-                                    background: rgba(241,134,23,0.2);
-                                    border: 2px solid #F18617;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    font-size: 1.5em;
-                                    flex-shrink: 0;
-                                }
-                                .eq-member-info {
-                                    min-width: 0;
-                                }
-                                .eq-member-info strong {
-                                    display: block;
-                                    font-size: 0.92em;
-                                    white-space: nowrap;
-                                    overflow: hidden;
-                                    text-overflow: ellipsis;
-                                }
-                                .eq-member-info span {
-                                    font-size: 0.78em;
-                                    opacity: 0.7;
-                                    white-space: nowrap;
-                                    overflow: hidden;
-                                    text-overflow: ellipsis;
-                                    display: block;
-                                }
-                                </style>
-                                <div class="eq-card-grid">
-                                """
+                                # Opção de gerenciar a liderança
+                                col_lid1, col_lid2 = st.columns([2, 5])
+                                with col_lid1:
+                                    edit_lider_mode = st.checkbox("⚙️ Definir Líder da Equipe", key=f"chk_edit_lider_{idx}")
+                                
+                                if edit_lider_mode:
+                                    key_temp_lider = f"temp_lider_{idx}"
+                                    if key_temp_lider not in st.session_state:
+                                        st.session_state[key_temp_lider] = lider_atual
 
-                                for m_nome in sorted(lista_membros):
-                                    m_info = clientes.get(m_nome)
-                                    if m_info:
-                                        m_profissao = m_info.get("profissao", "")
-                                        if "profissao" not in m_info:
-                                            m_profissao = m_info.get("cargo", "")
-                                            m_cargo_oficial = ""
+                                    st.write("Defina o líder clicando em **Definir como Líder** no card do integrante correspondente:")
+
+                                    # Cards interativos de membros em grade de 3 colunas
+                                    cols = st.columns(3)
+                                    for m_idx, m_nome in enumerate(sorted(lista_membros)):
+                                        col = cols[m_idx % 3]
+                                        m_info = clientes.get(m_nome)
+                                        temp_lider = st.session_state[key_temp_lider]
+                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;">👑 Líder</span>' if m_nome == temp_lider else ''
+
+                                        with col:
+                                            with st.container(border=True):
+                                                avatar_html = ""
+                                                m_role = "Cadastro não encontrado"
+                                                if m_info:
+                                                    m_foto = m_info.get("foto_base64")
+                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;">👤</div>'
+                                                    
+                                                    m_profissao = m_info.get("profissao", "")
+                                                    if "profissao" not in m_info:
+                                                        m_profissao = m_info.get("cargo", "")
+                                                        m_cargo_oficial = ""
+                                                    else:
+                                                        m_cargo_oficial = m_info.get("cargo", "")
+                                                    
+                                                    m_role = m_profissao or "Sem Profissão"
+                                                    if m_cargo_oficial:
+                                                        m_role = f"{m_role} ({m_cargo_oficial})"
+                                                else:
+                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;">❓</div>'
+
+                                                card_header_html = f"""
+                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                    {avatar_html}
+                                                    <div style="min-width: 0; flex-grow: 1;">
+                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{m_nome} {badge_lider_temp}</strong>
+                                                        <span style="font-size:0.78em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{m_role}</span>
+                                                    </div>
+                                                </div>
+                                                """
+                                                card_header_html_clean = "".join(line.strip() for line in card_header_html.split("\n"))
+                                                st.markdown(card_header_html_clean, unsafe_allow_html=True)
+
+                                                is_selected = (temp_lider == m_nome)
+                                                if is_selected:
+                                                    st.button("👑 Líder Selecionado", key=f"btn_sel_{idx}_{m_idx}", type="primary", disabled=True, use_container_width=True)
+                                                else:
+                                                    if st.button("Definir como Líder", key=f"btn_set_{idx}_{m_idx}", use_container_width=True):
+                                                        st.session_state[key_temp_lider] = m_nome
+                                                        st.rerun()
+
+                                    st.write("")
+                                    col_save1, col_save2 = st.columns([3, 3])
+                                    with col_save1:
+                                        if st.session_state[key_temp_lider]:
+                                            st.info(f"Líder selecionado temporariamente: **{st.session_state[key_temp_lider]}**")
+                                            if st.button("Remover Liderança", key=f"btn_rem_lider_{idx}", use_container_width=True):
+                                                st.session_state[key_temp_lider] = None
+                                                st.rerun()
                                         else:
-                                            m_cargo_oficial = m_info.get("cargo", "")
+                                            st.info("Nenhum líder selecionado.")
+                                    
+                                    with col_save2:
+                                        if st.button("💾 Salvar Alterações de Líder", key=f"btn_save_lider_{idx}", type="primary", use_container_width=True):
+                                            novo_lider = st.session_state[key_temp_lider]
+                                            novos_membros = []
+                                            for nome_m in lista_membros:
+                                                novos_membros.append({
+                                                    "nome": nome_m,
+                                                    "lider": (nome_m == novo_lider)
+                                                })
+                                                
+                                            # Salva
+                                            sucesso_save = False
+                                            payload = {
+                                                "membros": novos_membros,
+                                                "updated_at": datetime.datetime.now().isoformat()
+                                            }
+                                            if supabase_client:
+                                                try:
+                                                    supabase_client.table("equipes").update(payload).eq("nome", eq["nome"]).execute()
+                                                    sucesso_save = True
+                                                except Exception as ex:
+                                                    st.error(f"Erro ao salvar liderança: {ex}")
+                                                    
+                                            if not sucesso_save:
+                                                # Local fallback
+                                                if "equipes_local_data" in st.session_state:
+                                                    for eq_local in st.session_state["equipes_local_data"]:
+                                                        if eq_local["nome"] == eq["nome"]:
+                                                            eq_local["membros"] = json.dumps(novos_membros, ensure_ascii=False)
+                                                            eq_local["updated_at"] = datetime.datetime.now().isoformat()
+                                                            sucesso_save = True
+                                                            break
+                                            
+                                            if sucesso_save:
+                                                st.cache_data.clear()
+                                                st.success("Liderança atualizada com sucesso!")
+                                                st.session_state.pop(key_temp_lider, None)
+                                                time.sleep(1)
+                                                st.rerun()
+                                else:
+                                    # Monta os cards HTML em grade de 3 colunas
+                                    cards_html = """
+                                    <style>
+                                    .eq-card-grid {
+                                        display: grid;
+                                        grid-template-columns: repeat(3, 1fr);
+                                        gap: 10px;
+                                        margin-top: 8px;
+                                    }
+                                    .eq-member-card {
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 12px;
+                                        background: rgba(241,134,23,0.07);
+                                        border: 1px solid rgba(241,134,23,0.25);
+                                        border-radius: 10px;
+                                        padding: 10px 14px;
+                                    }
+                                    .eq-member-card img {
+                                        width: 50px;
+                                        height: 50px;
+                                        border-radius: 50%;
+                                        object-fit: cover;
+                                        border: 2px solid #F18617;
+                                        flex-shrink: 0;
+                                    }
+                                    .eq-member-avatar {
+                                        width: 50px;
+                                        height: 50px;
+                                        border-radius: 50%;
+                                        background: rgba(241,134,23,0.2);
+                                        border: 2px solid #F18617;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-size: 1.5em;
+                                        flex-shrink: 0;
+                                    }
+                                    .eq-member-info {
+                                        min-width: 0;
+                                    }
+                                    .eq-member-info strong {
+                                        display: block;
+                                        font-size: 0.92em;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                    }
+                                    .eq-member-info span {
+                                        font-size: 0.78em;
+                                        opacity: 0.7;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                        display: block;
+                                    }
+                                    </style>
+                                    <div class="eq-card-grid">
+                                    """
 
-                                        m_role = m_profissao or "Sem Profissão"
-                                        if m_cargo_oficial:
-                                            m_role = f"{m_role} ({m_cargo_oficial})"
+                                    for m_nome in sorted(lista_membros):
+                                        m_info = clientes.get(m_nome)
+                                        badge_lider = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;">👑 Líder</span>' if m_nome == lider_atual else ''
+                                        
+                                        if m_info:
+                                            m_profissao = m_info.get("profissao", "")
+                                            if "profissao" not in m_info:
+                                                m_profissao = m_info.get("cargo", "")
+                                                m_cargo_oficial = ""
+                                            else:
+                                                m_cargo_oficial = m_info.get("cargo", "")
+                                            
+                                            m_role = m_profissao or "Sem Profissão"
+                                            if m_cargo_oficial:
+                                                m_role = f"{m_role} ({m_cargo_oficial})"
 
-                                        m_foto = m_info.get("foto_base64")
+                                            m_foto = m_info.get("foto_base64")
+                                            avatar_html = f'<img src="data:image/png;base64,{m_foto}" />' if m_foto else '<div class="eq-member-avatar">👤</div>'
 
-                                        if m_foto:
-                                            avatar_html = f'<img src="data:image/png;base64,{m_foto}" />'
+                                            cards_html += f"""
+                                            <div class="eq-member-card">
+                                                {avatar_html}
+                                                <div class="eq-member-info">
+                                                    <strong>{m_nome} {badge_lider}</strong>
+                                                    <span>{m_role}</span>
+                                                </div>
+                                            </div>
+                                            """
                                         else:
-                                            avatar_html = '<div class="eq-member-avatar">👤</div>'
-
-                                        cards_html += f"""
-                                        <div class="eq-member-card">
-                                            {avatar_html}
-                                            <div class="eq-member-info">
-                                                <strong>{m_nome}</strong>
-                                                <span>{m_role}</span>
+                                            cards_html += f"""
+                                            <div class="eq-member-card">
+                                                <div class="eq-member-avatar">❓</div>
+                                                <div class="eq-member-info">
+                                                    <strong>{m_nome} {badge_lider}</strong>
+                                                    <span>Cadastro não encontrado</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                        """
-                                    else:
-                                        cards_html += f"""
-                                        <div class="eq-member-card">
-                                            <div class="eq-member-avatar">❓</div>
-                                            <div class="eq-member-info">
-                                                <strong>{m_nome}</strong>
-                                                <span>Cadastro não encontrado</span>
-                                            </div>
-                                        </div>
-                                        """
+                                            """
 
-                                cards_html += "</div>"
-                                # Remove quebras de linha e indentação para evitar que o markdown interprete como bloco de código
-                                cards_html_clean = "".join(line.strip() for line in cards_html.split("\n"))
-                                st.markdown(cards_html_clean, unsafe_allow_html=True)
+                                    cards_html += "</div>"
+                                    # Remove quebras de linha e indentação para evitar que o markdown interprete como bloco de código
+                                    cards_html_clean = "".join(line.strip() for line in cards_html.split("\n"))
+                                    st.markdown(cards_html_clean, unsafe_allow_html=True)
 
                         # ── Seção: Triângulos Harmônicos ────────────────────────
                         if st.session_state.get(f"eq_tri_{idx}", False):
