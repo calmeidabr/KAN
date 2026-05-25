@@ -35,6 +35,7 @@ class App:
             "Vagas": lambda: ProcessosMenu(self).render(),
             "Hierarquia / Deptos": lambda: HierarquiaMenu(self).render(),
             "Equipes": lambda: EquipesMenu(self).render(),
+            "Empresas": lambda: EmpresasMenu(self).render(),
             "Empresa": lambda: PlaceholderMenu(self).render(title="Configurações da Empresa", message="Módulo de configurações gerais da empresa em desenvolvimento."),
             "Usuários": lambda: PlaceholderMenu(self).render(title="Gestão de Usuários do Sistema", message="Módulo de gestão de permissões de usuários em desenvolvimento."),
             "Analytics": lambda: AnalyticsMenu(self).render(),
@@ -81,6 +82,7 @@ class App:
                 "Processo seletivo": "⚖",
                 "Hierarquia / Deptos": "⊞",
                 "Equipes": "⧇",
+                "Empresas": "🏢",
                 "Empresa": "⚙",
                 "Usuários": "⚿",
                 "Painel de Controle": "⛭"
@@ -93,7 +95,7 @@ class App:
                 "ADMIN": "⛭"
             }
             menu_groups = {
-                "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes"],
+                "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes", "Empresas"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
