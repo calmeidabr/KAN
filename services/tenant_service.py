@@ -77,7 +77,7 @@ def get_current_tenant():
 
 # ==========================================
 # OPERAÇÕES DE CRUD NA TABELA DE NEGÓCIO
--- (Baseadas no cliente autenticado RLS)
+# (Baseadas no cliente autenticado RLS)
 # ==========================================
 
 # Listagem (filtrada automaticamente pelo RLS)
