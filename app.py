@@ -112,14 +112,13 @@ class App:
             # Seção de Navegação
             with st.container(border=True):
                 is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
-                st.button("◇ \u00A0\u00A0 Home", key="sidehome", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
+                st.button("Home", key="sidehome", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
 
                 for grupo, itens in menu_groups.items():
                     is_exp = st.session_state[f"exp_{grupo}"]
                     chevron = "▴" if is_exp else "▾"
-                    grp_icon = group_icons.get(grupo, '❖')
                     
-                    grp_label = f"{grp_icon} \u00A0 {grupo} \u00A0 {chevron}"
+                    grp_label = f"{grupo} \u00A0 {chevron}"
                     grupo_clean = grupo.lower().replace("á", "a").replace("ç", "c").replace("õ", "o")
                     st.button(grp_label, key=f"grp{grupo_clean}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
                         
@@ -127,8 +126,7 @@ class App:
                         with st.container():
                             for opcao in itens:
                                 is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
-                                sub_icon = icones.get(opcao, '▫')
-                                sub_label = f"{sub_icon} \u00A0 {opcao}"
+                                sub_label = opcao
                                 key_opcao = "menusaas" if opcao == "SaaS Multi-Tenant" else f"menu{opcao.lower().replace(' ', '').replace('/', '')}"
                                 st.button(sub_label, key=key_opcao, use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
 
@@ -137,9 +135,9 @@ class App:
                 st.markdown('<div class="sb-label">Ações</div>', unsafe_allow_html=True)
                 col_out1, col_out2 = st.columns(2)
                 with col_out1:
-                    st.button("🚪 Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
+                    st.button("Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
                 with col_out2:
-                    st.button("🔄 Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
+                    st.button("Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
 
             user_logged = st.session_state.get("logged_user", "Usuário")
             role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"
