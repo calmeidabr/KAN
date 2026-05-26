@@ -76,19 +76,19 @@ class App:
             
             icones = {
                 "Home": "◇",
-                "Talentos": "○",
-                "Vagas": "◎",
-                "Diagnósticos": "⎔",
-                "Mapas": "⛶",
-                "Analytics": "⬡",
-                "Processo seletivo": "⚖",
-                "Hierarquia / Deptos": "⊞",
-                "Equipes": "⧇",
-                "Empresas": "⧉",
+                "Talentos": "●",
+                "Vagas": "●",
+                "Diagnósticos": "●",
+                "Mapas": "●",
+                "Analytics": "●",
+                "Processo seletivo": "●",
+                "Hierarquia / Deptos": "●",
+                "Equipes": "●",
+                "Empresas": "●",
                 "SaaS Multi-Tenant": "❖",
-                "Empresa": "⚙",
-                "Usuários": "⚿",
-                "Painel de Controle": "⛭"
+                "Empresa": "●",
+                "Usuários": "●",
+                "Painel de Controle": "●"
             }
 
             group_icons = {
@@ -111,9 +111,8 @@ class App:
 
             # Seção de Navegação
             with st.container(border=True):
-                st.markdown('<div class="sb-label">Navegação</div>', unsafe_allow_html=True)
                 is_home = (st.session_state.get("sidebar_menu", "Home") == "Home")
-                st.button("◇ \u00A0\u00A0 Home", key="btn_side_home", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
+                st.button("◇ \u00A0\u00A0 Home", key="sidehome", use_container_width=True, type="primary" if is_home else "secondary", on_click=set_nav_route, args=("Home",))
 
                 for grupo, itens in menu_groups.items():
                     is_exp = st.session_state[f"exp_{grupo}"]
@@ -121,7 +120,8 @@ class App:
                     grp_icon = group_icons.get(grupo, '❖')
                     
                     grp_label = f"{grp_icon} \u00A0 {grupo} \u00A0 {chevron}"
-                    st.button(grp_label, key=f"grp_{grupo}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
+                    grupo_clean = grupo.lower().replace("á", "a").replace("ç", "c").replace("õ", "o")
+                    st.button(grp_label, key=f"grp{grupo_clean}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
                         
                     if is_exp:
                         with st.container():
@@ -129,7 +129,8 @@ class App:
                                 is_sel = (st.session_state.get("sidebar_menu", "Home") == opcao)
                                 sub_icon = icones.get(opcao, '▫')
                                 sub_label = f"{sub_icon} \u00A0 {opcao}"
-                                st.button(sub_label, key=f"menu_{opcao}", use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
+                                key_opcao = "menusaas" if opcao == "SaaS Multi-Tenant" else f"menu{opcao.lower().replace(' ', '').replace('/', '')}"
+                                st.button(sub_label, key=key_opcao, use_container_width=True, type="primary" if is_sel else "secondary", on_click=set_nav_route, args=(opcao,))
 
             # Seção de Ações Rápidas
             with st.container(border=True):

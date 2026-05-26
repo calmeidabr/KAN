@@ -359,21 +359,54 @@ st.markdown("""
         transform: translateX(3px) !important;
     }
 
-    /* Item Selecionado Geral - Fundo Transparente, indicador laranja */
-    .stApp section[data-testid="stSidebar"] div.stButton > button[kind="primary"],
-    .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
-        background: transparent !important;
-        background-color: transparent !important;
-        background-image: none !important;
-        color: var(--accent) !important;
+    /* Highlight lilac translúcido para os botões dos menus principais */
+    .st-key-sidehome button,
+    .st-key-grpcadastros button,
+    .st-key-grpanalises button,
+    .st-key-grpconfiguracoes button,
+    .st-key-grpadmin button,
+    .st-key-menusaas button {
+        background-color: rgba(139, 92, 246, 0.14) !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(139, 92, 246, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.08) !important;
         font-weight: 700 !important;
-        border: none !important;
-        border-left: 3px solid var(--accent) !important;
+        padding: 10px 14px !important;
+        border-radius: 8px !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        font-size: 0.9em !important;
+    }
+
+    .st-key-sidehome button:hover,
+    .st-key-grpcadastros button:hover,
+    .st-key-grpanalises button:hover,
+    .st-key-grpconfiguracoes button:hover,
+    .st-key-grpadmin button:hover,
+    .st-key-menusaas button:hover {
+        background-color: rgba(139, 92, 246, 0.22) !important;
+        border-color: rgba(139, 92, 246, 0.5) !important;
+        color: #FFFFFF !important;
+        transform: translateX(3px) !important;
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.15) !important;
+    }
+
+    /* Item ativo selecionado nos menus principais */
+    .st-key-sidehome button[data-testid="baseButton-primary"],
+    .st-key-grpcadastros button[data-testid="baseButton-primary"],
+    .st-key-grpanalises button[data-testid="baseButton-primary"],
+    .st-key-grpconfiguracoes button[data-testid="baseButton-primary"],
+    .st-key-grpadmin button[data-testid="baseButton-primary"],
+    .st-key-menusaas button[data-testid="baseButton-primary"] {
+        background-color: rgba(139, 92, 246, 0.22) !important;
+        color: var(--accent) !important;
+        border: 1px solid var(--accent) !important;
+        border-left: 4px solid var(--accent) !important;
         border-radius: 0 8px 8px 0 !important;
+        font-weight: 700 !important;
         box-shadow: none !important;
     }
 
-    /* Submenus Aninhados - Sem Contorno */
+    /* Submenus Aninhados - Estilo Limpo e Compacto */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button {
         border: none !important;
         border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
@@ -381,20 +414,21 @@ st.markdown("""
         padding: 8px 12px 8px 24px !important;
         margin-left: 20px !important;
         font-size: 0.86em !important;
-        font-weight: 450 !important;
-        color: rgba(255,255,255,0.45) !important;
+        font-weight: 500 !important;
+        color: rgba(255,255,255,0.6) !important;
+        background: transparent !important;
         box-shadow: none !important;
+        transition: all 0.2s ease !important;
     }
     
-    /* Hover específico nos Submenus Aninhados */
+    /* Hover nos Submenus */
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button:hover {
         border: none !important;
-        border-left: 1px solid rgba(255, 255, 255, 0.25) !important;
+        border-left: 1px solid rgba(139, 92, 246, 0.6) !important;
         background: rgba(255, 255, 255, 0.03) !important;
         background-color: rgba(255, 255, 255, 0.03) !important;
-        background-image: none !important;
         color: #FFFFFF !important;
-        box-shadow: none !important;
+        transform: translateX(2px) !important;
     }
 
     /* Submenu Ativo Aninhado */
@@ -403,10 +437,37 @@ st.markdown("""
         border-left: 2px solid var(--accent) !important;
         background: transparent !important;
         background-color: transparent !important;
-        background-image: none !important;
         color: var(--accent) !important;
-        font-weight: 650 !important;
+        font-weight: 700 !important;
         box-shadow: none !important;
+    }
+
+    /* Ajuste de layout específico do SaaS Multi-Tenant para alinhar com os menus principais */
+    section[data-testid="stSidebar"] .st-key-menusaas button {
+        margin-left: 0 !important;
+        border: 1px solid rgba(139, 92, 246, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        font-size: 0.9em !important;
+        font-weight: 700 !important;
+        background-color: rgba(139, 92, 246, 0.14) !important;
+        color: #FFFFFF !important;
+    }
+
+    section[data-testid="stSidebar"] .st-key-menusaas button:hover {
+        background-color: rgba(139, 92, 246, 0.22) !important;
+        border-color: rgba(139, 92, 246, 0.5) !important;
+        transform: translateX(3px) !important;
+        color: #FFFFFF !important;
+    }
+
+    section[data-testid="stSidebar"] .st-key-menusaas button[data-testid="baseButton-primary"] {
+        background-color: rgba(139, 92, 246, 0.22) !important;
+        color: var(--accent) !important;
+        border: 1px solid var(--accent) !important;
+        border-left: 4px solid var(--accent) !important;
+        border-radius: 0 8px 8px 0 !important;
+        font-weight: 700 !important;
     }
 
     /* Botões de Ação no Rodapé (Sair / Reset) dentro de colunas */
