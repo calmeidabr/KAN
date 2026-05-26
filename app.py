@@ -74,29 +74,6 @@ class App:
             </div>
             """, unsafe_allow_html=True)
             
-            icones = {
-                "Home": "◇",
-                "Talentos": "●",
-                "Vagas": "●",
-                "Diagnósticos": "●",
-                "Mapas": "●",
-                "Analytics": "●",
-                "Processo seletivo": "●",
-                "Hierarquia / Deptos": "●",
-                "Equipes": "●",
-                "Empresas": "●",
-                "SaaS Multi-Tenant": "❖",
-                "Empresa": "●",
-                "Usuários": "●",
-                "Painel de Controle": "●"
-            }
-
-            group_icons = {
-                "CADASTROS": "⊞",
-                "ANÁLISES": "⎔",
-                "CONFIGURAÇÕES": "⚙",
-                "ADMIN": "⛭"
-            }
             menu_groups = {
                 "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes", "Empresas", "SaaS Multi-Tenant"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics", "Processo seletivo"],
@@ -116,11 +93,11 @@ class App:
 
                 for grupo, itens in menu_groups.items():
                     is_exp = st.session_state[f"exp_{grupo}"]
-                    chevron = "▴" if is_exp else "▾"
                     
-                    grp_label = f"{grupo} \u00A0 {chevron}"
+                    grp_label = grupo
                     grupo_clean = grupo.lower().replace("á", "a").replace("ç", "c").replace("õ", "o")
-                    st.button(grp_label, key=f"grp{grupo_clean}", use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
+                    key_grp = f"grp{grupo_clean}_open" if is_exp else f"grp{grupo_clean}_closed"
+                    st.button(grp_label, key=key_grp, use_container_width=True, on_click=toggle_exp_group, args=(grupo,))
                         
                     if is_exp:
                         with st.container():
@@ -181,10 +158,10 @@ class App:
         if escolha != "Home":
             col_logo, col_empty = st.columns([1, 4])
             with col_logo:
-                if header_img != "🔮":
+                if header_img not in ["◇", "🔮"] and os.path.exists(header_img):
                     st.image(header_img, width=150)
                 else:
-                    st.markdown("<h3 style='margin:0; color: #F18617;'>🔮 KAN</h3>", unsafe_allow_html=True)
+                    st.markdown("<h3 style='margin:0; color: #F18617;'><i class='icon-activity' style='font-size:24px; vertical-align:middle; margin-right:8px;'></i>KAN</h3>", unsafe_allow_html=True)
 
         handler = self.routes.get(escolha, self.routes["Home"])
         handler()

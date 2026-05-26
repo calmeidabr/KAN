@@ -381,13 +381,13 @@ class AnalyticsMenu(BaseMenu):
         st.write("---")
         
         # Tabela Analítica de Detalhes
-        st.subheader("📋 Tabela Analítica de Talentos")
+        st.subheader("Tabela Analítica de Talentos")
         
         # Selecionar e ordenar colunas principais para visualização
         table_df = df_filtered[["nome", "grupo", "profissao", "cargo", "kan", "perfil", "categoria", "qualidades", "ai_diagnosis"]].copy()
         
         # Formatar a coluna de Diagnóstico de IA para sim/não visual
-        table_df["Diagnóstico IA"] = table_df["ai_diagnosis"].apply(lambda x: "✅ Ativo" if bool(x) and str(x).strip() != "" else "❌ Ausente")
+        table_df["Diagnóstico IA"] = table_df["ai_diagnosis"].apply(lambda x: "Ativo" if bool(x) and str(x).strip() != "" else "Ausente")
         table_df = table_df.drop(columns=["ai_diagnosis"])
         
         # Renomear cabeçalhos

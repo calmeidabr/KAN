@@ -232,7 +232,7 @@ class AdminMenu(BaseMenu):
 
                 col_btn1, col_btn2 = st.columns([1, 5])
                 with col_btn1:
-                    if st.button("⭠ \u00A0 Voltar à Lista", key="btn_back_list", use_container_width=True):
+                    if st.button("Voltar à Lista", key="btn_back_list", use_container_width=True):
                         st.session_state["view_selected_user"] = None
                         st.session_state["edit_mode_user"] = None
                         st.rerun()
@@ -601,7 +601,7 @@ class AdminMenu(BaseMenu):
                         
                         clientes_salvos = clientes_salvos_aud
                         
-                        with st.expander("🔍 Busca de Perfis Cadastrados (Auditoria)", expanded=False):
+                        with st.expander("Busca de Perfis Cadastrados (Auditoria)", expanded=False):
                             st.markdown("### Selecione os filtros desejados")
                             st.caption("Você pode escolher mais de uma opção em cada filtro ou deixá-los em branco para buscar todos.")
                             
@@ -634,7 +634,7 @@ class AdminMenu(BaseMenu):
                             with col_b5: filtro_profissao = st.multiselect("Profissão", options=all_profissoes, key="f_profissao_aud")
                             with col_b6: filtro_grupo = st.multiselect("Grupo", options=all_grupos, key="f_emp_aud")
                             
-                            if st.button("🔎 Realizar Busca de Perfis", key="btn_busca_aud"):
+                            if st.button("Realizar Busca de Perfis", key="btn_busca_aud"):
                                 resultados_busca = []
                                 for n, c in clientes_salvos.items():
                                     match_kan = True
@@ -699,7 +699,7 @@ class AdminMenu(BaseMenu):
                                 else:
                                     st.warning("Nenhum perfil encontrado com os critérios selecionados.")
                                     
-                        with st.expander("📊 Ver Scores Técnicos (Auditoria)", expanded=False):
+                        with st.expander("Ver Scores Técnicos (Auditoria)", expanded=False):
                             p_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Perfil'), '')
                             c_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Categoria'), '')
                             q_val = next((item['Valor'] for item in dados_perfil if item['Campo'] == 'Qualidades'), '')
@@ -814,7 +814,7 @@ class AdminMenu(BaseMenu):
                                             img_final = Image.alpha_composite(fundo_img, draw_layer)
                                             st.image(img_final.convert("RGB"), caption="Visualização do Triângulo Harmônico", use_container_width=True)
                                             
-                                            st.markdown("### 👥 Adicionar perfil para comparação")
+                                            st.markdown("### <i class='icon-users' style='font-size: 20px; vertical-align: middle; margin-right: 8px; color: #F18617;'></i>Adicionar perfil para comparação", unsafe_allow_html=True)
                                             
                                             def obter_vertices_triangulo(nome_comp, data_nasc_str):
                                                 def clean_val(v):
@@ -958,7 +958,7 @@ class AdminMenu(BaseMenu):
                                 except Exception as e:
                                     st.error(f"Erro ao gerar triângulo visual: {e}")
                             else:
-                                st.warning("⚠️ O triângulo harmônico não foi formado.")
+                                st.warning("O triângulo harmônico não foi formado.")
                     except Exception as ex:
                         st.error(f"Erro ao processar dados de auditoria para {nome_aud}: {ex}")
 
@@ -990,7 +990,7 @@ class AdminMenu(BaseMenu):
         with t_tab5:
             st.subheader("Gerenciamento de Banners e Imagens")
             
-            with st.expander("🖼️ Biblioteca de Imagens (Assets)", expanded=False):
+            with st.expander("Biblioteca de Imagens (Assets)", expanded=False):
                 st.write("Suba novas imagens para usar nos banners.")
                 new_asset_file = st.file_uploader("Upload de nova imagem para biblioteca", type=["png", "jpg", "jpeg"], key="upload_asset")
                 new_asset_name = st.text_input("Nome da imagem no sistema", key="asset_name")

@@ -27,8 +27,8 @@ class EquipesMenu(BaseMenu):
 
         # Diagnóstico: exibe erro de carregamento se houver
         if st.session_state.get("equipes_load_error"):
-            st.error(f"⚠️ Erro ao carregar equipes do Supabase: {st.session_state['equipes_load_error']}")
-            st.info("💡 Execute o script `equipes_schema.sql` no SQL Editor do Supabase para criar a tabela.")
+            st.error(f"Erro ao carregar equipes do Supabase: {st.session_state['equipes_load_error']}")
+            st.info("Execute o script `equipes_schema.sql` no SQL Editor do Supabase para criar a tabela.")
             st.session_state.pop("equipes_load_error", None)
 
         # Inicia variáveis de estado
@@ -141,13 +141,13 @@ class EquipesMenu(BaseMenu):
                 # Botões de Importação Rápida
                 col_btn_lote1, col_btn_lote2, col_btn_lote_esp = st.columns([2, 2, 4])
                 with col_btn_lote1:
-                    if st.button("➕ Adicionar Filtro", key="btn_eq_add_filter_all", use_container_width=True):
+                    if st.button("Adicionar Filtro", key="btn_eq_add_filter_all", use_container_width=True):
                         st.session_state["eq_membros_multiselect"] = list(set(st.session_state.get("eq_membros_multiselect", []) + candidatos_elegiveis))
                         st.session_state["membros_selecionados_temp"] = st.session_state["eq_membros_multiselect"]
                         st.toast(f"{len(candidatos_elegiveis)} membros adicionados!")
                         st.rerun()
                 with col_btn_lote2:
-                    if st.button("🗑 Limpar Seleção", key="btn_eq_clear_temp", use_container_width=True, type="secondary"):
+                    if st.button("Limpar Seleção", key="btn_eq_clear_temp", use_container_width=True, type="secondary"):
                         st.session_state["eq_membros_multiselect"] = []
                         st.session_state["membros_selecionados_temp"] = []
                         st.toast("Seleção limpa!")
@@ -170,10 +170,9 @@ class EquipesMenu(BaseMenu):
 
                 st.write(f"Total de integrantes selecionados: **{len(membros_finais)}**")
                 
-                st.write("---")
                 col_s1, col_s2, col_s3 = st.columns([1, 1, 5])
                 with col_s1:
-                    if st.button("💾 Salvar", type="primary", use_container_width=True, key="btn_save_eq_final"):
+                    if st.button("Salvar", type="primary", use_container_width=True, key="btn_save_eq_final"):
                         if not nome_equipe or not nome_equipe.strip():
                             st.error("O campo 'Nome da Equipe' é obrigatório.")
                         elif not membros_finais:
@@ -194,7 +193,7 @@ class EquipesMenu(BaseMenu):
                                     sucesso_salvar = True
                                 except Exception as ex:
                                     st.error(f"Erro ao salvar no Supabase: {ex}")
-                                    st.info("💡 A tabela 'equipes' pode não existir no Supabase. Execute o script equipes_schema.sql no SQL Editor do Supabase.")
+                                    st.info("A tabela 'equipes' pode não existir no Supabase. Execute o script equipes_schema.sql no SQL Editor do Supabase.")
 
                             if not sucesso_salvar:
                                 # Fallback local — guarda como JSON string para compatibilidade
@@ -215,7 +214,7 @@ class EquipesMenu(BaseMenu):
                                 time.sleep(1)
                                 st.rerun()
                 with col_s2:
-                    if st.button("✖ Cancelar", use_container_width=True, key="btn_canc_eq_final"):
+                    if st.button("Cancelar", use_container_width=True, key="btn_canc_eq_final"):
                         st.session_state["add_equipe_mode"] = False
                         st.session_state["membros_selecionados_temp"] = []
                         st.rerun()
@@ -273,12 +272,12 @@ class EquipesMenu(BaseMenu):
                                 st.rerun()
                         with col_card5:
                             tri_open = st.session_state.get(f"eq_tri_{idx}", False)
-                            tri_label = "⬆ Ocultar" if tri_open else "🔺 Triângulos"
+                            tri_label = "Ocultar" if tri_open else "Triângulos"
                             if st.button(tri_label, key=f"btn_tri_eq_{idx}", use_container_width=True):
                                 st.session_state[f"eq_tri_{idx}"] = not tri_open
                                 st.rerun()
                         with col_card6:
-                            if st.button("🗑", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
+                            if st.button(" ", key=f"btn_d_eq_{idx}", type="secondary", use_container_width=True):
                                 excluido = False
                                 if supabase_client:
                                     try:
@@ -326,7 +325,7 @@ class EquipesMenu(BaseMenu):
                                 st.session_state[key_temp_nome] = novo_nome_eq
                             with col_nome_eq2:
                                 st.write("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                                edit_lider_mode = st.checkbox("⚙️ Definir Líder da Equipe", key=f"chk_edit_lider_{idx}")
+                                edit_lider_mode = st.checkbox("Definir Líder da Equipe", key=f"chk_edit_lider_{idx}")
 
                             st.write("")
 
@@ -334,13 +333,13 @@ class EquipesMenu(BaseMenu):
                                 st.info("Nenhum membro vinculado a esta equipe no momento.")
                             else:
                                 if edit_lider_mode:
-                                    st.caption("Clique em **Tornar Líder** para eleger o líder e/ou **❌ Excluir** para remover o membro.")
+                                    st.caption("Clique em **Tornar Líder** para eleger o líder e/ou **Excluir** para remover o membro.")
                                     # Cards interativos com controles de Liderança e Exclusão
                                     cols = st.columns(3)
                                     for m_idx, m_nome in enumerate(sorted(membros_atuais)):
                                         col = cols[m_idx % 3]
                                         m_info = clientes.get(m_nome)
-                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;">👑 Líder</span>' if m_nome == temp_lider else ''
+                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;"><i class="icon-crown" style="font-size:14px; margin-right:4px; vertical-align:middle;"></i>Líder</span>' if m_nome == temp_lider else ''
 
                                         with col:
                                             with st.container(border=True):
@@ -348,7 +347,7 @@ class EquipesMenu(BaseMenu):
                                                 m_role = "Cadastro não encontrado"
                                                 if m_info:
                                                     m_foto = m_info.get("foto_base64")
-                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;">👤</div>'
+                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div>'
                                                     
                                                     m_profissao = m_info.get("profissao", "")
                                                     if "profissao" not in m_info:
@@ -361,7 +360,7 @@ class EquipesMenu(BaseMenu):
                                                     if m_cargo_oficial:
                                                         m_role = f"{m_role} ({m_cargo_oficial})"
                                                 else:
-                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;">❓</div>'
+                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
 
                                                 card_header_html = f"""
                                                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -379,25 +378,25 @@ class EquipesMenu(BaseMenu):
                                                 with col_btn1:
                                                     is_selected = (temp_lider == m_nome)
                                                     if is_selected:
-                                                        st.button("👑 Líder", key=f"btn_sel_{idx}_{m_idx}", type="primary", disabled=True, use_container_width=True)
+                                                        st.button("Líder", key=f"btn_sel_{idx}_{m_idx}", type="primary", disabled=True, use_container_width=True)
                                                     else:
                                                         if st.button("Tornar Líder", key=f"btn_set_{idx}_{m_idx}", use_container_width=True):
                                                             st.session_state[key_temp_lider] = m_nome
                                                             st.rerun()
                                                 with col_btn2:
-                                                    if st.button("❌ Excluir", key=f"btn_excluir_ed_{idx}_{m_idx}", use_container_width=True, type="secondary"):
+                                                    if st.button("Excluir", key=f"btn_excluir_ed_{idx}_{m_idx}", use_container_width=True, type="secondary"):
                                                         st.session_state[key_temp_membros].remove(m_nome)
                                                         if temp_lider == m_nome:
                                                             st.session_state[key_temp_lider] = None
                                                         st.rerun()
                                 else:
-                                    st.caption("Clique em **❌ Excluir da Equipe** para remover o membro.")
+                                    st.caption("Clique em **Excluir da Equipe** para remover o membro.")
                                     # Cards interativos apenas com opção de Exclusão
                                     cols = st.columns(3)
                                     for m_idx, m_nome in enumerate(sorted(membros_atuais)):
                                         col = cols[m_idx % 3]
                                         m_info = clientes.get(m_nome)
-                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;">👑 Líder</span>' if m_nome == temp_lider else ''
+                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;"><i class="icon-crown" style="font-size:14px; margin-right:4px; vertical-align:middle;"></i>Líder</span>' if m_nome == temp_lider else ''
 
                                         with col:
                                             with st.container(border=True):
@@ -405,7 +404,7 @@ class EquipesMenu(BaseMenu):
                                                 m_role = "Cadastro não encontrado"
                                                 if m_info:
                                                     m_foto = m_info.get("foto_base64")
-                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;">👤</div>'
+                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div>'
                                                     
                                                     m_profissao = m_info.get("profissao", "")
                                                     if "profissao" not in m_info:
@@ -418,7 +417,7 @@ class EquipesMenu(BaseMenu):
                                                     if m_cargo_oficial:
                                                         m_role = f"{m_role} ({m_cargo_oficial})"
                                                 else:
-                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;">❓</div>'
+                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
 
                                                 card_header_html = f"""
                                                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
@@ -432,7 +431,7 @@ class EquipesMenu(BaseMenu):
                                                 card_header_html_clean = "".join(line.strip() for line in card_header_html.split("\n"))
                                                 st.markdown(card_header_html_clean, unsafe_allow_html=True)
 
-                                                if st.button("❌ Excluir da Equipe", key=f"btn_excluir_{idx}_{m_idx}", use_container_width=True, type="secondary"):
+                                                if st.button("Excluir da Equipe", key=f"btn_excluir_{idx}_{m_idx}", use_container_width=True, type="secondary"):
                                                     st.session_state[key_temp_membros].remove(m_nome)
                                                     if temp_lider == m_nome:
                                                         st.session_state[key_temp_lider] = None
@@ -448,7 +447,7 @@ class EquipesMenu(BaseMenu):
                                     st.session_state[key_temp_nome].strip() != eq["nome"]
                                 )
                                 if has_changes:
-                                    st.warning("⚠️ Há alterações não salvas nesta equipe!")
+                                    st.warning("Há alterações não salvas nesta equipe!")
                                 else:
                                     st.info("Nenhuma alteração pendente.")
 
@@ -459,7 +458,7 @@ class EquipesMenu(BaseMenu):
                                     st.write("Líder atual selecionado: *Nenhum*")
 
                             with col_save2:
-                                if st.button("💾 Salvar Alterações da Equipe", key=f"btn_save_changes_{idx}", type="primary", use_container_width=True):
+                                if st.button("Salvar Alterações da Equipe", key=f"btn_save_changes_{idx}", type="primary", use_container_width=True):
                                     nome_final = st.session_state[key_temp_nome].strip()
                                     if not nome_final:
                                         st.error("O nome da equipe não pode ser vazio.")
@@ -514,7 +513,7 @@ class EquipesMenu(BaseMenu):
                         # ── Seção: Triângulos Harmônicos ────────────────────────
                         if st.session_state.get(f"eq_tri_{idx}", False):
                             st.write("---")
-                            st.markdown("### 🔺 Triângulos Harmônicos da Equipe")
+                            st.markdown("### <i class='icon-activity' style='font-size: 20px; vertical-align: middle; margin-right: 8px; color: #F18617;'></i>Triângulos Harmônicos da Equipe", unsafe_allow_html=True)
 
                             def _calcular_vertices(nome_comp, data_nasc_str):
                                 """Retorna lista de 3 vértices do triângulo harmônico ou None."""
@@ -600,7 +599,7 @@ class EquipesMenu(BaseMenu):
                                 key=f"tri_membros_sel_{idx}"
                             )
 
-                            if st.button("🔺 Criar Triângulos Harmônicos", key=f"btn_tri_calc_{idx}", type="primary"):
+                            if st.button("Criar Triângulos Harmônicos", key=f"btn_tri_calc_{idx}", type="primary"):
                                 st.session_state[f"tri_calcular_{idx}"] = True
 
                             if st.session_state.get(f"tri_calcular_{idx}", False):
@@ -633,7 +632,7 @@ class EquipesMenu(BaseMenu):
 
                                 if erros:
                                     for e_msg in erros:
-                                        st.warning(f"⚠️ {e_msg}")
+                                        st.warning(f"<i class='icon-alert-triangle'></i> {e_msg}", unsafe_allow_html=True)
 
                                 if resultados_tri:
                                     # Imagem comparativa
@@ -691,7 +690,7 @@ class EquipesMenu(BaseMenu):
                                                     cx = sum(p[0] for p in poly_points) // 3
                                                     cy = sum(p[1] for p in poly_points) // 3
                                                     primeiro_nome = str(m_nome).split()[0]
-                                                    nome_display = f"👑 {primeiro_nome}" if m_nome == lider_atual else primeiro_nome
+                                                    nome_display = f"L. {primeiro_nome}" if m_nome == lider_atual else primeiro_nome
                                                     draw_notes.text((cx - 20, cy - 12), nome_display, fill=(30, 30, 30), font=font_label)
 
                                                     # Adiciona a esfera preta no vértice do KAN (poly_points[0])

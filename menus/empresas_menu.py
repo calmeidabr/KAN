@@ -31,7 +31,7 @@ class EmpresasMenu(BaseMenu):
         if emp_em_visualizacao and not emp_em_edicao:
             col_btn1, col_btn2 = st.columns([1, 5])
             with col_btn1:
-                if st.button("⭠ \u00A0 Voltar à Lista", key="btn_back_emp_list", use_container_width=True):
+                if st.button("Voltar à Lista", key="btn_back_emp_list", use_container_width=True):
                     st.session_state["view_empresa_selected"] = None
                     st.rerun()
             st.write("---")
@@ -39,11 +39,11 @@ class EmpresasMenu(BaseMenu):
             with st.container(border=True):
                 top_c1, top_c2 = st.columns([1, 4])
                 with top_c1:
-                    logo_val = emp_em_visualizacao.get('logo') or '⛶'
-                    if len(logo_val) > 20:
+                    logo_val = emp_em_visualizacao.get('logo')
+                    if logo_val and len(logo_val) > 20:
                         st.image(f"data:image/png;base64,{logo_val}", width=80)
                     else:
-                        st.markdown(f"<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px;'>{logo_val}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; height: 80px;'><i class='icon-building' style='color:#F18617;'></i></div>", unsafe_allow_html=True)
                 with top_c2:
                     st.markdown(f"<h3 style='margin: 0; color: #FFFFFF;'>{emp_em_visualizacao['nome_empresa']}</h3>", unsafe_allow_html=True)
                     st.caption(f"CNPJ: {emp_em_visualizacao.get('cnpj') or 'Não informado'} | Segmento: {emp_em_visualizacao.get('segmento') or 'Não informado'}")
@@ -127,7 +127,7 @@ class EmpresasMenu(BaseMenu):
                         elif ed_cnpj_str.strip() and not validar_cnpj(ed_cnpj_str):
                             st.error("CNPJ inválido. Verifique a numeração informada.")
                         else:
-                            novo_logo = emp_em_edicao.get("logo") or "⛶"
+                            novo_logo = emp_em_edicao.get("logo") or ""
                             if up_logo_ed:
                                 b64_l = compress_image_to_b64(up_logo_ed, max_width=300)
                                 if b64_l: novo_logo = b64_l
@@ -213,7 +213,7 @@ class EmpresasMenu(BaseMenu):
                         elif n_cnpj_str.strip() and not validar_cnpj(n_cnpj_str):
                             st.error("CNPJ inválido. Verifique a numeração informada.")
                         else:
-                            novo_logo = "⛶"
+                            novo_logo = ""
                             if up_logo_add:
                                 b64_l = compress_image_to_b64(up_logo_add, max_width=300)
                                 if b64_l: novo_logo = b64_l
@@ -270,11 +270,11 @@ class EmpresasMenu(BaseMenu):
                     with st.container(border=True):
                         col_c1, col_c2, col_c3, col_c4 = st.columns([1, 3, 2, 2])
                         with col_c1:
-                            logo_v = emp.get('logo') or '⛶'
-                            if len(logo_v) > 20:
+                            logo_v = emp.get('logo')
+                            if logo_v and len(logo_v) > 20:
                                 st.image(f"data:image/png;base64,{logo_v}", width=45)
                             else:
-                                st.markdown(f"<span style='font-size: 1.5em;'>{logo_v}</span>", unsafe_allow_html=True)
+                                st.markdown(f"<span style='font-size: 1.5em; display: inline-flex; align-items: center; justify-content: center; height: 45px; width: 45px; background: rgba(241,134,23,0.15); border-radius: 6px; border: 1px dashed rgba(241,134,23,0.3);'><i class='icon-building' style='color:#F18617; font-size: 20px;'></i></span>", unsafe_allow_html=True)
                         with col_c2:
                             st.write(f"**{emp['nome_empresa']}**")
                             st.caption(f"{emp.get('razao_social') or ''}")

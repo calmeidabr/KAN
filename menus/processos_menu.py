@@ -66,7 +66,7 @@ class ProcessosMenu(BaseMenu):
                 vaga_desc = st.text_area("Descrição da vaga:", height=100, key="proc_vaga_desc")
 
                 st.write("---")
-                if st.button("Salvar", type="primary", key="proc_salvar_btn"):
+                if st.button("Salvar", type="primary", key="btn_save_vaga"):
                     if not vaga_nome or not vaga_nome.strip():
                         st.error("O Nome da Vaga é obrigatório.")
                     else:
@@ -126,8 +126,9 @@ class ProcessosMenu(BaseMenu):
                                 
                             with col_c2:
                                 is_open = st.session_state.get(f"vaga_open_{vg['id']}", False)
-                                btn_label = "▴ Ocultar Detalhes" if is_open else "▾ Ver Detalhes"
-                                if st.button(btn_label, key=f"btn_vaga_{vg['id']}", use_container_width=True):
+                                btn_label = "Ocultar Detalhes" if is_open else "Ver Detalhes"
+                                btn_key = f"btn_vaga_open_{vg['id']}" if is_open else f"btn_vaga_closed_{vg['id']}"
+                                if st.button(btn_label, key=btn_key, use_container_width=True):
                                     st.session_state[f"vaga_open_{vg['id']}"] = not is_open
                                     st.rerun()
                                     
@@ -145,7 +146,7 @@ class ProcessosMenu(BaseMenu):
                                 with col_d2:
                                     if vg.get('link_vaga'):
                                         st.markdown(f"[Link da Vaga]({vg['link_vaga']})")
-                                    if st.button("Excluir Vaga", key=f"del_vaga_{vg['id']}", type="secondary", use_container_width=True):
+                                    if st.button("Excluir Vaga", key=f"btn_delete_vaga_{vg['id']}", type="secondary", use_container_width=True):
                                         supabase_client.table("vagas").delete().eq("id", vg['id']).execute()
                                         st.rerun()
                 else:

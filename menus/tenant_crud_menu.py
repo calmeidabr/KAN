@@ -51,7 +51,7 @@ class TenantCrudMenu(BaseMenu):
                         success, message = register_user(new_email, new_password, new_name)
                         if success:
                             st.success(message)
-                            st.info("💡 Protip: Vá na aba 'Entrar' para acessar seu workspace.")
+                            st.info("Protip: Vá na aba 'Entrar' para acessar seu workspace.")
                         else:
                             st.error(f"Erro no cadastro: {message}")
             return
@@ -65,7 +65,7 @@ class TenantCrudMenu(BaseMenu):
                 st.markdown(f"**Logado como:** `{user.email}`")
                 st.markdown(f"**Workspace Ativo (tenant_id):** `{tenant_id}`")
             with col_u2:
-                if st.button("🚪 Sair do Workspace", use_container_width=True, key="btn_saas_logout"):
+                if st.button("Sair do Workspace", use_container_width=True, key="btn_saas_logout"):
                     logout_user()
 
         # Inicia variáveis de controle do CRUD
@@ -84,7 +84,7 @@ class TenantCrudMenu(BaseMenu):
             
             col_b1, col_b2 = st.columns([1, 5])
             with col_b1:
-                if st.button("Salvar", type="primary", key="btn_save_rec"):
+                if st.button("Salvar", type="primary", key="btn_save_changes_rec"):
                     if not nome.strip():
                         st.error("O nome é obrigatório.")
                     else:
@@ -94,7 +94,7 @@ class TenantCrudMenu(BaseMenu):
                             time.sleep(1)
                             st.rerun()
             with col_b2:
-                if st.button("Cancelar", key="btn_cancel_add"):
+                if st.button("Cancelar", key="btn_canc_add"):
                     st.session_state["add_mode"] = False
                     st.rerun()
 
@@ -114,7 +114,7 @@ class TenantCrudMenu(BaseMenu):
             
             col_eb1, col_eb2 = st.columns([1, 5])
             with col_eb1:
-                if st.button("Salvar Alterações", type="primary", key="btn_save_edit"):
+                if st.button("Salvar Alterações", type="primary", key="btn_save_changes_edit"):
                     if not ed_nome.strip():
                         st.error("O nome é obrigatório.")
                     else:
@@ -124,7 +124,7 @@ class TenantCrudMenu(BaseMenu):
                             time.sleep(1)
                             st.rerun()
             with col_eb2:
-                if st.button("Cancelar", key="btn_cancel_edit"):
+                if st.button("Cancelar", key="btn_canc_edit"):
                     st.session_state["edit_id"] = None
                     st.rerun()
 
@@ -134,7 +134,7 @@ class TenantCrudMenu(BaseMenu):
             with col_h1:
                 st.subheader("Registros cadastrados neste Workspace")
             with col_h2:
-                if st.button("➕ Adicionar Registro", use_container_width=True, type="primary", key="btn_start_add"):
+                if st.button("Adicionar Registro", use_container_width=True, type="primary", key="btn_start_add"):
                     st.session_state["add_mode"] = True
                     st.rerun()
             
@@ -148,15 +148,15 @@ class TenantCrudMenu(BaseMenu):
                     with st.container(border=True):
                         col_r1, col_r2 = st.columns([4, 1])
                         with col_r1:
-                            st.markdown(f"##### 📁 {rec['nome']}")
+                            st.markdown(f"##### <i class='icon-folder' style='color:#F18617; font-size:18px; vertical-align:middle; margin-right:6px;'></i><span style='vertical-align:middle;'>{rec['nome']}</span>", unsafe_allow_html=True)
                             st.write(rec['descricao'] or "*Sem descrição*")
                             st.caption(f"ID do Registro: {rec['id']} | Criado em: {rec['created_at']}")
                         with col_r2:
                             # Botões de ação para Edição e Exclusão
-                            if st.button("✏️ Editar", key=f"btn_edit_{rec['id']}", use_container_width=True):
+                            if st.button("Editar", key=f"btn_edit_{rec['id']}", use_container_width=True):
                                 st.session_state["edit_id"] = rec["id"]
                                 st.rerun()
-                            if st.button("🗑️ Excluir", key=f"btn_delete_{rec['id']}", use_container_width=True):
+                            if st.button("Excluir", key=f"btn_delete_{rec['id']}", use_container_width=True):
                                 if delete_record(rec["id"]):
                                     st.success("Registro excluído!")
                                     time.sleep(0.5)

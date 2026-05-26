@@ -13,7 +13,7 @@ def modal_detalhes_talento(nome, info, dept_map_list):
         if foto_b64:
             st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 100%; max-width: 180px; border-radius: 12px; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">', unsafe_allow_html=True)
         else:
-            st.markdown('<div style="width: 150px; height: 150px; border-radius: 12px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size: 4em; color: rgba(255,255,255,0.2);">👤</span></div>', unsafe_allow_html=True)
+            st.markdown('<div style="width: 150px; height: 150px; border-radius: 12px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size: 4em; color: rgba(255,255,255,0.2);"><i class="icon-user"></i></span></div>', unsafe_allow_html=True)
     with col2:
         st.write(f"**Data de Nascimento:** {info.get('data_nascimento', 'Não informada')}")
         st.write(f"**Cargo/Profissão:** {info.get('cargo', 'Não informado')}")
@@ -134,6 +134,12 @@ class HierarquiaMenu(BaseMenu):
             font-size: 1.5em;
             flex-shrink: 0;
         }
+        /* Ajuste para ícones de microações nos botões da hierarquia */
+        div[class*="st-key-btn_edit_cargo_tree_"] button::before,
+        div[class*="st-key-btn_rem_"] button::before {
+            font-size: 16px !important;
+            margin-right: 0 !important;
+        }
         </style>
         """, unsafe_allow_html=True)
         st.info("Estruture e gerencie o organograma de departamentos das empresas cadastradas.")
@@ -214,7 +220,7 @@ class HierarquiaMenu(BaseMenu):
                         if foto_b64:
                             st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #F18617; vertical-align: middle;">', unsafe_allow_html=True)
                         else:
-                            st.markdown('<span style="font-size: 1.15em; vertical-align: middle;">👤</span>', unsafe_allow_html=True)
+                            st.markdown('<span style="vertical-align: middle; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: rgba(255,255,255,0.4);"><i class="icon-user" style="font-size:16px;"></i></span>', unsafe_allow_html=True)
                     with cols_t[1]:
                         st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
                         if st.button(t_nome, key=f"lnk_emp_lst_{t_nome}"):
@@ -232,7 +238,7 @@ class HierarquiaMenu(BaseMenu):
             st.write("---")
             if not deptos:
                 st.warning(f"Nenhuma hierarquia estruturada para a empresa '{empresa_selecionada}'.")
-                if st.button("Adicionar", type="primary", key=f"btn_add_str_{empresa_selecionada}"):
+                if st.button("Adicionar", type="primary", key=f"btn_start_add_str_{empresa_selecionada}"):
                     st.session_state[state_key_edit] = True
                     st.session_state[state_key_builder] = [
                         {"id": f"dept_{int(time.time()*1000)}_0", "nome": "Presidência / CEO", "parent_id": "Nenhum (Nível Mais Alto)"}
@@ -241,7 +247,7 @@ class HierarquiaMenu(BaseMenu):
             else:
                 col_topo1, col_topo2 = st.columns([1, 5])
                 with col_topo1:
-                    if st.button("Editar", type="primary", key=f"btn_ed_str_{empresa_selecionada}"):
+                    if st.button("Editar", type="primary", key=f"btn_edit_str_{empresa_selecionada}"):
                         st.session_state[state_key_edit] = True
                         st.session_state[state_key_builder] = [
                             {"id": d["departamento_id"], "nome": d["nome"], "parent_id": d.get("parent_id") or "Nenhum (Nível Mais Alto)"}
@@ -257,7 +263,7 @@ class HierarquiaMenu(BaseMenu):
                     children = [d for d in deptos if (d.get("parent_id") == parent_id) or (parent_id == "Nenhum (Nível Mais Alto)" and (d.get("parent_id") is None or d.get("parent_id") == "Nenhum (Nível Mais Alto)"))]
                     for ch in sorted(children, key=lambda x: x.get("ordem", 0)):
                         indent = "\u00A0\u00A0\u00A0\u00A0" * level
-                        prefix = "└─ " if level > 0 else "⭐ "
+                        prefix = "└─ " if level > 0 else ""
                         
                         # Talentos associados a este departamento
                         dept_talents = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]]
@@ -281,7 +287,7 @@ class HierarquiaMenu(BaseMenu):
                                                 if foto_b64:
                                                     st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; display: block;" />', unsafe_allow_html=True)
                                                 else:
-                                                    st.markdown('<div class="hierarquia-card-avatar">👤</div>', unsafe_allow_html=True)
+                                                    st.markdown('<div class="hierarquia-card-avatar"><i class="icon-user" style="color: #F18617;"></i></div>', unsafe_allow_html=True)
                                             with card_cols[1]:
                                                 st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
                                                 if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
@@ -290,7 +296,7 @@ class HierarquiaMenu(BaseMenu):
                                                 st.markdown(f"<span style='color: #F18617; font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
                                             with card_cols[2]:
                                                 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-                                                if st.button("✏️", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
+                                                if st.button(" ", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
                                                     modal_editar_cargo(t_nome, t_cargo, cargos_list)
                             
                             # Botão de popover para adicionar/alterar membro
@@ -381,11 +387,11 @@ class HierarquiaMenu(BaseMenu):
                     with r_col3:
                         st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
                         if len(builder_list) > 1:
-                            if st.button("🗑️", key=f"btn_rem_{idx}_{item['id']}", help="Remover Departamento", use_container_width=True):
+                            if st.button(" ", key=f"btn_rem_{idx}_{item['id']}", help="Remover Departamento", use_container_width=True):
                                 builder_list.pop(idx)
                                 st.rerun()
 
-                    if st.button(f"➕ Adicionar Subdepartamento sob '{n_nome}'", key=f"btn_add_sub_{idx}_{item['id']}"):
+                    if st.button(f"Adicionar Subdepartamento sob '{n_nome}'", key=f"btn_add_sub_{idx}_{item['id']}"):
                         novo_id = f"dept_{int(time.time()*1000)}_{len(builder_list)}"
                         builder_list.append({"id": novo_id, "nome": f"Subdepartamento de {n_nome}", "parent_id": item["id"]})
                         st.rerun()
@@ -403,7 +409,7 @@ class HierarquiaMenu(BaseMenu):
             st.write("---")
             col_add_root, col_space = st.columns([3, 5])
             with col_add_root:
-                if st.button("➕ Adicionar Novo Departamento Principal", use_container_width=True, key=f"btn_add_root_{empresa_selecionada}"):
+                if st.button("Adicionar Novo Departamento Principal", use_container_width=True, key=f"btn_add_root_{empresa_selecionada}"):
                     novo_id = f"dept_{int(time.time()*1000)}_{len(builder_list)}"
                     builder_list.append({"id": novo_id, "nome": "Novo Departamento", "parent_id": "Nenhum (Nível Mais Alto)"})
                     st.rerun()
@@ -411,7 +417,7 @@ class HierarquiaMenu(BaseMenu):
             st.write("---")
             col_s1, col_s2, col_s3 = st.columns([2, 2, 4])
             with col_s1:
-                if st.button("Salvar", type="primary", use_container_width=True, key=f"btn_save_hier_{empresa_selecionada}"):
+                if st.button("Salvar", type="primary", use_container_width=True, key=f"btn_save_changes_hier_{empresa_selecionada}"):
                     payloads = []
                     for idx_ord, d in enumerate(st.session_state[state_key_builder]):
                         pid = d["parent_id"] if d["parent_id"] != "Nenhum (Nível Mais Alto)" else None

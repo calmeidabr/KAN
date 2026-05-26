@@ -192,13 +192,13 @@ class HomeMenu(BaseMenu):
             c1, c2, c3 = st.columns([1, 1, 1])
             num_banners = len(db_banners) if db_banners else len(st.session_state.banners_data)
             with c1:
-                if st.button("❮", key="prev_home"):
+                if st.button(" ", key="prev_home"):
                     st.session_state.carousel_index = (st.session_state.carousel_index - 1) % num_banners
                     st.rerun()
             with c2:
                 st.markdown(f"<p style='text-align: center; margin-top: 10px; font-weight: bold; opacity: 0.6;'>{st.session_state.carousel_index + 1} / {num_banners}</p>", unsafe_allow_html=True)
             with c3:
-                if st.button("❯", key="next_home"):
+                if st.button(" ", key="next_home"):
                     st.session_state.carousel_index = (st.session_state.carousel_index + 1) % num_banners
                     st.rerun()
 
@@ -208,11 +208,11 @@ class HomeMenu(BaseMenu):
         col_q1, col_q2 = st.columns(2)
         with col_q1:
             with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px;'>⎔ Diagnósticos</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
-                if st.button("Acessar Diagnósticos ➔", key="btn_qa_diag", use_container_width=True, type="primary"):
+                st.markdown("<h3 style='margin-bottom:10px; display: flex; align-items: center; gap: 8px;'><i class='icon-compass' style='color: #F18617; font-size: 20px;'></i>Diagnósticos</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
+                if st.button("Acessar Diagnósticos", key="btn_qa_diag", use_container_width=True, type="primary"):
                     self.app.navigate("Diagnósticos")
         with col_q2:
             with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px;'>○ Talentos & OCR</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
-                if st.button("Cadastrar Talentos ➔", key="btn_qa_tal", use_container_width=True, type="primary"):
+                st.markdown("<h3 style='margin-bottom:10px; display: flex; align-items: center; gap: 8px;'><i class='icon-users' style='color: #F18617; font-size: 20px;'></i>Talentos & OCR</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
+                if st.button("Cadastrar Talentos", key="btn_qa_tal", use_container_width=True, type="primary"):
                     self.app.navigate("Talentos")

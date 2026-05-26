@@ -316,7 +316,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
 
                 col_btn1, col_btn2 = st.columns(2)
                 with col_btn1:
-                    if st.button("Salvar Requisitos do Processo", type="primary", use_container_width=True, key=f"btn_salvar_req_{vaga_id_int}"):
+                    if st.button("Salvar Requisitos do Processo", type="primary", use_container_width=True, key=f"btn_save_custom_req_{vaga_id_int}"):
                         st.session_state["custom_perfis_vagas"][vaga_id_int] = novos_perfis
                         st.session_state["custom_categorias_vagas"][vaga_id_int] = novas_categorias
                         st.session_state["custom_qualidades_vagas"][vaga_id_int] = novas_qualidades
@@ -348,7 +348,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         except Exception as e:
                             st.error(f"Erro ao salvar requisitos personalizados no Supabase: {e}")
                 with col_btn2:
-                    if st.button("Restaurar Originais da Vaga", use_container_width=True, key=f"btn_restaurar_req_{vaga_id_int}"):
+                    if st.button("Restaurar Originais da Vaga", use_container_width=True, key=f"btn_canc_restore_req_{vaga_id_int}"):
                         st.session_state["custom_perfis_vagas"][vaga_id_int] = None
                         st.session_state["custom_categorias_vagas"][vaga_id_int] = None
                         st.session_state["custom_qualidades_vagas"][vaga_id_int] = None
@@ -500,7 +500,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         with col_sec_title:
             st.subheader("Candidatos Associados ao Processo")
         with col_sec_btn:
-            if st.button("Associar Talentos", key="btn_toggle_assoc", use_container_width=True):
+            if st.button("Associar Talentos", key="btn_add_assoc_talents", use_container_width=True):
                 st.session_state["mostrar_selector_talentos"] = True
 
         # Renderizar seletor de associação
@@ -519,7 +519,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 
                 col_actions1, col_actions2 = st.columns(2)
                 with col_actions1:
-                    if st.button("Salvar Associação", type="primary", use_container_width=True, key="btn_salvar_assoc"):
+                    if st.button("Salvar Associação", type="primary", use_container_width=True, key="btn_save_changes_assoc"):
                         st.session_state["candidatos_vagas"][vaga["id"]] = candidatos_selecionados
                         
                         # Salvar/Atualizar no Supabase na tabela processos_seletivos
@@ -546,7 +546,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         st.success("Candidatos associados com sucesso!")
                         st.rerun()
                 with col_actions2:
-                    if st.button("Cancelar", use_container_width=True, key="btn_cancelar_assoc"):
+                    if st.button("Cancelar", use_container_width=True, key="btn_canc_assoc"):
                         st.session_state["mostrar_selector_talentos"] = False
                         st.rerun()
 
@@ -619,18 +619,18 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">{cand["Nome"][0].upper()}</div></div>'
                             
                         card_html = f"""<div class="candidato-card" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.25); backdrop-filter: blur(10px); margin-bottom: 20px; font-family: Outfit, sans-serif; position: relative;">
-<a href="?excluir_cand={cand['Nome']}&vaga_id={vaga['id']}" target="_self" style="position: absolute; top: 15px; right: 15px; background-color: #F18617; color: #7C3AED; border: none; border-radius: 50%; width: 22px; height: 22px; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; line-height: 1;">x</a>
+<a href="?excluir_cand={cand['Nome']}&vaga_id={vaga['id']}" target="_self" style="position: absolute; top: 15px; right: 15px; background-color: #F18617; color: #7C3AED; border: none; border-radius: 50%; width: 22px; height: 22px; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; line-height: 1;"><i class="icon-x" style="font-size:12px;"></i></a>
 {avatar_html}
 <h4 style="margin: 10px 0 2px 0; color: #FFFFFF; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{cand['Nome']}</h4>
-<p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em;">📅 {cand['data_nascimento']}</p>
+<p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><i class="icon-calendar" style="font-size: 12px; color: #F18617;"></i>{cand['data_nascimento']}</p>
 <div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-bottom: 15px;">
 <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
 <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
 <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
 <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
 </div>
-<div style="background: rgba(241, 134, 23, 0.1); border: 1px solid rgba(241, 134, 23, 0.2); border-radius: 8px; padding: 8px; color: #F18617; font-weight: 700; font-size: 1em;">
-🎯 {cand['total_pts']} Pontos
+<div style="background: rgba(241, 134, 23, 0.1); border: 1px solid rgba(241, 134, 23, 0.2); border-radius: 8px; padding: 8px; color: #F18617; font-weight: 700; font-size: 1em; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; flex-direction: column;">
+<div style="display: inline-flex; align-items: center; gap: 6px;"><i class="icon-target" style="font-size: 14px;"></i>{cand['total_pts']} Pontos</div>
 <div style="font-size: 0.65em; font-weight: 400; color: rgba(255,255,255,0.6); margin-top: 2px;">
 KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
 </div>

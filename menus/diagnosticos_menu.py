@@ -85,7 +85,7 @@ class DiagnosticosMenu(BaseMenu):
                     except Exception:
                         pass
 
-        with st.expander("📝 Editar dados do perfil", expanded=False):
+        with st.expander("Editar dados do perfil", expanded=False):
             col_edit1, col_edit2 = st.columns(2)
             with col_edit1:
                 new_nome = st.text_input("Nome", value=nome, key=f"edit_nome_{nome}")
@@ -122,7 +122,7 @@ class DiagnosticosMenu(BaseMenu):
                         sucesso_edit = True
                 
                 if sucesso_edit:
-                    st.toast("✅ Informações atualizadas!")
+                    st.toast("Informações atualizadas!")
                     st.cache_data.clear()
                     st.rerun()
 
@@ -232,7 +232,7 @@ class DiagnosticosMenu(BaseMenu):
                 st.markdown(html_table, unsafe_allow_html=True)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🪄 Gerar Diagnóstico Profissional com IA", key=f"btn_ia_{nome}"):
+                if st.button("Gerar Diagnóstico Profissional com IA", key=f"btn_ia_{nome}"):
                     try:
                         api_key = st.secrets["gemini"]["api_key"]
                         genai.configure(api_key=api_key)
@@ -296,13 +296,13 @@ class DiagnosticosMenu(BaseMenu):
                 nome_limpo_p = remover_acentos(nome).replace(' ', '_')
                 with col_p1:
                     csv_p = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
-                    st.download_button("📥 Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key=f"dl_p_csv_{nome}")
+                    st.download_button("Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key=f"dl_p_csv_{nome}")
                 with col_p2:
                     data_str_pdf = data_input.strftime('%d/%m/%Y')
                     pdf_p = gerar_pdf(nome, data_str_pdf, dados_perfil, titulo="Perfil Comportamental KAN")
-                    st.download_button("📄 Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key=f"dl_p_pdf_{nome}")
+                    st.download_button("Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key=f"dl_p_pdf_{nome}")
                 with col_p3:
-                    if st.button("💾 Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
+                    if st.button("Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
                         salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
 
             if st.session_state.get('show_mapa'):
@@ -404,8 +404,8 @@ class DiagnosticosMenu(BaseMenu):
                 
                 with col1:
                     csv = df.to_csv(sep=';', index=False).encode('utf-8')
-                    st.download_button("📥 Baixar Mapa como CSV", data=csv, file_name=f"mapa_{nome_limpo}.csv", mime="text/csv", key=f"dl_mapa_csv_{nome}")
+                    st.download_button("Baixar Mapa como CSV", data=csv, file_name=f"mapa_{nome_limpo}.csv", mime="text/csv", key=f"dl_mapa_csv_{nome}")
                 with col2:
                     data_str_pdf = data_input.strftime('%d/%m/%Y')
                     pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalistico")
-                    st.download_button("📄 Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key=f"dl_mapa_pdf_{nome}")
+                    st.download_button("Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key=f"dl_mapa_pdf_{nome}")

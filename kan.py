@@ -20,7 +20,7 @@ st.set_page_config(
 # 2. Estilização CSS
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@latest/font/lucide.css">
 <style>
     /* --- ESTILOS GLOBAIS & TIPOGRAFIA PREMIUM --- */
     .stApp {
@@ -294,7 +294,7 @@ st.markdown("""
         border: none !important;
         background: transparent !important;
         background-color: transparent !important;
-        color: var(--text-soft) !important;
+        color: rgba(255, 255, 255, 0.6) !important; /* Branco translúcido em estado neutro */
         text-align: left !important;
         justify-content: flex-start !important;
         padding: 9px 12px !important;
@@ -302,83 +302,112 @@ st.markdown("""
         transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
         font-weight: 500 !important;
         box-shadow: none !important;
-        font-size: 0.9em !important;
+        font-size: 0.95em !important;
         display: flex !important;
         align-items: center !important;
         width: 100% !important;
     }
 
     .stApp section[data-testid="stSidebar"] div.stButton > button:hover {
-        background: rgba(255, 255, 255, 0.04) !important;
-        color: #FFFFFF !important;
+        background: rgba(255, 255, 255, 0.05) !important; /* Realce leve no hover */
+        color: #FFFFFF !important; /* Branco pleno */
         transform: translateX(4px) !important;
     }
 
-    /* Configuração base para os ícones outlined */
+    /* Configuração base para os ícones outlined Lucide */
     .stApp section[data-testid="stSidebar"] div.stButton > button::before {
-        font-family: "bootstrap-icons" !important;
+        font-family: "lucide" !important;
         display: inline-block;
         margin-right: 12px;
-        font-size: 1.1em;
+        font-size: 24px !important; /* Tamanho 24px para navegação/sidebar */
+        font-style: normal !important;
         font-weight: normal !important;
-        color: #e2e8f0 !important;
+        color: rgba(255, 255, 255, 0.6) !important; /* Branco translúcido em estado neutro */
         transition: transform 0.2s ease, color 0.2s ease;
+        line-height: 1 !important;
     }
 
     .stApp section[data-testid="stSidebar"] div.stButton > button:hover::before {
-        transform: scale(1.1);
-        color: var(--accent) !important;
+        transform: scale(1.08) !important;
+        color: #FFFFFF !important; /* Branco pleno no hover */
+    }
+
+    /* Accordion Chevrons (::after) */
+    .stApp section[data-testid="stSidebar"] div.stButton > button[class*="st-key-grp"]::after {
+        font-family: "lucide" !important;
+        margin-left: auto;
+        font-size: 20px !important;
+        color: rgba(255, 255, 255, 0.5) !important;
+        font-style: normal !important;
+        transition: color 0.2s ease;
+    }
+    .stApp section[data-testid="stSidebar"] div.stButton > button[class*="st-key-grp"]:hover::after {
+        color: #FFFFFF !important;
     }
 
     /* MAPEAMENTO DOS ÍCONES OUTLINED VIA CLASS-KEY */
     
     /* Home */
-    .st-key-sidehome button::before { content: "\f425" !important; } /* bi-house */
+    .st-key-sidehome button::before { content: "\e0f5" !important; } /* home */
 
     /* Grupos de Acordeão */
-    .st-key-grpcadastros button::before { content: "\f3c7" !important; } /* bi-folder */
-    .st-key-grpanalises button::before { content: "\f6ce" !important; } /* bi-graph-up-arrow */
-    .st-key-grpconfiguracoes button::before { content: "\f3e5" !important; } /* bi-gear */
-    .st-key-grpadmin button::before { content: "\f483" !important; } /* bi-lock */
+    .st-key-grpcadastros button::before { content: "\e0d7" !important; } /* folder */
+    .st-key-grpanalises button::before { content: "\e038" !important; } /* activity */
+    .st-key-grpconfiguracoes button::before { content: "\e154" !important; } /* settings */
+    .st-key-grpadmin button::before { content: "\e10b" !important; } /* lock */
+
+    /* Accordion Chevrons dinâmicos */
+    div[class*="st-key-grp"][class*="_open"] button::after { content: "\e070" !important; } /* chevron-up */
+    div[class*="st-key-grp"][class*="_closed"] button::after { content: "\e06d" !important; } /* chevron-down */
+
+    /* Chevrons dinâmicos gerais no Main */
+    div[class*="_open_"] button::after {
+        font-family: "lucide" !important;
+        content: "\e070" !important; /* chevron-up */
+        margin-left: 8px;
+        font-size: 16px !important;
+    }
+    div[class*="_closed_"] button::after {
+        font-family: "lucide" !important;
+        content: "\e06d" !important; /* chevron-down */
+        margin-left: 8px;
+        font-size: 16px !important;
+    }
 
     /* Cadastros */
-    .st-key-menutalentos button::before { content: "\f4c0" !important; } /* bi-people */
-    .st-key-menuvagas button::before { content: "\f1c7" !important; } /* bi-briefcase */
-    .st-key-menuhierarquiadeptos button::before { content: "\f30d" !important; } /* bi-diagram-3 */
-    .st-key-menuequipes button::before { content: "\f4db" !important; } /* bi-person-badge */
-    .st-key-menuempresas button::before { content: "\f1d1" !important; } /* bi-building */
-    .st-key-menusaas button::before { content: "\f3e7" !important; } /* bi-globe */
+    .st-key-menutalentos button::before { content: "\e1a4" !important; } /* users */
+    .st-key-menuvagas button::before { content: "\e062" !important; } /* briefcase */
+    .st-key-menuhierarquiadeptos button::before { content: "\e125" !important; } /* network */
+    .st-key-menuequipes button::before { content: "\e342" !important; } /* user-cog */
+    .st-key-menuempresas button::before { content: "\e1cc" !important; } /* building */
+    .st-key-menusaas button::before { content: "\e0e8" !important; } /* globe */
 
     /* Análises */
-    .st-key-menudiagnosticos button::before { content: "\f467" !important; } /* bi-journal-check */
-    .st-key-menumapas button::before { content: "\f2ca" !important; } /* bi-compass */
-    .st-key-menuanalytics button::before { content: "\f4ea" !important; } /* bi-pie-chart */
-    .st-key-menuprocessoseletivo button::before { content: "\f4cf" !important; } /* bi-person-check */
+    .st-key-menudiagnosticos button::before { content: "\e0cc" !important; } /* file-text */
+    .st-key-menumapas button::before { content: "\e09b" !important; } /* compass */
+    .st-key-menuanalytics button::before { content: "\e06b" !important; } /* pie-chart */
+    .st-key-menuprocessoseletivo button::before { content: "\e1a0" !important; } /* user-check */
 
     /* Configurações */
-    .st-key-menuempresa button::before { content: "\f57e" !important; } /* bi-sliders */
-    .st-key-menuusuarios button::before { content: "\f546" !important; } /* bi-shield-lock */
+    .st-key-menuempresa button::before { content: "\e162" !important; } /* sliders */
+    .st-key-menuusuarios button::before { content: "\e1ff" !important; } /* shield-check */
 
     /* Admin */
-    .st-key-menupaineldecontrole button::before { content: "\f547" !important; } /* bi-shield-shaded */
-
-    /* Ações Rápidas */
-    .st-key-btn_logout_side button::before { content: "\f1a6" !important; } /* bi-box-arrow-right */
-    .st-key-btn_reset_side button::before { content: "\f110" !important; } /* bi-arrow-clockwise */
+    .st-key-menupaineldecontrole button::before { content: "\e1ff" !important; } /* shield-check */
 
     /* Botão Ativo Selecionado */
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
-        background-color: rgba(139, 92, 246, 0.16) !important;
-        color: var(--accent) !important;
+        background-color: rgba(139, 92, 246, 0.16) !important; /* Lilás translúcido */
+        color: #FFFFFF !important; /* Branco pleno */
         border: 1px solid rgba(139, 92, 246, 0.3) !important;
-        border-left: 4px solid var(--accent) !important;
+        border-left: 4px solid rgba(139, 92, 246, 0.8) !important;
         border-radius: 0 8px 8px 0 !important;
         font-weight: 700 !important;
         box-shadow: none !important;
     }
 
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"]::before {
-        color: var(--accent) !important;
+        color: #FFFFFF !important; /* Branco pleno no estado ativo */
     }
 
     /* Submenus Aninhados (Compactação Visual) */
@@ -388,8 +417,13 @@ st.markdown("""
         padding: 6px 10px 6px 20px !important;
         margin-left: 14px !important;
         font-size: 0.85em !important;
-        color: rgba(255,255,255,0.5) !important;
+        color: rgba(255,255,255,0.55) !important;
         width: calc(100% - 14px) !important;
+    }
+    
+    section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button::before {
+        font-size: 20px !important; /* Submenu com 20px para hierarquia visual */
+        margin-right: 10px;
     }
     
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button:hover {
@@ -400,28 +434,113 @@ st.markdown("""
 
     section[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"] div.stButton > button[data-testid="baseButton-primary"] {
         border: none !important;
-        border-left: 2px solid var(--accent) !important;
+        border-left: 2px solid rgba(139, 92, 246, 0.8) !important;
         background: transparent !important;
-        color: var(--accent) !important;
+        color: #FFFFFF !important;
         font-weight: 700 !important;
         border-radius: 0 !important;
     }
 
-    /* Ações Rápidas no Rodapé */
+    /* Ações Rápidas no Rodapé (Sair / Reset) */
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button {
         font-size: 0.8em !important;
         padding: 6px 8px !important;
         border-radius: 8px !important;
         background-color: rgba(255, 255, 255, 0.02) !important;
         border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        color: var(--text-main) !important;
+        color: rgba(255, 255, 255, 0.7) !important;
         justify-content: center !important;
+    }
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button::before {
+        font-size: 20px !important; /* 20px para ações secundárias do rodapé */
+        color: rgba(255, 255, 255, 0.7) !important;
+        margin-right: 8px !important;
     }
     section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #FFFFFF !important;
         transform: translateY(-1px) !important;
     }
+    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover::before {
+        color: #FFFFFF !important;
+    }
+    
+    /* Ações Rápidas ícones */
+    .st-key-btn_logout_side button::before { content: "\e10e" !important; } /* log-out */
+    .st-key-btn_reset_side button::before { content: "\e145" !important; } /* refresh-cw */
+
+
+    /* --- ESTILO E MAPEAMENTO DOS BOTÕES DO CONTEÚDO PRINCIPAL (LUCIDE ICONS) --- */
+
+    .stApp [data-testid="stMain"] div.stButton > button::before {
+        font-family: "lucide" !important;
+        display: inline-block;
+        margin-right: 8px;
+        font-size: 20px !important; /* Padrão de 20px para ações e campos principais */
+        font-style: normal !important;
+        font-weight: normal !important;
+        color: inherit;
+        transition: transform 0.2s ease;
+        line-height: 1 !important;
+    }
+
+    .stApp [data-testid="stMain"] div.stButton > button:hover::before {
+        transform: scale(1.08) !important;
+    }
+
+    /* Mapeamento de chaves (keys) de botões no Main */
+    
+    /* Busca e Filtro */
+    div[class*="st-key-btn_busca_aud"] button::before { content: "\e151" !important; } /* search */
+    div[class*="st-key-btn_eq_add_filter_all"] button::before { content: "\e0dc" !important; } /* filter */
+
+    /* IA sparkles */
+    div[class*="st-key-btn_ia_"] button::before { content: "\e412" !important; } /* sparkles */
+
+    /* Downloads */
+    div[class*="st-key-dl_p_csv_"] button::before,
+    div[class*="st-key-dl_mapa_csv_"] button::before { content: "\e326" !important; } /* file-spreadsheet */
+    
+    div[class*="st-key-dl_p_pdf_"] button::before,
+    div[class*="st-key-dl_mapa_pdf_"] button::before { content: "\e0cc" !important; } /* file-text */
+
+    /* Salvar */
+    div[class*="st-key-save_bottom_"] button::before,
+    div[class*="st-key-btn_save_"] button::before { content: "\e14d" !important; } /* save */
+
+    /* Adicionar */
+    div[class*="st-key-btn_add_"] button::before,
+    div[class*="st-key-btn_start_add"] button::before { content: "\e13d" !important; } /* plus */
+
+    /* Cancelar / Limpar */
+    div[class*="st-key-btn_eq_clear_temp"] button::before,
+    div[class*="st-key-btn_canc_"] button::before { content: "\e1b2" !important; } /* x */
+
+    /* Excluir / Remover */
+    div[class*="st-key-btn_d_eq_"] button::before,
+    div[class*="st-key-btn_rem_"] button::before,
+    div[class*="st-key-btn_delete_"] button::before { content: "\e18e" !important; } /* trash-2 */
+
+    div[class*="st-key-btn_excluir_ed_"] button::before,
+    div[class*="st-key-btn_excluir_"] button::before { content: "\e1a3" !important; } /* user-x */
+
+    /* Editar */
+    div[class*="st-key-btn_edit_"] button::before { content: "\e172" !important; } /* edit / square-pen */
+
+    /* Quick Access (Home) */
+    div[class*="st-key-btn_qa_diag"] button::before { content: "\e09b" !important; } /* compass */
+    div[class*="st-key-btn_qa_tal"] button::before { content: "\e1a4" !important; } /* users */
+
+    /* Chevron Home (16px microações) */
+    div[class*="st-key-prev_home"] button::before { content: "\e06e" !important; font-size: 16px !important; margin-right: 0 !important; } /* chevron-left */
+    div[class*="st-key-next_home"] button::before { content: "\e06f" !important; font-size: 16px !important; margin-right: 0 !important; } /* chevron-right */
+
+    /* SaaS Logout */
+    div[class*="st-key-btn_saas_logout"] button::before { content: "\e10e" !important; } /* log-out */
+
+    /* Voltar / Back */
+    div[class*="st-key-btn_back_"] button::before { content: "\e011" !important; } /* arrow-left */
 
     [data-testid="stSidebarNav"] { display: none; }
 

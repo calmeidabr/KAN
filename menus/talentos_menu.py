@@ -271,22 +271,22 @@ class TalentosMenu(BaseMenu):
                 for t in dados_filtrados:
                     # Recupera foto base64
                     foto_b64 = t["foto_base64"]
-                    avatar_html = f'<img src="data:image/png;base64,{foto_b64}" />' if foto_b64 else '<div class="talent-member-avatar">👤</div>'
+                    avatar_html = f'<img src="data:image/png;base64,{foto_b64}" />' if foto_b64 else '<div class="talent-member-avatar"><i class="icon-user" style="color: #F18617;"></i></div>'
                     
                     lk_html = ""
                     if t["LinkedIn"]:
-                        lk_html = f'<a href="{t["LinkedIn"]}" target="_blank">🔗 LinkedIn</a>'
+                        lk_html = f'<a href="{t["LinkedIn"]}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-linkedin" style="font-size:12px;"></i>LinkedIn</a>'
                     
                     role_lbl = t["Profissão"] or "Sem Profissão"
-                    grupo_lbl = f"🏷️ {t['Grupo']}" if t['Grupo'] else ""
+                    grupo_lbl = f'<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-tag" style="font-size: 12px; color: #F18617;"></i>{t["Grupo"]}</span>' if t['Grupo'] else ""
                     
                     cards_html += f"""
                     <div class="talent-member-card">
                         {avatar_html}
                         <div class="talent-member-info">
                             <strong>{t['Nome']}</strong>
-                            <span title="{role_lbl}">💼 {role_lbl}</span>
-                            {f'<span>{grupo_lbl}</span>' if grupo_lbl else ''}
+                            <span title="{role_lbl}" style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-briefcase" style="font-size:12px; color: #F18617;"></i>{role_lbl}</span>
+                            {grupo_lbl}
                             {lk_html}
                         </div>
                     </div>
