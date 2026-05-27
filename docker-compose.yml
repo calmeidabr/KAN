@@ -5,9 +5,19 @@ services:
     build: .
     container_name: mundokan-app
     restart: always
-    ports:
-      - "8501:8501"
     environment:
       - PORT=8501
     volumes:
       - ./.streamlit:/app/.streamlit
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mundokan-app.rule=Host(`app.mundokan.com.br`)
+      - traefik.http.routers.mundokan-app.entrypoints=websecure
+      - traefik.http.routers.mundokan-app.tls.certresolver=letsencrypt
+      - traefik.http.services.mundokan-app.loadbalancer.server.port=8501
+    networks:
+      - traefik-proxy
+
+networks:
+  traefik-proxy:
+    external: true
