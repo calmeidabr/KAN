@@ -198,104 +198,40 @@ class TalentosMenu(BaseMenu):
                 })
                 
             if dados_filtrados:
-                # Monta a grade de cards no estilo de Equipes
-                cards_html = """
-                <style>
-                .talent-card-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 12px;
-                    margin-top: 8px;
-                }
-                .talent-member-card {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    background: rgba(241,134,23,0.07);
-                    border: 1px solid rgba(241,134,23,0.25);
-                    border-radius: 10px;
-                    padding: 10px 14px;
-                }
-                .talent-member-card img {
-                    width: 50px;
-                    height: 50px;
-                    border-radius: 50%;
-                    object-fit: cover;
-                    border: 2px solid #F18617;
-                    flex-shrink: 0;
-                }
-                .talent-member-avatar {
-                    width: 50px;
-                    height: 50px;
-                    border-radius: 50%;
-                    background: rgba(241,134,23,0.2);
-                    border: 2px solid #F18617;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.5em;
-                    flex-shrink: 0;
-                }
-                .talent-member-info {
-                    min-width: 0;
-                    flex-grow: 1;
-                }
-                .talent-member-info strong {
-                    display: block;
-                    font-size: 0.92em;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .talent-member-info span {
-                    font-size: 0.78em;
-                    opacity: 0.7;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    display: block;
-                }
-                .talent-member-info a {
-                    font-size: 0.75em;
-                    color: #F18617;
-                    text-decoration: none;
-                    font-weight: bold;
-                }
-                .talent-member-info a:hover {
-                    text-decoration: underline;
-                }
-                </style>
-                <div class="talent-card-grid">
-                """
-                
-                for t in dados_filtrados:
-                    # Recupera foto base64
-                    foto_b64 = t["foto_base64"]
-                    avatar_html = f'<img src="data:image/png;base64,{foto_b64}" />' if foto_b64 else '<div class="talent-member-avatar"><i class="icon-user" style="color: #F18617;"></i></div>'
-                    
-                    lk_html = ""
-                    if t["LinkedIn"]:
-                        lk_html = f'<a href="{t["LinkedIn"]}" target="_blank" style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-linkedin" style="font-size:12px;"></i>LinkedIn</a>'
-                    
-                    role_lbl = t["Profissão"] or "Sem Profissão"
-                    grupo_lbl = f'<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-tag" style="font-size: 12px; color: #F18617;"></i>{t["Grupo"]}</span>' if t['Grupo'] else ""
-                    
-                    cards_html += f"""
-                    <div class="talent-member-card">
-                        {avatar_html}
-                        <div class="talent-member-info">
-                            <strong><a href="?ver_talento={t['Nome']}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent); font-size: inherit; font-weight: inherit;">{t['Nome']}</a></strong>
-                            <span title="{role_lbl}" style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-briefcase" style="font-size:12px; color: #F18617;"></i>{role_lbl}</span>
-                            {grupo_lbl}
-                            {lk_html}
-                        </div>
-                    </div>
-                    """
-                
-                cards_html += "</div>"
-                # Limpa quebras de linha e recuos para não quebrar no Markdown do Streamlit
-                cards_html_clean = "".join(line.strip() for line in cards_html.split("\n"))
-                st.markdown(cards_html_clean, unsafe_allow_html=True)
+                # Monta a grade de cards nativa
+                cols = st.columns(3)
+                for idx, t in enumerate(dados_filtrados):
+                    col = cols[idx % 3]
+                    with col:
+                        with st.container(border=True):
+                            # Avatar/Foto
+                            foto_b64 = t["foto_base64"]
+                            if foto_b64:
+                                avatar_html = f'<div style="display: flex; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; display: block;" /></div>'
+                            else:
+                                avatar_html = '<div style="display: flex; align-items: center; height: 100%;"><div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(241,134,23,0.2); border: 2px solid #F18617; display: flex; align-items: center; justify-content: center; font-size: 1.5em;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div></div>'
+                            
+                            col_c_avatar, col_c_info = st.columns([1, 3.2])
+                            with col_c_avatar:
+                                st.markdown(avatar_html, unsafe_allow_html=True)
+                            with col_c_info:
+                                st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
+                                if st.button(t["Nome"], key=f"lnk_tal_list_{idx}_{t['Nome']}"):
+                                    self.app.ver_cadastro_talento(t["Nome"])
+                                st.markdown('</div>', unsafe_allow_html=True)
+                                
+                                role_lbl = t["Profissão"] or "Sem Profissão"
+                                st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{role_lbl}'><i class='icon-briefcase' style='font-size:12px; color: #F18617; margin-right:4px;'></i>{role_lbl}</span>", unsafe_allow_html=True)
+                                
+                                if t["Grupo"]:
+                                    st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{t['Grupo']}'><i class='icon-tag' style='font-size: 12px; color: #F18617; margin-right:4px;'></i>{t['Grupo']}</span>", unsafe_allow_html=True)
+                                else:
+                                    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+                                    
+                                if t["LinkedIn"]:
+                                    st.markdown(f"<a href='{t['LinkedIn']}' target='_blank' style='font-size: 0.75em; color: #F18617; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;'><i class='icon-linkedin' style='font-size:12px;'></i>LinkedIn</a>", unsafe_allow_html=True)
+                                else:
+                                    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
                 
                 st.write("")
                 st.caption(f"Total de talentos encontrados: {len(dados_filtrados)}")

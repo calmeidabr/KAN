@@ -392,17 +392,17 @@ class EquipesMenu(BaseMenu):
                                                 else:
                                                     avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
 
-                                                card_header_html = f"""
-                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                                    {avatar_html}
-                                                    <div style="min-width: 0; flex-grow: 1;">
-                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><a href="?ver_talento={m_nome}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{m_nome}</a> {badge_lider_temp}</strong>
-                                                        <span style="font-size:0.78em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{m_role}</span>
-                                                    </div>
-                                                </div>
-                                                """
-                                                card_header_html_clean = "".join(line.strip() for line in card_header_html.split("\n"))
-                                                st.markdown(card_header_html_clean, unsafe_allow_html=True)
+                                                col_img, col_txt = st.columns([1, 3.5])
+                                                with col_img:
+                                                    st.markdown(avatar_html, unsafe_allow_html=True)
+                                                with col_txt:
+                                                    st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
+                                                    if st.button(m_nome, key=f"lnk_eq_m_ed_{idx}_{m_idx}"):
+                                                        self.app.ver_cadastro_talento(m_nome)
+                                                    if m_nome == temp_lider:
+                                                        st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
+                                                    st.markdown('</div>', unsafe_allow_html=True)
+                                                    st.markdown(f"<span style='font-size:0.75em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top: -2px;'>{m_role}</span>", unsafe_allow_html=True)
 
                                                 col_btn1, col_btn2 = st.columns(2)
                                                 with col_btn1:
@@ -449,17 +449,17 @@ class EquipesMenu(BaseMenu):
                                                 else:
                                                     avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
 
-                                                card_header_html = f"""
-                                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                                                    {avatar_html}
-                                                    <div style="min-width: 0; flex-grow: 1;">
-                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><a href="?ver_talento={m_nome}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{m_nome}</a> {badge_lider_temp}</strong>
-                                                        <span style="font-size:0.78em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{m_role}</span>
-                                                    </div>
-                                                </div>
-                                                """
-                                                card_header_html_clean = "".join(line.strip() for line in card_header_html.split("\n"))
-                                                st.markdown(card_header_html_clean, unsafe_allow_html=True)
+                                                col_img, col_txt = st.columns([1, 3.5])
+                                                with col_img:
+                                                    st.markdown(avatar_html, unsafe_allow_html=True)
+                                                with col_txt:
+                                                    st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
+                                                    if st.button(m_nome, key=f"lnk_eq_m_view_{idx}_{m_idx}"):
+                                                        self.app.ver_cadastro_talento(m_nome)
+                                                    if m_nome == temp_lider:
+                                                        st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
+                                                    st.markdown('</div>', unsafe_allow_html=True)
+                                                    st.markdown(f"<span style='font-size:0.75em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top: -2px;'>{m_role}</span>", unsafe_allow_html=True)
 
                                                 if st.button("Excluir da Equipe", key=f"btn_excluir_{idx}_{m_idx}", use_container_width=True, type="secondary"):
                                                     st.session_state[key_temp_membros].remove(m_nome)

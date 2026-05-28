@@ -612,31 +612,48 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 cols = st.columns(cards_per_row)
                 for idx, cand in enumerate(chunk):
                     with cols[idx]:
-                        # Gerar HTML do avatar/foto crop (sem indentação inicial nas linhas para evitar que o markdown interprete como bloco de código)
-                        if cand["foto_base64"]:
-                            avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><img src="data:image/png;base64,{cand["foto_base64"]}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>'
-                        else:
-                            avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">{cand["Nome"][0].upper()}</div></div>'
-                            
-                        card_html = f"""<div class="candidato-card" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.25); backdrop-filter: blur(10px); margin-bottom: 20px; font-family: Outfit, sans-serif; position: relative;">
-<a href="?excluir_cand={cand['Nome']}&vaga_id={vaga['id']}" target="_self" style="position: absolute; top: 15px; right: 15px; background-color: #F18617; color: #7C3AED; border: none; border-radius: 50%; width: 22px; height: 22px; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; line-height: 1;"><i class="icon-x" style="font-size:12px;"></i></a>
-{avatar_html}
-<h4 style="margin: 10px 0 2px 0; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><a href="?ver_talento={cand['Nome']}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{cand['Nome']}</a></h4>
-<p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><i class="icon-calendar" style="font-size: 12px; color: #F18617;"></i>{cand['data_nascimento']}</p>
-<div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-bottom: 15px;">
-<div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
-<div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
-<div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
-<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
-</div>
-<div style="background: rgba(241, 134, 23, 0.1); border: 1px solid rgba(241, 134, 23, 0.2); border-radius: 8px; padding: 8px; color: #F18617; font-weight: 700; font-size: 1em; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; flex-direction: column;">
-<div style="display: inline-flex; align-items: center; gap: 6px;"><i class="icon-target" style="font-size: 14px;"></i>{cand['total_pts']} Pontos</div>
-<div style="font-size: 0.65em; font-weight: 400; color: rgba(255,255,255,0.6); margin-top: 2px;">
-KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
-</div>
-</div>
-</div>"""
-                        st.markdown(card_html, unsafe_allow_html=True)
+                        with st.container(border=True):
+                            # Botão de Excluir no canto superior direito
+                            col_del_left, col_del_right = st.columns([8, 1])
+                            with col_del_right:
+                                if st.button("✕", key=f"btn_excluir_cand_{cand['Nome']}_{vaga['id']}", help="Excluir do processo", type="secondary"):
+                                    vaga_id_int = int(vaga['id'])
+                                    if "candidatos_vagas" in st.session_state and vaga_id_int in st.session_state["candidatos_vagas"]:
+                                        if cand['Nome'] in st.session_state["candidatos_vagas"][vaga_id_int]:
+                                            st.session_state["candidatos_vagas"][vaga_id_int].remove(cand['Nome'])
+                                            st.toast(f"{cand['Nome']} removido do processo!")
+                                            st.rerun()
+
+                            # Gerar HTML do avatar/foto crop
+                            if cand["foto_base64"]:
+                                avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><img src="data:image/png;base64,{cand["foto_base64"]}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>'
+                            else:
+                                avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">{cand["Nome"][0].upper()}</div></div>'
+                            st.markdown(avatar_html, unsafe_allow_html=True)
+
+                            # Nome do candidato (como link do st.button)
+                            st.markdown('<div class="talent-link-container" style="text-align: center; margin-bottom: 6px;">', unsafe_allow_html=True)
+                            if st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}"):
+                                self.app.ver_cadastro_talento(cand['Nome'])
+                            st.markdown('</div>', unsafe_allow_html=True)
+
+                            # Detalhes e pontuação
+                            card_details_html = f"""
+                            <p style="margin: 0 0 15px 0; color: var(--text-soft); font-size: 0.8em; display: flex; align-items: center; justify-content: center; gap: 4px;"><i class="icon-calendar" style="font-size: 12px; color: #F18617;"></i>{cand['data_nascimento']}</p>
+                            <div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: var(--text-soft); border-top: 1px solid var(--panel-border); padding-top: 12px; margin-bottom: 15px;">
+                            <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
+                            <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
+                            <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
+                            <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
+                            </div>
+                            <div style="background: rgba(241, 134, 23, 0.1); border: 1px solid rgba(241, 134, 23, 0.2); border-radius: 8px; padding: 8px; color: #F18617; font-weight: 700; font-size: 1em; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; flex-direction: column;">
+                            <div style="display: inline-flex; align-items: center; gap: 6px;"><i class="icon-target" style="font-size: 14px;"></i>{cand['total_pts']} Pontos</div>
+                            <div style="font-size: 0.65em; font-weight: 400; color: var(--text-soft); margin-top: 2px;">
+                            KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
+                            </div>
+                            </div>
+                            """
+                            st.markdown(card_details_html, unsafe_allow_html=True)
         else:
             st.info("Nenhum talento associado a este processo seletivo ainda. Clique em 'Associar Talentos' acima para selecionar participantes.")
 

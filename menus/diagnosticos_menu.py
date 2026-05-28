@@ -147,13 +147,6 @@ class DiagnosticosMenu(BaseMenu):
 
         col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
         with col_res2:
-            nome_link = f'<a href="?ver_talento={nome}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{nome}</a>'
-            info_parts = [nome_link, data_str]
-            for p in [profissao, cargo, grupo]:
-                if p and str(p).lower() != "nan" and str(p).strip() != "":
-                    info_parts.append(str(p))
-            info_text = " | ".join(info_parts)
-            
             foto_b64 = None
             if nome in st.session_state['fotos']:
                 import base64
@@ -164,23 +157,33 @@ class DiagnosticosMenu(BaseMenu):
             if foto_b64 and "base64," in foto_b64:
                 foto_b64 = foto_b64.split("base64,")[1]
             
+            subinfo_parts = [data_str]
+            for p in [profissao, cargo, grupo]:
+                if p and str(p).lower() != "nan" and str(p).strip() != "":
+                    subinfo_parts.append(str(p))
+            subinfo_text = " | ".join(subinfo_parts)
+
             if foto_b64:
-                html = f'''
-                <div style="display: flex; align-items: center; margin-bottom: 25px;">
-                    <div style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3); margin-right: 25px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: #1b0520;">
+                col_img_diag, col_txt_diag = st.columns([1, 4])
+                with col_img_diag:
+                    st.markdown(f'''
+                    <div style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; background-color: #1b0520; margin-bottom: 25px;">
                         <img src="data:image/png;base64,{foto_b64}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                     </div>
-                    <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
-                </div>
-                '''
-                st.markdown(html, unsafe_allow_html=True)
+                    ''', unsafe_allow_html=True)
+                with col_txt_diag:
+                    st.markdown('<div style="height: 15px;"></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="talent-link-container" style="font-size: 1.6em; font-weight: bold; display: inline-block;">', unsafe_allow_html=True)
+                    if st.button(nome, key="lnk_diag_header_nome"):
+                        self.app.ver_cadastro_talento(nome)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown(f"<p style='font-size: 1.1em; color: var(--text-soft); font-weight: 500; margin-top: 5px;'>{subinfo_text}</p>", unsafe_allow_html=True)
             else:
-                html = f'''
-                <div style="display: flex; align-items: center; margin-bottom: 25px;">
-                    <h3 style="margin: 0; color: #FFFFFF; font-weight: bold;">{info_text}</h3>
-                </div>
-                '''
-                st.markdown(html, unsafe_allow_html=True)
+                st.markdown('<div class="talent-link-container" style="font-size: 1.6em; font-weight: bold; display: inline-block;">', unsafe_allow_html=True)
+                if st.button(nome, key="lnk_diag_header_nome"):
+                    self.app.ver_cadastro_talento(nome)
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f"<p style='font-size: 1.1em; color: var(--text-soft); font-weight: 500; margin-top: 5px;'>{subinfo_text}</p>", unsafe_allow_html=True)
 
             if st.session_state.get('show_perfil'):
                 st.markdown("---")

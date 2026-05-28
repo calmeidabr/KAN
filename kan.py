@@ -829,6 +829,31 @@ st.markdown("""
     .mapa-desc-cel {
         color: var(--text-main) !important;
     }
+    
+    /* Estilo de link para botões de talentos para evitar reloads de página */
+    div.talent-link-container div.row-widget.stButton > button {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        color: var(--text-main) !important;
+        text-decoration: none !important;
+        border-bottom: 1px dashed var(--accent) !important;
+        text-align: left !important;
+        font-weight: bold !important;
+        box-shadow: none !important;
+        display: inline !important;
+        margin: 0 !important;
+        font-size: inherit !important;
+        border-radius: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        line-height: inherit !important;
+    }
+    div.talent-link-container div.row-widget.stButton > button:hover {
+        color: var(--accent) !important;
+        background: transparent !important;
+        border-bottom: 1px solid var(--accent) !important;
+    }
 </style>
 <script>
     // Força o idioma da página como português para evitar o prompt de tradução automática do navegador
