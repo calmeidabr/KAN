@@ -633,8 +633,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
 
                             # Nome do candidato (como link do st.button)
                             st.markdown('<div class="talent-link-container" style="text-align: center; margin-bottom: 6px;">', unsafe_allow_html=True)
-                            if st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}"):
-                                self.app.ver_cadastro_talento(cand['Nome'])
+                            st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}", on_click=self.app.ver_cadastro_talento, args=(cand['Nome'],))
                             st.markdown('</div>', unsafe_allow_html=True)
 
                             # Detalhes e pontuação

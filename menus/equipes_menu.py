@@ -397,8 +397,7 @@ class EquipesMenu(BaseMenu):
                                                     st.markdown(avatar_html, unsafe_allow_html=True)
                                                 with col_txt:
                                                     st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
-                                                    if st.button(m_nome, key=f"lnk_eq_m_ed_{idx}_{m_idx}"):
-                                                        self.app.ver_cadastro_talento(m_nome)
+                                                    st.button(m_nome, key=f"lnk_eq_m_ed_{idx}_{m_idx}", on_click=self.app.ver_cadastro_talento, args=(m_nome,))
                                                     if m_nome == temp_lider:
                                                         st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
                                                     st.markdown('</div>', unsafe_allow_html=True)
@@ -454,8 +453,7 @@ class EquipesMenu(BaseMenu):
                                                     st.markdown(avatar_html, unsafe_allow_html=True)
                                                 with col_txt:
                                                     st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
-                                                    if st.button(m_nome, key=f"lnk_eq_m_view_{idx}_{m_idx}"):
-                                                        self.app.ver_cadastro_talento(m_nome)
+                                                    st.button(m_nome, key=f"lnk_eq_m_view_{idx}_{m_idx}", on_click=self.app.ver_cadastro_talento, args=(m_nome,))
                                                     if m_nome == temp_lider:
                                                         st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
                                                     st.markdown('</div>', unsafe_allow_html=True)

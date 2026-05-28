@@ -174,14 +174,12 @@ class DiagnosticosMenu(BaseMenu):
                 with col_txt_diag:
                     st.markdown('<div style="height: 15px;"></div>', unsafe_allow_html=True)
                     st.markdown('<div class="talent-link-container" style="font-size: 1.6em; font-weight: bold; display: inline-block;">', unsafe_allow_html=True)
-                    if st.button(nome, key="lnk_diag_header_nome"):
-                        self.app.ver_cadastro_talento(nome)
+                    st.button(nome, key="lnk_diag_header_nome_foto", on_click=self.app.ver_cadastro_talento, args=(nome,))
                     st.markdown('</div>', unsafe_allow_html=True)
                     st.markdown(f"<p style='font-size: 1.1em; color: var(--text-soft); font-weight: 500; margin-top: 5px;'>{subinfo_text}</p>", unsafe_allow_html=True)
             else:
                 st.markdown('<div class="talent-link-container" style="font-size: 1.6em; font-weight: bold; display: inline-block;">', unsafe_allow_html=True)
-                if st.button(nome, key="lnk_diag_header_nome"):
-                    self.app.ver_cadastro_talento(nome)
+                st.button(nome, key="lnk_diag_header_nome_nofoto", on_click=self.app.ver_cadastro_talento, args=(nome,))
                 st.markdown('</div>', unsafe_allow_html=True)
                 st.markdown(f"<p style='font-size: 1.1em; color: var(--text-soft); font-weight: 500; margin-top: 5px;'>{subinfo_text}</p>", unsafe_allow_html=True)
 

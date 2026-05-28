@@ -129,8 +129,7 @@ class TalentosMenu(BaseMenu):
                     for eq_idx, eq_nome in enumerate(eq_pertence):
                         col_eq = cols_eq[eq_idx % len(cols_eq)]
                         with col_eq:
-                            if st.button(eq_nome, key=f"lnk_eq_form_{nome_consultado}_{eq_nome}_{eq_idx}", use_container_width=True):
-                                self.app.ver_equipe(eq_nome)
+                            st.button(eq_nome, key=f"lnk_eq_form_{nome_consultado}_{eq_nome}_{eq_idx}", use_container_width=True, on_click=self.app.ver_equipe, args=(eq_nome,))
                     st.markdown('</div>', unsafe_allow_html=True)
                 else:
                     st.write("")
@@ -256,8 +255,7 @@ class TalentosMenu(BaseMenu):
                                 st.markdown(avatar_html, unsafe_allow_html=True)
                             with col_c_info:
                                 st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
-                                if st.button(t["Nome"], key=f"lnk_tal_list_{idx}_{t['Nome']}"):
-                                    self.app.ver_cadastro_talento(t["Nome"])
+                                st.button(t["Nome"], key=f"lnk_tal_list_{idx}_{t['Nome']}", on_click=self.app.ver_cadastro_talento, args=(t["Nome"],))
                                 st.markdown('</div>', unsafe_allow_html=True)
                                 
                                 role_lbl = t["Profissão"] or "Sem Profissão"
@@ -288,8 +286,7 @@ class TalentosMenu(BaseMenu):
                                     st.markdown("<span style='font-size: 0.78em; opacity: 0.7; display: block; margin-top: 4px;'><i class='icon-users' style='font-size:12px; color: #F18617; margin-right:4px;'></i>Equipes:</span>", unsafe_allow_html=True)
                                     st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.75em; margin-bottom: 4px;">', unsafe_allow_html=True)
                                     for eq_idx, eq_nome in enumerate(membro_de):
-                                        if st.button(eq_nome, key=f"lnk_eq_card_{t['Nome']}_{eq_nome}_{eq_idx}"):
-                                            self.app.ver_equipe(eq_nome)
+                                        st.button(eq_nome, key=f"lnk_eq_card_{t['Nome']}_{eq_nome}_{eq_idx}", on_click=self.app.ver_equipe, args=(eq_nome,))
                                     st.markdown('</div>', unsafe_allow_html=True)
                                 else:
                                     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)

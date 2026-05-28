@@ -223,8 +223,7 @@ class HierarquiaMenu(BaseMenu):
                             st.markdown('<span style="vertical-align: middle; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: rgba(255,255,255,0.4);"><i class="icon-user" style="font-size:16px;"></i></span>', unsafe_allow_html=True)
                     with cols_t[1]:
                         st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
-                        if st.button(t_nome, key=f"lnk_emp_lst_{t_nome}"):
-                            self.app.ver_cadastro_talento(t_nome)
+                        st.button(t_nome, key=f"lnk_emp_lst_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
                         st.markdown('</div>', unsafe_allow_html=True)
                         st.markdown(f"<span style='vertical-align: middle; font-size: 0.95em;'> &mdash; {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)</span>", unsafe_allow_html=True)
         
@@ -290,8 +289,7 @@ class HierarquiaMenu(BaseMenu):
                                                     st.markdown('<div class="hierarquia-card-avatar"><i class="icon-user" style="color: #F18617;"></i></div>', unsafe_allow_html=True)
                                             with card_cols[1]:
                                                 st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
-                                                if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
-                                                    self.app.ver_cadastro_talento(t_nome)
+                                                st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
                                                 st.markdown('</div>', unsafe_allow_html=True)
                                                 st.markdown(f"<span style='color: #F18617; font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
                                             with card_cols[2]:
