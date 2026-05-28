@@ -9,6 +9,7 @@ from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, carregar_todos_clientes, carregar_hierarquia, carregar_cargos, carregar_equipes, get_supabase_admin
 from services.numerologia import calcular_numerologia, reduce_number
 from services.perfil import calcular_perfil_comportamental
+from utils.helpers import compress_image_to_b64
 
 class EquipesMenu(BaseMenu):
     def render(self):
@@ -43,6 +44,7 @@ class EquipesMenu(BaseMenu):
                 # 1. Definir o Nome da Equipe
                 sugestao_nome = f"Equipe {len(equipes) + 1}"
                 nome_equipe = st.text_input("Nome da Equipe*", value=sugestao_nome, key="add_eq_nome")
+                foto_upload = st.file_uploader("Foto da Equipe (Opcional)", type=["png", "jpg", "jpeg"], key="add_eq_foto")
 
                 st.write("---")
                 st.markdown("**Filtros e Adição em Lote**")
@@ -178,11 +180,16 @@ class EquipesMenu(BaseMenu):
                         elif not membros_finais:
                             st.error("Selecione pelo menos um membro para a equipe.")
                         else:
+                            foto_b64 = ""
+                            if foto_upload:
+                                foto_b64 = compress_image_to_b64(foto_upload, max_width=400)
+
                             payload = {
                                 "nome": nome_equipe.strip(),
                                 "empresa": emp_sel if emp_sel != "Todas" else None,
                                 "departamento": dept_sel if dept_sel != "Todos" else None,
                                 "membros": membros_finais,  # lista Python → JSONB direto
+                                "foto_base64": foto_b64,
                                 "updated_at": datetime.datetime.now().isoformat()
                             }
 
@@ -257,7 +264,11 @@ class EquipesMenu(BaseMenu):
                         # Padrão KAN de Cards
                         col_card1, col_card2, col_card3, col_card4, col_card5, col_card6 = st.columns([0.5, 2.6, 2.0, 1.3, 1.5, 0.6])
                         with col_card1:
-                            st.markdown("<div style='font-size: 2.2em; text-align: center; background: rgba(241,134,23,0.15); border-radius: 10px; padding: 2px;'>T</div>", unsafe_allow_html=True)
+                            foto_b64 = eq.get("foto_base64")
+                            if foto_b64:
+                                st.markdown(f'<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_b64}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #004BFF;"/></div>', unsafe_allow_html=True)
+                            else:
+                                st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF;">T</div></div>', unsafe_allow_html=True)
                         with col_card2:
                             st.write(f"**{eq['nome']}**")
                             st.caption(f"{len(lista_membros)} membros cadastrados")
@@ -302,6 +313,7 @@ class EquipesMenu(BaseMenu):
                             key_temp_membros = f"temp_membros_{idx}"
                             key_temp_lider = f"temp_lider_{idx}"
                             key_temp_nome = f"temp_nome_{idx}"
+                            key_temp_foto = f"temp_foto_{idx}"
                             
                             # Inicializa estados temporários se não existirem
                             if key_temp_membros not in st.session_state:
@@ -310,6 +322,8 @@ class EquipesMenu(BaseMenu):
                                 st.session_state[key_temp_lider] = lider_atual
                             if key_temp_nome not in st.session_state:
                                 st.session_state[key_temp_nome] = eq["nome"]
+                            if key_temp_foto not in st.session_state:
+                                st.session_state[key_temp_foto] = eq.get("foto_base64") or ""
 
                             membros_atuais = st.session_state[key_temp_membros]
                             temp_lider = st.session_state[key_temp_lider]
@@ -326,6 +340,22 @@ class EquipesMenu(BaseMenu):
                             with col_nome_eq2:
                                 st.write("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                                 edit_lider_mode = st.checkbox("Definir Líder da Equipe", key=f"chk_edit_lider_{idx}")
+
+                            # Upload e exibição de foto da equipe na edição
+                            col_edit_foto1, col_edit_foto2 = st.columns([1, 6])
+                            with col_edit_foto1:
+                                foto_ed_atual = st.session_state[key_temp_foto]
+                                if foto_ed_atual:
+                                    st.markdown(f'<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_ed_atual}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #004BFF;"/></div>', unsafe_allow_html=True)
+                                else:
+                                    st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF;">T</div></div>', unsafe_allow_html=True)
+                            with col_edit_foto2:
+                                upload_ed_file = st.file_uploader("Alterar Foto da Equipe", type=["png", "jpg", "jpeg"], key=f"file_edit_foto_{idx}")
+                                if upload_ed_file:
+                                    foto_ed_b64 = compress_image_to_b64(upload_ed_file, max_width=400)
+                                    if foto_ed_b64 and foto_ed_b64 != st.session_state[key_temp_foto]:
+                                        st.session_state[key_temp_foto] = foto_ed_b64
+                                        st.rerun()
 
                             st.write("")
 
@@ -444,7 +474,8 @@ class EquipesMenu(BaseMenu):
                                 has_changes = (
                                     st.session_state[key_temp_membros] != lista_membros or
                                     st.session_state[key_temp_lider] != lider_atual or
-                                    st.session_state[key_temp_nome].strip() != eq["nome"]
+                                    st.session_state[key_temp_nome].strip() != eq["nome"] or
+                                    st.session_state[key_temp_foto] != (eq.get("foto_base64") or "")
                                 )
                                 if has_changes:
                                     st.warning("Há alterações não salvas nesta equipe!")
@@ -475,6 +506,7 @@ class EquipesMenu(BaseMenu):
                                         payload = {
                                             "nome": nome_final,
                                             "membros": novos_membros,
+                                            "foto_base64": st.session_state[key_temp_foto],
                                             "updated_at": datetime.datetime.now().isoformat()
                                         }
                                         if supabase_client:
@@ -491,6 +523,7 @@ class EquipesMenu(BaseMenu):
                                                     if eq_local["nome"] == eq["nome"]:
                                                         eq_local["nome"] = nome_final
                                                         eq_local["membros"] = json.dumps(novos_membros, ensure_ascii=False)
+                                                        eq_local["foto_base64"] = st.session_state[key_temp_foto]
                                                         eq_local["updated_at"] = datetime.datetime.now().isoformat()
                                                         sucesso_save = True
                                                         break
@@ -501,6 +534,7 @@ class EquipesMenu(BaseMenu):
                                             st.session_state.pop(key_temp_membros, None)
                                             st.session_state.pop(key_temp_lider, None)
                                             st.session_state.pop(key_temp_nome, None)
+                                            st.session_state.pop(key_temp_foto, None)
                                             time.sleep(1)
                                             st.rerun()
 
@@ -508,6 +542,7 @@ class EquipesMenu(BaseMenu):
                                     st.session_state.pop(key_temp_membros, None)
                                     st.session_state.pop(key_temp_lider, None)
                                     st.session_state.pop(key_temp_nome, None)
+                                    st.session_state.pop(key_temp_foto, None)
                                     st.rerun()
 
                         # ── Seção: Triângulos Harmônicos ────────────────────────
