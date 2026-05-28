@@ -94,6 +94,41 @@ class TalentosMenu(BaseMenu):
                 
             cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key="cad_exp")
             
+            if st.session_state.get("cad_nome"):
+                nome_consultado = st.session_state.get("cad_nome")
+                from models.database import carregar_equipes
+                eq_pertence = []
+                for eq in carregar_equipes():
+                    lista_m_raw = eq.get("membros", [])
+                    if isinstance(lista_m_raw, str):
+                        try:
+                            lista_m_raw = json.loads(lista_m_raw)
+                        except Exception:
+                            lista_m_raw = []
+                    m_nomes = []
+                    for m in lista_m_raw:
+                        if isinstance(m, dict):
+                            m_nomes.append(m.get("nome"))
+                        else:
+                            m_nomes.append(m)
+                    if nome_consultado in m_nomes:
+                        eq_pertence.append(eq["nome"])
+                
+                if eq_pertence:
+                    st.write("")
+                    st.markdown("**Equipes das quais este talento faz parte:**")
+                    st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.95em; margin-bottom: 10px;">', unsafe_allow_html=True)
+                    cols_eq = st.columns(len(eq_pertence) if len(eq_pertence) < 6 else 6)
+                    for eq_idx, eq_nome in enumerate(eq_pertence):
+                        col_eq = cols_eq[eq_idx % len(cols_eq)]
+                        with col_eq:
+                            if st.button(eq_nome, key=f"lnk_eq_form_{nome_consultado}_{eq_nome}_{eq_idx}", use_container_width=True):
+                                self.app.ver_equipe(eq_nome)
+                    st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.write("")
+                    st.caption("Este talento não pertence a nenhuma equipe cadastrada.")
+            
             st.write("---")
             col_b1, col_b2, col_b3 = st.columns([2, 2, 4])
             with col_b1:
@@ -227,6 +262,32 @@ class TalentosMenu(BaseMenu):
                                     st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{t['Grupo']}'><i class='icon-tag' style='font-size: 12px; color: #F18617; margin-right:4px;'></i>{t['Grupo']}</span>", unsafe_allow_html=True)
                                 else:
                                     st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+
+                                # Adicionar Equipes no card
+                                from models.database import carregar_equipes
+                                todas_equipes = carregar_equipes()
+                                membro_de = []
+                                for eq in todas_equipes:
+                                    lista_m_raw = eq.get("membros", [])
+                                    if isinstance(lista_m_raw, str):
+                                        try: lista_m_raw = json.loads(lista_m_raw)
+                                        except: lista_m_raw = []
+                                    m_nomes = []
+                                    for m in lista_m_raw:
+                                        if isinstance(m, dict): m_nomes.append(m.get("nome"))
+                                        else: m_nomes.append(m)
+                                    if t["Nome"] in m_nomes:
+                                        membro_de.append(eq["nome"])
+
+                                if membro_de:
+                                    st.markdown("<span style='font-size: 0.78em; opacity: 0.7; display: block; margin-top: 4px;'><i class='icon-users' style='font-size:12px; color: #F18617; margin-right:4px;'></i>Equipes:</span>", unsafe_allow_html=True)
+                                    st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.75em; margin-bottom: 4px;">', unsafe_allow_html=True)
+                                    for eq_idx, eq_nome in enumerate(membro_de):
+                                        if st.button(eq_nome, key=f"lnk_eq_card_{t['Nome']}_{eq_nome}_{eq_idx}"):
+                                            self.app.ver_equipe(eq_nome)
+                                    st.markdown('</div>', unsafe_allow_html=True)
+                                else:
+                                    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
                                     
                                 if t["LinkedIn"]:
                                     st.markdown(f"<a href='{t['LinkedIn']}' target='_blank' style='font-size: 0.75em; color: #F18617; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;'><i class='icon-linkedin' style='font-size:12px;'></i>LinkedIn</a>", unsafe_allow_html=True)

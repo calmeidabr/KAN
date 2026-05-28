@@ -163,6 +163,18 @@ class App:
         st.session_state["sidebar_menu"] = "Talentos"
         st.rerun()
 
+    def ver_equipe(self, nome_equipe):
+        from models.database import carregar_equipes
+        equipes = carregar_equipes()
+        for idx, eq in enumerate(equipes):
+            if eq["nome"] == nome_equipe:
+                st.session_state[f"eq_open_{idx}"] = True
+                st.session_state["add_equipe_mode"] = False
+            else:
+                st.session_state[f"eq_open_{idx}"] = False
+        st.session_state["sidebar_menu"] = "Equipes"
+        st.rerun()
+
     def run(self):
         if not check_password():
             return
