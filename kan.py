@@ -860,9 +860,26 @@ st.markdown("""
     document.documentElement.lang = 'pt';
     document.documentElement.setAttribute('lang', 'pt');
 
-    // Aplica a classe 'notranslate' nos file uploaders para evitar corrupção de texto (ex: "uploadpload") caso a tradução esteja ativa
+    // Aplica a classe 'notranslate' nos file uploaders, expanders e SVGs para evitar corrupção de texto/icones (ex: "_arrow_right", "uploadpload") caso a tradução esteja ativa
     function aplicarNoTranslate() {
+        // File Uploaders
         document.querySelectorAll('[data-testid="stFileUploader"], [data-testid="stFileUploader"] button').forEach(function(el) {
+            if (!el.classList.contains('notranslate')) {
+                el.classList.add('notranslate');
+                el.setAttribute('translate', 'no');
+            }
+        });
+
+        // Expanders (Headers, Icons, Toggle Buttons)
+        document.querySelectorAll('[data-testid="stExpander"], [data-testid="stExpander"] button, [data-testid="stExpander"] summary').forEach(function(el) {
+            if (!el.classList.contains('notranslate')) {
+                el.classList.add('notranslate');
+                el.setAttribute('translate', 'no');
+            }
+        });
+
+        // Elementos SVG (ícones) para evitar injeção de texto traduzido
+        document.querySelectorAll('svg').forEach(function(el) {
             if (!el.classList.contains('notranslate')) {
                 el.classList.add('notranslate');
                 el.setAttribute('translate', 'no');

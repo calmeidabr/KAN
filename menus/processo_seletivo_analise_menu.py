@@ -277,11 +277,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 st.markdown(f"**Qualidades**\n\n`{quals_str}`")
             
             if vaga.get('descricao_vaga'):
-                with st.expander("Descrição da Vaga", expanded=False):
+                with st.expander("Descritivo da Vaga", expanded=False):
                     st.write(vaga['descricao_vaga'])
             
             # Painel expansivo de customização de requisitos para este processo
-            with st.expander("Personalizar Requisitos Comportamentais para este Processo", expanded=False):
+            with st.expander("Requisitos Comportamentais para este Processo", expanded=False):
                 st.markdown("<p style='font-family: Outfit; font-size: 0.95em;'>Modifique os requisitos específicos para este processo seletivo. Essas alterações afetarão o cálculo de aderência em tempo real e podem ser salvas no banco de dados.</p>", unsafe_allow_html=True)
                 
                 col_sel1, col_sel2, col_sel3, col_sel4 = st.columns(4)
