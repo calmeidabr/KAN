@@ -7,10 +7,6 @@ from utils.helpers import remover_acentos
 
 class ProcessoSeletivoAnaliseMenu(BaseMenu):
     def render(self):
-        st.title("Processo Seletivo (Análise de Matching)")
-        st.markdown("<p style='font-size: 1.15em; color: rgba(255,255,255,0.7); margin-bottom: 20px; font-family: Outfit;'>Compare a aderência comportamental dos talentos cadastrados em relação aos perfis de vagas definidos.</p>", unsafe_allow_html=True)
-        st.write("---")
-
         supabase_client = get_supabase_admin()
         if not supabase_client:
             st.error("Conexão administrativa do Supabase não configurada.")
@@ -141,9 +137,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         if not nomes_empresas:
             nomes_empresas = ["Mundo KAN"]
 
-        col_filtro1, col_filtro2 = st.columns([1, 1])
-        with col_filtro1:
-            empresa_selecionada = st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="analise_proc_emp_sel")
+        # Obter empresa selecionada da session_state ou padrão
+        empresa_default = nomes_empresas[0]
+        empresa_selecionada = st.session_state.get("analise_proc_emp_sel", empresa_default)
+        if empresa_selecionada not in nomes_empresas:
+            empresa_selecionada = empresa_default
 
         # Buscar vagas cadastradas da empresa
         try:
@@ -153,16 +151,574 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.error(f"Erro ao carregar vagas: {e}")
             return
 
+        vaga = None
+        vaga_selecionada_nome = ""
+        vagas_dict = {}
+        if vagas_list:
+            vagas_dict = {f"{v['nome_vaga']} ({v['senioridade']})": v for v in vagas_list}
+            vaga_default_nome = list(vagas_dict.keys())[0]
+            vaga_selecionada_nome = st.session_state.get("analise_proc_vaga_sel", vaga_default_nome)
+            if vaga_selecionada_nome not in vagas_dict:
+                vaga_selecionada_nome = vaga_default_nome
+            vaga = vagas_dict[vaga_selecionada_nome]
+
+        # Injetar CSS e HTML da matching-page-wrapper para o tema Dark Premium
+        header_vaga_title = vaga['nome_vaga'] if vaga else "Sem Vaga Selecionada"
+        header_vaga_seniority = vaga['senioridade'] if vaga else "N/A"
+        header_vaga_status = "Ativo" if vaga else "Inativo"
+        
+        st.markdown(f"""
+        <style>
+            /* Reset e visual Dark Premium */
+            .stApp:has(.matching-page-wrapper) {{
+                background-color: #0D1016 !important;
+            }}
+            .stApp:has(.matching-page-wrapper) [data-testid="stMain"] {{
+                background-color: #0D1016 !important;
+            }}
+            
+            .matching-page-wrapper {{
+                background-color: #0D1016 !important;
+                color: #F4F7FB !important;
+                padding-bottom: 50px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }}
+            
+            /* Header estilizado */
+            .matching-page-wrapper .header-container {{
+                background: linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                border-top: 3px solid #5B1463 !important; /* Top highlight border */
+                border-radius: 16px !important;
+                padding: 32px !important;
+                margin-top: 10px !important;
+                margin-bottom: 40px !important;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
+                position: relative;
+                overflow: hidden;
+            }}
+            .matching-page-wrapper .header-container::after {{
+                content: "";
+                position: absolute;
+                top: -150px;
+                right: -150px;
+                width: 300px;
+                height: 300px;
+                background: radial-gradient(circle, rgba(122, 43, 138, 0.15) 0%, rgba(240, 138, 0, 0) 70%);
+                pointer-events: none;
+            }}
+            .matching-page-wrapper .breadcrumb {{
+                font-family: 'Outfit', 'Inter', sans-serif !important;
+                font-size: 0.75rem !important;
+                color: #7F8798 !important;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-bottom: 16px;
+                font-weight: 600;
+            }}
+            .matching-page-wrapper .header-main {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 20px;
+            }}
+            .matching-page-wrapper .header-title {{
+                font-family: 'Outfit', 'Inter', sans-serif !important;
+                font-size: 2.2rem !important;
+                font-weight: 800 !important;
+                color: #F4F7FB !important;
+                margin: 0 !important;
+                letter-spacing: -0.5px;
+                line-height: 1.15;
+            }}
+            .matching-page-wrapper .highlight-text {{
+                background: linear-gradient(135deg, #F08A00 0%, #FF9D1F 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }}
+            .matching-page-wrapper .badge-status-container {{
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }}
+            .matching-page-wrapper .badge-status {{
+                background: rgba(240, 138, 0, 0.1) !important;
+                border: 1px solid rgba(240, 138, 0, 0.25) !important;
+                color: #F08A00 !important;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }}
+            .matching-page-wrapper .badge-seniority {{
+                background: rgba(122, 43, 138, 0.15) !important;
+                border: 1px solid rgba(122, 43, 138, 0.3) !important;
+                color: #AAB3C5 !important;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }}
+            .matching-page-wrapper .header-subtitle {{
+                font-size: 1rem !important;
+                color: #AAB3C5 !important;
+                margin-top: 14px !important;
+                margin-bottom: 0 !important;
+                line-height: 1.5;
+            }}
+            
+            /* Titulos */
+            .matching-page-wrapper h1, 
+            .matching-page-wrapper h2, 
+            .matching-page-wrapper h3, 
+            .matching-page-wrapper h4 {{
+                color: #F4F7FB !important;
+                font-family: 'Outfit', sans-serif !important;
+            }}
+            
+            /* Estilo dos containers (Cards) de vaga e configurações */
+            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
+            .matching-page-wrapper div[data-testid="stContainer"] {{
+                background-color: #141824 !important;
+                background: linear-gradient(145deg, #141824 0%, #171B2A 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 16px !important;
+                padding: 24px !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+            }}
+            
+            /* Efeito de hover interativo especial para os cards de Candidatos */
+            .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"] {{
+                background-color: #171B2A !important;
+                background: linear-gradient(145deg, #171B2A 0%, #1B2030 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 20px !important;
+                padding: 28px !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+            }}
+            .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+                transform: translateY(-6px) !important;
+                border-color: rgba(240, 138, 0, 0.25) !important;
+                box-shadow: 0 16px 40px rgba(91, 20, 99, 0.4) !important;
+            }}
+            
+            /* Estilo do botão de link de nome de candidato */
+            .matching-page-wrapper .talent-link-container div.row-widget.stButton > button {{
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                color: #F4F7FB !important;
+                text-decoration: none !important;
+                border-bottom: 2px solid transparent !important;
+                text-align: center !important;
+                font-size: 1.4rem !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 800 !important;
+                box-shadow: none !important;
+                display: inline-block !important;
+                margin: 0 auto !important;
+                transition: all 0.2s ease !important;
+                line-height: 1.3 !important;
+            }}
+            .matching-page-wrapper .talent-link-container div.row-widget.stButton > button:hover {{
+                color: #FF9D1F !important;
+                border-bottom: 2px solid #FF9D1F !important;
+            }}
+            
+            /* Botão de excluir discreto no card de candidatos */
+            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button {{
+                background: transparent !important;
+                border: none !important;
+                color: #7F8798 !important;
+                opacity: 0.4 !important;
+                font-size: 1rem !important;
+                padding: 0 !important;
+                width: 24px !important;
+                height: 24px !important;
+                min-width: 24px !important;
+                min-height: 24px !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: none !important;
+                transition: all 0.25s ease !important;
+            }}
+            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button:hover {{
+                background: rgba(220, 38, 38, 0.12) !important;
+                color: #EF4444 !important;
+                opacity: 1 !important;
+                transform: rotate(90deg) !important;
+            }}
+            
+            /* Estilização Premium do CTA "Associar Talentos" */
+            .matching-page-wrapper div[class*="st-key-btn_add_assoc_talents"] button {{
+                background: #F08A00 !important;
+                color: #0D1016 !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                font-size: 1rem !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-radius: 12px !important;
+                padding: 14px 28px !important;
+                box-shadow: 0 4px 16px rgba(240, 138, 0, 0.3) !important;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                letter-spacing: 0.5px;
+                text-transform: none !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 8px !important;
+                height: auto !important;
+            }}
+            .matching-page-wrapper div[class*="st-key-btn_add_assoc_talents"] button:hover {{
+                background: #FF9D1F !important;
+                box-shadow: 0 8px 24px rgba(240, 138, 0, 0.5) !important;
+                transform: translateY(-2px) !important;
+                color: #0D1016 !important;
+            }}
+            
+            /* Vertical Alignment for Section button */
+            .matching-page-wrapper div[data-testid="column"]:has(button[key="btn_add_assoc_talents"]),
+            .matching-page-wrapper div[data-testid="column"]:has(div[class*="st-key-btn_add_assoc_talents"]) {{
+                display: flex !important;
+                align-items: center !important;
+                justify-content: flex-end !important;
+                padding-top: 10px !important;
+            }}
+            
+            /* Avatar Halo */
+            .matching-page-wrapper .avatar-halo-wrapper {{
+                display: flex;
+                justify-content: center;
+                margin-top: 10px;
+                margin-bottom: 22px;
+            }}
+            .matching-page-wrapper .avatar-halo {{
+                width: 112px;
+                height: 112px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 3px;
+                background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 50%, #F08A00 100%);
+                box-shadow: 0 8px 20px rgba(91, 20, 99, 0.2), 0 0 0 4px rgba(255, 255, 255, 0.02);
+                position: relative;
+                transition: box-shadow 0.3s ease;
+            }}
+            .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
+                box-shadow: 0 10px 24px rgba(240, 138, 0, 0.35), 0 0 0 6px rgba(240, 138, 0, 0.05);
+            }}
+            .matching-page-wrapper .avatar-img {{
+                width: 106px;
+                height: 106px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 3px solid #171B2A;
+            }}
+            .matching-page-wrapper .font-avatar-bg {{
+                background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 100%);
+            }}
+            .matching-page-wrapper .avatar-initial {{
+                font-family: 'Outfit', sans-serif;
+                font-size: 2.4rem;
+                font-weight: 800;
+                color: #F4F7FB;
+            }}
+            
+            /* Dob nascimento */
+            .matching-page-wrapper .dob-text {{
+                margin: 6px 0 20px 0 !important;
+                color: #7F8798 !important;
+                font-size: 0.75rem !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 6px !important;
+                font-weight: 500;
+                letter-spacing: 0.3px;
+            }}
+            .matching-page-wrapper .dob-text i {{
+                color: #7A2B8A !important;
+                font-size: 12px !important;
+            }}
+            
+            /* Atributos do candidato */
+            .matching-page-wrapper .attributes-container {{
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                padding-top: 16px;
+                margin-bottom: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }}
+            .matching-page-wrapper .attr-row-v {{
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                font-size: 0.82rem;
+                align-items: flex-start;
+                margin-bottom: 4px;
+            }}
+            .matching-page-wrapper .tags-container {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                width: 100%;
+            }}
+            .matching-page-wrapper .attr-label {{
+                color: #7F8798;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                font-size: 0.72rem;
+            }}
+            .matching-page-wrapper .attr-value {{
+                color: #AAB3C5;
+                font-weight: 500;
+            }}
+            .matching-page-wrapper .badge-tag {{
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                margin: 2px;
+                letter-spacing: 0.3px;
+                text-transform: uppercase;
+                background-color: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                color: #AAB3C5;
+            }}
+            .matching-page-wrapper .perfil-tag {{
+                background-color: rgba(122, 43, 138, 0.08) !important;
+                border: 1px solid rgba(122, 43, 138, 0.2) !important;
+                color: #AAB3C5 !important;
+            }}
+            .matching-page-wrapper .cat-tag {{
+                background-color: rgba(240, 138, 0, 0.08) !important;
+                border: 1px solid rgba(240, 138, 0, 0.2) !important;
+                color: #FF9D1F !important;
+            }}
+            .matching-page-wrapper .qual-tag {{
+                background-color: rgba(255, 255, 255, 0.02) !important;
+                border: 1px solid rgba(255, 255, 255, 0.06) !important;
+                color: #7F8798 !important;
+            }}
+            .matching-page-wrapper .attr-chip {{
+                padding: 4px 10px;
+                border-radius: 8px;
+                font-size: 0.72rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }}
+            .matching-page-wrapper .kan-chip {{
+                background: rgba(240, 138, 0, 0.12);
+                border: 1px solid rgba(240, 138, 0, 0.25);
+                color: #F08A00;
+            }}
+            
+            /* Widget de pontuação */
+            .matching-page-wrapper .score-widget {{
+                background: linear-gradient(135deg, rgba(23, 27, 42, 0.4) 0%, rgba(13, 16, 22, 0.3) 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                border-radius: 14px !important;
+                padding: 16px !important;
+                margin-top: 20px !important;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
+                transition: all 0.25s ease;
+            }}
+            .matching-page-wrapper .score-widget:hover {{
+                border-color: rgba(240, 138, 0, 0.2) !important;
+                background: linear-gradient(135deg, rgba(23, 27, 42, 0.6) 0%, rgba(13, 16, 22, 0.5) 100%) !important;
+            }}
+            .matching-page-wrapper .score-main {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            }}
+            .matching-page-wrapper .score-title {{
+                font-size: 0.72rem;
+                color: #7F8798;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }}
+            .matching-page-wrapper .score-badge {{
+                background: rgba(240, 138, 0, 0.1) !important;
+                border: 1px solid rgba(240, 138, 0, 0.25) !important;
+                padding: 4px 12px !important;
+                border-radius: 8px !important;
+                font-weight: 800 !important;
+                font-size: 0.95rem !important;
+                color: #F08A00 !important;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-family: 'Outfit', sans-serif !important;
+            }}
+            .matching-page-wrapper .score-breakdown {{
+                display: flex;
+                justify-content: space-between;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+                padding-top: 12px;
+                gap: 8px;
+            }}
+            .matching-page-wrapper .breakdown-item {{
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }}
+            .matching-page-wrapper .border-l {{
+                border-left: 1px solid rgba(255, 255, 255, 0.06);
+            }}
+            .matching-page-wrapper .breakdown-label {{
+                font-size: 0.62rem;
+                color: #7F8798;
+                text-transform: uppercase;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+            }}
+            .matching-page-wrapper .breakdown-val {{
+                font-size: 0.8rem;
+                color: #F4F7FB;
+                font-weight: 700;
+                margin-top: 2px;
+            }}
+            
+            /* Dropdowns */
+            .matching-page-wrapper div[data-testid="stSelectbox"] div[role="combobox"],
+            .matching-page-wrapper div[data-testid="stMultiSelect"] div[role="combobox"] {{
+                background-color: #171B2A !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                color: #F4F7FB !important;
+                border-radius: 12px !important;
+            }}
+            .matching-page-wrapper label {{
+                color: #AAB3C5 !important;
+                font-weight: 600 !important;
+                font-size: 0.85rem !important;
+            }}
+            
+            /* Dataframe adjustments */
+            .matching-page-wrapper div[data-testid="stDataFrame"] {{
+                background-color: #141824 !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 16px !important;
+            }}
+            
+            /* Requirements Grid */
+            .matching-page-wrapper .requirements-grid {{
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 16px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }}
+            .matching-page-wrapper .req-item {{
+                background: linear-gradient(135deg, #171B2A 0%, #1B2030 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.06) !important;
+                padding: 16px !important;
+                border-radius: 14px !important;
+                transition: transform 0.2s ease, border-color 0.2s ease;
+            }}
+            .matching-page-wrapper .req-item:hover {{
+                transform: translateY(-2px);
+                border-color: rgba(122, 43, 138, 0.3) !important;
+            }}
+            .matching-page-wrapper .req-label {{
+                font-size: 0.7rem !important;
+                color: #7F8798 !important;
+                text-transform: uppercase !important;
+                font-weight: 700 !important;
+                letter-spacing: 1px !important;
+                margin-bottom: 6px !important;
+            }}
+            .matching-page-wrapper .req-value {{
+                font-size: 0.95rem !important;
+                color: #F4F7FB !important;
+                font-weight: 600 !important;
+            }}
+            
+            /* Subtitles */
+            .matching-page-wrapper .section-title-sub {{
+                font-family: 'Outfit', sans-serif !important;
+                font-size: 1.6rem !important;
+                font-weight: 700 !important;
+                color: #F4F7FB !important;
+                margin-top: 40px !important;
+                margin-bottom: 20px !important;
+                letter-spacing: -0.3px;
+            }}
+            
+            /* Comparativo */
+            .matching-page-wrapper .comp-row {{
+                font-size: 0.9rem !important;
+                color: #AAB3C5 !important;
+                margin-bottom: 12px !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+                padding-bottom: 8px !important;
+            }}
+            .matching-page-wrapper .code-highlight {{
+                background-color: rgba(240, 138, 0, 0.1) !important;
+                color: #FF9D1F !important;
+                padding: 4px 10px !important;
+                border-radius: 6px !important;
+                font-family: monospace !important;
+                border: 1px solid rgba(240, 138, 0, 0.2) !important;
+                font-size: 0.85rem !important;
+            }}
+            
+            /* Progress bar adjustments */
+            .matching-page-wrapper div[data-testid="stProgress"] > div > div > div > div {{
+                background: linear-gradient(90deg, #5B1463 0%, #F08A00 100%) !important;
+            }}
+            .matching-page-wrapper div[data-testid="stProgress"] {{
+                background-color: rgba(255, 255, 255, 0.05) !important;
+                border-radius: 10px !important;
+                height: 10px !important;
+            }}
+        </style>
+        
+        <div class="matching-page-wrapper">
+            <div class="header-container">
+                <div class="breadcrumb">ANÁLISES &nbsp; / &nbsp; PROCESSO SELETIVO &nbsp; / &nbsp; {empresa_selecionada}</div>
+                <div class="header-main">
+                    <h1 class="header-title">Processo: <span class="highlight-text">{header_vaga_title}</span></h1>
+                    <div class="badge-status-container">
+                        <span class="badge-status">{header_vaga_status}</span>
+                        <span class="badge-seniority">{header_vaga_seniority}</span>
+                    </div>
+                </div>
+                <p class="header-subtitle">Análise comportamental inteligente e matching de talentos da Mundokan.</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_filtro1, col_filtro2 = st.columns([1, 1])
+        with col_filtro1:
+            st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="analise_proc_emp_sel")
+
         if not vagas_list:
             st.info(f"Nenhuma vaga cadastrada para a empresa {empresa_selecionada}. Cadastre vagas no menu Vagas antes de realizar a análise.")
             return
 
-        # Dicionário de vagas
-        vagas_dict = {f"{v['nome_vaga']} ({v['senioridade']})": v for v in vagas_list}
         with col_filtro2:
-            vaga_selecionada_nome = st.selectbox("Selecione a Vaga para Análise:", options=list(vagas_dict.keys()), key="analise_proc_vaga_sel")
-
-        vaga = vagas_dict[vaga_selecionada_nome]
+            st.selectbox("Selecione a Vaga para Análise:", options=list(vagas_dict.keys()), key="analise_proc_vaga_sel")
 
         # Parsing de requisitos da vaga
         def parse_json_list(val):
@@ -261,20 +817,30 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
 
         # Container visual dos requisitos da Vaga
         with st.container(border=True):
-            st.markdown(f"### Requisitos Comportamentais da Vaga: **{vaga['nome_vaga']}**")
-            col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-            with col_r1:
-                kan_display_str = ", ".join(mapped_kan).upper() if mapped_kan else "NENHUM"
-                st.markdown(f"**KAN Ideal**\n\n`{kan_display_str}`")
-            with col_r2:
-                perfis_str = ", ".join(vaga_perfis) if vaga_perfis else "Nenhum exigido"
-                st.markdown(f"**Perfis Ideais**\n\n`{perfis_str}`")
-            with col_r3:
-                cats_str = ", ".join(vaga_cats) if vaga_cats else "Nenhuma exigida"
-                st.markdown(f"**Categorias**\n\n`{cats_str}`")
-            with col_r4:
-                quals_str = ", ".join(vaga_quals) if vaga_quals else "Nenhuma exigida"
-                st.markdown(f"**Qualidades**\n\n`{quals_str}`")
+            st.markdown(f"### Perfil Comportamental Desejado")
+            
+            # Renderizar requisitos com HTML estilizado premium (composição editorial)
+            req_html = f"""
+            <div class="requirements-grid">
+                <div class="req-item">
+                    <div class="req-label">KAN Ideal</div>
+                    <div class="req-value" style="color: #F08A00;">{", ".join(mapped_kan).upper() if mapped_kan else "NENHUM"}</div>
+                </div>
+                <div class="req-item">
+                    <div class="req-label">Perfis Ideais</div>
+                    <div class="req-value">{", ".join(vaga_perfis) if vaga_perfis else "Nenhum"}</div>
+                </div>
+                <div class="req-item">
+                    <div class="req-label">Categorias</div>
+                    <div class="req-value">{", ".join(vaga_cats) if vaga_cats else "Nenhuma"}</div>
+                </div>
+                <div class="req-item">
+                    <div class="req-label">Qualidades</div>
+                    <div class="req-value">{", ".join(vaga_quals) if vaga_quals else "Nenhuma"}</div>
+                </div>
+            </div>
+            """
+            st.markdown(req_html, unsafe_allow_html=True)
             
             if vaga.get('descricao_vaga'):
                 with st.expander("Descritivo da Vaga", expanded=False):
@@ -401,6 +967,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             cargo_val = r.get('cargo') if is_migrated_profissao else ''
             
             ms_dict[r.get("nome")] = {
+                "empresa": r.get("empresa") or "Mundo KAN",
                 "grupo": r.get("grupo") or r.get("empresa") or "Sem Grupo",
                 "profissao": profissao_val or "Sem Profissão",
                 "cargo": cargo_val or "",
@@ -412,7 +979,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         matching_results = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
-            info = ms_dict.get(nome, {"grupo": "Sem Grupo", "profissao": "Sem Profissão", "cargo": "", "data_nascimento": "", "foto_base64": ""})
+            info = ms_dict.get(nome, {"empresa": "Mundo KAN", "grupo": "Sem Grupo", "profissao": "Sem Profissão", "cargo": "", "data_nascimento": "", "foto_base64": ""})
             
             # Traços do talento
             talento_kan = str(row.get("kan", "")).strip().upper()
@@ -470,6 +1037,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 "Nome": nome,
                 "Profissão": info["profissao"],
                 "Grupo": info["grupo"],
+                "Empresa": info["empresa"],
                 "Aderência (%)": round(total_score, 1),
                 "KAN": kan_status,
                 "Perfil": perfil_status,
@@ -496,11 +1064,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.session_state["mostrar_selector_talentos"] = False
 
         st.write("---")
-        col_sec_title, col_sec_btn = st.columns([3, 1])
+        col_sec_title, col_sec_btn = st.columns([2.5, 1])
         with col_sec_title:
-            st.subheader("Candidatos Associados ao Processo")
+            st.markdown("<h2 style='margin:0; font-family: Outfit; font-weight: 800; line-height: 1.2; color: #F4F7FB;'>Candidatos Associados ao Processo</h2>", unsafe_allow_html=True)
         with col_sec_btn:
-            if st.button("Associar Talentos", key="btn_add_assoc_talents", use_container_width=True):
+            if st.button("➕ Associar Talentos", key="btn_add_assoc_talents", use_container_width=True):
                 st.session_state["mostrar_selector_talentos"] = True
 
         # Renderizar seletor de associação
@@ -593,9 +1161,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         "data_nascimento": r["data_nascimento"],
                         "foto_base64": r["foto_base64"],
                         "kan": t_kan,
-                        "perfil": ", ".join(t_perfis),
-                        "categoria": ", ".join(t_cats),
-                        "qualidades": ", ".join(t_quals),
+                        "perfil_list": t_perfis,
+                        "categoria_list": t_cats,
+                        "qualidades_list": t_quals,
                         "pts_kan": pts_kan,
                         "pts_perfil": pts_perfil,
                         "pts_qual": pts_qual,
@@ -624,32 +1192,78 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                             st.toast(f"{cand['Nome']} removido do processo!")
                                             st.rerun()
 
-                            # Gerar HTML do avatar/foto crop
+                            # Gerar HTML do avatar/foto crop com halo sutil da marca (roxo/laranja)
                             if cand["foto_base64"]:
-                                avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><img src="data:image/png;base64,{cand["foto_base64"]}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>'
+                                avatar_html = f"""
+                                <div class="avatar-halo-wrapper">
+                                    <div class="avatar-halo">
+                                        <img src="data:image/png;base64,{cand["foto_base64"]}" class="avatar-img">
+                                    </div>
+                                </div>
+                                """
                             else:
-                                avatar_html = f'<div style="display: flex; justify-content: center; margin-bottom: 12px;"><div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #F18617, #9333EA); display: flex; align-items: center; justify-content: center; font-size: 2.2em; font-weight: bold; color: white; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-family: Outfit;">{cand["Nome"][0].upper()}</div></div>'
+                                avatar_html = f"""
+                                <div class="avatar-halo-wrapper">
+                                    <div class="avatar-halo font-avatar-bg">
+                                        <span class="avatar-initial">{cand["Nome"][0].upper()}</span>
+                                    </div>
+                                </div>
+                                """
                             st.markdown(avatar_html, unsafe_allow_html=True)
 
                             # Nome do candidato (como link do st.button)
-                            st.markdown('<div class="talent-link-container" style="text-align: center; margin-bottom: 6px;">', unsafe_allow_html=True)
+                            st.markdown('<div class="talent-link-container" style="text-align: center; margin-bottom: 2px;">', unsafe_allow_html=True)
                             st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}", on_click=self.app.ver_cadastro_talento, args=(cand['Nome'],))
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                            # Detalhes e pontuação
+                            # Detalhes, Atributos e Score em HTML premium
+                            perfis_chips = "".join([f'<span class="badge-tag perfil-tag">{p.strip().upper()}</span>' for p in cand['perfil_list'] if p.strip()])
+                            cats_chips = "".join([f'<span class="badge-tag cat-tag">{c.strip().upper()}</span>' for c in cand['categoria_list'] if c.strip()])
+                            quals_chips = "".join([f'<span class="badge-tag qual-tag">{q.strip().upper()}</span>' for q in cand['qualidades_list'] if q.strip()])
+
                             card_details_html = f"""
-                            <p style="margin: 0 0 15px 0; color: var(--text-soft); font-size: 0.8em; display: flex; align-items: center; justify-content: center; gap: 4px;"><i class="icon-calendar" style="font-size: 12px; color: #F18617;"></i>{cand['data_nascimento']}</p>
-                            <div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: var(--text-soft); border-top: 1px solid var(--panel-border); padding-top: 12px; margin-bottom: 15px;">
-                            <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
-                            <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Perfil:</strong> {cand['perfil']}</div>
-                            <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Categoria:</strong> {cand['categoria']}</div>
-                            <div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>Qualidades:</strong> {cand['qualidades']}</div>
+                            <p class="dob-text"><i class="icon-calendar"></i> Nascimento: {cand['data_nascimento']}</p>
+                            
+                            <div class="attributes-container">
+                                <div class="attr-row-h" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
+                                    <span class="attr-label">KAN</span>
+                                    <span class="attr-chip kan-chip">{cand['kan'].upper()}</span>
+                                </div>
+                                <div class="attr-row-v">
+                                    <span class="attr-label">Perfis</span>
+                                    <div class="tags-container">{perfis_chips if perfis_chips else '<span class="attr-value">Nenhum</span>'}</div>
+                                </div>
+                                <div class="attr-row-v">
+                                    <span class="attr-label">Categorias</span>
+                                    <div class="tags-container">{cats_chips if cats_chips else '<span class="attr-value">Nenhuma</span>'}</div>
+                                </div>
+                                <div class="attr-row-v">
+                                    <span class="attr-label">Qualidades</span>
+                                    <div class="tags-container">{quals_chips if quals_chips else '<span class="attr-value">Nenhuma</span>'}</div>
+                                </div>
                             </div>
-                            <div style="background: rgba(241, 134, 23, 0.1); border: 1px solid rgba(241, 134, 23, 0.2); border-radius: 8px; padding: 8px; color: #F18617; font-weight: 700; font-size: 1em; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; flex-direction: column;">
-                            <div style="display: inline-flex; align-items: center; gap: 6px;"><i class="icon-target" style="font-size: 14px;"></i>{cand['total_pts']} Pontos</div>
-                            <div style="font-size: 0.65em; font-weight: 400; color: var(--text-soft); margin-top: 2px;">
-                            KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
-                            </div>
+                            
+                            <div class="score-widget">
+                                <div class="score-main">
+                                    <span class="score-title">COMPATIBILIDADE</span>
+                                    <div class="score-badge">
+                                        <span>⚡ {cand['total_pts']} Pontos</span>
+                                    </div>
+                                </div>
+                                <div class="score-breakdown">
+                                    <div class="breakdown-item">
+                                        <span class="breakdown-label">KAN</span>
+                                        <span class="breakdown-val">+{cand['pts_kan']}</span>
+                                    </div>
+                                    <div class="breakdown-item border-l">
+                                        <span class="breakdown-label">Perfil</span>
+                                        <span class="breakdown-val">+{cand['pts_perfil']}</span>
+                                    </div>
+                                    <div class="breakdown-item border-l">
+                                        <span class="breakdown-label">Qualidades</span>
+                                        <span class="breakdown-val">+{cand['pts_qual']}</span>
+                                    </div>
+                                </div>
                             </div>
                             """
                             st.markdown(card_details_html, unsafe_allow_html=True)
@@ -663,7 +1277,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         # TABELAS GERAIS E COMPARATIVOS
         # -------------------------------------------------------------------------
         st.write("---")
-        st.subheader(f"Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})")
+        st.markdown(f"<h3 class='section-title-sub'>Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})</h3>", unsafe_allow_html=True)
         
         # Filtrar o ranking geral pela empresa selecionada
         df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
@@ -675,7 +1289,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
 
         st.write("---")
-        st.subheader("Comparativo Detalhado Side-by-Side")
+        st.markdown("<h3 class='section-title-sub'>Comparativo Detalhado Side-by-Side</h3>", unsafe_allow_html=True)
         
         selected_talent_nome = st.selectbox("Selecione um talento para visualizar o comparativo detalhado:", options=df_matching["Nome"].tolist(), key="select_side_by_side_talent")
         
@@ -688,20 +1302,28 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             with st.container(border=True):
                 st.markdown(f"#### Requisitos da Vaga\n**{vaga_selecionada_nome}**")
                 kan_exigido_str = ", ".join(vaga_kan_list) if vaga_kan_list else "Nenhum"
-                st.write(f"**KAN Exigido:** `{kan_exigido_str.upper()}`")
-                st.write(f"**Perfis Exigidos:** `{', '.join(vaga_perfis) if vaga_perfis else 'Nenhum'}`")
-                st.write(f"**Categorias Exigidas:** `{', '.join(vaga_cats) if vaga_cats else 'Nenhuma'}`")
-                st.write(f"**Qualidades Exigidas:** `{', '.join(vaga_quals) if vaga_quals else 'Nenhuma'}`")
+                comp_req_html = f"""
+                <div class="comp-row"><strong>KAN Exigido:</strong> <code class="code-highlight">{kan_exigido_str.upper()}</code></div>
+                <div class="comp-row"><strong>Perfis Exigidos:</strong> <code class="code-highlight">{', '.join(vaga_perfis) if vaga_perfis else 'Nenhum'}</code></div>
+                <div class="comp-row"><strong>Categorias Exigidas:</strong> <code class="code-highlight">{', '.join(vaga_cats) if vaga_cats else 'Nenhuma'}</code></div>
+                <div class="comp-row"><strong>Qualidades Exigidas:</strong> <code class="code-highlight">{', '.join(vaga_quals) if vaga_quals else 'Nenhuma'}</code></div>
+                """
+                st.markdown(comp_req_html, unsafe_allow_html=True)
 
         with col_comp2:
             with st.container(border=True):
-                st.markdown(f"#### Perfil do Talento\n**<a href='?ver_talento={selected_talent_nome}' target='_self' style='color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);'>{selected_talent_nome}</a>**", unsafe_allow_html=True)
-                st.write(f"**KAN do Talento:** `{talento_detalhes['kan']}`")
-                st.write(f"**Perfis do Talento:** `{', '.join(talento_detalhes['perfis']) if talento_detalhes['perfis'] else 'Nenhum'}`")
-                st.write(f"**Categorias do Talento:** `{', '.join(talento_detalhes['categorias']) if talento_detalhes['categorias'] else 'Nenhuma'}`")
-                st.write(f"**Qualidades do Talento:** `{', '.join(talento_detalhes['qualidades']) if talento_detalhes['qualidades'] else 'Nenhuma'}`")
+                st.markdown(f"#### Perfil do Talento\n**<a href='?ver_talento={selected_talent_nome}' target='_self' style='color: #F4F7FB; text-decoration: none; border-bottom: 1px dashed #F08A00;'>{selected_talent_nome}</a>**", unsafe_allow_html=True)
+                comp_talent_html = f"""
+                <div class="comp-row"><strong>KAN do Talento:</strong> <code class="code-highlight">{talento_detalhes['kan']}</code></div>
+                <div class="comp-row"><strong>Perfis do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['perfis']) if talento_detalhes['perfis'] else 'Nenhum'}</code></div>
+                <div class="comp-row"><strong>Categorias do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['categorias']) if talento_detalhes['categorias'] else 'Nenhuma'}</code></div>
+                <div class="comp-row"><strong>Qualidades do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['qualidades']) if talento_detalhes['qualidades'] else 'Nenhuma'}</code></div>
+                """
+                st.markdown(comp_talent_html, unsafe_allow_html=True)
 
         # Barra de progresso de aderência
         aderencia_percent = talent_row["Aderência (%)"]
         st.markdown(f"### Aderência Geral: **{aderencia_percent}%**")
         st.progress(max(0, min(100, int(aderencia_percent))))
+
+        st.markdown("</div>", unsafe_allow_html=True)
