@@ -639,7 +639,7 @@ st.markdown("""
     [data-testid="stSidebarNav"] { display: none; }
 
     /* --- FORMULÁRIOS & INPUTS --- */
-    div[data-testid="stTextInput"] input, 
+    div[data-testid="stTextInput"] div[data-baseweb="input"], 
     div[data-testid="stTextArea"] textarea,
     div[data-testid="stSelectbox"] select,
     div[data-testid="stSelectbox"] div[role="combobox"],
@@ -649,12 +649,19 @@ st.markdown("""
         border: 1px solid var(--panel-border) !important;
         border-radius: 12px !important;
     }
+    /* Resetar borda e sombra no elemento input interno para evitar duplo contorno */
+    div[data-testid="stTextInput"] input {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
     div[data-testid="stTextInput"] input::placeholder, 
     div[data-testid="stTextArea"] textarea::placeholder {
         color: var(--text-muted) !important;
         opacity: 0.8 !important;
     }
-    div[data-testid="stTextInput"] input:focus, 
+    div[data-testid="stTextInput"] div[data-baseweb="input"]:focus-within, 
     div[data-testid="stTextArea"] textarea:focus,
     div[data-testid="stSelectbox"] div[role="combobox"]:focus-within {
         border-color: var(--accent) !important;
