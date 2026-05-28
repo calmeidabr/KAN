@@ -288,8 +288,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 background-color: #141824 !important;
                 background: linear-gradient(145deg, #141824 0%, #171B2A 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                border-radius: 16px !important;
-                padding: 24px !important;
+                border-radius: 14px !important;
+                padding: 20px !important;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
             }}
             
@@ -298,15 +298,16 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 background-color: #171B2A !important;
                 background: linear-gradient(145deg, #171B2A 0%, #1B2030 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                border-radius: 20px !important;
-                padding: 28px !important;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+                border-radius: 16px !important;
+                padding: 16px !important;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
+                position: relative !important;
                 transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
             }}
             .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
-                transform: translateY(-6px) !important;
+                transform: translateY(-4px) !important;
                 border-color: rgba(240, 138, 0, 0.25) !important;
-                box-shadow: 0 16px 40px rgba(91, 20, 99, 0.4) !important;
+                box-shadow: 0 12px 32px rgba(91, 20, 99, 0.35) !important;
             }}
             
             /* Estilo do botão de link de nome de candidato */
@@ -318,44 +319,61 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 text-decoration: none !important;
                 border-bottom: 2px solid transparent !important;
                 text-align: center !important;
-                font-size: 1.4rem !important;
+                font-size: 1.05rem !important;
                 font-family: 'Outfit', sans-serif !important;
-                font-weight: 800 !important;
+                font-weight: 700 !important;
                 box-shadow: none !important;
                 display: inline-block !important;
                 margin: 0 auto !important;
                 transition: all 0.2s ease !important;
-                line-height: 1.3 !important;
+                line-height: 1.2 !important;
             }}
             .matching-page-wrapper .talent-link-container div.row-widget.stButton > button:hover {{
                 color: #FF9D1F !important;
                 border-bottom: 2px solid #FF9D1F !important;
             }}
             
-            /* Botão de excluir discreto no card de candidatos */
-            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button {{
-                background: transparent !important;
-                border: none !important;
-                color: #7F8798 !important;
-                opacity: 0.4 !important;
-                font-size: 1rem !important;
+            /* Botão de excluir posicionado absolutamente e perfeitamente centralizado */
+            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] {{
+                position: absolute !important;
+                top: 12px !important;
+                right: 12px !important;
+                z-index: 10 !important;
+                margin: 0 !important;
                 padding: 0 !important;
-                width: 24px !important;
-                height: 24px !important;
-                min-width: 24px !important;
-                min-height: 24px !important;
-                border-radius: 50% !important;
-                display: flex !important;
+            }}
+            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button {{
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                color: #7F8798 !important;
+                opacity: 0.6 !important;
+                font-size: 0.75rem !important;
+                padding: 0 !important;
+                width: 28px !important;
+                height: 28px !important;
+                min-width: 28px !important;
+                min-height: 28px !important;
+                border-radius: 8px !important;
+                display: inline-flex !important;
                 align-items: center !important;
                 justify-content: center !important;
                 box-shadow: none !important;
-                transition: all 0.25s ease !important;
+                transition: all 0.2s ease !important;
             }}
             .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button:hover {{
-                background: rgba(220, 38, 38, 0.12) !important;
+                background: rgba(239, 68, 68, 0.12) !important;
+                border-color: rgba(239, 68, 68, 0.25) !important;
                 color: #EF4444 !important;
                 opacity: 1 !important;
-                transform: rotate(90deg) !important;
+                transform: scale(1.05) !important;
+            }}
+            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button * {{
+                margin: 0 !important;
+                padding: 0 !important;
+                line-height: 1 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
             }}
             
             /* Estilização Premium do CTA "Associar Talentos" */
@@ -394,105 +412,106 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 padding-top: 10px !important;
             }}
             
-            /* Avatar Halo */
+            /* Avatar Halo compact */
             .matching-page-wrapper .avatar-halo-wrapper {{
                 display: flex;
                 justify-content: center;
-                margin-top: 10px;
-                margin-bottom: 22px;
+                margin-top: 5px;
+                margin-bottom: 12px;
             }}
             .matching-page-wrapper .avatar-halo {{
-                width: 112px;
-                height: 112px;
+                width: 68px;
+                height: 68px;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 3px;
+                padding: 2px;
                 background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 50%, #F08A00 100%);
-                box-shadow: 0 8px 20px rgba(91, 20, 99, 0.2), 0 0 0 4px rgba(255, 255, 255, 0.02);
+                box-shadow: 0 4px 12px rgba(91, 20, 99, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.01);
                 position: relative;
                 transition: box-shadow 0.3s ease;
             }}
             .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
-                box-shadow: 0 10px 24px rgba(240, 138, 0, 0.35), 0 0 0 6px rgba(240, 138, 0, 0.05);
+                box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3), 0 0 0 4px rgba(240, 138, 0, 0.03);
             }}
             .matching-page-wrapper .avatar-img {{
-                width: 106px;
-                height: 106px;
+                width: 62px;
+                height: 62px;
                 border-radius: 50%;
                 object-fit: cover;
-                border: 3px solid #171B2A;
+                border: 2px solid #171B2A;
             }}
             .matching-page-wrapper .font-avatar-bg {{
                 background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 100%);
             }}
             .matching-page-wrapper .avatar-initial {{
                 font-family: 'Outfit', sans-serif;
-                font-size: 2.4rem;
+                font-size: 1.5rem;
                 font-weight: 800;
                 color: #F4F7FB;
             }}
             
-            /* Dob nascimento */
+            /* Dob nascimento compact */
             .matching-page-wrapper .dob-text {{
-                margin: 6px 0 20px 0 !important;
+                margin: 4px 0 12px 0 !important;
                 color: #7F8798 !important;
-                font-size: 0.75rem !important;
+                font-size: 0.72rem !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                gap: 6px !important;
+                gap: 5px !important;
                 font-weight: 500;
-                letter-spacing: 0.3px;
+                letter-spacing: 0.2px;
             }}
             .matching-page-wrapper .dob-text i {{
                 color: #7A2B8A !important;
-                font-size: 12px !important;
+                font-size: 10px !important;
             }}
             
-            /* Atributos do candidato */
+            /* Atributos do candidato compact */
             .matching-page-wrapper .attributes-container {{
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
-                padding-top: 16px;
-                margin-bottom: 20px;
+                padding-top: 12px;
+                margin-bottom: 12px;
                 display: flex;
                 flex-direction: column;
-                gap: 12px;
+                gap: 10px;
             }}
             .matching-page-wrapper .attr-row-v {{
                 display: flex;
                 flex-direction: column;
-                gap: 6px;
-                font-size: 0.82rem;
+                gap: 4px;
+                font-size: 0.76rem;
                 align-items: flex-start;
-                margin-bottom: 4px;
+                margin-bottom: 2px;
             }}
             .matching-page-wrapper .tags-container {{
                 display: flex;
                 flex-wrap: wrap;
-                gap: 4px;
+                gap: 3px;
                 width: 100%;
             }}
             .matching-page-wrapper .attr-label {{
                 color: #7F8798;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.8px;
-                font-size: 0.72rem;
+                letter-spacing: 0.6px;
+                font-size: 0.68rem;
             }}
             .matching-page-wrapper .attr-value {{
                 color: #AAB3C5;
                 font-weight: 500;
+                font-size: 0.76rem;
             }}
             .matching-page-wrapper .badge-tag {{
                 display: inline-block;
-                padding: 4px 10px;
-                border-radius: 6px;
-                font-size: 0.7rem;
+                padding: 2px 8px;
+                border-radius: 5px;
+                font-size: 0.68rem;
                 font-weight: 700;
-                margin: 2px;
-                letter-spacing: 0.3px;
+                margin: 1px;
+                letter-spacing: 0.2px;
                 text-transform: uppercase;
                 background-color: rgba(255, 255, 255, 0.03);
                 border: 1px solid rgba(255, 255, 255, 0.05);
@@ -514,11 +533,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 color: #7F8798 !important;
             }}
             .matching-page-wrapper .attr-chip {{
-                padding: 4px 10px;
-                border-radius: 8px;
-                font-size: 0.72rem;
+                padding: 2px 8px;
+                border-radius: 6px;
+                font-size: 0.68rem;
                 font-weight: 700;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.4px;
                 text-transform: uppercase;
             }}
             .matching-page-wrapper .kan-chip {{
@@ -527,13 +546,13 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 color: #F08A00;
             }}
             
-            /* Widget de pontuação */
+            /* Widget de pontuação compact */
             .matching-page-wrapper .score-widget {{
                 background: linear-gradient(135deg, rgba(23, 27, 42, 0.4) 0%, rgba(13, 16, 22, 0.3) 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                border-radius: 14px !important;
-                padding: 16px !important;
-                margin-top: 20px !important;
+                border-radius: 10px !important;
+                padding: 10px 12px !important;
+                margin-top: 12px !important;
                 box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
                 transition: all 0.25s ease;
             }}
@@ -545,34 +564,34 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 12px;
+                margin-bottom: 8px;
             }}
             .matching-page-wrapper .score-title {{
-                font-size: 0.72rem;
+                font-size: 0.68rem;
                 color: #7F8798;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.8px;
+                letter-spacing: 0.6px;
             }}
             .matching-page-wrapper .score-badge {{
                 background: rgba(240, 138, 0, 0.1) !important;
                 border: 1px solid rgba(240, 138, 0, 0.25) !important;
-                padding: 4px 12px !important;
-                border-radius: 8px !important;
+                padding: 2px 8px !important;
+                border-radius: 6px !important;
                 font-weight: 800 !important;
-                font-size: 0.95rem !important;
+                font-size: 0.8rem !important;
                 color: #F08A00 !important;
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
+                gap: 4px;
                 font-family: 'Outfit', sans-serif !important;
             }}
             .matching-page-wrapper .score-breakdown {{
                 display: flex;
                 justify-content: space-between;
                 border-top: 1px solid rgba(255, 255, 255, 0.06);
-                padding-top: 12px;
-                gap: 8px;
+                padding-top: 8px;
+                gap: 4px;
             }}
             .matching-page-wrapper .breakdown-item {{
                 flex: 1;
@@ -584,17 +603,17 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 border-left: 1px solid rgba(255, 255, 255, 0.06);
             }}
             .matching-page-wrapper .breakdown-label {{
-                font-size: 0.62rem;
+                font-size: 0.58rem;
                 color: #7F8798;
                 text-transform: uppercase;
                 font-weight: 700;
-                letter-spacing: 0.5px;
+                letter-spacing: 0.4px;
             }}
             .matching-page-wrapper .breakdown-val {{
-                font-size: 0.8rem;
+                font-size: 0.72rem;
                 color: #F4F7FB;
                 font-weight: 700;
-                margin-top: 2px;
+                margin-top: 1px;
             }}
             
             /* Dropdowns */
@@ -1181,16 +1200,14 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 for idx, cand in enumerate(chunk):
                     with cols[idx]:
                         with st.container(border=True):
-                            # Botão de Excluir no canto superior direito
-                            col_del_left, col_del_right = st.columns([8, 1])
-                            with col_del_right:
-                                if st.button("✕", key=f"btn_excluir_cand_{cand['Nome']}_{vaga['id']}", help="Excluir do processo", type="secondary"):
-                                    vaga_id_int = int(vaga['id'])
-                                    if "candidatos_vagas" in st.session_state and vaga_id_int in st.session_state["candidatos_vagas"]:
-                                        if cand['Nome'] in st.session_state["candidatos_vagas"][vaga_id_int]:
-                                            st.session_state["candidatos_vagas"][vaga_id_int].remove(cand['Nome'])
-                                            st.toast(f"{cand['Nome']} removido do processo!")
-                                            st.rerun()
+                            # Botão de Excluir no canto superior direito (posicionado absolutamente via CSS)
+                            if st.button("✕", key=f"btn_excluir_cand_{cand['Nome']}_{vaga['id']}", help="Excluir do processo", type="secondary"):
+                                vaga_id_int = int(vaga['id'])
+                                if "candidatos_vagas" in st.session_state and vaga_id_int in st.session_state["candidatos_vagas"]:
+                                    if cand['Nome'] in st.session_state["candidatos_vagas"][vaga_id_int]:
+                                        st.session_state["candidatos_vagas"][vaga_id_int].remove(cand['Nome'])
+                                        st.toast(f"{cand['Nome']} removido do processo!")
+                                        st.rerun()
 
                             # Gerar HTML do avatar/foto crop com halo sutil da marca (roxo/laranja)
                             if cand["foto_base64"]:
