@@ -334,46 +334,56 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             }}
             
             /* Botão de excluir posicionado absolutamente e perfeitamente centralizado */
-            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] {{
+            .matching-page-wrapper div:has(> .btn-excluir-link) {{
                 position: absolute !important;
-                top: 12px !important;
-                right: 12px !important;
-                z-index: 10 !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 0 !important;
+                height: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                border: none !important;
+                z-index: 10 !important;
             }}
-            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button {{
-                background: rgba(255, 255, 255, 0.03) !important;
-                border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                color: #7F8798 !important;
-                opacity: 0.6 !important;
-                font-size: 0.75rem !important;
-                padding: 0 !important;
+            .matching-page-wrapper .btn-excluir-link {{
+                position: absolute !important;
+                top: 12px !important;
+                left: 12px !important;
                 width: 28px !important;
                 height: 28px !important;
                 min-width: 28px !important;
                 min-height: 28px !important;
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                color: #7F8798 !important;
+                opacity: 0.7 !important;
                 border-radius: 8px !important;
                 display: inline-flex !important;
                 align-items: center !important;
                 justify-content: center !important;
+                text-decoration: none !important;
                 box-shadow: none !important;
                 transition: all 0.2s ease !important;
+                z-index: 11 !important;
             }}
-            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button:hover {{
+            .matching-page-wrapper .btn-excluir-link:hover {{
                 background: rgba(239, 68, 68, 0.12) !important;
                 border-color: rgba(239, 68, 68, 0.25) !important;
                 color: #EF4444 !important;
                 opacity: 1 !important;
                 transform: scale(1.05) !important;
             }}
-            .matching-page-wrapper div[class*="st-key-btn_excluir_cand_"] button * {{
-                margin: 0 !important;
-                padding: 0 !important;
+            .matching-page-wrapper .btn-excluir-link i {{
+                font-family: 'lucide' !important;
+                font-size: 14px !important;
                 line-height: 1 !important;
-                display: flex !important;
+                display: inline-flex !important;
                 align-items: center !important;
                 justify-content: center !important;
+                font-style: normal !important;
+                font-weight: normal !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }}
             
             /* Estilização Premium do CTA "Associar Talentos" */
@@ -1200,14 +1210,16 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 for idx, cand in enumerate(chunk):
                     with cols[idx]:
                         with st.container(border=True):
-                            # Botão de Excluir no canto superior direito (posicionado absolutamente via CSS)
-                            if st.button("✕", key=f"btn_excluir_cand_{cand['Nome']}_{vaga['id']}", help="Excluir do processo", type="secondary"):
-                                vaga_id_int = int(vaga['id'])
-                                if "candidatos_vagas" in st.session_state and vaga_id_int in st.session_state["candidatos_vagas"]:
-                                    if cand['Nome'] in st.session_state["candidatos_vagas"][vaga_id_int]:
-                                        st.session_state["candidatos_vagas"][vaga_id_int].remove(cand['Nome'])
-                                        st.toast(f"{cand['Nome']} removido do processo!")
-                                        st.rerun()
+                            # Botão de Excluir HTML (posicionado absolutamente via CSS no canto superior esquerdo)
+                            import urllib.parse
+                            cand_nome_encoded = urllib.parse.quote(cand['Nome'])
+                            vaga_id_encoded = urllib.parse.quote(str(vaga['id']))
+                            btn_excluir_html = f"""
+                            <a href="?excluir_cand={cand_nome_encoded}&vaga_id={vaga_id_encoded}" target="_self" class="btn-excluir-link" title="Remover do processo">
+                                <i class="icon-user-minus"></i>
+                            </a>
+                            """
+                            st.markdown(btn_excluir_html, unsafe_allow_html=True)
 
                             # Gerar HTML do avatar/foto crop com halo sutil da marca (roxo/laranja)
                             if cand["foto_base64"]:
