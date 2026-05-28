@@ -74,16 +74,23 @@ class TalentosMenu(BaseMenu):
                 grupos_existentes = set()
                 for c_nome, info in clientes.items():
                     g = info.get("grupo")
-                    if g and not pd.isna(g) and str(g).strip():
+                    if g and not pd.isna(g) and str(g).strip() and str(g).strip() != "None" and str(g).strip() != "Nenhum / Sem Grupo":
                         grupos_existentes.add(str(g).strip())
                 grupos_opcoes = sorted(list(grupos_existentes))
-                if not grupos_opcoes:
-                    grupos_opcoes = ["Mundo KAN"]
                 
-                opcoes_grupo = grupos_opcoes + ["Outro (Digitar Novo)..."]
-                grupo_sel = st.selectbox("Grupo*:", options=opcoes_grupo, key="cad_grupo_select")
+                opcoes_grupo = ["Nenhum / Sem Grupo"] + grupos_opcoes + ["Outro (Digitar Novo)..."]
+                
+                val_atual = st.session_state.get("cad_grupo_select")
+                if val_atual is None or str(val_atual).strip() in ("", "None", "Sem Grupo", "Nenhum / Sem Grupo"):
+                    st.session_state["cad_grupo_select"] = "Nenhum / Sem Grupo"
+                elif val_atual not in opcoes_grupo:
+                    opcoes_grupo.insert(-1, val_atual)
+                
+                grupo_sel = st.selectbox("Grupo (opcional):", options=opcoes_grupo, key="cad_grupo_select")
                 if grupo_sel == "Outro (Digitar Novo)...":
-                    cad_emp = st.text_input("Digite o nome do Grupo*:", key="cad_grupo_manual")
+                    cad_emp = st.text_input("Digite o nome do novo Grupo:", key="cad_grupo_manual")
+                elif grupo_sel == "Nenhum / Sem Grupo":
+                    cad_emp = ""
                 else:
                     cad_emp = grupo_sel
             with col_f6:
@@ -137,8 +144,6 @@ class TalentosMenu(BaseMenu):
                         st.error("O campo 'Nome Completo' é obrigatório.")
                     elif not cad_data or not cad_data.strip() or len(cad_data.split('/')) != 3:
                         st.error("Formato de data inválido. Use dd/mm/yyyy (ex: 25/12/1980).")
-                    elif not cad_emp or not cad_emp.strip():
-                        st.error("O campo 'Grupo' é obrigatório.")
                     else:
                         foto_b64 = ""
                         if cad_foto:
@@ -148,7 +153,7 @@ class TalentosMenu(BaseMenu):
                             "nome": cad_nome.strip(),
                             "data_nascimento": cad_data.strip(),
                             "profissao": cad_profissao.strip() if cad_profissao else None,
-                            "grupo": cad_emp,
+                            "grupo": cad_emp.strip() if cad_emp else None,
                             "empresa": cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else None,
                             "linkedin_url": cad_link.strip() if cad_link else None,
                             "experiencias": cad_exp.strip() if cad_exp else None,
