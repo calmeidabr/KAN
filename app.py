@@ -28,6 +28,10 @@ def handle_logout():
 def handle_reset():
     st.cache_data.clear()
 
+def toggle_theme():
+    st.session_state["theme"] = "light" if st.session_state.get("theme", "dark") == "dark" else "dark"
+
+
 class App:
     def __init__(self):
         self.routes = {
@@ -63,9 +67,9 @@ class App:
                         logo_b64 = base64.b64encode(f.read()).decode()
                     logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="max-height: 40px; width: auto; display: block; margin-bottom: 4px;">'
                 else:
-                    logo_html = '<span style="font-size: 1.15em; color: #F5F7FA; margin-right: 8px; font-weight: 700;">◇ KAN</span>'
+                    logo_html = '<span style="font-size: 1.15em; color: var(--text-main); margin-right: 8px; font-weight: 700;">◇ KAN</span>'
             except Exception:
-                logo_html = '<span style="font-size: 1.15em; color: #F5F7FA; margin-right: 8px; font-weight: 700;">◇ KAN</span>'
+                logo_html = '<span style="font-size: 1.15em; color: var(--text-main); margin-right: 8px; font-weight: 700;">◇ KAN</span>'
 
             st.markdown(f"""
             <div class="sb-brand">
@@ -115,6 +119,10 @@ class App:
                     st.button("Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
                 with col_out2:
                     st.button("Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
+                
+                current_theme = st.session_state.get("theme", "dark")
+                theme_btn_label = "Modo Claro" if current_theme == "dark" else "Modo Escuro"
+                st.button(theme_btn_label, use_container_width=True, key="btn_theme_toggle", on_click=toggle_theme)
 
             user_logged = st.session_state.get("logged_user", "Usuário")
             role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"
@@ -122,12 +130,12 @@ class App:
             <div class='user-profile-card'>
                 <div style='display: flex; align-items: center; justify-content: space-between;'>
                     <div style='display: flex; align-items: center;'>
-                        <div style='background: rgba(255, 255, 255, 0.08); width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #FFFFFF; margin-right: 12px; font-size: 1.1em; border: 1px solid rgba(255, 255, 255, 0.1);'>
+                        <div class='user-profile-avatar'>
                             {user_logged[0].upper()}
                         </div>
                         <div style='overflow: hidden; text-align: left;'>
-                            <p style='margin: 0; font-size: 0.9em; font-weight: 700; color: white; white-space: nowrap; text-overflow: ellipsis;'>{user_logged}</p>
-                            <p style='margin: 0; font-size: 0.7em; color: rgba(255,255,255,0.5);'>{role_str} • Online</p>
+                            <p class='user-profile-name'>{user_logged}</p>
+                            <p class='user-profile-role'>{role_str} • Online</p>
                         </div>
                     </div>
                     <div style='color: #22C55E; font-size: 0.8em;'>
@@ -140,6 +148,9 @@ class App:
     def run(self):
         if not check_password():
             return
+
+        if "theme" not in st.session_state:
+            st.session_state["theme"] = "dark"
 
         if "sidebar_menu" not in st.session_state:
             st.session_state["sidebar_menu"] = "Home"
@@ -180,4 +191,4 @@ class App:
                         st.image(footer_img_path)
             except Exception: pass
             with col_footer2:
-                st.markdown("<p style='color: white; font-size: 12px; margin: 0; padding-top: 15px;'>Todos os direitos reservados para mundokan. Metodologia exclusiva registrada.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='color: var(--text-soft); font-size: 12px; margin: 0; padding-top: 15px;'>Todos os direitos reservados para mundokan. Metodologia exclusiva registrada.</p>", unsafe_allow_html=True)

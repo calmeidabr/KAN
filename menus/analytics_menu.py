@@ -249,22 +249,25 @@ class AnalyticsMenu(BaseMenu):
         color_palette = ["#F18617", "#9333EA", "#06B6D4", "#10B981", "#EF4444", "#F59E0B", "#3B82F6"]
 
         def apply_dark_layout(fig, title_text):
+            is_light = (st.session_state.get("theme", "dark") == "light")
+            text_color = "#161A22" if is_light else "#f8fafc"
+            grid_color = "rgba(19, 24, 35, 0.08)" if is_light else "rgba(255,255,255,0.05)"
             fig.update_layout(
-                title=dict(text=title_text, font=dict(size=16, color="#f8fafc"), x=0.05),
+                title=dict(text=title_text, font=dict(size=16, color=text_color), x=0.05),
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='#f8fafc'),
+                font=dict(color=text_color),
                 margin=dict(l=30, r=20, t=50, b=30),
-                legend=dict(font=dict(color='#f8fafc', size=10)),
+                legend=dict(font=dict(color=text_color, size=10)),
                 xaxis=dict(
-                    gridcolor='rgba(255,255,255,0.05)',
-                    zerolinecolor='rgba(255,255,255,0.05)',
-                    tickfont=dict(color='rgba(255,255,255,0.7)')
+                    gridcolor=grid_color,
+                    zerolinecolor=grid_color,
+                    tickfont=dict(color=text_color)
                 ),
                 yaxis=dict(
-                    gridcolor='rgba(255,255,255,0.05)',
-                    zerolinecolor='rgba(255,255,255,0.05)',
-                    tickfont=dict(color='rgba(255,255,255,0.7)')
+                    gridcolor=grid_color,
+                    zerolinecolor=grid_color,
+                    tickfont=dict(color=text_color)
                 )
             )
 
