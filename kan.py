@@ -545,6 +545,24 @@ st.markdown("""
         color: #F08A00 !important;
     }
 </style>
+<script>
+    // Força o idioma da página como português para evitar o prompt de tradução automática do navegador
+    document.documentElement.lang = 'pt';
+    document.documentElement.setAttribute('lang', 'pt');
+
+    // Aplica a classe 'notranslate' nos file uploaders para evitar corrupção de texto (ex: "uploadpload") caso a tradução esteja ativa
+    function aplicarNoTranslate() {
+        document.querySelectorAll('[data-testid="stFileUploader"], [data-testid="stFileUploader"] button').forEach(function(el) {
+            if (!el.classList.contains('notranslate')) {
+                el.classList.add('notranslate');
+                el.setAttribute('translate', 'no');
+            }
+        });
+    }
+
+    aplicarNoTranslate();
+    setInterval(aplicarNoTranslate, 1000);
+</script>
 """, unsafe_allow_html=True)
 
 # 3. Inicialização e Execução do Roteador Central
