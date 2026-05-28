@@ -23,29 +23,42 @@ current_theme = st.session_state.get("theme", "dark")
 if current_theme == "light":
     theme_variables = """
     :root {
-        --app-bg: #F5F6F8;
-        --sidebar-bg: #FFFFFF;
+        --app-bg: #EEF1F5;
+        --content-bg: #F5F7FA;
+        --sidebar-bg: #FCFCFD;
         --panel-bg: #FFFFFF;
-        --panel-border: rgba(19, 24, 35, 0.08);
-        --divider: rgba(19, 24, 35, 0.06);
+        --panel-border: rgba(22, 26, 34, 0.10);
+        --panel-border-medium: rgba(22, 26, 34, 0.14);
+        --divider: rgba(22, 26, 34, 0.08);
         --text-main: #161A22;
-        --text-soft: #5F6776;
-        --text-muted: #8A93A3;
-        --text-disabled: #B0B7C3;
-        --input-bg: #FFFFFF;
-        --hover-bg: #F0F2F5;
+        --text-soft: #5E6675;
+        --text-muted: #8891A1;
+        --text-disabled: #A7AFBD;
+        --input-bg: #FAFBFC;
+        --hover-bg: #ECEFF3;
         --accent: #F08A00;
         --accent-hover: #FF9D1F;
         --accent-active: #D97800;
-        --sidebar-item-hover: #F0F2F5;
+        --sidebar-item-hover: #ECEFF3;
         --sidebar-item-active-bg: #FFF4E8;
         --sidebar-item-active-text: #161A22;
-        --sidebar-container-bg: #FFFFFF;
+        --sidebar-container-bg: #FCFCFD;
         --sidebar-text: rgba(22, 26, 34, 0.7);
         --sidebar-text-hover: #161A22;
         --sidebar-icon-color: rgba(22, 26, 34, 0.6);
-        --card-shadow: 0 2px 8px rgba(19, 24, 35, 0.04);
+        --card-shadow: 0 4px 12px rgba(22, 26, 34, 0.05);
         --radius: 14px;
+        /* Novas superfícies específicas do redesenho Light Mode */
+        --card-secondary: #F7F4EF;
+        --panel-neutral: #F2F4F7;
+        --selected-subtle: #FFF4E8;
+        --header-bg: #F7F8FB;
+        --header-border: rgba(22, 26, 34, 0.08);
+        --button-primary-text: #1A1A1A;
+        --button-secondary-bg: #F7F4EF;
+        --button-secondary-text: #2A3140;
+        --button-secondary-border: rgba(22, 26, 34, 0.10);
+        --button-secondary-hover: #EFE9E1;
     }
     .st-key-btn_theme_toggle button::before { content: "\\e11e" !important; } /* moon icon */
     """
@@ -53,9 +66,11 @@ else:
     theme_variables = """
     :root {
         --app-bg: #15161A;
+        --content-bg: #15161A;
         --sidebar-bg: #121318;
         --panel-bg: #1B1D24;
         --panel-border: rgba(255, 255, 255, 0.08);
+        --panel-border-medium: rgba(255, 255, 255, 0.15);
         --divider: rgba(255, 255, 255, 0.06);
         --text-main: #F5F7FA;
         --text-soft: #B5BBC8;
@@ -75,6 +90,17 @@ else:
         --sidebar-icon-color: rgba(245, 247, 250, 0.6);
         --card-shadow: none;
         --radius: 14px;
+        /* Equivalentes para Dark Mode */
+        --card-secondary: #23252E;
+        --panel-neutral: #1E2028;
+        --selected-subtle: rgba(240, 138, 0, 0.08);
+        --header-bg: transparent;
+        --header-border: transparent;
+        --button-primary-text: #121318;
+        --button-secondary-bg: #1B1D24;
+        --button-secondary-text: #F5F7FA;
+        --button-secondary-border: rgba(255, 255, 255, 0.08);
+        --button-secondary-hover: #232632;
     }
     .st-key-btn_theme_toggle button::before { content: "\\e178" !important; } /* sun icon */
     """
@@ -92,10 +118,23 @@ st.markdown("""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
     
-    h1, h2, h3, h4, h5, h6, [data-testid="stHeader"] {
+    h1, h2, h3, h4, h5, h6 {
         font-family: 'Inter', sans-serif !important;
         color: var(--text-main) !important;
         font-weight: 700 !important;
+    }
+    
+    [data-testid="stHeader"] {
+        background-color: var(--header-bg) !important;
+        border-bottom: 1px solid var(--header-border) !important;
+        transition: all 0.25s ease !important;
+    }
+    
+    [data-testid="stHeader"] button,
+    [data-testid="stHeader"] a,
+    [data-testid="stHeader"] svg {
+        color: var(--text-main) !important;
+        fill: var(--text-main) !important;
     }
     
     p, span, label, li {
@@ -110,7 +149,7 @@ st.markdown("""
     /* Botões Primários do Streamlit */
     .stButton > button[data-testid="baseButton-primary"] {
         background: var(--accent) !important;
-        color: #121318 !important;
+        color: var(--button-primary-text) !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 600 !important;
         border: none !important;
@@ -121,7 +160,7 @@ st.markdown("""
     }
     .stButton > button[data-testid="baseButton-primary"]:hover {
         background: var(--accent-hover) !important;
-        color: #121318 !important;
+        color: var(--button-primary-text) !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3) !important;
     }
@@ -131,31 +170,42 @@ st.markdown("""
     
     /* Botões Secundários/Outros */
     .stButton > button[data-testid="baseButton-secondary"],
-    .stButton > button:not([data-testid="baseButton-primary"]) {
-        background: var(--panel-bg) !important;
-        color: var(--text-main) !important;
+    .stButton > button:not([data-testid="baseButton-primary"]):not([class*="st-key-btn_d_eq_"]):not([class*="st-key-btn_rem_"]):not([class*="st-key-btn_delete_"]):not([class*="st-key-btn_excluir_"]) {
+        background: var(--button-secondary-bg) !important;
+        color: var(--button-secondary-text) !important;
         font-family: 'Inter', sans-serif !important;
         font-weight: 500 !important;
-        border: 1px solid var(--panel-border) !important;
+        border: 1px solid var(--button-secondary-border) !important;
         border-radius: 8px !important;
         box-shadow: none !important;
         transition: all 0.2s ease;
     }
     .stButton > button[data-testid="baseButton-secondary"]:hover,
-    .stButton > button:not([data-testid="baseButton-primary"]):hover {
-        background: var(--hover-bg) !important;
-        border-color: var(--panel-border) !important;
-        color: var(--text-main) !important;
+    .stButton > button:not([data-testid="baseButton-primary"]):not([class*="st-key-btn_d_eq_"]):not([class*="st-key-btn_rem_"]):not([class*="st-key-btn_delete_"]):not([class*="st-key-btn_excluir_"]):hover {
+        background: var(--button-secondary-hover) !important;
+        border-color: var(--button-secondary-border) !important;
+        color: var(--button-secondary-text) !important;
     }
     
     /* Botão Destrutivo (Lixeira / Delete) */
+    div[class*="st-key-btn_d_eq_"] button,
+    div[class*="st-key-btn_rem_"] button,
+    div[class*="st-key-btn_delete_"] button,
+    div[class*="st-key-btn_excluir_"] button {
+        background: #FFF1F1 !important;
+        background-color: #FFF1F1 !important;
+        border: 1px solid rgba(220, 38, 38, 0.12) !important;
+        color: #B42318 !important;
+        transition: all 0.2s ease !important;
+    }
     div[class*="st-key-btn_d_eq_"] button:hover,
     div[class*="st-key-btn_rem_"] button:hover,
     div[class*="st-key-btn_delete_"] button:hover,
     div[class*="st-key-btn_excluir_"] button:hover {
-        background-color: rgba(239, 68, 68, 0.1) !important;
-        border-color: rgba(239, 68, 68, 0.3) !important;
-        color: #EF4444 !important;
+        background: #FEE4E2 !important;
+        background-color: #FEE4E2 !important;
+        border-color: rgba(220, 38, 38, 0.24) !important;
+        color: #B42318 !important;
     }
     
     /* --- SIDEBAR ENTERPRISE UI --- */
@@ -167,6 +217,7 @@ st.markdown("""
     
     [data-testid="stMain"] {
         transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        background-color: var(--content-bg) !important;
     }
 
     /* CONFIG DESKTOP */
@@ -596,13 +647,19 @@ st.markdown("""
         background-color: var(--input-bg) !important;
         color: var(--text-main) !important;
         border: 1px solid var(--panel-border) !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
+    }
+    div[data-testid="stTextInput"] input::placeholder, 
+    div[data-testid="stTextArea"] textarea::placeholder {
+        color: var(--text-muted) !important;
+        opacity: 0.8 !important;
     }
     div[data-testid="stTextInput"] input:focus, 
     div[data-testid="stTextArea"] textarea:focus,
     div[data-testid="stSelectbox"] div[role="combobox"]:focus-within {
         border-color: var(--accent) !important;
-        box-shadow: 0 0 0 1px var(--accent) !important;
+        box-shadow: 0 0 0 3px rgba(240, 138, 0, 0.15) !important;
+        outline: none !important;
     }
     div[data-testid="stMultiSelect"] span[data-baseweb="tag"] {
         background-color: var(--hover-bg) !important;
@@ -731,24 +788,30 @@ st.markdown("""
 
     /* Ajustes específicos de classes customizadas das páginas */
     .talent-member-card {
-        background: var(--sidebar-item-active-bg) !important;
+        background: var(--card-secondary) !important;
         border: 1px solid var(--panel-border) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--card-shadow) !important;
+        transition: all 0.2s ease !important;
     }
     .talent-member-card img, .talent-member-avatar {
         border-color: var(--accent) !important;
     }
     .talent-member-avatar {
-        background: var(--sidebar-item-active-bg) !important;
+        background: var(--hover-bg) !important;
     }
     .hierarquia-card {
-        background: var(--sidebar-item-active-bg) !important;
+        background: var(--card-secondary) !important;
         border: 1px solid var(--panel-border) !important;
+        border-radius: 12px !important;
+        box-shadow: var(--card-shadow) !important;
+        transition: all 0.2s ease !important;
     }
     .hierarquia-card img, .hierarquia-card-avatar {
         border-color: var(--accent) !important;
     }
     .hierarquia-card-avatar {
-        background: var(--sidebar-item-active-bg) !important;
+        background: var(--hover-bg) !important;
     }
     .candidato-card {
         background-color: var(--panel-bg) !important;
@@ -761,6 +824,72 @@ st.markdown("""
     }
     .candidato-card small {
         color: var(--text-muted) !important;
+    }
+    
+    /* File Uploader Custom Styling */
+    [data-testid="stFileUploader"] section {
+        background-color: var(--panel-neutral) !important;
+        border: 1px dashed var(--panel-border-medium) !important;
+        border-radius: 12px !important;
+        padding: 20px !important;
+        transition: all 0.2s ease !important;
+    }
+    [data-testid="stFileUploader"] section:hover {
+        background-color: var(--hover-bg) !important;
+        border-color: var(--accent) !important;
+    }
+    [data-testid="stFileUploader"] section * {
+        color: var(--text-soft) !important;
+    }
+    [data-testid="stFileUploader"] section strong {
+        color: var(--text-main) !important;
+    }
+    [data-testid="stFileUploader"] button {
+        background-color: var(--panel-bg) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--panel-border) !important;
+        border-radius: 8px !important;
+        padding: 6px 14px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+    }
+    [data-testid="stFileUploader"] button:hover {
+        background-color: var(--hover-bg) !important;
+        border-color: var(--panel-border-medium) !important;
+        color: var(--text-main) !important;
+    }
+    
+    /* Custom Alert/Notification Backgrounds (Light Mode specific) */
+    div[data-testid="stNotification"] {
+        border-radius: 12px !important;
+        box-shadow: 0 2px 8px rgba(22, 26, 34, 0.02) !important;
+        border: 1px solid var(--panel-border) !important;
+        background-color: var(--panel-neutral) !important;
+    }
+    
+    /* Info Box */
+    div[data-testid="stNotification"]:has(path[d*="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"]),
+    div[data-testid="stNotification"]:has(svg) {
+        background-color: var(--header-bg) !important;
+        border: 1px solid var(--panel-border-medium) !important;
+    }
+    
+    /* Success Box */
+    div[data-testid="stNotification"]:has(path[d*="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"]) {
+        background-color: #ECFDF3 !important;
+        border: 1px solid rgba(22, 163, 74, 0.16) !important;
+    }
+    
+    /* Warning Box */
+    div[data-testid="stNotification"]:has(path[d*="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"]) {
+        background-color: #FFF7E6 !important;
+        border: 1px solid rgba(217, 119, 6, 0.16) !important;
+    }
+    
+    /* Error Box */
+    div[data-testid="stNotification"]:has(path[d*="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"]) {
+        background-color: #FEF3F2 !important;
+        border: 1px solid rgba(220, 38, 38, 0.16) !important;
     }
     .kpi-card {
         background: var(--panel-bg) !important;
@@ -895,12 +1024,12 @@ st.markdown("""
 
     /* Define chevron para a direita no expander fechado */
     [data-testid="stExpander"] details:not([open]) summary [data-testid="stIconMaterial"]::before {
-        content: "\e06f" !important; /* chevron-right */
+        content: "\\e06f" !important; /* chevron-right */
     }
 
     /* Define chevron para baixo no expander aberto */
     [data-testid="stExpander"] details[open] summary [data-testid="stIconMaterial"]::before {
-        content: "\e06d" !important; /* chevron-down */
+        content: "\\e06d" !important; /* chevron-down */
     }
 
     [data-testid="stExpander"] details summary:hover [data-testid="stIconMaterial"]::before {
