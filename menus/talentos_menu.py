@@ -284,7 +284,7 @@ class TalentosMenu(BaseMenu):
                     <div class="talent-member-card">
                         {avatar_html}
                         <div class="talent-member-info">
-                            <strong>{t['Nome']}</strong>
+                            <strong><a href="?ver_talento={t['Nome']}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent); font-size: inherit; font-weight: inherit;">{t['Nome']}</a></strong>
                             <span title="{role_lbl}" style="display: inline-flex; align-items: center; gap: 4px;"><i class="icon-briefcase" style="font-size:12px; color: #F18617;"></i>{role_lbl}</span>
                             {grupo_lbl}
                             {lk_html}

@@ -145,6 +145,24 @@ class App:
             </div>
             """, unsafe_allow_html=True)
 
+    def ver_cadastro_talento(self, nome):
+        from models.database import carregar_todos_clientes
+        import pandas as pd
+        st.session_state["busca_talentos_input"] = nome
+        clientes = carregar_todos_clientes()
+        if nome in clientes:
+            info = clientes[nome]
+            st.session_state["cad_nome"] = nome
+            st.session_state["cad_data"] = info.get("data_nascimento", "")
+            st.session_state["cad_profissao"] = info.get("profissao") or info.get("cargo") or ""
+            st.session_state["cad_grupo_select"] = info.get("grupo", "")
+            st.session_state["cad_link"] = info.get("linkedin_url", "")
+            st.session_state["cad_exp"] = info.get("experiencias", "")
+            emp_nome = info.get("empresa", "Nenhuma / Não associada")
+            st.session_state["cad_empresa_sel"] = emp_nome if emp_nome else "Nenhuma / Não associada"
+        st.session_state["sidebar_menu"] = "Talentos"
+        st.rerun()
+
     def run(self):
         if not check_password():
             return
@@ -154,6 +172,11 @@ class App:
 
         if "sidebar_menu" not in st.session_state:
             st.session_state["sidebar_menu"] = "Home"
+
+        if "ver_talento" in st.query_params:
+            nome_ver = st.query_params["ver_talento"]
+            del st.query_params["ver_talento"]
+            self.ver_cadastro_talento(nome_ver)
 
         if "nav" in st.query_params:
             nav_val = st.query_params.get("nav")

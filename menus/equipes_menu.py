@@ -396,7 +396,7 @@ class EquipesMenu(BaseMenu):
                                                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                                                     {avatar_html}
                                                     <div style="min-width: 0; flex-grow: 1;">
-                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{m_nome} {badge_lider_temp}</strong>
+                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><a href="?ver_talento={m_nome}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{m_nome}</a> {badge_lider_temp}</strong>
                                                         <span style="font-size:0.78em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{m_role}</span>
                                                     </div>
                                                 </div>
@@ -453,7 +453,7 @@ class EquipesMenu(BaseMenu):
                                                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                                                     {avatar_html}
                                                     <div style="min-width: 0; flex-grow: 1;">
-                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{m_nome} {badge_lider_temp}</strong>
+                                                        <strong style="display:block; font-size:0.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><a href="?ver_talento={m_nome}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{m_nome}</a> {badge_lider_temp}</strong>
                                                         <span style="font-size:0.78em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">{m_role}</span>
                                                     </div>
                                                 </div>

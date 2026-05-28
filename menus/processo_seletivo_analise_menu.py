@@ -621,7 +621,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         card_html = f"""<div class="candidato-card" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.25); backdrop-filter: blur(10px); margin-bottom: 20px; font-family: Outfit, sans-serif; position: relative;">
 <a href="?excluir_cand={cand['Nome']}&vaga_id={vaga['id']}" target="_self" style="position: absolute; top: 15px; right: 15px; background-color: #F18617; color: #7C3AED; border: none; border-radius: 50%; width: 22px; height: 22px; text-decoration: none; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1000; line-height: 1;"><i class="icon-x" style="font-size:12px;"></i></a>
 {avatar_html}
-<h4 style="margin: 10px 0 2px 0; color: #FFFFFF; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{cand['Nome']}</h4>
+<h4 style="margin: 10px 0 2px 0; font-size: 1.15em; font-weight: 700; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><a href="?ver_talento={cand['Nome']}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{cand['Nome']}</a></h4>
 <p style="margin: 0 0 15px 0; color: rgba(255, 255, 255, 0.5); font-size: 0.8em; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"><i class="icon-calendar" style="font-size: 12px; color: #F18617;"></i>{cand['data_nascimento']}</p>
 <div style="text-align: left; font-size: 0.85em; line-height: 1.5; color: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-bottom: 15px;">
 <div style="margin-bottom: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"><strong>KAN:</strong> <span style="color: #F18617;">{cand['kan']}</span></div>
@@ -679,7 +679,7 @@ KAN: {cand['pts_kan']} | Perf: {cand['pts_perfil']} | Qual: {cand['pts_qual']}
 
         with col_comp2:
             with st.container(border=True):
-                st.markdown(f"#### Perfil do Talento\n**{selected_talent_nome}**")
+                st.markdown(f"#### Perfil do Talento\n**<a href='?ver_talento={selected_talent_nome}' target='_self' style='color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);'>{selected_talent_nome}</a>**", unsafe_allow_html=True)
                 st.write(f"**KAN do Talento:** `{talento_detalhes['kan']}`")
                 st.write(f"**Perfis do Talento:** `{', '.join(talento_detalhes['perfis']) if talento_detalhes['perfis'] else 'Nenhum'}`")
                 st.write(f"**Categorias do Talento:** `{', '.join(talento_detalhes['categorias']) if talento_detalhes['categorias'] else 'Nenhuma'}`")

@@ -224,7 +224,7 @@ class HierarquiaMenu(BaseMenu):
                     with cols_t[1]:
                         st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
                         if st.button(t_nome, key=f"lnk_emp_lst_{t_nome}"):
-                            modal_detalhes_talento(t_nome, t_info, dept_map_list)
+                            self.app.ver_cadastro_talento(t_nome)
                         st.markdown('</div>', unsafe_allow_html=True)
                         st.markdown(f"<span style='vertical-align: middle; font-size: 0.95em;'> &mdash; {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)</span>", unsafe_allow_html=True)
         
@@ -291,7 +291,7 @@ class HierarquiaMenu(BaseMenu):
                                             with card_cols[1]:
                                                 st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
                                                 if st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}"):
-                                                    modal_detalhes_talento(t_nome, t_info, dept_map_list)
+                                                    self.app.ver_cadastro_talento(t_nome)
                                                 st.markdown('</div>', unsafe_allow_html=True)
                                                 st.markdown(f"<span style='color: #F18617; font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
                                             with card_cols[2]:

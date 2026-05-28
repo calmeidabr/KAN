@@ -147,7 +147,8 @@ class DiagnosticosMenu(BaseMenu):
 
         col_res1, col_res2, col_res3 = st.columns([1, 10, 1])
         with col_res2:
-            info_parts = [nome, data_str]
+            nome_link = f'<a href="?ver_talento={nome}" target="_self" style="color: var(--text-main); text-decoration: none; border-bottom: 1px dashed var(--accent);">{nome}</a>'
+            info_parts = [nome_link, data_str]
             for p in [profissao, cargo, grupo]:
                 if p and str(p).lower() != "nan" and str(p).strip() != "":
                     info_parts.append(str(p))
