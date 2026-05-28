@@ -854,6 +854,69 @@ st.markdown("""
         background: transparent !important;
         border-bottom: 1px solid var(--accent) !important;
     }
+
+    /* Correção do bug visual dos ícones do st.expander que vazam/sobrepõem como texto bruto */
+    [data-testid="stExpander"] details summary {
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        cursor: pointer !important;
+    }
+
+    [data-testid="stExpander"] details summary [data-testid="stIconMaterial"] {
+        font-size: 0px !important; /* Esconde o texto da ligature (ex: _arrow_right) */
+        color: transparent !important;
+        text-shadow: none !important;
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    /* Insere um chevron desenhado pelo Lucide (que está em cache/carregado localmente) */
+    [data-testid="stExpander"] details summary [data-testid="stIconMaterial"]::before {
+        font-family: "lucide" !important;
+        font-size: 18px !important;
+        color: var(--text-soft) !important;
+        display: inline-block !important;
+        line-height: 1 !important;
+        font-style: normal !important;
+        font-weight: normal !important;
+        position: absolute !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        transition: color 0.2s ease, transform 0.2s ease !important;
+    }
+
+    /* Define chevron para a direita no expander fechado */
+    [data-testid="stExpander"] details:not([open]) summary [data-testid="stIconMaterial"]::before {
+        content: "\e06f" !important; /* chevron-right */
+    }
+
+    /* Define chevron para baixo no expander aberto */
+    [data-testid="stExpander"] details[open] summary [data-testid="stIconMaterial"]::before {
+        content: "\e06d" !important; /* chevron-down */
+    }
+
+    [data-testid="stExpander"] details summary:hover [data-testid="stIconMaterial"]::before {
+        color: var(--accent) !important;
+    }
+
+    /* Prevenção de overlap do label e alinhamento vertical centralizado */
+    [data-testid="stExpander"] details summary span,
+    [data-testid="stExpander"] details summary p,
+    [data-testid="stExpander"] details summary div {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1.4 !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+    }
 </style>
 <script>
     // Força o idioma da página como português para evitar o prompt de tradução automática do navegador
@@ -870,8 +933,8 @@ st.markdown("""
             }
         });
 
-        // Expanders (Headers, Icons, Toggle Buttons)
-        document.querySelectorAll('[data-testid="stExpander"], [data-testid="stExpander"] button, [data-testid="stExpander"] summary').forEach(function(el) {
+        // Expanders (Headers, Icons, Toggle Buttons e Ícones Material)
+        document.querySelectorAll('[data-testid="stExpander"], [data-testid="stExpander"] button, [data-testid="stExpander"] summary, [data-testid="stIconMaterial"]').forEach(function(el) {
             if (!el.classList.contains('notranslate')) {
                 el.classList.add('notranslate');
                 el.setAttribute('translate', 'no');
@@ -888,7 +951,13 @@ st.markdown("""
     }
 
     aplicarNoTranslate();
-    setInterval(aplicarNoTranslate, 1000);
+    setInterval(aplicarNoTranslate, 500);
+
+    // Usa MutationObserver para capturar novos elementos inseridos no DOM imediatamente e evitar delay de tradução
+    const observer = new MutationObserver(function() {
+        aplicarNoTranslate();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
 </script>
 """, unsafe_allow_html=True)
 
