@@ -70,29 +70,7 @@ class TalentosMenu(BaseMenu):
             with col_f4:
                 cad_profissao = st.text_input("Profissão:", key="cad_profissao")
             with col_f5:
-                import pandas as pd
-                grupos_existentes = set()
-                for c_nome, info in clientes.items():
-                    g = info.get("grupo")
-                    if g and not pd.isna(g) and str(g).strip() and str(g).strip() != "None" and str(g).strip() != "Nenhum / Sem Grupo":
-                        grupos_existentes.add(str(g).strip())
-                grupos_opcoes = sorted(list(grupos_existentes))
-                
-                opcoes_grupo = ["Nenhum / Sem Grupo"] + grupos_opcoes + ["Outro (Digitar Novo)..."]
-                
-                val_atual = st.session_state.get("cad_grupo_select")
-                if val_atual is None or str(val_atual).strip() in ("", "None", "Sem Grupo", "Nenhum / Sem Grupo"):
-                    st.session_state["cad_grupo_select"] = "Nenhum / Sem Grupo"
-                elif val_atual not in opcoes_grupo:
-                    opcoes_grupo.insert(-1, val_atual)
-                
-                grupo_sel = st.selectbox("Grupo (opcional):", options=opcoes_grupo, key="cad_grupo_select")
-                if grupo_sel == "Outro (Digitar Novo)...":
-                    cad_emp = st.text_input("Digite o nome do novo Grupo:", key="cad_grupo_manual")
-                elif grupo_sel == "Nenhum / Sem Grupo":
-                    cad_emp = ""
-                else:
-                    cad_emp = grupo_sel
+                cad_emp = st.text_input("Grupo (opcional):", key="cad_grupo")
             with col_f6:
                 opcoes_empresa = ["Nenhuma / Não associada"] + nomes_empresas
                 cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key="cad_empresa_sel")

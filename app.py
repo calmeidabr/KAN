@@ -155,7 +155,7 @@ class App:
             st.session_state["cad_nome"] = nome
             st.session_state["cad_data"] = info.get("data_nascimento", "")
             st.session_state["cad_profissao"] = info.get("profissao") or info.get("cargo") or ""
-            st.session_state["cad_grupo_select"] = info.get("grupo", "")
+            st.session_state["cad_grupo"] = info.get("grupo", "")
             st.session_state["cad_link"] = info.get("linkedin_url", "")
             st.session_state["cad_exp"] = info.get("experiencias", "")
             emp_nome = info.get("empresa", "Nenhuma / Não associada")
