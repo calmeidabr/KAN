@@ -57,19 +57,19 @@ class App:
             import os
             logo_html = ""
             try:
-                logo_path = os.path.join("images", "ico_k.png")
+                logo_path = os.path.join("images", "kan_logo_header.png")
                 if os.path.exists(logo_path):
                     with open(logo_path, "rb") as f:
                         logo_b64 = base64.b64encode(f.read()).decode()
-                    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 8px;">'
+                    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="max-height: 40px; width: auto; display: block; margin-bottom: 4px;">'
                 else:
-                    logo_html = '<span style="font-size: 1.15em; color: #FFFFFF; margin-right: 8px; font-weight: 700;">◇</span>'
+                    logo_html = '<span style="font-size: 1.15em; color: #F5F7FA; margin-right: 8px; font-weight: 700;">◇ KAN</span>'
             except Exception:
-                logo_html = '<span style="font-size: 1.15em; color: #FFFFFF; margin-right: 8px; font-weight: 700;">◇</span>'
+                logo_html = '<span style="font-size: 1.15em; color: #F5F7FA; margin-right: 8px; font-weight: 700;">◇ KAN</span>'
 
             st.markdown(f"""
             <div class="sb-brand">
-                <div class="sb-brand-title">{logo_html} KAN</div>
+                <div class="sb-brand-title">{logo_html}</div>
                 <div class="sb-brand-sub">Análises de Soft Skills</div>
             </div>
             """, unsafe_allow_html=True)
@@ -130,7 +130,7 @@ class App:
                             <p style='margin: 0; font-size: 0.7em; color: rgba(255,255,255,0.5);'>{role_str} • Online</p>
                         </div>
                     </div>
-                    <div style='color: #39ff14; font-size: 0.8em; text-shadow: 0 0 8px #39ff14;'>
+                    <div style='color: #22C55E; font-size: 0.8em;'>
                         ●
                     </div>
                 </div>
@@ -158,10 +158,13 @@ class App:
         if escolha != "Home":
             col_logo, col_empty = st.columns([1, 4])
             with col_logo:
-                if header_img not in ["◇", "🔮"] and os.path.exists(header_img):
-                    st.image(header_img, width=150)
+                logo_header_path = os.path.join("images", "kan_logo_header.png")
+                if os.path.exists(logo_header_path):
+                    st.image(logo_header_path, width=140)
+                elif header_img not in ["◇", "🔮"] and os.path.exists(header_img):
+                    st.image(header_img, width=140)
                 else:
-                    st.markdown("<h3 style='margin:0; color: #F18617;'><i class='icon-activity' style='font-size:24px; vertical-align:middle; margin-right:8px;'></i>KAN</h3>", unsafe_allow_html=True)
+                    st.markdown("<h3 style='margin:0; color: #F08A00;'><i class='icon-activity' style='font-size:24px; vertical-align:middle; margin-right:8px;'></i>KAN</h3>", unsafe_allow_html=True)
 
         handler = self.routes.get(escolha, self.routes["Home"])
         handler()
