@@ -266,9 +266,9 @@ class EquipesMenu(BaseMenu):
                         with col_card1:
                             foto_b64 = eq.get("foto_base64")
                             if foto_b64:
-                                st.markdown(f'<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_b64}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #004BFF;"/></div>', unsafe_allow_html=True)
+                                st.markdown(f'<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_b64}" style="width:50px; height:50px; min-width:50px; min-height:50px; max-width:50px; max-height:50px; border-radius:50%; object-fit:cover; border:2px solid #004BFF; flex-shrink:0;"/></div>', unsafe_allow_html=True)
                             else:
-                                st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF;">T</div></div>', unsafe_allow_html=True)
+                                st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF; flex-shrink: 0;">T</div></div>', unsafe_allow_html=True)
                         with col_card2:
                             st.write(f"**{eq['nome']}**")
                             st.caption(f"{len(lista_membros)} membros cadastrados")
@@ -346,9 +346,9 @@ class EquipesMenu(BaseMenu):
                             with col_edit_foto1:
                                 foto_ed_atual = st.session_state[key_temp_foto]
                                 if foto_ed_atual:
-                                    st.markdown(f'<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_ed_atual}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #004BFF;"/></div>', unsafe_allow_html=True)
+                                    st.markdown(f'<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_ed_atual}" style="width:50px; height:50px; min-width:50px; min-height:50px; max-width:50px; max-height:50px; border-radius:50%; object-fit:cover; border:2px solid #004BFF; flex-shrink:0;"/></div>', unsafe_allow_html=True)
                                 else:
-                                    st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF;">T</div></div>', unsafe_allow_html=True)
+                                    st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF; flex-shrink: 0;">T</div></div>', unsafe_allow_html=True)
                             with col_edit_foto2:
                                 upload_ed_file = st.file_uploader("Alterar Foto da Equipe", type=["png", "jpg", "jpeg"], key=f"file_edit_foto_{idx}")
                                 if upload_ed_file:
