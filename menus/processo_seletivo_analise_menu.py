@@ -140,11 +140,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         if not nomes_empresas:
             nomes_empresas = ["Mundo KAN"]
 
-        # Obter empresa selecionada da session_state ou padrão
-        empresa_default = nomes_empresas[0]
-        empresa_selecionada = st.session_state.get("analise_proc_emp_sel", empresa_default)
-        if empresa_selecionada not in nomes_empresas:
-            empresa_selecionada = empresa_default
+        # Renderizar a seleção da empresa no topo (antes do box do processo selecionado)
+        col_filtro1, _ = st.columns([1, 1])
+        with col_filtro1:
+            empresa_selecionada = st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="analise_proc_emp_sel")
 
         # Buscar vagas cadastradas da empresa
         try:
@@ -651,6 +650,22 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-size: 0.85rem !important;
             }}
             
+            /* Contorno branco para o selectbox da empresa */
+            div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"] {{
+                border: 2px solid #ffffff !important;
+                box-shadow: 0 0 8px rgba(255, 255, 255, 0.2) !important;
+                background-color: #171B2A !important;
+            }}
+            div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"]:hover {{
+                border-color: #ffffff !important;
+                box-shadow: 0 0 12px rgba(255, 255, 255, 0.4) !important;
+            }}
+            div[class*="st-key-analise_proc_emp_sel"] label {{
+                color: rgba(255, 255, 255, 0.9) !important;
+                font-weight: 600 !important;
+                font-size: 0.85rem !important;
+            }}
+            
             /* Dataframe adjustments */
             .matching-page-wrapper div[data-testid="stDataFrame"] {{
                 background-color: #141824 !important;
@@ -850,9 +865,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         </div>
         """, unsafe_allow_html=True)
 
-        col_filtro1, _ = st.columns([1, 1])
-        with col_filtro1:
-            st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="analise_proc_emp_sel")
+
 
         if not vagas_list:
             st.info(f"Nenhuma vaga cadastrada para a empresa {empresa_selecionada}. Cadastre vagas no menu Vagas antes de realizar a análise.")
