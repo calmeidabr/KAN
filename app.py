@@ -164,7 +164,6 @@ class App:
             emp_nome = info.get("empresa", "Nenhuma / Não associada")
             st.session_state["cad_empresa_sel"] = emp_nome if emp_nome else "Nenhuma / Não associada"
         st.session_state["sidebar_menu"] = "Talentos"
-        st.rerun()
 
     def ver_equipe(self, nome_equipe):
         from models.database import carregar_equipes
@@ -176,7 +175,6 @@ class App:
             else:
                 st.session_state[f"eq_open_{idx}"] = False
         st.session_state["sidebar_menu"] = "Equipes"
-        st.rerun()
 
     def run(self):
         if not check_password():
@@ -192,6 +190,7 @@ class App:
             nome_ver = st.query_params["ver_talento"]
             del st.query_params["ver_talento"]
             self.ver_cadastro_talento(nome_ver)
+            st.rerun()
 
         if "nav" in st.query_params:
             nav_val = st.query_params.get("nav")
