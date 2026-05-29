@@ -67,3 +67,14 @@ def validar_cnpj(cnpj):
         if int(cnpj[tamanho]) != digito:
             return False
     return True
+
+def format_vaga_title(nome_vaga, senioridade):
+    if not nome_vaga:
+        return ""
+    nome_vaga = str(nome_vaga).strip()
+    if not senioridade or str(senioridade).strip() in ("", "Nenhum", "Não especificado"):
+        return nome_vaga
+    senioridade = str(senioridade).strip()
+    if senioridade.lower() in nome_vaga.lower():
+        return nome_vaga
+    return f"{nome_vaga} ({senioridade})"

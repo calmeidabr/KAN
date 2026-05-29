@@ -27,34 +27,28 @@ class PremiumCard:
         # Build header section
         header_part = ""
         if title or badges_html or action_html:
-            header_part = f"""
-            <div class="premium-card__header">
-                <h1 class="premium-card__title">{title}</h1>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    {badges_html}
-                    {action_html}
-                </div>
-            </div>
-            """
+            header_part = (
+                f'<div class="premium-card__header">'
+                f'<h1 class="premium-card__title">{title}</h1>'
+                f'<div style="display: flex; gap: 10px; align-items: center;">'
+                f'{badges_html}'
+                f'{action_html}'
+                f'</div>'
+                f'</div>'
+            )
             
         # Build divider & body section
         body_part = ""
         if content_html:
-            body_part = f"""
-            <div class="premium-card__divider">
-                <div class="premium-card__reqs">
-                    {content_html}
-                </div>
-            </div>
-            """
+            body_part = (
+                f'<div class="premium-card__divider">'
+                f'<div class="premium-card__reqs">{content_html}</div>'
+                f'</div>'
+            )
             
-        card_html = f"""
-        <div class="{card_class}">
-            {header_part}
-            {body_part}
-        </div>
-        """
+        card_html = f'<div class="{card_class}">{header_part}{body_part}</div>'
         st.markdown(card_html, unsafe_allow_html=True)
+
 
 
 @contextmanager

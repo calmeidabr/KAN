@@ -5,6 +5,8 @@ from menus.base_menu import BaseMenu
 from models.database import (
     carregar_empresas, get_supabase, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
 )
+from utils.helpers import format_vaga_title
+
 
 class ProcessosMenu(BaseMenu):
     def render(self):
@@ -113,7 +115,7 @@ class ProcessosMenu(BaseMenu):
                             q_list = parse_json_list(vg.get('qualidades_ideais'))
                             
                             with col_c1:
-                                st.markdown(f"#### {vg['nome_vaga']} ({vg['senioridade']})")
+                                st.markdown(f"#### {format_vaga_title(vg['nome_vaga'], vg.get('senioridade'))}")
                                 
                                 resumo_parts = []
                                 if vg.get('kan_ideal') and vg['kan_ideal'] not in ("Nenhum", "Nenhum / Não Exigido"):

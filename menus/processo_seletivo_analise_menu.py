@@ -3,7 +3,7 @@ import pandas as pd
 import json
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, get_supabase_admin
-from utils.helpers import remover_acentos
+from utils.helpers import remover_acentos, format_vaga_title
 
 class ProcessoSeletivoAnaliseMenu(BaseMenu):
     def render(self):
@@ -179,7 +179,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             vaga = vagas_dict[vaga_selecionada_nome]
 
         # Injetar CSS e HTML da matching-page-wrapper para o tema Dark Premium
-        header_vaga_title = vaga['nome_vaga'] if vaga else "Sem Vaga Selecionada"
+        header_vaga_title = format_vaga_title(vaga['nome_vaga'], vaga['senioridade']) if vaga else "Sem Vaga Selecionada"
         header_vaga_seniority = vaga['senioridade'] if vaga else "N/A"
         header_vaga_status = "Ativo" if vaga else "Inativo"
 
@@ -816,8 +816,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 action_html = f'<a href="?vaga_sel={vaga_key_encoded}" target="_self" class="premium-card__btn-analisar">Analisar</a>'
                 variant = "interactive"
                 
+            disp_title = format_vaga_title(vg["nome_vaga"], vg["senioridade"])
             PremiumCard.render(
-                title=f'Processo: <span class="highlight-text">{vg["nome_vaga"]} {vg["senioridade"]}</span>',
+                title=f'Processo: <span class="highlight-text">{disp_title}</span>',
                 content_html=resumo_text,
                 badges_html='<span class="premium-badge-status">Ativo</span>',
                 action_html=action_html,
