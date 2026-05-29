@@ -650,15 +650,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-size: 0.85rem !important;
             }}
             
-            /* Contorno branco para o selectbox da empresa */
+            /* Contorno laranja para o selectbox da empresa */
             div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"] {{
-                border: 2px solid #ffffff !important;
-                box-shadow: 0 0 8px rgba(255, 255, 255, 0.2) !important;
+                border: 2px solid #F08A00 !important;
+                box-shadow: 0 0 8px rgba(240, 138, 0, 0.2) !important;
                 background-color: #171B2A !important;
             }}
             div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"]:hover {{
-                border-color: #ffffff !important;
-                box-shadow: 0 0 12px rgba(255, 255, 255, 0.4) !important;
+                border-color: #FF9D1F !important;
+                box-shadow: 0 0 12px rgba(240, 138, 0, 0.4) !important;
             }}
             div[class*="st-key-analise_proc_emp_sel"] label {{
                 color: rgba(255, 255, 255, 0.9) !important;
