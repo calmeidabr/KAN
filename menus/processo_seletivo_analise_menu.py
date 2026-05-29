@@ -151,6 +151,13 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.error(f"Erro ao carregar vagas: {e}")
             return
 
+        # Parsing de requisitos da vaga
+        def parse_json_list(val):
+            if not val: return []
+            if isinstance(val, list): return val
+            try: return json.loads(val)
+            except Exception: return []
+
         vaga = None
         vaga_selecionada_nome = ""
         vagas_dict = {}
@@ -160,6 +167,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             vaga_selecionada_nome = st.session_state.get("analise_proc_vaga_sel", vaga_default_nome)
             if vaga_selecionada_nome not in vagas_dict:
                 vaga_selecionada_nome = vaga_default_nome
+                st.session_state["analise_proc_vaga_sel"] = vaga_default_nome
             vaga = vagas_dict[vaga_selecionada_nome]
 
         # Injetar CSS e HTML da matching-page-wrapper para o tema Dark Premium
@@ -721,6 +729,88 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 border-radius: 10px !important;
                 height: 10px !important;
             }}
+            
+            /* Estilo dos boxes de processos (Vagas) na página de matching */
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]) {{
+                background-color: #141824 !important;
+                background: linear-gradient(145deg, #141824 0%, #171B2A 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 14px !important;
+                padding: 16px 20px !important;
+                box-shadow: 0 8px 24px rgba(91, 20, 99, 0.15) !important;
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+                margin-bottom: 12px !important;
+            }}
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]):hover {{
+                transform: translateY(-3px) !important;
+                border-color: rgba(240, 138, 0, 0.25) !important;
+                box-shadow: 0 12px 32px rgba(91, 20, 99, 0.35) !important;
+            }}
+            /* Se selecionado */
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_active"]) {{
+                background: linear-gradient(145deg, #171B2A 0%, #1F253A 100%) !important;
+                border-color: rgba(240, 138, 0, 0.5) !important;
+                box-shadow: 0 12px 32px rgba(240, 138, 0, 0.25) !important;
+            }}
+            
+            /* Titulo colorido do processo */
+            .stApp .process-card-title {{
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 800 !important;
+                font-size: 1.15rem !important; /* Tamanho do h4 no box de vagas */
+                background: linear-gradient(135deg, #F08A00 0%, #FF9D1F 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 4px;
+                display: inline-block;
+            }}
+            
+            /* Subtitulo / requisitos do processo */
+            .stApp .process-card-reqs {{
+                font-family: 'Inter', sans-serif !important;
+                font-size: 0.85rem !important;
+                color: #AAB3C5 !important;
+                margin-top: 4px;
+                line-height: 1.4;
+            }}
+            
+            /* Botão de analisar estilizado */
+            .stApp div[class*="st-key-btn_analisar_"] button {{
+                background: rgba(240, 138, 0, 0.1) !important;
+                border: 1px solid rgba(240, 138, 0, 0.3) !important;
+                color: #FF9D1F !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                border-radius: 8px !important;
+                transition: all 0.25s ease !important;
+                font-size: 0.85rem !important;
+                padding: 6px 16px !important;
+                box-shadow: none !important;
+            }}
+            .stApp div[class*="st-key-btn_analisar_"] button:hover {{
+                background: #F08A00 !important;
+                color: #0D1016 !important;
+                border-color: #F08A00 !important;
+                box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
+            }}
+            /* Botão ativo */
+            .stApp div[class*="st-key-btn_analisar_active"] button {{
+                background: #F08A00 !important;
+                color: #0D1016 !important;
+                border-color: #F08A00 !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                border-radius: 8px !important;
+                font-size: 0.85rem !important;
+                padding: 6px 16px !important;
+                box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
+            }}
+            /* Centralização vertical das colunas */
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]) div[data-testid="column"] {{
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+            }}
         </style>
         
         <div class="matching-page-wrapper">
@@ -738,7 +828,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         </div>
         """, unsafe_allow_html=True)
 
-        col_filtro1, col_filtro2 = st.columns([1, 1])
+        col_filtro1, _ = st.columns([1, 1])
         with col_filtro1:
             st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="analise_proc_emp_sel")
 
@@ -746,15 +836,45 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.info(f"Nenhuma vaga cadastrada para a empresa {empresa_selecionada}. Cadastre vagas no menu Vagas antes de realizar a análise.")
             return
 
-        with col_filtro2:
-            st.selectbox("Selecione a Vaga para Análise:", options=list(vagas_dict.keys()), key="analise_proc_vaga_sel")
-
-        # Parsing de requisitos da vaga
-        def parse_json_list(val):
-            if not val: return []
-            if isinstance(val, list): return val
-            try: return json.loads(val)
-            except Exception: return []
+        # Listagem dos Processos Seletivos (Vagas) como boxes horizontais no estilo Vagas, com visual Premium
+        st.write("### Processos Seletivos Cadastrados")
+        
+        for vg in vagas_list:
+            vaga_key_name = f"{vg['nome_vaga']} ({vg['senioridade']})"
+            is_selected = (vaga_selecionada_nome == vaga_key_name)
+            
+            with st.container(border=True):
+                col_c1, col_c2 = st.columns([4, 1])
+                
+                p_list = parse_json_list(vg.get('perfis_ideais'))
+                c_list = parse_json_list(vg.get('categorias_ideais'))
+                q_list = parse_json_list(vg.get('qualidades_ideais'))
+                
+                with col_c1:
+                    # Título estilizado colorido com Outfit
+                    st.markdown(f'<span class="process-card-title">{vg["nome_vaga"]} ({vg["senioridade"]})</span>', unsafe_allow_html=True)
+                    
+                    # Detalhes na mesma ordem de Vagas
+                    resumo_parts = []
+                    if vg.get('kan_ideal') and vg['kan_ideal'] not in ("Nenhum", "Nenhum / Não Exigido"):
+                        resumo_parts.append(f"**KAN**: {vg['kan_ideal']}")
+                    if p_list: resumo_parts.append(f"**Perfil**: {', '.join(p_list)}")
+                    if c_list: resumo_parts.append(f"**Categoria**: {', '.join(c_list)}")
+                    if q_list: resumo_parts.append(f"**Qualidade**: {', '.join(q_list[:3])}{'...' if len(q_list)>3 else ''}")
+                    
+                    resumo_text = " | ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
+                    st.markdown(f'<div class="process-card-reqs">{resumo_text}</div>', unsafe_allow_html=True)
+                    
+                with col_c2:
+                    btn_label = "Selecionado" if is_selected else "Analisar"
+                    btn_key_prefix = "btn_analisar_active" if is_selected else "btn_analisar_inactive"
+                    btn_key = f"{btn_key_prefix}_{vg['id']}"
+                    
+                    # Espaçador
+                    st.write("")
+                    if st.button(btn_label, key=btn_key, use_container_width=True):
+                        st.session_state["analise_proc_vaga_sel"] = vaga_key_name
+                        st.rerun()
 
         # Importar as listas de opções do banco de dados
         from models.database import PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
