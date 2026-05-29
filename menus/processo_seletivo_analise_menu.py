@@ -856,7 +856,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     <h1 class="header-title">Processo: <span class="highlight-text">{header_vaga_title}</span></h1>
                     <div class="badge-status-container">
                         <span class="badge-status">{header_vaga_status}</span>
-                        <span class="badge-seniority">{header_vaga_seniority}</span>
                     </div>
                 </div>
             </div>
