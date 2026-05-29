@@ -732,25 +732,28 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             
             /* Estilo dos boxes de processos (Vagas) na página de matching */
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]) {{
-                background-color: #141824 !important;
-                background: linear-gradient(145deg, #141824 0%, #171B2A 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
+                            linear-gradient(180deg, rgba(20, 24, 36, 0.95) 0%, rgba(13, 16, 22, 0.95) 100%) !important;
+                border: 1px solid rgba(122, 43, 138, 0.3) !important; /* Borda fina violeta */
                 border-radius: 14px !important;
                 padding: 16px 20px !important;
-                box-shadow: 0 8px 24px rgba(91, 20, 99, 0.15) !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important; /* Soft diffuse shadow */
                 transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
                 margin-bottom: 12px !important;
             }}
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]):hover {{
                 transform: translateY(-3px) !important;
-                border-color: rgba(240, 138, 0, 0.25) !important;
-                box-shadow: 0 12px 32px rgba(91, 20, 99, 0.35) !important;
+                border-color: rgba(122, 43, 138, 0.5) !important;
+                box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
+                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.22) 0%, rgba(122, 43, 138, 0) 70%),
+                            linear-gradient(180deg, rgba(25, 30, 45, 0.95) 0%, rgba(16, 20, 28, 0.95) 100%) !important;
             }}
             /* Se selecionado */
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_active"]) {{
-                background: linear-gradient(145deg, #171B2A 0%, #1F253A 100%) !important;
-                border-color: rgba(240, 138, 0, 0.5) !important;
-                box-shadow: 0 12px 32px rgba(240, 138, 0, 0.25) !important;
+                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.25) 0%, rgba(122, 43, 138, 0) 70%),
+                            linear-gradient(180deg, rgba(23, 27, 42, 0.95) 0%, rgba(15, 18, 30, 0.95) 100%) !important;
+                border-color: rgba(122, 43, 138, 0.6) !important; /* Borda violeta mais nítida se ativo */
+                box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
             }}
             
             /* Titulo colorido do processo */
