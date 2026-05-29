@@ -24,6 +24,9 @@ def toggle_exp_group(grupo):
 
 def handle_logout():
     st.session_state["password_correct"] = False
+    if "logged_user" in st.session_state:
+        del st.session_state["logged_user"]
+    st.session_state["clear_auth_cookie"] = True
 
 def handle_reset():
     st.cache_data.clear()
