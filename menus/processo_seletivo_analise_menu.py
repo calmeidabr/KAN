@@ -811,6 +811,22 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 flex-direction: column !important;
                 justify-content: center !important;
             }}
+            
+            /* Badges lilás no estilo da senioridade */
+            .stApp .req-badge-lilac {{
+                background: rgba(122, 43, 138, 0.15) !important;
+                border: 1px solid rgba(122, 43, 138, 0.3) !important;
+                color: #AAB3C5 !important;
+                padding: 3px 10px !important;
+                border-radius: 20px !important;
+                font-size: 0.72rem !important;
+                font-weight: 600 !important;
+                letter-spacing: 0.3px !important;
+                display: inline-block !important;
+                margin: 2px 2px !important;
+                text-transform: uppercase !important;
+                font-family: 'Outfit', sans-serif !important;
+            }}
         </style>
         
         <div class="matching-page-wrapper">
@@ -854,15 +870,34 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     # Título estilizado colorido com Outfit
                     st.markdown(f'<span class="process-card-title">{vg["nome_vaga"]} ({vg["senioridade"]})</span>', unsafe_allow_html=True)
                     
-                    # Detalhes na mesma ordem de Vagas
+                    # Detalhes na mesma ordem de Vagas (com KAN, PERFIL, CATEGORIA, QUALIDADES destacados e valores em badges lilás)
                     resumo_parts = []
-                    if vg.get('kan_ideal') and vg['kan_ideal'] not in ("Nenhum", "Nenhum / Não Exigido"):
-                        resumo_parts.append(f"**KAN**: {vg['kan_ideal']}")
-                    if p_list: resumo_parts.append(f"**Perfil**: {', '.join(p_list)}")
-                    if c_list: resumo_parts.append(f"**Categoria**: {', '.join(c_list)}")
-                    if q_list: resumo_parts.append(f"**Qualidade**: {', '.join(q_list[:3])}{'...' if len(q_list)>3 else ''}")
                     
-                    resumo_text = " | ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
+                    # 1. KAN
+                    kan_val = vg.get('kan_ideal')
+                    if kan_val and kan_val not in ("Nenhum", "Nenhum / Não Exigido"):
+                        kan_badge = f'<span class="req-badge-lilac">{kan_val}</span>'
+                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">KAN:</strong> {kan_badge}')
+                    
+                    # 2. PERFIL
+                    if p_list:
+                        perfis_badges = "".join([f'<span class="req-badge-lilac">{p}</span>' for p in p_list])
+                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">PERFIL:</strong> {perfis_badges}')
+                        
+                    # 3. CATEGORIA
+                    if c_list:
+                        cats_badges = "".join([f'<span class="req-badge-lilac">{c}</span>' for c in c_list])
+                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">CATEGORIA:</strong> {cats_badges}')
+                        
+                    # 4. QUALIDADES
+                    if q_list:
+                        limited_q = q_list[:3]
+                        quals_badges = "".join([f'<span class="req-badge-lilac">{q}</span>' for q in limited_q])
+                        if len(q_list) > 3:
+                            quals_badges += ' <span class="req-badge-lilac">...</span>'
+                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">QUALIDADES:</strong> {quals_badges}')
+                    
+                    resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
                     st.markdown(f'<div class="process-card-reqs">{resumo_text}</div>', unsafe_allow_html=True)
                     
                 with col_c2:
