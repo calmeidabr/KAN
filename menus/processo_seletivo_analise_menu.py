@@ -228,129 +228,117 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin: 0 auto;
             }}
             
-            /* Header estilizado */
-            .matching-page-wrapper .header-container {{
-                background: linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
+            /* COMPONENTE MESTRE: Premium Card */
+            .premium-card,
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"],
+            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
+            .matching-page-wrapper div[data-testid="stContainer"] {{
+                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
+                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                border-top: 3px solid #5B1463 !important; /* Top highlight border */
+                border-top: 3px solid #5B1463 !important; /* Borda superior violeta */
                 border-radius: 16px !important;
-                padding: 32px !important;
+                padding: 24px 32px !important;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important; /* Soft diffuse shadow */
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
+                position: relative !important;
+                overflow: hidden !important;
+                margin-bottom: 16px !important;
+            }}
+            
+            /* Hover global para todos os cards interativos */
+            .premium-card:hover,
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:hover,
+            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"]:hover,
+            .matching-page-wrapper div[data-testid="stContainer"]:hover {{
+                transform: translateY(-3px) !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5) !important;
+                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.22) 0%, rgba(122, 43, 138, 0) 70%),
+                            linear-gradient(180deg, #171B2A 0%, #0E121C 100%) !important;
+            }}
+            
+            /* Exceção: Desativar hover de transformação para o cabeçalho estático */
+            .premium-card.static-header:hover {{
+                transform: none !important;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
+                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
+                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
+                border-color: rgba(255, 255, 255, 0.05) !important;
+            }}
+
+            .premium-card.static-header {{
                 margin-top: 10px !important;
                 margin-bottom: 40px !important;
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
-                position: relative;
-                overflow: hidden;
             }}
-            .matching-page-wrapper .header-container::after {{
-                content: "";
-                position: absolute;
-                top: -150px;
-                right: -150px;
-                width: 300px;
-                height: 300px;
-                background: radial-gradient(circle, rgba(122, 43, 138, 0.15) 0%, rgba(240, 138, 0, 0) 70%);
-                pointer-events: none;
-            }}
-            .matching-page-wrapper .breadcrumb {{
-                font-family: 'Outfit', 'Inter', sans-serif !important;
-                font-size: 0.75rem !important;
-                color: #7F8798 !important;
-                text-transform: uppercase;
-                letter-spacing: 2px;
-                margin-bottom: 16px;
-                font-weight: 600;
-            }}
+
+            /* Hierarquia tipográfica do card */
+            .premium-card__header,
             .matching-page-wrapper .header-main {{
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 20px;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                flex-wrap: wrap !important;
+                gap: 20px !important;
             }}
-            .matching-page-wrapper .header-title {{
+            .premium-card__title,
+            .matching-page-wrapper .header-title,
+            .stApp .process-card-title {{
                 font-family: 'Outfit', 'Inter', sans-serif !important;
                 font-size: 1.1rem !important;
                 font-weight: 800 !important;
                 color: #F4F7FB !important;
                 margin: 0 !important;
-                letter-spacing: -0.5px;
-                line-height: 1.15;
+                letter-spacing: -0.5px !important;
+                line-height: 1.15 !important;
             }}
             .matching-page-wrapper .highlight-text {{
                 background: linear-gradient(135deg, #F08A00 0%, #FF9D1F 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
             }}
-            .matching-page-wrapper .badge-status-container {{
-                display: flex;
-                gap: 8px;
-                align-items: center;
+            .premium-card__divider {{
+                margin-top: 18px !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+                padding-top: 15px !important;
             }}
+            .premium-card__reqs,
+            .stApp .process-card-reqs {{
+                font-family: 'Inter', sans-serif !important;
+                font-size: 0.85rem !important;
+                color: #AAB3C5 !important;
+                margin-top: 4px;
+                line-height: 1.4;
+            }}
+
+            /* Badges / Status */
+            .premium-badge-status,
             .matching-page-wrapper .badge-status {{
                 background: rgba(240, 138, 0, 0.1) !important;
                 border: 1px solid rgba(240, 138, 0, 0.25) !important;
                 color: #F08A00 !important;
-                padding: 6px 14px;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                font-weight: 700;
-                letter-spacing: 0.5px;
-                text-transform: uppercase;
+                padding: 6px 14px !important;
+                border-radius: 20px !important;
+                font-size: 0.8rem !important;
+                font-weight: 700 !important;
+                letter-spacing: 0.5px !important;
+                text-transform: uppercase !important;
+                display: inline-block !important;
             }}
-            .matching-page-wrapper .badge-seniority {{
+            .premium-badge-req,
+            .stApp .req-badge-lilac {{
                 background: rgba(122, 43, 138, 0.15) !important;
                 border: 1px solid rgba(122, 43, 138, 0.3) !important;
                 color: #AAB3C5 !important;
-                padding: 6px 14px;
-                border-radius: 20px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                letter-spacing: 0.5px;
-                text-transform: uppercase;
-            }}
-            .matching-page-wrapper .header-subtitle {{
-                font-size: 1rem !important;
-                color: #AAB3C5 !important;
-                margin-top: 14px !important;
-                margin-bottom: 0 !important;
-                line-height: 1.5;
-            }}
-            
-            /* Titulos */
-            .matching-page-wrapper h1, 
-            .matching-page-wrapper h2, 
-            .matching-page-wrapper h3, 
-            .matching-page-wrapper h4 {{
-                color: #F4F7FB !important;
+                padding: 3px 10px !important;
+                border-radius: 20px !important;
+                font-size: 0.72rem !important;
+                font-weight: 600 !important;
+                letter-spacing: 0.3px !important;
+                display: inline-block !important;
+                margin: 2px 2px !important;
+                text-transform: uppercase !important;
                 font-family: 'Outfit', sans-serif !important;
-            }}
-            
-            /* Estilo dos containers (Cards) de vaga e configurações */
-            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
-            .matching-page-wrapper div[data-testid="stContainer"] {{
-                background-color: #141824 !important;
-                background: linear-gradient(145deg, #141824 0%, #171B2A 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                border-radius: 14px !important;
-                padding: 20px !important;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
-            }}
-            
-            /* Efeito de hover interativo especial para os cards de Candidatos */
-            .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"] {{
-                background-color: #171B2A !important;
-                background: linear-gradient(145deg, #171B2A 0%, #1B2030 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.08) !important;
-                border-radius: 16px !important;
-                padding: 16px !important;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3) !important;
-                position: relative !important;
-                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
-            }}
-            .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
-                transform: translateY(-4px) !important;
-                border-color: rgba(240, 138, 0, 0.25) !important;
-                box-shadow: 0 12px 32px rgba(91, 20, 99, 0.35) !important;
             }}
             
             /* Estilo do botão de link de nome de candidato */
@@ -485,7 +473,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 position: relative;
                 transition: box-shadow 0.3s ease;
             }}
-            .matching-page-wrapper div[data-testid="column"] div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
+            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
                 box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3), 0 0 0 4px rgba(240, 138, 0, 0.03);
             }}
             .matching-page-wrapper .avatar-img {{
@@ -781,33 +769,16 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 height: 10px !important;
             }}
             
-            /* Estilo dos boxes de processos (Vagas) na página de matching */
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]) {{
-                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
-                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.05) !important; /* Borda fina clara */
-                border-top: 3px solid #5B1463 !important; /* Borda superior violeta */
-                border-radius: 16px !important;
-                padding: 24px 32px !important;
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important; /* Soft diffuse shadow */
-                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
-                margin-bottom: 16px !important;
-                position: relative !important;
-                overflow: hidden !important;
+            /* Centralização vertical das colunas nos cards de processos */
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"] {{
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
             }}
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]):hover {{
-                transform: translateY(-3px) !important;
-                border-color: rgba(255, 255, 255, 0.1) !important;
-                box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5) !important;
-                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.22) 0%, rgba(122, 43, 138, 0) 70%),
-                            linear-gradient(180deg, #171B2A 0%, #0E121C 100%) !important;
-            }}
-            /* Se selecionado */
+            
+            /* Se selecionado / ativo */
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_active"]) {{
-                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.25) 0%, rgba(122, 43, 138, 0) 70%),
-                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                border-top: 3px solid #5B1463 !important;
+                border-color: rgba(122, 43, 138, 0.6) !important;
                 box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
             }}
             
@@ -863,12 +834,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 padding: 6px 16px !important;
                 box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
             }}
-            /* Centralização vertical das colunas */
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]) div[data-testid="column"] {{
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-            }}
+
             
             /* Badges lilás no estilo da senioridade */
             .stApp .req-badge-lilac {{
@@ -888,15 +854,17 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         </style>
         
         <div class="matching-page-wrapper">
-            <div class="header-container">
-                <div class="header-main">
-                    <h1 class="header-title">Processo: <span class="highlight-text">{header_vaga_title}</span></h1>
+            <div class="premium-card static-header">
+                <div class="premium-card__header">
+                    <h1 class="premium-card__title">Processo: <span class="highlight-text">{header_vaga_title}</span></h1>
                     <div class="badge-status-container">
-                        <span class="badge-status">{header_vaga_status}</span>
+                        <span class="premium-badge-status">{header_vaga_status}</span>
                     </div>
                 </div>
-                <div class="process-card-reqs" style="margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 15px;">
-                    {header_resumo_text}
+                <div class="premium-card__divider">
+                    <div class="premium-card__reqs">
+                        {header_resumo_text}
+                    </div>
                 </div>
             </div>
         </div>
@@ -923,8 +891,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 q_list = parse_json_list(vg.get('qualidades_ideais'))
                 
                 with col_c1:
-                    # Título estilizado colorido com Outfit
-                    st.markdown(f'<span class="process-card-title">{vg["nome_vaga"]} ({vg["senioridade"]})</span>', unsafe_allow_html=True)
+                    # Rótulo com mesmo estilo do cabeçalho selecionado: Processo: Nome Vaga Senioridade (sem parênteses)
+                    st.markdown(f'<div class="premium-card__header" style="justify-content: flex-start; gap: 15px; margin-bottom: 5px;"><h1 class="premium-card__title">Processo: <span class="highlight-text">{vg["nome_vaga"]} {vg["senioridade"]}</span></h1><div class="badge-status-container"><span class="premium-badge-status">Ativo</span></div></div>', unsafe_allow_html=True)
                     
                     # Detalhes na mesma ordem de Vagas (com KAN, PERFIL, CATEGORIA, QUALIDADES destacados e valores em badges lilás)
                     resumo_parts = []
@@ -947,14 +915,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         
                     # 4. QUALIDADES
                     if q_list:
-                        limited_q = q_list[:3]
-                        quals_badges = "".join([f'<span class="req-badge-lilac">{q}</span>' for q in limited_q])
-                        if len(q_list) > 3:
-                            quals_badges += ' <span class="req-badge-lilac">...</span>'
+                        quals_badges = "".join([f'<span class="req-badge-lilac">{q}</span>' for q in q_list])
                         resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">QUALIDADES:</strong> {quals_badges}')
                     
                     resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
-                    st.markdown(f'<div class="process-card-reqs">{resumo_text}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="premium-card__divider"><div class="premium-card__reqs">{resumo_text}</div></div>', unsafe_allow_html=True)
                     
                 with col_c2:
                     btn_label = "Selecionado" if is_selected else "Analisar"
