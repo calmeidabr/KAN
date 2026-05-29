@@ -852,7 +852,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         
         <div class="matching-page-wrapper">
             <div class="header-container">
-                <div class="breadcrumb">ANÁLISES &nbsp; / &nbsp; PROCESSO SELETIVO &nbsp; / &nbsp; {empresa_selecionada}</div>
                 <div class="header-main">
                     <h1 class="header-title">Processo: <span class="highlight-text">{header_vaga_title}</span></h1>
                     <div class="badge-status-container">
@@ -860,7 +859,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         <span class="badge-seniority">{header_vaga_seniority}</span>
                     </div>
                 </div>
-                <p class="header-subtitle">Análise comportamental inteligente e matching de talentos da Mundokan.</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
