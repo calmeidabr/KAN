@@ -176,6 +176,39 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         header_vaga_title = vaga['nome_vaga'] if vaga else "Sem Vaga Selecionada"
         header_vaga_seniority = vaga['senioridade'] if vaga else "N/A"
         header_vaga_status = "Ativo" if vaga else "Inativo"
+
+        # Obter dados do Perfil comportamental desejado para a vaga selecionada
+        header_resumo_text = "Nenhum requisito comportamental específico."
+        if vaga:
+            p_list = parse_json_list(vaga.get('perfis_ideais'))
+            c_list = parse_json_list(vaga.get('categorias_ideais'))
+            q_list = parse_json_list(vaga.get('qualidades_ideais'))
+            
+            resumo_parts = []
+            
+            # 1. KAN
+            kan_val = vaga.get('kan_ideal')
+            if kan_val and kan_val not in ("Nenhum", "Nenhum / Não Exigido"):
+                kan_badge = f'<span class="req-badge-lilac">{kan_val}</span>'
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">KAN:</strong> {kan_badge}')
+            
+            # 2. PERFIL
+            if p_list:
+                perfis_badges = "".join([f'<span class="req-badge-lilac">{p}</span>' for p in p_list])
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">PERFIL:</strong> {perfis_badges}')
+                
+            # 3. CATEGORIA
+            if c_list:
+                cats_badges = "".join([f'<span class="req-badge-lilac">{c}</span>' for c in c_list])
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">CATEGORIA:</strong> {cats_badges}')
+                
+            # 4. QUALIDADES
+            if q_list:
+                quals_badges = "".join([f'<span class="req-badge-lilac">{q}</span>' for q in q_list])
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">QUALIDADES:</strong> {quals_badges}')
+            
+            if resumo_parts:
+                header_resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts)
         
         st.markdown(f"""
         <style>
@@ -857,6 +890,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     <div class="badge-status-container">
                         <span class="badge-status">{header_vaga_status}</span>
                     </div>
+                </div>
+                <div class="process-card-reqs" style="margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 15px;">
+                    {header_resumo_text}
                 </div>
             </div>
         </div>
