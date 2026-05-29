@@ -784,26 +784,30 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             /* Estilo dos boxes de processos (Vagas) na página de matching */
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]) {{
                 background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
-                            linear-gradient(180deg, rgba(20, 24, 36, 0.95) 0%, rgba(13, 16, 22, 0.95) 100%) !important;
-                border: 1px solid rgba(122, 43, 138, 0.3) !important; /* Borda fina violeta */
-                border-radius: 14px !important;
-                padding: 16px 20px !important;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important; /* Soft diffuse shadow */
+                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important; /* Borda fina clara */
+                border-top: 3px solid #5B1463 !important; /* Borda superior violeta */
+                border-radius: 16px !important;
+                padding: 24px 32px !important;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important; /* Soft diffuse shadow */
                 transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
-                margin-bottom: 12px !important;
+                margin-bottom: 16px !important;
+                position: relative !important;
+                overflow: hidden !important;
             }}
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_"]):hover {{
                 transform: translateY(-3px) !important;
-                border-color: rgba(122, 43, 138, 0.5) !important;
-                box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+                box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5) !important;
                 background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.22) 0%, rgba(122, 43, 138, 0) 70%),
-                            linear-gradient(180deg, rgba(25, 30, 45, 0.95) 0%, rgba(16, 20, 28, 0.95) 100%) !important;
+                            linear-gradient(180deg, #171B2A 0%, #0E121C 100%) !important;
             }}
             /* Se selecionado */
             .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_active"]) {{
                 background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.25) 0%, rgba(122, 43, 138, 0) 70%),
-                            linear-gradient(180deg, rgba(23, 27, 42, 0.95) 0%, rgba(15, 18, 30, 0.95) 100%) !important;
-                border-color: rgba(122, 43, 138, 0.6) !important; /* Borda violeta mais nítida se ativo */
+                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                border-top: 3px solid #5B1463 !important;
                 box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
             }}
             
