@@ -11,7 +11,8 @@ from utils.helpers import compress_image_to_b64
 
 class TalentosMenu(BaseMenu):
     def render(self):
-        st.title("Cadastro de Talentos")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Cadastro de Talentos</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Cadastre talentos na base e consulte seus perfis comportamentais.</p>", unsafe_allow_html=True)
         st.write("---")
 
         supabase_client = get_supabase_admin()

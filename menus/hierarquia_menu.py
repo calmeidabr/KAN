@@ -78,7 +78,8 @@ def modal_editar_cargo(nome, cargo_atual, cargos_list):
 
 class HierarquiaMenu(BaseMenu):
     def render(self):
-        st.title("Hierarquia / Departamentos")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Hierarquia / Departamentos</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Estruture e gerencie o organograma de departamentos das empresas cadastradas.</p>", unsafe_allow_html=True)
         
         # CSS para formatar os botões de talento como hyperlinks e adicionar estilo dos cards
         st.markdown("""
@@ -142,7 +143,7 @@ class HierarquiaMenu(BaseMenu):
         }
         </style>
         """, unsafe_allow_html=True)
-        st.info("Estruture e gerencie o organograma de departamentos das empresas cadastradas.")
+
 
         supabase_client = get_supabase()
         lista_empresas_salvas = carregar_empresas()

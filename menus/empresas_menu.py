@@ -6,14 +6,13 @@ from utils.helpers import compress_image_to_b64, validar_cnpj
 
 class EmpresasMenu(BaseMenu):
     def render(self):
-        st.title("Gestão de Empresas")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Gestão de Empresas</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Gerencie as empresas parceiras e clientes associadas ao sistema.</p>", unsafe_allow_html=True)
         
         current_user = st.session_state.get("logged_user", "")
         if current_user not in ["admin", "adminkan"]:
             st.error("Acesso Negado. Você não possui privilégios administrativos para visualizar ou modificar empresas.")
             return
-            
-        st.info("Aqui você pode gerenciar as empresas cadastradas no sistema KAN.")
         
         supabase_client = get_supabase_admin()
         

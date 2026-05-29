@@ -8,8 +8,8 @@ from models.database import (
 
 class ProcessosMenu(BaseMenu):
     def render(self):
-        st.title("Vagas")
-        st.info("Cadastre e consulte perfis ideais de vagas para alinhamento comportamental.")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Vagas</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Cadastre e consulte perfis ideais de vagas para alinhamento comportamental.</p>", unsafe_allow_html=True)
         st.write("---")
 
         supabase_client = get_supabase()

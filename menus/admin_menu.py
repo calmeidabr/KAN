@@ -17,7 +17,8 @@ from utils.helpers import compress_image_to_b64, remover_acentos, validar_cnpj
 
 class AdminMenu(BaseMenu):
     def render(self):
-        st.title("Painel de Controle Administrativo")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Painel de Controle Administrativo</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Central de comando administrativa do sistema KAN.</p>", unsafe_allow_html=True)
         
         if st.session_state.get("logged_user") == "adminkan":
             st.session_state["admin_authenticated"] = True
@@ -43,7 +44,7 @@ class AdminMenu(BaseMenu):
                     st.error("Usuário ou Senha incorretos!")
             return
         
-        st.info("Central de comando administrativa do sistema KAN.")
+
         
         supabase_client = get_supabase_admin()
         

@@ -8,8 +8,8 @@ from services.tenant_service import (
 
 class TenantCrudMenu(BaseMenu):
     def render(self):
-        st.title("Demonstração SaaS Multi-Tenant")
-        st.info("Esta tela demonstra o isolamento real de dados por Row Level Security (RLS) no Supabase baseado no usuário ativo.")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Demonstração SaaS Multi-Tenant</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Esta tela demonstra o isolamento real de dados por Row Level Security (RLS) no Supabase baseado no usuário ativo.</p>", unsafe_allow_html=True)
 
         user = get_current_user()
         
