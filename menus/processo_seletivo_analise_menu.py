@@ -134,6 +134,12 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 del st.query_params["vaga_id"]
             st.rerun()
 
+        # Verificar se há pedido de seleção de vaga via URL (query params)
+        if "vaga_sel" in st.query_params:
+            st.session_state["analise_proc_vaga_sel"] = st.query_params["vaga_sel"]
+            del st.query_params["vaga_sel"]
+            st.rerun()
+
         # Carregar empresas cadastradas
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
@@ -339,6 +345,45 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin: 2px 2px !important;
                 text-transform: uppercase !important;
                 font-family: 'Outfit', sans-serif !important;
+            }}
+            
+            /* Botão Analisar em HTML */
+            .premium-card__btn-analisar {{
+                background: rgba(240, 138, 0, 0.1) !important;
+                border: 1px solid rgba(240, 138, 0, 0.3) !important;
+                color: #FF9D1F !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                border-radius: 8px !important;
+                font-size: 0.85rem !important;
+                padding: 6px 16px !important;
+                text-decoration: none !important;
+                display: inline-block !important;
+                text-align: center !important;
+                transition: all 0.25s ease !important;
+            }}
+            .premium-card__btn-analisar:hover {{
+                background: #F08A00 !important;
+                color: #0D1016 !important;
+                border-color: #F08A00 !important;
+                box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
+                text-decoration: none !important;
+            }}
+            .premium-badge-selected {{
+                background: #F08A00 !important;
+                color: #0D1016 !important;
+                border: 1px solid #F08A00 !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                border-radius: 8px !important;
+                font-size: 0.85rem !important;
+                padding: 6px 16px !important;
+                display: inline-block !important;
+                text-align: center !important;
+            }}
+            .premium-card.active {{
+                border-color: rgba(122, 43, 138, 0.6) !important;
+                box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
             }}
             
             /* Estilo do botão de link de nome de candidato */
@@ -883,54 +928,63 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             vaga_key_name = f"{vg['nome_vaga']} ({vg['senioridade']})"
             is_selected = (vaga_selecionada_nome == vaga_key_name)
             
-            with st.container(border=True):
-                col_c1, col_c2 = st.columns([4, 1])
+            p_list = parse_json_list(vg.get('perfis_ideais'))
+            c_list = parse_json_list(vg.get('categorias_ideais'))
+            q_list = parse_json_list(vg.get('qualidades_ideais'))
+            
+            # Detalhes na mesma ordem de Vagas (com KAN, PERFIL, CATEGORIA, QUALIDADES destacados e valores em badges lilás)
+            resumo_parts = []
+            
+            # 1. KAN
+            kan_val = vg.get('kan_ideal')
+            if kan_val and kan_val not in ("Nenhum", "Nenhum / Não Exigido"):
+                kan_badge = f'<span class="req-badge-lilac">{kan_val}</span>'
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">KAN:</strong> {kan_badge}')
+            
+            # 2. PERFIL
+            if p_list:
+                perfis_badges = "".join([f'<span class="req-badge-lilac">{p}</span>' for p in p_list])
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">PERFIL:</strong> {perfis_badges}')
                 
-                p_list = parse_json_list(vg.get('perfis_ideais'))
-                c_list = parse_json_list(vg.get('categorias_ideais'))
-                q_list = parse_json_list(vg.get('qualidades_ideais'))
+            # 3. CATEGORIA
+            if c_list:
+                cats_badges = "".join([f'<span class="req-badge-lilac">{c}</span>' for c in c_list])
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">CATEGORIA:</strong> {cats_badges}')
                 
-                with col_c1:
-                    # Rótulo com mesmo estilo do cabeçalho selecionado: Processo: Nome Vaga Senioridade (sem parênteses)
-                    st.markdown(f'<div class="premium-card__header" style="justify-content: flex-start; gap: 15px; margin-bottom: 5px;"><h1 class="premium-card__title">Processo: <span class="highlight-text">{vg["nome_vaga"]} {vg["senioridade"]}</span></h1><div class="badge-status-container"><span class="premium-badge-status">Ativo</span></div></div>', unsafe_allow_html=True)
-                    
-                    # Detalhes na mesma ordem de Vagas (com KAN, PERFIL, CATEGORIA, QUALIDADES destacados e valores em badges lilás)
-                    resumo_parts = []
-                    
-                    # 1. KAN
-                    kan_val = vg.get('kan_ideal')
-                    if kan_val and kan_val not in ("Nenhum", "Nenhum / Não Exigido"):
-                        kan_badge = f'<span class="req-badge-lilac">{kan_val}</span>'
-                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">KAN:</strong> {kan_badge}')
-                    
-                    # 2. PERFIL
-                    if p_list:
-                        perfis_badges = "".join([f'<span class="req-badge-lilac">{p}</span>' for p in p_list])
-                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">PERFIL:</strong> {perfis_badges}')
-                        
-                    # 3. CATEGORIA
-                    if c_list:
-                        cats_badges = "".join([f'<span class="req-badge-lilac">{c}</span>' for c in c_list])
-                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">CATEGORIA:</strong> {cats_badges}')
-                        
-                    # 4. QUALIDADES
-                    if q_list:
-                        quals_badges = "".join([f'<span class="req-badge-lilac">{q}</span>' for q in q_list])
-                        resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">QUALIDADES:</strong> {quals_badges}')
-                    
-                    resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
-                    st.markdown(f'<div class="premium-card__divider"><div class="premium-card__reqs">{resumo_text}</div></div>', unsafe_allow_html=True)
-                    
-                with col_c2:
-                    btn_label = "Selecionado" if is_selected else "Analisar"
-                    btn_key_prefix = "btn_analisar_active" if is_selected else "btn_analisar_inactive"
-                    btn_key = f"{btn_key_prefix}_{vg['id']}"
-                    
-                    # Espaçador
-                    st.write("")
-                    if st.button(btn_label, key=btn_key, use_container_width=True):
-                        st.session_state["analise_proc_vaga_sel"] = vaga_key_name
-                        st.rerun()
+            # 4. QUALIDADES
+            if q_list:
+                quals_badges = "".join([f'<span class="req-badge-lilac">{q}</span>' for q in q_list])
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">QUALIDADES:</strong> {quals_badges}')
+            
+            resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
+            
+            import urllib.parse
+            vaga_key_encoded = urllib.parse.quote(vaga_key_name)
+            
+            if is_selected:
+                card_class = "premium-card active"
+                action_html = '<span class="premium-badge-selected">Selecionado</span>'
+            else:
+                card_class = "premium-card"
+                action_html = f'<a href="?vaga_sel={vaga_key_encoded}" target="_self" class="premium-card__btn-analisar">Analisar</a>'
+                
+            card_html = f"""
+            <div class="{card_class}">
+                <div class="premium-card__header">
+                    <h1 class="premium-card__title">Processo: <span class="highlight-text">{vg['nome_vaga']} {vg['senioridade']}</span></h1>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="premium-badge-status">Ativo</span>
+                        {action_html}
+                    </div>
+                </div>
+                <div class="premium-card__divider">
+                    <div class="premium-card__reqs">
+                        {resumo_text}
+                    </div>
+                </div>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
 
         # Importar as listas de opções do banco de dados
         from models.database import PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
