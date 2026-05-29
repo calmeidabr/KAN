@@ -853,7 +853,9 @@ st.markdown("""
     }
     [data-testid="stFileUploader"] section button {
         background-color: var(--panel-bg) !important;
-        color: transparent !important; /* Esconde o texto original ou traduzido duplicado */
+        color: transparent !important; /* Esconde o texto original */
+        font-size: 0 !important; /* Reseta tamanho para evitar sobreposição física */
+        line-height: 0 !important; /* Evita quebra de layout */
         border: 1px solid var(--panel-border) !important;
         border-radius: 8px !important;
         padding: 6px 14px !important;
@@ -866,6 +868,13 @@ st.markdown("""
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
+    }
+    /* Forçar todos os filhos do botão a ficarem transparentes e invisíveis (evita wildcard overrides) */
+    [data-testid="stFileUploader"] section button * {
+        color: transparent !important;
+        font-size: 0 !important;
+        line-height: 0 !important;
+        display: none !important; /* Oculta qualquer tag interna como span, div, p */
     }
     [data-testid="stFileUploader"] section button::before {
         content: "Fazer Upload" !important;
