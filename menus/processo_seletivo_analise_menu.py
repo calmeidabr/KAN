@@ -239,7 +239,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             .stApp div[data-testid="stVerticalBlockBorderWrapper"],
             .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
             .matching-page-wrapper div[data-testid="stContainer"] {{
-                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
+                background: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.06) 0%, rgba(122, 43, 138, 0) 35%),
                             linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.05) !important;
                 border-top: 3px solid #5B1463 !important; /* Borda superior violeta */
@@ -260,7 +260,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 transform: translateY(-3px) !important;
                 border-color: rgba(255, 255, 255, 0.1) !important;
                 box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5) !important;
-                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.22) 0%, rgba(122, 43, 138, 0) 70%),
+                background: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.09) 0%, rgba(122, 43, 138, 0) 40%),
                             linear-gradient(180deg, #171B2A 0%, #0E121C 100%) !important;
             }}
             
@@ -268,7 +268,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             .premium-card.static-header:hover {{
                 transform: none !important;
                 box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
-                background: radial-gradient(circle at 90% -20%, rgba(122, 43, 138, 0.15) 0%, rgba(122, 43, 138, 0) 65%),
+                background: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.06) 0%, rgba(122, 43, 138, 0) 35%),
                             linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
                 border-color: rgba(255, 255, 255, 0.05) !important;
             }}
