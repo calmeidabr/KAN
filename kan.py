@@ -851,19 +851,44 @@ st.markdown("""
     [data-testid="stFileUploader"] section strong {
         color: var(--text-main) !important;
     }
-    [data-testid="stFileUploader"] button {
+    [data-testid="stFileUploader"] section button {
         background-color: var(--panel-bg) !important;
-        color: var(--text-main) !important;
+        color: transparent !important; /* Esconde o texto original ou traduzido duplicado */
         border: 1px solid var(--panel-border) !important;
         border-radius: 8px !important;
         padding: 6px 14px !important;
         font-weight: 500 !important;
         transition: all 0.2s ease !important;
+        position: relative !important;
+        width: 140px !important;
+        height: 38px !important;
+        overflow: hidden !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
-    [data-testid="stFileUploader"] button:hover {
+    [data-testid="stFileUploader"] section button::before {
+        content: "Fazer Upload" !important;
+        color: var(--text-main) !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.85rem !important;
+        font-family: inherit !important;
+        font-weight: 500 !important;
+        pointer-events: none !important;
+    }
+    [data-testid="stFileUploader"] section button:hover {
         background-color: var(--hover-bg) !important;
         border-color: var(--panel-border-medium) !important;
-        color: var(--text-main) !important;
+    }
+    [data-testid="stFileUploader"] section button:hover::before {
+        color: var(--accent) !important;
     }
     
     /* Custom Alert/Notification Backgrounds (Light Mode specific) */
