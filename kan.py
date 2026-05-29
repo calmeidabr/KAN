@@ -59,6 +59,25 @@ if current_theme == "light":
         --button-secondary-text: #2A3140;
         --button-secondary-border: rgba(22, 26, 34, 0.10);
         --button-secondary-hover: #EFE9E1;
+
+        /* Card design tokens (Light Mode overrides) */
+        --card-border-top-color: #9B30B3;
+        --card-bg: linear-gradient(180deg, #FFFFFF 0%, #F5F7FA 100%);
+        --card-border-color: rgba(22, 26, 34, 0.08);
+        --card-glow: radial-gradient(circle at 96% -26%, rgba(155, 48, 179, 0.04) 0%, rgba(155, 48, 179, 0) 35%);
+        --card-shadow: 0 12px 30px rgba(22, 26, 34, 0.06);
+        
+        --card-hover-bg: linear-gradient(180deg, #F9FBFC 0%, #EEF1F5 100%);
+        --card-hover-border-color: rgba(22, 26, 34, 0.15);
+        --card-hover-glow: radial-gradient(circle at 96% -26%, rgba(155, 48, 179, 0.06) 0%, rgba(155, 48, 179, 0) 40%);
+        --card-hover-shadow: 0 16px 35px rgba(22, 26, 34, 0.10);
+        
+        --card-selected-border-color: rgba(155, 48, 179, 0.6);
+        --card-selected-shadow: 0 12px 35px rgba(155, 48, 179, 0.15);
+        
+        --card-text-main: #161A22;
+        --card-text-soft: #5E6675;
+        --card-divider-color: rgba(22, 26, 34, 0.08);
     }
     .st-key-btn_theme_toggle button::before { content: "\\e11e" !important; } /* moon icon */
     """
@@ -101,11 +120,37 @@ else:
         --button-secondary-text: #F5F7FA;
         --button-secondary-border: rgba(255, 255, 255, 0.08);
         --button-secondary-hover: #232632;
+
+        /* Card design tokens (Dark Mode overrides) */
+        --card-border-top-color: #5B1463;
+        --card-bg: linear-gradient(180deg, #141824 0%, #0D1016 100%);
+        --card-border-color: rgba(255, 255, 255, 0.05);
+        --card-glow: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.06) 0%, rgba(122, 43, 138, 0) 35%);
+        --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        
+        --card-hover-bg: linear-gradient(180deg, #171B2A 0%, #0E121C 100%);
+        --card-hover-border-color: rgba(255, 255, 255, 0.1);
+        --card-hover-glow: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.09) 0%, rgba(122, 43, 138, 0) 40%);
+        --card-hover-shadow: 0 16px 35px rgba(0, 0, 0, 0.5);
+        
+        --card-selected-border-color: rgba(122, 43, 138, 0.6);
+        --card-selected-shadow: 0 12px 35px rgba(122, 43, 138, 0.25);
+        
+        --card-text-main: #F4F7FB;
+        --card-text-soft: #AAB3C5;
+        --card-divider-color: rgba(255, 255, 255, 0.06);
     }
     .st-key-btn_theme_toggle button::before { content: "\\e178" !important; } /* sun icon */
     """
 
 st.markdown(f"<style>{theme_variables}</style>", unsafe_allow_html=True)
+
+# Injetar CSS de Cards do Design System
+card_css_path = os.path.join("frontend", "card.css")
+if os.path.exists(card_css_path):
+    with open(card_css_path, "r", encoding="utf-8") as f:
+        card_css = f.read()
+    st.markdown(f"<style>{card_css}</style>", unsafe_allow_html=True)
 
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -689,21 +734,36 @@ st.markdown("""
     }
 
     /* --- CARDS & PAINÉIS (REAPROVEITÁVEIS) --- */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: var(--panel-bg) !important;
-        border: 1px solid var(--panel-border) !important;
-        border-radius: 14px !important;
+    div[data-testid="stVerticalBlockBorderWrapper"],
+    div[data-testid="stContainer"] {
+        background: var(--card-bg) !important;
+        border: var(--card-border-width) solid var(--card-border-color) !important;
+        border-top: var(--card-border-top-width) solid var(--card-border-top-color) !important;
+        border-radius: var(--card-radius) !important;
         padding: 20px !important;
         box-shadow: var(--card-shadow) !important;
+        position: relative !important;
+        overflow: hidden !important;
+        transition: var(--card-transition) !important;
     }
     
-    div[data-testid="stContainer"] {
-        background: var(--panel-bg) !important;
-        border-radius: 14px !important;
-        border: 1px solid var(--panel-border) !important;
-        padding: 20px !important;
-        margin-bottom: 20px !important;
-        box-shadow: var(--card-shadow) !important;
+    div[data-testid="stVerticalBlockBorderWrapper"]::before,
+    div[data-testid="stContainer"]::before {
+        content: "" !important;
+        position: absolute !important;
+        top: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        background: var(--card-glow) !important;
+        pointer-events: none !important;
+        z-index: 1 !important;
+    }
+    
+    div[data-testid="stVerticalBlockBorderWrapper"] > div,
+    div[data-testid="stContainer"] > div {
+        position: relative !important;
+        z-index: 2 !important;
     }
 
     /* --- DEFENSIVE STYLING PARA STREAMLIT NATIVO --- */

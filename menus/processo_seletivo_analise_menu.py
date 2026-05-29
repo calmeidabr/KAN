@@ -216,6 +216,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             if resumo_parts:
                 header_resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts)
         
+        from components.card import PremiumCard
+
+        # Injetar CSS local para layout e detalhes específicos
         st.markdown(f"""
         <style>
             /* Reset e visual Dark Premium */
@@ -233,159 +236,13 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 max-width: 1200px;
                 margin: 0 auto;
             }}
-            
-            /* COMPONENTE MESTRE: Premium Card */
-            .premium-card,
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"],
-            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
-            .matching-page-wrapper div[data-testid="stContainer"] {{
-                background: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.06) 0%, rgba(122, 43, 138, 0) 35%),
-                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                border-top: 3px solid #5B1463 !important; /* Borda superior violeta */
-                border-radius: 16px !important;
-                padding: 24px 32px !important;
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important; /* Soft diffuse shadow */
-                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease !important;
-                position: relative !important;
-                overflow: hidden !important;
-                margin-bottom: 16px !important;
-            }}
-            
-            /* Hover global para todos os cards interativos */
-            .premium-card:hover,
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:hover,
-            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"]:hover,
-            .matching-page-wrapper div[data-testid="stContainer"]:hover {{
-                transform: translateY(-3px) !important;
-                border-color: rgba(255, 255, 255, 0.1) !important;
-                box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5) !important;
-                background: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.09) 0%, rgba(122, 43, 138, 0) 40%),
-                            linear-gradient(180deg, #171B2A 0%, #0E121C 100%) !important;
-            }}
-            
-            /* Exceção: Desativar hover de transformação para o cabeçalho estático */
-            .premium-card.static-header:hover {{
-                transform: none !important;
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4) !important;
-                background: radial-gradient(circle at 96% -26%, rgba(122, 43, 138, 0.06) 0%, rgba(122, 43, 138, 0) 35%),
-                            linear-gradient(180deg, #141824 0%, #0D1016 100%) !important;
-                border-color: rgba(255, 255, 255, 0.05) !important;
-            }}
 
-            .premium-card.static-header {{
-                margin-top: 10px !important;
-                margin-bottom: 40px !important;
-            }}
-
-            /* Hierarquia tipográfica do card */
-            .premium-card__header,
-            .matching-page-wrapper .header-main {{
-                display: flex !important;
-                align-items: center !important;
-                justify-content: space-between !important;
-                flex-wrap: wrap !important;
-                gap: 20px !important;
-            }}
-            .premium-card__title,
-            .matching-page-wrapper .header-title,
-            .stApp .process-card-title {{
-                font-family: 'Outfit', 'Inter', sans-serif !important;
-                font-size: 1.1rem !important;
-                font-weight: 800 !important;
-                color: #F4F7FB !important;
-                margin: 0 !important;
-                letter-spacing: -0.5px !important;
-                line-height: 1.15 !important;
-            }}
             .matching-page-wrapper .highlight-text {{
                 background: linear-gradient(135deg, #F08A00 0%, #FF9D1F 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
             }}
-            .premium-card__divider {{
-                margin-top: 18px !important;
-                border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
-                padding-top: 15px !important;
-            }}
-            .premium-card__reqs,
-            .stApp .process-card-reqs {{
-                font-family: 'Inter', sans-serif !important;
-                font-size: 0.85rem !important;
-                color: #AAB3C5 !important;
-                margin-top: 4px;
-                line-height: 1.4;
-            }}
 
-            /* Badges / Status */
-            .premium-badge-status,
-            .matching-page-wrapper .badge-status {{
-                background: rgba(240, 138, 0, 0.1) !important;
-                border: 1px solid rgba(240, 138, 0, 0.25) !important;
-                color: #F08A00 !important;
-                padding: 6px 14px !important;
-                border-radius: 20px !important;
-                font-size: 0.8rem !important;
-                font-weight: 700 !important;
-                letter-spacing: 0.5px !important;
-                text-transform: uppercase !important;
-                display: inline-block !important;
-            }}
-            .premium-badge-req,
-            .stApp .req-badge-lilac {{
-                background: rgba(122, 43, 138, 0.15) !important;
-                border: 1px solid rgba(122, 43, 138, 0.3) !important;
-                color: #AAB3C5 !important;
-                padding: 3px 10px !important;
-                border-radius: 20px !important;
-                font-size: 0.72rem !important;
-                font-weight: 600 !important;
-                letter-spacing: 0.3px !important;
-                display: inline-block !important;
-                margin: 2px 2px !important;
-                text-transform: uppercase !important;
-                font-family: 'Outfit', sans-serif !important;
-            }}
-            
-            /* Botão Analisar em HTML */
-            .premium-card__btn-analisar {{
-                background: rgba(240, 138, 0, 0.1) !important;
-                border: 1px solid rgba(240, 138, 0, 0.3) !important;
-                color: #FF9D1F !important;
-                font-family: 'Outfit', sans-serif !important;
-                font-weight: 700 !important;
-                border-radius: 8px !important;
-                font-size: 0.85rem !important;
-                padding: 6px 16px !important;
-                text-decoration: none !important;
-                display: inline-block !important;
-                text-align: center !important;
-                transition: all 0.25s ease !important;
-            }}
-            .premium-card__btn-analisar:hover {{
-                background: #F08A00 !important;
-                color: #0D1016 !important;
-                border-color: #F08A00 !important;
-                box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
-                text-decoration: none !important;
-            }}
-            .premium-badge-selected {{
-                background: #F08A00 !important;
-                color: #0D1016 !important;
-                border: 1px solid #F08A00 !important;
-                font-family: 'Outfit', sans-serif !important;
-                font-weight: 700 !important;
-                border-radius: 8px !important;
-                font-size: 0.85rem !important;
-                padding: 6px 16px !important;
-                display: inline-block !important;
-                text-align: center !important;
-            }}
-            .premium-card.active {{
-                border-color: rgba(122, 43, 138, 0.6) !important;
-                box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
-            }}
-            
             /* Estilo do botão de link de nome de candidato */
             .matching-page-wrapper .talent-link-container div.row-widget.stButton > button {{
                 border: none !important;
@@ -487,15 +344,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 box-shadow: 0 8px 24px rgba(240, 138, 0, 0.5) !important;
                 transform: translateY(-2px) !important;
                 color: #0D1016 !important;
-            }}
-            
-            /* Vertical Alignment for Section button */
-            .matching-page-wrapper div[data-testid="column"]:has(button[key="btn_add_assoc_talents"]),
-            .matching-page-wrapper div[data-testid="column"]:has(div[class*="st-key-btn_add_assoc_talents"]) {{
-                display: flex !important;
-                align-items: center !important;
-                justify-content: flex-end !important;
-                padding-top: 10px !important;
             }}
             
             /* Avatar Halo compact */
@@ -962,29 +810,19 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             vaga_key_encoded = urllib.parse.quote(vaga_key_name)
             
             if is_selected:
-                card_class = "premium-card active"
                 action_html = '<span class="premium-badge-selected">Selecionado</span>'
+                variant = "selected"
             else:
-                card_class = "premium-card"
                 action_html = f'<a href="?vaga_sel={vaga_key_encoded}" target="_self" class="premium-card__btn-analisar">Analisar</a>'
+                variant = "interactive"
                 
-            card_html = f"""
-            <div class="{card_class}">
-                <div class="premium-card__header">
-                    <h1 class="premium-card__title">Processo: <span class="highlight-text">{vg['nome_vaga']} {vg['senioridade']}</span></h1>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span class="premium-badge-status">Ativo</span>
-                        {action_html}
-                    </div>
-                </div>
-                <div class="premium-card__divider">
-                    <div class="premium-card__reqs">
-                        {resumo_text}
-                    </div>
-                </div>
-            </div>
-            """
-            st.markdown(card_html, unsafe_allow_html=True)
+            PremiumCard.render(
+                title=f'Processo: <span class="highlight-text">{vg["nome_vaga"]} {vg["senioridade"]}</span>',
+                content_html=resumo_text,
+                badges_html='<span class="premium-badge-status">Ativo</span>',
+                action_html=action_html,
+                variant=variant
+            )
 
         # Importar as listas de opções do banco de dados
         from models.database import PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB

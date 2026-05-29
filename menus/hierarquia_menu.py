@@ -11,7 +11,7 @@ def modal_detalhes_talento(nome, info, dept_map_list):
     with col1:
         foto_b64 = info.get("foto_base64")
         if foto_b64:
-            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 100%; max-width: 180px; border-radius: 12px; border: 2px solid #F18617; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">', unsafe_allow_html=True)
+            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 100%; max-width: 180px; border-radius: 12px; border: 2px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">', unsafe_allow_html=True)
         else:
             st.markdown('<div style="width: 150px; height: 150px; border-radius: 12px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(255,255,255,0.2);"><span style="font-size: 4em; color: rgba(255,255,255,0.2);"><i class="icon-user"></i></span></div>', unsafe_allow_html=True)
     with col2:
@@ -88,7 +88,7 @@ class HierarquiaMenu(BaseMenu):
             border: none !important;
             background: transparent !important;
             padding: 0 !important;
-            color: #F18617 !important;
+            color: var(--accent) !important;
             text-decoration: underline !important;
             text-align: left !important;
             font-weight: bold !important;
@@ -97,38 +97,18 @@ class HierarquiaMenu(BaseMenu):
             margin: 0 !important;
         }
         div.talent-link-container div.row-widget.stButton > button:hover {
-            color: #ff9f43 !important;
+            color: var(--accent-hover) !important;
             background: transparent !important;
         }
         div.talent-link-container {
             display: inline-block !important;
         }
-        .hierarquia-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(241,134,23,0.07);
-            border: 1px solid rgba(241,134,23,0.25);
-            border-radius: 10px;
-            padding: 8px 12px;
-            margin-bottom: 6px;
-            max-width: 320px;
-            margin-top: 4px;
-        }
-        .hierarquia-card img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #F18617;
-            flex-shrink: 0;
-        }
         .hierarquia-card-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: rgba(241,134,23,0.2);
-            border: 2px solid #F18617;
+            background: rgba(240, 138, 0, 0.1);
+            border: 2px solid var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -219,14 +199,14 @@ class HierarquiaMenu(BaseMenu):
                     cols_t = st.columns([1, 20])
                     with cols_t[0]:
                         if foto_b64:
-                            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #F18617; vertical-align: middle;">', unsafe_allow_html=True)
+                            st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent); vertical-align: middle;">', unsafe_allow_html=True)
                         else:
                             st.markdown('<span style="vertical-align: middle; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; color: rgba(255,255,255,0.4);"><i class="icon-user" style="font-size:16px;"></i></span>', unsafe_allow_html=True)
                     with cols_t[1]:
                         st.markdown('<div class="talent-link-container" style="display: inline-block; vertical-align: middle;">', unsafe_allow_html=True)
                         st.button(t_nome, key=f"lnk_emp_lst_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
                         st.markdown('</div>', unsafe_allow_html=True)
-                        st.markdown(f"<span style='vertical-align: middle; font-size: 0.95em;'> &mdash; {t_cargo} (<span style='color: #F18617; font-weight: 500;'>{t_depto_nome}</span>)</span>", unsafe_allow_html=True)
+                        st.markdown(f"<span style='vertical-align: middle; font-size: 0.95em;'> &mdash; {t_cargo} (<span style='color: var(--accent); font-weight: 500;'>{t_depto_nome}</span>)</span>", unsafe_allow_html=True)
         
         state_key_edit = f"edit_hier_{empresa_selecionada}"
         state_key_builder = f"builder_hier_{empresa_selecionada}"
@@ -269,7 +249,7 @@ class HierarquiaMenu(BaseMenu):
                         dept_talents = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]]
                         
                         with st.container(border=True):
-                            st.markdown(f"<div style='padding-left: {level * 25}px;'><span style='color: #F18617; font-weight: bold;'>{prefix}</span> <span style='font-size: 1.2em; font-weight: bold; color: #FFFFFF;'>{ch['nome']}</span></div>", unsafe_allow_html=True)
+                            st.markdown(f"<div style='padding-left: {level * 25}px;'><span style='color: var(--accent); font-weight: bold;'>{prefix}</span> <span style='font-size: 1.2em; font-weight: bold; color: #FFFFFF;'>{ch['nome']}</span></div>", unsafe_allow_html=True)
                             
                             if dept_talents:
                                 for t_nome in sorted(dept_talents):
@@ -281,18 +261,19 @@ class HierarquiaMenu(BaseMenu):
                                     with cols_tree[0]:
                                         st.markdown(f"<div style='padding-left: {level * 25 + 20}px;'></div>", unsafe_allow_html=True)
                                     with cols_tree[1]:
-                                        with st.container(border=True):
+                                        from components.card import premium_card_container
+                                        with premium_card_container(variant="compact"):
                                             card_cols = st.columns([1, 2.8, 0.7])
                                             with card_cols[0]:
                                                 if foto_b64:
-                                                    st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; display: block;" />', unsafe_allow_html=True)
+                                                    st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); display: block;" />', unsafe_allow_html=True)
                                                 else:
-                                                    st.markdown('<div class="hierarquia-card-avatar"><i class="icon-user" style="color: #F18617;"></i></div>', unsafe_allow_html=True)
+                                                    st.markdown('<div class="hierarquia-card-avatar"><i class="icon-user" style="color: var(--accent);"></i></div>', unsafe_allow_html=True)
                                             with card_cols[1]:
                                                 st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
                                                 st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
                                                 st.markdown('</div>', unsafe_allow_html=True)
-                                                st.markdown(f"<span style='color: #F18617; font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
+                                                st.markdown(f"<span style='color: var(--accent); font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
                                             with card_cols[2]:
                                                 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
                                                 if st.button(" ", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
