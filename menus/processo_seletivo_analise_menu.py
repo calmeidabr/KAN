@@ -236,7 +236,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             }}
             .matching-page-wrapper .header-title {{
                 font-family: 'Outfit', 'Inter', sans-serif !important;
-                font-size: 2.2rem !important;
+                font-size: 1.1rem !important;
                 font-weight: 800 !important;
                 color: #F4F7FB !important;
                 margin: 0 !important;
