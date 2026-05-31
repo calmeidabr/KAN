@@ -587,37 +587,64 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 border-radius: 16px !important;
             }}
             
-            /* Requirements Grid */
-            .matching-page-wrapper .requirements-grid {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            /* Profile Requirements Table styling */
+            .profile-req-table {{
+                display: flex;
+                flex-direction: column;
                 gap: 16px;
                 margin-top: 20px;
                 margin-bottom: 20px;
+                width: 100%;
             }}
-            .matching-page-wrapper .req-item {{
-                background: linear-gradient(135deg, #171B2A 0%, #1B2030 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.06) !important;
-                padding: 16px !important;
-                border-radius: 14px !important;
-                transition: transform 0.2s ease, border-color 0.2s ease;
+            .profile-req-row {{
+                display: grid;
+                grid-template-columns: 180px 1fr;
+                align-items: center;
+                gap: 16px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             }}
-            .matching-page-wrapper .req-item:hover {{
-                transform: translateY(-2px);
-                border-color: rgba(122, 43, 138, 0.3) !important;
+            .profile-req-row:last-child {{
+                border-bottom: none;
+                padding-bottom: 0;
             }}
-            .matching-page-wrapper .req-label {{
-                font-size: 0.7rem !important;
-                color: #7F8798 !important;
+            .profile-req-label {{
+                font-family: 'Outfit', sans-serif !important;
+                font-size: 0.8rem !important;
+                color: #8C96A8 !important;
                 text-transform: uppercase !important;
-                font-weight: 700 !important;
-                letter-spacing: 1px !important;
-                margin-bottom: 6px !important;
-            }}
-            .matching-page-wrapper .req-value {{
-                font-size: 0.95rem !important;
-                color: #F4F7FB !important;
                 font-weight: 600 !important;
+                letter-spacing: 0.8px !important;
+            }}
+            .profile-req-value-cell {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }}
+            .profile-req-value {{
+                background-color: #090C11 !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                color: #FFFFFF !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-size: 0.85rem !important;
+                font-weight: 500 !important;
+                padding: 6px 14px !important;
+                border-radius: 6px !important;
+                display: inline-block !important;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            }}
+            .profile-req-value.highlight-kan {{
+                border-color: rgba(240, 138, 0, 0.3) !important;
+                color: #F08A00 !important;
+                font-weight: 600 !important;
+            }}
+            
+            @media (max-width: 768px) {{
+                .profile-req-row {{
+                    grid-template-columns: 1fr;
+                    align-items: flex-start;
+                    gap: 8px;
+                }}
             }}
             
             /* Subtitles */
@@ -918,26 +945,31 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.markdown(f"### Perfil Comportamental Desejado")
             
             # Renderizar requisitos com HTML estilizado premium (composição editorial)
-            req_html = f"""
-            <div class="requirements-grid">
-                <div class="req-item">
-                    <div class="req-label">KAN Ideal</div>
-                    <div class="req-value" style="color: #F08A00;">{", ".join(mapped_kan).upper() if mapped_kan else "NENHUM"}</div>
-                </div>
-                <div class="req-item">
-                    <div class="req-label">Perfis Ideais</div>
-                    <div class="req-value">{", ".join(vaga_perfis) if vaga_perfis else "Nenhum"}</div>
-                </div>
-                <div class="req-item">
-                    <div class="req-label">Categorias</div>
-                    <div class="req-value">{", ".join(vaga_cats) if vaga_cats else "Nenhuma"}</div>
-                </div>
-                <div class="req-item">
-                    <div class="req-label">Qualidades</div>
-                    <div class="req-value">{", ".join(vaga_quals) if vaga_quals else "Nenhuma"}</div>
-                </div>
-            </div>
-            """
+            kan_badges = "".join([f'<span class="profile-req-value highlight-kan">{k.upper()}</span>' for k in mapped_kan]) if mapped_kan else '<span class="profile-req-value">NENHUM</span>'
+            perfis_badges = "".join([f'<span class="profile-req-value">{p.upper()}</span>' for p in vaga_perfis]) if vaga_perfis else '<span class="profile-req-value">NENHUM</span>'
+            cats_badges = "".join([f'<span class="profile-req-value">{c.upper()}</span>' for c in vaga_cats]) if vaga_cats else '<span class="profile-req-value">NENHUMA</span>'
+            quals_badges = "".join([f'<span class="profile-req-value">{q.upper()}</span>' for q in vaga_quals]) if vaga_quals else '<span class="profile-req-value">NENHUMA</span>'
+
+            req_html = (
+                f'<div class="profile-req-table">'
+                f'<div class="profile-req-row">'
+                f'<div class="profile-req-label">KAN Ideal</div>'
+                f'<div class="profile-req-value-cell">{kan_badges}</div>'
+                f'</div>'
+                f'<div class="profile-req-row">'
+                f'<div class="profile-req-label">Perfis Ideais</div>'
+                f'<div class="profile-req-value-cell">{perfis_badges}</div>'
+                f'</div>'
+                f'<div class="profile-req-row">'
+                f'<div class="profile-req-label">Categorias</div>'
+                f'<div class="profile-req-value-cell">{cats_badges}</div>'
+                f'</div>'
+                f'<div class="profile-req-row">'
+                f'<div class="profile-req-label">Qualidades</div>'
+                f'<div class="profile-req-value-cell">{quals_badges}</div>'
+                f'</div>'
+                f'</div>'
+            )
             st.markdown(req_html, unsafe_allow_html=True)
             
             if vaga.get('descricao_vaga'):
