@@ -773,21 +773,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             }}
         </style>
         
-        <div class="matching-page-wrapper">
-            <div class="premium-card static-header">
-                <div class="premium-card__header">
-                    <h1 class="premium-card__title">Processo: <span class="highlight-text">{header_vaga_title}</span></h1>
-                    <div class="badge-status-container">
-                        <span class="premium-badge-status">{header_vaga_status}</span>
-                    </div>
-                </div>
-                <div class="premium-card__divider">
-                    <div class="premium-card__reqs">
-                        {header_resumo_text}
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="matching-page-wrapper" style="display: none;"></div>
         """, unsafe_allow_html=True)
 
 
