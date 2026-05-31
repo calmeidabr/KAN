@@ -183,7 +183,7 @@ st.markdown("""
     }
     
     p, span, label, li {
-        font-family: 'Inter', sans-serif !important;
+        font-family: 'Inter', sans-serif;
         color: var(--text-soft) !important;
     }
     
