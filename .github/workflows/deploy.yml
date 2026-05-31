@@ -19,6 +19,6 @@ jobs:
           script: |
             cd /var/www/app-mundokan
             git reset --hard HEAD
-            git clean -fd
+            git clean -fd -e .streamlit/
             git pull origin main
             docker compose up -d --build
