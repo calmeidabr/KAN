@@ -789,18 +789,53 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             vaga_key_name = f"{vg['nome_vaga']} ({vg['senioridade']})"
             is_selected = (vaga_selecionada_nome == vaga_key_name)
             
-            p_list = parse_json_list(vg.get('perfis_ideais'))
-            c_list = parse_json_list(vg.get('categorias_ideais'))
-            q_list = parse_json_list(vg.get('qualidades_ideais'))
+            try:
+                vg_id_int = int(vg["id"])
+            except Exception:
+                vg_id_int = vg["id"]
+                
+            # Buscar KAN (customizado ou original)
+            if vg_id_int in st.session_state.get("custom_kan_vagas", {}) and st.session_state["custom_kan_vagas"][vg_id_int] is not None:
+                kan_val = st.session_state["custom_kan_vagas"][vg_id_int]
+            else:
+                kan_val = vg.get('kan_ideal')
+                
+            # Buscar Perfis (customizado ou original)
+            if vg_id_int in st.session_state.get("custom_perfis_vagas", {}) and st.session_state["custom_perfis_vagas"][vg_id_int] is not None:
+                p_list = st.session_state["custom_perfis_vagas"][vg_id_int]
+            else:
+                p_list = parse_json_list(vg.get('perfis_ideais'))
+                
+            # Buscar Categorias (customizado ou original)
+            if vg_id_int in st.session_state.get("custom_categorias_vagas", {}) and st.session_state["custom_categorias_vagas"][vg_id_int] is not None:
+                c_list = st.session_state["custom_categorias_vagas"][vg_id_int]
+            else:
+                c_list = parse_json_list(vg.get('categorias_ideais'))
+                
+            # Buscar Qualidades (customizado ou original)
+            if vg_id_int in st.session_state.get("custom_qualidades_vagas", {}) and st.session_state["custom_qualidades_vagas"][vg_id_int] is not None:
+                q_list = st.session_state["custom_qualidades_vagas"][vg_id_int]
+            else:
+                q_list = parse_json_list(vg.get('qualidades_ideais'))
+                
+            # Garantir que p_list, c_list, q_list sejam de fato listas
+            p_list = parse_json_list(p_list) if isinstance(p_list, str) else p_list or []
+            c_list = parse_json_list(c_list) if isinstance(c_list, str) else c_list or []
+            q_list = parse_json_list(q_list) if isinstance(q_list, str) else q_list or []
             
             # Detalhes na mesma ordem de Vagas (com KAN, PERFIL, CATEGORIA, QUALIDADES destacados e valores em badges lilás)
             resumo_parts = []
             
             # 1. KAN
-            kan_val = vg.get('kan_ideal')
             if kan_val and kan_val not in ("Nenhum", "Nenhum / Não Exigido"):
-                kan_badge = f'<span class="req-badge-lilac">{kan_val}</span>'
-                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">KAN:</strong> {kan_badge}')
+                if isinstance(kan_val, list):
+                    kan_badges = "".join([f'<span class="req-badge-lilac">{k}</span>' for k in kan_val if k])
+                else:
+                    if "," in kan_val:
+                        kan_badges = "".join([f'<span class="req-badge-lilac">{k.strip()}</span>' for k in kan_val.split(",") if k.strip()])
+                    else:
+                        kan_badges = f'<span class="req-badge-lilac">{kan_val}</span>'
+                resumo_parts.append(f'<strong style="color: #F08A00; font-weight: 700;">KAN:</strong> {kan_badges}')
             
             # 2. PERFIL
             if p_list:
