@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Remove the Streamlit/Snowflake copyright comment from the index.html template
+RUN python -c "import os, re, pathlib, streamlit; p = pathlib.Path(os.path.dirname(streamlit.__file__)) / 'static' / 'index.html'; p.write_text(re.sub(r'<!--\s*Copyright \(c\) Streamlit Inc\..*?-->', '', p.read_text(encoding='utf-8'), flags=re.DOTALL), encoding='utf-8')"
+
 # Copy the rest of the application code
 COPY . .
 
