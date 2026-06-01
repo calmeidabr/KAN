@@ -153,7 +153,7 @@ class TalentosMenu(BaseMenu):
                                 st.session_state['ocr_data_nascimento'] = ''
                                 st.cache_data.clear()
                             except Exception as ex:
-                                st.error(f"Erro ao salvar no Supabase: {ex}")
+                                st.error(f"Erro ao salvar no banco de dados: {ex}")
                         else:
                             if "clientes_local_data" not in st.session_state:
                                 st.session_state["clientes_local_data"] = {}

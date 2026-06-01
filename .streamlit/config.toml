@@ -4,3 +4,10 @@ backgroundColor = "#401041"
 secondaryBackgroundColor = "#111111"
 textColor = "#FFFFFF"
 font = "sans serif"
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false

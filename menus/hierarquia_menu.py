@@ -414,11 +414,11 @@ class HierarquiaMenu(BaseMenu):
                         try:
                             supabase_client.table("hierarquia_departamentos").delete().eq("empresa", empresa_selecionada).execute()
                             supabase_client.table("hierarquia_departamentos").insert(payloads).execute()
-                            st.success("Hierarquia salva com sucesso no Supabase!")
+                            st.success("Hierarquia salva com sucesso!")
                             st.session_state[state_key_edit] = False
                             st.rerun()
                         except Exception as ex:
-                            st.error(f"Erro ao salvar no Supabase: {ex}\n\nDICA: Certifique-se de executar o script 'hierarquia_schema.sql' no SQL Editor do Supabase para criar a tabela.")
+                            st.error(f"Erro ao salvar no banco de dados: {ex}\n\nDICA: Certifique-se de executar o script SQL correspondente para criar a tabela.")
                     else:
                         st.session_state["hier_local_" + empresa_selecionada] = payloads
                         st.success("Hierarquia salva com sucesso!")

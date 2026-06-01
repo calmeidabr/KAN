@@ -9,7 +9,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
     def render(self):
         supabase_client = get_supabase_admin()
         if not supabase_client:
-            st.error("Conexão administrativa do Supabase não configurada.")
+            st.error("Conexão administrativa do banco de dados não configurada.")
             return
 
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Processo Seletivo</h2>", unsafe_allow_html=True)
@@ -1122,7 +1122,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             st.success("Requisitos personalizados salvos com sucesso!")
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Erro ao salvar requisitos personalizados no Supabase: {e}")
+                            st.error(f"Erro ao salvar requisitos personalizados no banco de dados: {e}")
                 with col_btn2:
                     if st.button("Restaurar Originais da Vaga", use_container_width=True, key=f"btn_canc_restore_req_{vaga_id_int}"):
                         st.session_state["custom_perfis_vagas"][vaga_id_int] = None
@@ -1153,7 +1153,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             st.success("Requisitos restaurados para os originais da vaga!")
                             st.rerun()
                         except Exception as e:
-                            st.error(f"Erro ao restaurar requisitos no Supabase: {e}")
+                            st.error(f"Erro ao restaurar requisitos no banco de dados: {e}")
 
         # Buscar talentos (candidatos) para fazer o matching
         try:
@@ -1317,8 +1317,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "candidatos": candidatos_selecionados
                                 }).execute()
                         except Exception as e:
-                            # Caso a tabela ainda não exista no Supabase do usuário, mostramos um aviso útil
-                            st.warning(f"Não foi possível salvar no Supabase (certifique-se de executar o arquivo 'processos_seletivos_schema.sql' no seu painel Supabase): {e}")
+                            # Caso a tabela ainda não exista no banco de dados do usuário, mostramos um aviso útil
+                            st.warning(f"Não foi possível salvar no banco de dados (certifique-se de executar o script SQL de atualização de estrutura correspondente): {e}")
                         
                         st.session_state["mostrar_selector_talentos"] = False
                         st.success("Candidatos associados com sucesso!")

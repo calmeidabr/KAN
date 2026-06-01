@@ -156,7 +156,7 @@ class EmpresasMenu(BaseMenu):
                                     st.session_state["edit_empresa_id"] = None
                                     st.rerun()
                                 except Exception as ex:
-                                    st.error(f"Erro ao salvar no Supabase: {ex}\n\nDICA: Lembre-se de rodar o script 'empresas_schema.sql' no SQL Editor do Supabase para atualizar a tabela e o cache.")
+                                    st.error(f"Erro ao salvar no banco de dados: {ex}\n\nDICA: Certifique-se de executar o script SQL correspondente para atualizar a tabela.")
                             else:
                                 emp_em_edicao.update(payload)
                                 st.cache_data.clear()
@@ -242,7 +242,7 @@ class EmpresasMenu(BaseMenu):
                                     st.session_state["add_empresa_mode"] = False
                                     st.rerun()
                                 except Exception as ex:
-                                    st.error(f"Erro ao salvar no Supabase: {ex}")
+                                    st.error(f"Erro ao salvar no banco de dados: {ex}")
                             else:
                                 if "empresas_local_data" not in st.session_state: st.session_state["empresas_local_data"] = []
                                 st.session_state["empresas_local_data"].append(payload)

@@ -83,7 +83,7 @@ class AdminMenu(BaseMenu):
                         if colunas_validas:
                             st.dataframe(df_lote, use_container_width=True)
                             if st.button("Confirmar Inserção em Lote"):
-                                with st.spinner("Gravando perfis no Supabase..."):
+                                with st.spinner("Gravando perfis no banco de dados..."):
                                     sucessos = 0
                                     for _, row in df_lote.iterrows():
                                         n_nome = str(row["Nome completo"]).strip()
@@ -149,7 +149,7 @@ class AdminMenu(BaseMenu):
                         edited_df = st.data_editor(df_edit, use_container_width=True, disabled=disabled_cols, num_rows="dynamic")
                         
                         if st.button(f"Salvar Alterações em {tab_selecionada}"):
-                            with st.spinner("Sincronizando com Supabase..."):
+                            with st.spinner("Sincronizando com o banco de dados..."):
                                 try:
                                     supabase_client.table(tab_selecionada).delete().neq("id", -1).execute() 
                                     novos_dados = edited_df.to_dict(orient='records')
@@ -182,7 +182,7 @@ class AdminMenu(BaseMenu):
                     st.error(f"Erro ao carregar mapas: {e}")
 
         with t_tab3:
-            st.subheader("Gerenciamento de Usuários (Sincronizado com Supabase)")
+            st.subheader("Gerenciamento de Usuários")
             
             def carregar_usuarios():
                 if supabase_client:
@@ -201,7 +201,7 @@ class AdminMenu(BaseMenu):
                                 supabase_client.table("usuarios").insert(item).execute()
                             return iniciais
                     except Exception as ex:
-                        st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do Supabase. Executando modo em cache local.")
+                        st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do banco de dados. Executando modo em cache local.")
                 if "usuarios_data" not in st.session_state:
                     st.session_state.usuarios_data = [
                         {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
@@ -309,7 +309,7 @@ class AdminMenu(BaseMenu):
                                         st.session_state["edit_mode_user"] = None
                                         st.rerun()
                                     except Exception as e:
-                                        st.error(f"Erro ao salvar no Supabase: {e}\n\nDICA: Lembre-se de rodar o script 'usuarios_schema.sql' no SQL Editor do Supabase para atualizar a tabela e o cache da API.")
+                                        st.error(f"Erro ao salvar no banco de dados: {e}\n\nDICA: Certifique-se de executar o script SQL de atualização de estrutura correspondente.")
                                 else:
                                     u_obj.update(update_payload)
                                     st.session_state["edit_mode_user"] = None
@@ -422,7 +422,7 @@ class AdminMenu(BaseMenu):
                                         st.session_state["add_user_mode"] = False
                                         st.rerun()
                                     except Exception as e:
-                                        st.error(f"Erro ao salvar no Supabase: {e}")
+                                        st.error(f"Erro ao salvar no banco de dados: {e}")
                                 else:
                                     if "usuarios_data" not in st.session_state: st.session_state.usuarios_data = []
                                     st.session_state.usuarios_data.append(insert_payload)
@@ -553,7 +553,7 @@ class AdminMenu(BaseMenu):
                         supabase_client.table("mapas_salvos_valores").upsert(rows_to_insert, on_conflict="nome").execute()
                         st.success(f"{len(rows_to_insert)} mapas calculados e salvos com sucesso!")
                     except Exception as e:
-                        st.error(f"Erro ao inserir: {e}. Você criou a tabela mapas_salvos_valores executando o script SQL no Supabase?")
+                        st.error(f"Erro ao inserir: {e}. Certifique-se de executar o script SQL para criar as tabelas necessárias.")
                         
             st.write("---")
             st.subheader("Tabela de Mapas Salvos Valores")
@@ -565,7 +565,7 @@ class AdminMenu(BaseMenu):
                 else:
                     st.info("A tabela 'mapas_salvos_valores' está vazia. Clique no botão acima para popular.")
             except Exception as e:
-                st.error("Tabela mapas_salvos_valores não encontrada. Crie-a no SQL Editor do Supabase.")
+                st.error("Tabela mapas_salvos_valores não encontrada. Crie-a executando o script SQL correspondente.")
                 
             st.write("---")
             st.subheader("Análise Individual")

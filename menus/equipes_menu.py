@@ -28,8 +28,8 @@ class EquipesMenu(BaseMenu):
 
         # Diagnóstico: exibe erro de carregamento se houver
         if st.session_state.get("equipes_load_error"):
-            st.error(f"Erro ao carregar equipes do Supabase: {st.session_state['equipes_load_error']}")
-            st.info("Execute o script `equipes_schema.sql` no SQL Editor do Supabase para criar a tabela.")
+            st.error(f"Erro ao carregar equipes do banco de dados: {st.session_state['equipes_load_error']}")
+            st.info("Execute o script de equipes correspondente para criar a tabela.")
             st.session_state.pop("equipes_load_error", None)
 
         # Inicia variáveis de estado
@@ -199,8 +199,8 @@ class EquipesMenu(BaseMenu):
                                     supabase_client.table("equipes").insert(payload).execute()
                                     sucesso_salvar = True
                                 except Exception as ex:
-                                    st.error(f"Erro ao salvar no Supabase: {ex}")
-                                    st.info("A tabela 'equipes' pode não existir no Supabase. Execute o script equipes_schema.sql no SQL Editor do Supabase.")
+                                    st.error(f"Erro ao salvar no banco de dados: {ex}")
+                                    st.info("A tabela 'equipes' pode não existir no banco de dados. Certifique-se de executar o script de equipes correspondente.")
 
                             if not sucesso_salvar:
                                 # Fallback local — guarda como JSON string para compatibilidade
@@ -512,7 +512,7 @@ class EquipesMenu(BaseMenu):
                                                 supabase_client.table("equipes").update(payload).eq("nome", eq["nome"]).execute()
                                                 sucesso_save = True
                                             except Exception as ex:
-                                                st.error(f"Erro ao salvar no Supabase: {ex}")
+                                                st.error(f"Erro ao salvar no banco de dados: {ex}")
                                                 
                                         if not sucesso_save:
                                             # Local fallback

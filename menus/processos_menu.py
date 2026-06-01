@@ -91,7 +91,7 @@ class ProcessosMenu(BaseMenu):
                                 st.success("vaga cadastrada com sucesso.")
                                 st.rerun()
                             except Exception as ex:
-                                st.error(f"Erro ao salvar no Supabase: {ex}")
+                                st.error(f"Erro ao salvar no banco de dados: {ex}")
                         else:
                             st.success("vaga cadastrada com sucesso.")
 
@@ -156,4 +156,4 @@ class ProcessosMenu(BaseMenu):
             except Exception as e:
                 st.error(f"Erro ao consultar vagas: {e}")
         else:
-            st.info("Conecte ao Supabase ou selecione uma empresa para visualizar as vagas.")
+            st.info("Selecione uma empresa para visualizar as vagas.")
