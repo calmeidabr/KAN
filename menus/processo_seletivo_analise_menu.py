@@ -216,7 +216,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             if resumo_parts:
                 header_resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts)
         
-        from components.card import PremiumCard
+        from components.card import PremiumCard, premium_card_container
 
         # Injetar CSS local para layout e detalhes específicos
         st.markdown(f"""
@@ -819,24 +819,31 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             
             resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts) if resumo_parts else "Nenhum requisito comportamental específico."
             
-            import urllib.parse
-            vaga_key_encoded = urllib.parse.quote(vaga_key_name)
-            
-            if is_selected:
-                action_html = '<span class="premium-badge-selected">Selecionado</span>'
-                variant = "selected"
-            else:
-                action_html = f'<a href="?vaga_sel={vaga_key_encoded}" target="_self" class="premium-card__btn-analisar">Analisar</a>'
-                variant = "interactive"
-                
             disp_title = format_vaga_title(vg["nome_vaga"], vg["senioridade"])
-            PremiumCard.render(
-                title=f'Processo: <span class="highlight-text">{disp_title}</span>',
-                content_html=resumo_text,
-                badges_html='<span class="premium-badge-status">Ativo</span>',
-                action_html=action_html,
-                variant=variant
-            )
+            variant = "selected" if is_selected else "interactive"
+            
+            with premium_card_container(variant=variant):
+                col_info, col_action = st.columns([5, 1.2])
+                with col_info:
+                    st.markdown(
+                        f'<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">'
+                        f'<h4 style="margin: 0; color: #FFFFFF; font-family: \'Outfit\', sans-serif; font-weight: 700; font-size: 1.15rem;">'
+                        f'Processo: <span class="highlight-text">{disp_title}</span>'
+                        f'</h4>'
+                        f'<span class="premium-badge-status">Ativo</span>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+                    st.markdown(f'<div class="premium-card__reqs">{resumo_text}</div>', unsafe_allow_html=True)
+                
+                with col_action:
+                    if is_selected:
+                        st.markdown('<div style="text-align: right; margin-top: 15px;"><span class="premium-badge-selected">Selecionado</span></div>', unsafe_allow_html=True)
+                    else:
+                        st.write("") # Espaço para alinhar verticalmente
+                        if st.button("Analisar", key=f"btn_analisar_{vg['id']}", use_container_width=True):
+                            st.session_state["analise_proc_vaga_sel"] = vaga_key_name
+                            st.rerun()
 
         # Importar as listas de opções do banco de dados
         from models.database import PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
