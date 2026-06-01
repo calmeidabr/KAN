@@ -72,7 +72,7 @@ class HomeMenu(BaseMenu):
             <div class="kpi-card" style="border-left-color: #00d2ff;">
                 <div class="kpi-title">Status do Banco</div>
                 <div class="kpi-value" style="font-size: 1.6em; padding-top: 5px;">Online</div>
-                <div class="kpi-sub" style="color: #00d2ff;">● Supabase Conectado</div>
+                <div class="kpi-sub" style="color: #00d2ff;">● Banco Conectado</div>
             </div>
             <div class="kpi-card" style="border-left-color: #39ff14;">
                 <div class="kpi-title">Motor IA</div>
