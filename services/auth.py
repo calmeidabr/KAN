@@ -84,12 +84,15 @@ def check_password():
         st.write("")
 
     if "password_correct" not in st.session_state or not st.session_state["password_correct"]:
-        # Se houve logout, limpa o cookie do navegador
+        # Se houve logout, limpa o cookie e o localStorage
         if st.session_state.get("clear_auth_cookie"):
             st.markdown("""
             <div style="display:none;">
             <script>
                 (function() {
+                    try {
+                        localStorage.removeItem("kan_auth_token");
+                    } catch(e) {}
                     const name = "kan_auth_token";
                     const expires = "; expires=Thu, 01 Jan 1970 00:00:00 UTC";
                     const cookieStr = name + "=" + expires + "; path=/; SameSite=Lax";
@@ -105,36 +108,44 @@ def check_password():
             """, unsafe_allow_html=True)
             del st.session_state["clear_auth_cookie"]
 
-        # Tenta auto-login via cookie se ainda não tentou/falhou nesta sessão
+        # Tenta auto-login via localStorage ou cookie se ainda não tentou/falhou nesta sessão
         if not st.session_state.get("auto_login_failed") and "auto_login" not in st.query_params:
             st.markdown("""
             <div style="display:none;">
             <script>
                 (function() {
-                    const name = "kan_auth_token=";
                     let token = "";
                     try {
-                        if (window.parent && window.parent.document) {
-                            const decodedCookie = decodeURIComponent(window.parent.document.cookie);
-                            const ca = decodedCookie.split(';');
-                            for(let i = 0; i < ca.length; i++) {
-                                let c = ca[i].trim();
-                                if (c.indexOf(name) === 0) {
-                                    token = c.substring(name.length, c.length);
-                                    break;
+                        token = localStorage.getItem("kan_auth_token") || "";
+                    } catch(e) {}
+                    
+                    if (!token) {
+                        const name = "kan_auth_token=";
+                        try {
+                            if (window.parent && window.parent.document) {
+                                const decodedCookie = decodeURIComponent(window.parent.document.cookie);
+                                const ca = decodedCookie.split(';');
+                                for(let i = 0; i < ca.length; i++) {
+                                    let c = ca[i].trim();
+                                    if (c.indexOf(name) === 0) {
+                                        token = c.substring(name.length, c.length);
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                    } catch(e) {}
-                    if (!token) {
-                        const decodedCookie = decodeURIComponent(document.cookie);
-                        const ca = decodedCookie.split(';');
-                        for(let i = 0; i < ca.length; i++) {
-                            let c = ca[i].trim();
-                            if (c.indexOf(name) === 0) {
-                                token = c.substring(name.length, c.length);
-                                break;
-                            }
+                        } catch(e) {}
+                        if (!token) {
+                            try {
+                                const decodedCookie = decodeURIComponent(document.cookie);
+                                const ca = decodedCookie.split(';');
+                                for(let i = 0; i < ca.length; i++) {
+                                    let c = ca[i].trim();
+                                    if (c.indexOf(name) === 0) {
+                                        token = c.substring(name.length, c.length);
+                                        break;
+                                    }
+                                }
+                            } catch(e) {}
                         }
                     }
                     if (token) {
@@ -159,7 +170,7 @@ def check_password():
                 st.error("Usuário ou senha incorretos. Tente novamente.")
         return False
     else:
-        # Se logado com sucesso e precisa persistir o cookie
+        # Se logado com sucesso e precisa persistir a sessão
         if "write_auth_cookie" in st.session_state:
             token = st.session_state["write_auth_cookie"]
             st.markdown(f"""
@@ -168,6 +179,10 @@ def check_password():
                 (function() {{
                     const name = "kan_auth_token";
                     const value = "{token}";
+                    try {{
+                        localStorage.setItem(name, value);
+                    }} catch(e) {{}}
+                    
                     const days = 7;
                     const date = new Date();
                     date.setTime(date.getTime() + (days*24*60*60*1000));
