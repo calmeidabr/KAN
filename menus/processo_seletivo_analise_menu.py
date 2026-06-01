@@ -354,8 +354,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin-bottom: 12px;
             }}
             .matching-page-wrapper .avatar-halo {{
-                width: 68px;
-                height: 68px;
+                width: 56px;
+                height: 56px;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -370,8 +370,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3), 0 0 0 4px rgba(240, 138, 0, 0.03);
             }}
             .matching-page-wrapper .avatar-img {{
-                width: 62px;
-                height: 62px;
+                width: 50px;
+                height: 50px;
                 border-radius: 50%;
                 object-fit: cover;
                 border: 2px solid #171B2A;
@@ -381,7 +381,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             }}
             .matching-page-wrapper .avatar-initial {{
                 font-family: 'Outfit', sans-serif;
-                font-size: 1.5rem;
+                font-size: 1.2rem;
                 font-weight: 800;
                 color: #F4F7FB;
             }}
@@ -645,6 +645,58 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     align-items: flex-start;
                     gap: 8px;
                 }}
+            }}
+
+            /* Candidate Card Table styling (same style as profile, but smaller) */
+            .cand-req-table {{
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 10px;
+                margin-bottom: 12px;
+                width: 100%;
+            }}
+            .cand-req-row {{
+                display: grid;
+                grid-template-columns: 80px 1fr;
+                align-items: center;
+                gap: 8px;
+                padding-bottom: 6px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            }}
+            .cand-req-row:last-child {{
+                border-bottom: none;
+                padding-bottom: 0;
+            }}
+            .cand-req-label {{
+                font-family: 'Outfit', sans-serif !important;
+                font-size: 0.68rem !important;
+                color: #8C96A8 !important;
+                text-transform: uppercase !important;
+                font-weight: 600 !important;
+                letter-spacing: 0.5px !important;
+            }}
+            .cand-req-value-cell {{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+            }}
+            .cand-req-value {{
+                background-color: #090C11 !important;
+                border: 1px solid rgba(255, 255, 255, 0.06) !important;
+                color: #FFFFFF !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-size: 0.72rem !important;
+                font-weight: 500 !important;
+                padding: 3px 8px !important;
+                border-radius: 4px !important;
+                display: inline-block !important;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+            }}
+            .cand-req-value.highlight-kan {{
+                border-color: rgba(240, 138, 0, 0.25) !important;
+                color: #F08A00 !important;
+                font-weight: 600 !important;
             }}
             
             /* Subtitles */
@@ -1332,7 +1384,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             candidatos_processo = sorted(candidatos_processo, key=lambda x: x["total_pts"], reverse=True)
             
             # Exibir cards lado a lado com tamanho uniforme
-            cards_per_row = 3
+            cards_per_row = 4
             for i in range(0, len(candidatos_processo), cards_per_row):
                 chunk = candidatos_processo[i:i + cards_per_row]
                 cols = st.columns(cards_per_row)
@@ -1374,30 +1426,31 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}", on_click=self.app.ver_cadastro_talento, args=(cand['Nome'],))
                             st.markdown('</div>', unsafe_allow_html=True)
 
-                            # Detalhes, Atributos e Score em HTML premium
-                            perfis_chips = "".join([f'<span class="badge-tag perfil-tag">{p.strip().upper()}</span>' for p in cand['perfil_list'] if p.strip()])
-                            cats_chips = "".join([f'<span class="badge-tag cat-tag">{c.strip().upper()}</span>' for c in cand['categoria_list'] if c.strip()])
-                            quals_chips = "".join([f'<span class="badge-tag qual-tag">{q.strip().upper()}</span>' for q in cand['qualidades_list'] if q.strip()])
+                            # Detalhes, Atributos e Score em HTML premium usando o mesmo estilo de tabela
+                            kan_badges = f'<span class="cand-req-value highlight-kan">{cand["kan"].upper()}</span>' if cand["kan"] and cand["kan"] not in ("Nenhum", "Nenhum / Não Exigido") else '<span class="cand-req-value">NENHUM</span>'
+                            perfis_badges = "".join([f'<span class="cand-req-value">{p.strip().upper()}</span>' for p in cand['perfil_list'] if p.strip()]) if cand['perfil_list'] else '<span class="cand-req-value">NENHUM</span>'
+                            cats_badges = "".join([f'<span class="cand-req-value">{c.strip().upper()}</span>' for c in cand['categoria_list'] if c.strip()]) if cand['categoria_list'] else '<span class="cand-req-value">NENHUMA</span>'
+                            quals_badges = "".join([f'<span class="cand-req-value">{q.strip().upper()}</span>' for q in cand['qualidades_list'] if q.strip()]) if cand['qualidades_list'] else '<span class="cand-req-value">NENHUMA</span>'
 
                             card_details_html = f"""
                             <p class="dob-text"><i class="icon-calendar"></i> Nascimento: {cand['data_nascimento']}</p>
                             
-                            <div class="attributes-container">
-                                <div class="attr-row-h" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px;">
-                                    <span class="attr-label">KAN</span>
-                                    <span class="attr-chip kan-chip">{cand['kan'].upper()}</span>
+                            <div class="cand-req-table">
+                                <div class="cand-req-row">
+                                    <div class="cand-req-label">KAN</div>
+                                    <div class="cand-req-value-cell">{kan_badges}</div>
                                 </div>
-                                <div class="attr-row-v">
-                                    <span class="attr-label">Perfis</span>
-                                    <div class="tags-container">{perfis_chips if perfis_chips else '<span class="attr-value">Nenhum</span>'}</div>
+                                <div class="cand-req-row">
+                                    <div class="cand-req-label">Perfis</div>
+                                    <div class="cand-req-value-cell">{perfis_badges}</div>
                                 </div>
-                                <div class="attr-row-v">
-                                    <span class="attr-label">Categorias</span>
-                                    <div class="tags-container">{cats_chips if cats_chips else '<span class="attr-value">Nenhuma</span>'}</div>
+                                <div class="cand-req-row">
+                                    <div class="cand-req-label">Categorias</div>
+                                    <div class="cand-req-value-cell">{cats_badges}</div>
                                 </div>
-                                <div class="attr-row-v">
-                                    <span class="attr-label">Qualidades</span>
-                                    <div class="tags-container">{quals_chips if quals_chips else '<span class="attr-value">Nenhuma</span>'}</div>
+                                <div class="cand-req-row">
+                                    <div class="cand-req-label">Qualidades</div>
+                                    <div class="cand-req-value-cell">{quals_badges}</div>
                                 </div>
                             </div>
                             
