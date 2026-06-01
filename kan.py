@@ -597,30 +597,8 @@ st.markdown("""
         border-radius: 0 !important;
     }
 
-    /* Rodapé da Sidebar */
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button {
-        font-size: 0.8em !important;
-        padding: 6px 8px !important;
-        border-radius: 8px !important;
-        background-color: var(--sidebar-container-bg) !important;
-        border: 1px solid var(--panel-border) !important;
-        color: var(--sidebar-text) !important;
-        justify-content: center !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button::before {
-        font-size: 16px !important;
-        color: var(--sidebar-icon-color) !important;
-        margin-right: 6px !important;
-    }
-    section[data-testid="stSidebar"] [data-testid="stHorizontalBlock"] div.stButton > button:hover {
-        background-color: var(--hover-bg) !important;
-        border: 1px solid var(--panel-border) !important;
-        color: var(--sidebar-text-hover) !important;
-    }
-    .st-key-btn_logout_side button::before { content: "\\e10e" !important; }
-    .st-key-btn_reset_side button::before { content: "\\e145" !important; }
-
-    /* Botão de Toggle de Tema */
+    /* Rodapé da Sidebar - Ações Rápidas */
+    .st-key-btn_logout_side button,
     .st-key-btn_theme_toggle button {
         font-size: 0.8em !important;
         padding: 8px 12px !important;
@@ -629,16 +607,18 @@ st.markdown("""
         border: 1px solid var(--panel-border) !important;
         color: var(--sidebar-text) !important;
         justify-content: center !important;
-        margin-top: 8px !important;
+        margin-top: 6px !important;
         width: 100% !important;
         display: flex !important;
         align-items: center !important;
     }
+    .st-key-btn_logout_side button:hover,
     .st-key-btn_theme_toggle button:hover {
         background-color: var(--hover-bg) !important;
         border-color: var(--accent) !important;
         color: var(--sidebar-text-hover) !important;
     }
+    .st-key-btn_logout_side button::before,
     .st-key-btn_theme_toggle button::before {
         font-family: "lucide" !important;
         display: inline-block;
@@ -649,9 +629,11 @@ st.markdown("""
         color: var(--sidebar-icon-color) !important;
         line-height: 1 !important;
     }
+    .st-key-btn_logout_side button:hover::before,
     .st-key-btn_theme_toggle button:hover::before {
         color: var(--sidebar-text-hover) !important;
     }
+    .st-key-btn_logout_side button::before { content: "\\e10e" !important; }
 
     /* --- CONTEÚDO PRINCIPAL (BOTOES E ICONES) --- */
     .stApp [data-testid="stMain"] div.stButton > button::before {

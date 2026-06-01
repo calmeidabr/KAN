@@ -28,9 +28,6 @@ def handle_logout():
         del st.session_state["logged_user"]
     st.session_state["clear_auth_cookie"] = True
 
-def handle_reset():
-    st.cache_data.clear()
-
 def toggle_theme():
     st.session_state["theme"] = "light" if st.session_state.get("theme", "dark") == "dark" else "dark"
 
@@ -117,11 +114,7 @@ class App:
             # Seção de Ações Rápidas
             with st.container(border=True):
                 st.markdown('<div class="sb-label">Ações</div>', unsafe_allow_html=True)
-                col_out1, col_out2 = st.columns(2)
-                with col_out1:
-                    st.button("Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
-                with col_out2:
-                    st.button("Reset", use_container_width=True, key="btn_reset_side", on_click=handle_reset)
+                st.button("Sair", use_container_width=True, key="btn_logout_side", on_click=handle_logout)
                 
                 current_theme = st.session_state.get("theme", "dark")
                 theme_btn_label = "Modo Claro" if current_theme == "dark" else "Modo Escuro"
