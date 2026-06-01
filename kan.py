@@ -509,12 +509,13 @@ st.markdown("""
 
     /* Accordion Chevrons (::after) */
     .stApp section[data-testid="stSidebar"] div.stButton > button[class*="st-key-grp"]::after {
-        font-family: "lucide" !important;
+        font-family: system-ui, -apple-system, sans-serif !important;
         margin-left: auto;
-        font-size: 18px !important;
+        font-size: 11px !important;
         color: var(--sidebar-icon-color) !important;
         font-style: normal !important;
         transition: color 0.2s ease;
+        line-height: 1 !important;
     }
     .stApp section[data-testid="stSidebar"] div.stButton > button[class*="st-key-grp"]:hover::after {
         color: var(--sidebar-text-hover) !important;
@@ -526,17 +527,18 @@ st.markdown("""
     .st-key-grpanalises button::before { content: "\\e038" !important; } /* activity */
     .st-key-grpconfiguracoes button::before { content: "\\e154" !important; } /* settings */
     .st-key-grpadmin button::before { content: "\\e10b" !important; } /* lock */
-    div[class*="st-key-grp"][class*="_open"] button::after { content: "\\e070" !important; } /* chevron-up */
-    div[class*="st-key-grp"][class*="_closed"] button::after { content: "\\e06d" !important; } /* chevron-down */
+    div[class*="st-key-grp"][class*="_open"] button::after { content: "▲" !important; } /* chevron-up */
+    div[class*="st-key-grp"][class*="_closed"] button::after { content: "▼" !important; } /* chevron-down */
 
     /* Chevrons Gerais */
     div[class*="_open_"] button::after, div[class*="_closed_"] button::after {
-        font-family: "lucide" !important;
+        font-family: system-ui, -apple-system, sans-serif !important;
         margin-left: 8px;
-        font-size: 14px !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
     }
-    div[class*="_open_"] button::after { content: "\\e070" !important; }
-    div[class*="_closed_"] button::after { content: "\\e06d" !important; }
+    div[class*="_open_"] button::after { content: "▲" !important; }
+    div[class*="_closed_"] button::after { content: "▼" !important; }
 
     /* Itens de Cadastro */
     .st-key-menutalentos button::before { content: "\\e1a4" !important; } /* users */
