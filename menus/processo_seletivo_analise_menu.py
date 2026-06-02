@@ -1556,7 +1556,7 @@ Instruções cruciais:
                                 if is_already_added:
                                     st.markdown("<span style='color: #4CAF50; font-weight: bold;'>✓</span>", unsafe_allow_html=True)
                                 else:
-                                    if st.button("＋", key=f"btn_add_emp_t_{idx}_{vaga['id']}", use_container_width=True):
+                                    if st.button("", key=f"btn_add_emp_t_{idx}_{vaga['id']}", use_container_width=True):
                                         if "talentos_aderencia_temporarios" not in st.session_state:
                                             st.session_state["talentos_aderencia_temporarios"] = []
                                         st.session_state["talentos_aderencia_temporarios"].append(t_name)
@@ -1603,7 +1603,7 @@ Instruções cruciais:
                                     if is_already_added:
                                         st.markdown("<span style='color: #4CAF50; font-weight: bold;'>✓</span>", unsafe_allow_html=True)
                                     else:
-                                        if st.button("＋", key=f"btn_add_tot_t_{idx}_{vaga['id']}", use_container_width=True):
+                                        if st.button("", key=f"btn_add_tot_t_{idx}_{vaga['id']}", use_container_width=True):
                                             if "talentos_aderencia_temporarios" not in st.session_state:
                                                 st.session_state["talentos_aderencia_temporarios"] = []
                                             st.session_state["talentos_aderencia_temporarios"].append(t_name)
