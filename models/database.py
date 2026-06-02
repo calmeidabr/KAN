@@ -445,7 +445,7 @@ def carregar_empresas(somente_ativas=True):
         except Exception: pass
     if "empresas_local_data" not in st.session_state:
         st.session_state["empresas_local_data"] = [
-            {"nome_empresa": "Mundo KAN", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br", "status": "Ativa"}
+            {"nome_empresa": "Mundo Kan", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br", "status": "Ativa"}
         ]
     local_data = st.session_state["empresas_local_data"]
     if somente_ativas:

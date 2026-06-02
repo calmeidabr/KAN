@@ -174,7 +174,7 @@ class HomeMenu(BaseMenu):
         
         <div class='main-hero'>
             <div class='hero-content'>
-                <div class='hero-label'>Mundo KAN</div>
+                <div class='hero-label'>Mundo Kan</div>
                 <div class='hero-title'>{title}</div>
                 <div class='hero-subtitle'>{subtitle}</div>
             </div>

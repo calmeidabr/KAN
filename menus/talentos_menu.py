@@ -19,7 +19,7 @@ class TalentosMenu(BaseMenu):
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
-            nomes_empresas = ["Mundo KAN", "Empresa Cliente A"]
+            nomes_empresas = ["Mundo Kan", "Empresa Cliente A"]
 
         clientes = carregar_todos_clientes()
 

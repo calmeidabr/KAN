@@ -192,8 +192,8 @@ class AdminMenu(BaseMenu):
                             return res.data
                         else:
                             iniciais = [
-                                {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                                {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                                {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo Kan", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                                {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "data_nascimento": "15/05/1985", "empresa": "Mundo Kan", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
                                 {"usuario": "maria", "nome_completo": "Maria da Silva", "email": "maria@mundokan.com.br", "celular": "(11) 97777-7777", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
                                 {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "email": "contato@techcorp.com", "celular": "(11) 96666-6666", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
                             ]
@@ -204,18 +204,18 @@ class AdminMenu(BaseMenu):
                         st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do banco de dados. Executando modo em cache local.")
                 if "usuarios_data" not in st.session_state:
                     st.session_state.usuarios_data = [
-                        {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo KAN", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
-                        {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "data_nascimento": "15/05/1985", "empresa": "Mundo KAN", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                        {"usuario": "adminkan", "nome_completo": "Administrador Master KAN", "email": "adminkan@mundokan.com.br", "celular": "(11) 99999-9999", "data_nascimento": "01/01/1980", "empresa": "Mundo Kan", "cargo": "CEO / Master Admin", "departamento": "Diretoria", "direitos": "admin master", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
+                        {"usuario": "cristiano", "nome_completo": "Cristiano Almeida", "email": "cristiano@mundokan.com.br", "celular": "(11) 98888-8888", "data_nascimento": "15/05/1985", "empresa": "Mundo Kan", "cargo": "Gestor de Sistemas", "departamento": "Tecnologia", "direitos": "Editor", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
                         {"usuario": "maria", "nome_completo": "Maria da Silva", "email": "maria@mundokan.com.br", "celular": "(11) 97777-7777", "data_nascimento": "20/08/1990", "empresa": "Empresa Cliente A", "cargo": "Analista de RH", "departamento": "Recursos Humanos", "direitos": "Analista", "status": "Ativo", "foto": "☖", "grupo": "Geral"},
                         {"usuario": "empresa_demo", "nome_completo": "Tech Corp Brasil Ltda", "email": "contato@techcorp.com", "celular": "(11) 96666-6666", "data_nascimento": "10/10/2000", "empresa": "Tech Corp", "cargo": "Conta Empresarial", "departamento": "Operações", "direitos": "Comum", "status": "Ativo", "foto": "⛶", "grupo": "Empresas"}
                     ]
                 return st.session_state.usuarios_data
-
+ 
             lista_usuarios_atual = carregar_usuarios()
             lista_empresas_salvas = carregar_empresas()
             nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
             if not nomes_empresas:
-                nomes_empresas = ["Mundo KAN", "Empresa Cliente A", "Tech Corp"]
+                nomes_empresas = ["Mundo Kan", "Empresa Cliente A", "Tech Corp"]
 
             if "view_selected_user" not in st.session_state:
                 st.session_state["view_selected_user"] = None

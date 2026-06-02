@@ -19,13 +19,13 @@ CREATE POLICY "Permitir acesso total a hierarquia" ON hierarquia_departamentos F
 -- Notifica o PostgREST para recarregar o schema imediatamente
 NOTIFY pgrst, 'reload schema';
 
--- Inserção de Exemplo Inicial para a Mundo KAN
+-- Inserção de Exemplo Inicial para a Mundo Kan
 INSERT INTO hierarquia_departamentos (empresa, departamento_id, nome, parent_id, ordem)
 VALUES
-('Mundo KAN', 'dept_root', 'Presidência / CEO', NULL, 0),
-('Mundo KAN', 'dept_tech', 'Diretoria de Tecnologia', 'dept_root', 1),
-('Mundo KAN', 'dept_ops', 'Diretoria de Operações', 'dept_root', 2),
-('Mundo KAN', 'dept_dev', 'Desenvolvimento de Software', 'dept_tech', 3),
-('Mundo KAN', 'dept_infra', 'Infraestrutura e Nuvem', 'dept_tech', 4),
-('Mundo KAN', 'dept_rh', 'Recursos Humanos', 'dept_ops', 5)
+('Mundo Kan', 'dept_root', 'Presidência / CEO', NULL, 0),
+('Mundo Kan', 'dept_tech', 'Diretoria de Tecnologia', 'dept_root', 1),
+('Mundo Kan', 'dept_ops', 'Diretoria de Operações', 'dept_root', 2),
+('Mundo Kan', 'dept_dev', 'Desenvolvimento de Software', 'dept_tech', 3),
+('Mundo Kan', 'dept_infra', 'Infraestrutura e Nuvem', 'dept_tech', 4),
+('Mundo Kan', 'dept_rh', 'Recursos Humanos', 'dept_ops', 5)
 ON CONFLICT (empresa, departamento_id) DO NOTHING;

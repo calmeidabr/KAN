@@ -145,7 +145,7 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
-            nomes_empresas = ["Mundo KAN"]
+            nomes_empresas = ["Mundo Kan"]
 
         # Renderizar a seleção da empresa no topo (antes do box do processo selecionado)
         col_filtro1, _ = st.columns([1, 1])
@@ -1495,7 +1495,7 @@ Instruções cruciais:
             cargo_val = r.get('cargo') if is_migrated_profissao else ''
             
             ms_dict[r.get("nome")] = {
-                "empresa": r.get("empresa") or "Mundo KAN",
+                "empresa": r.get("empresa") or "Mundo Kan",
                 "grupo": r.get("grupo") or r.get("empresa") or "Sem Grupo",
                 "profissao": profissao_val or "Sem Profissão",
                 "cargo": cargo_val or "",
@@ -1507,7 +1507,7 @@ Instruções cruciais:
         matching_results = []
         for row in rows_val:
             nome = row.get("nome", "Desconhecido")
-            info = ms_dict.get(nome, {"empresa": "Mundo KAN", "grupo": "Sem Grupo", "profissao": "Sem Profissão", "cargo": "", "data_nascimento": "", "foto_base64": ""})
+            info = ms_dict.get(nome, {"empresa": "Mundo Kan", "grupo": "Sem Grupo", "profissao": "Sem Profissão", "cargo": "", "data_nascimento": "", "foto_base64": ""})
             
             # Traços do talento
             talento_kan = str(row.get("kan", "")).strip().upper()
