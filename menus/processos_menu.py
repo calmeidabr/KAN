@@ -3,7 +3,7 @@ import datetime
 import json
 from menus.base_menu import BaseMenu
 from models.database import (
-    carregar_empresas, get_supabase, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
+    carregar_empresas, get_supabase, get_supabase_admin, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
 )
 from utils.helpers import format_vaga_title
 
@@ -14,7 +14,7 @@ class ProcessosMenu(BaseMenu):
         st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Cadastre e consulte perfis ideais de vagas para alinhamento comportamental.</p>", unsafe_allow_html=True)
         st.write("---")
 
-        supabase_client = get_supabase()
+        supabase_client = get_supabase_admin()
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:

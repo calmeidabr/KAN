@@ -125,7 +125,7 @@ class HierarquiaMenu(BaseMenu):
         """, unsafe_allow_html=True)
 
 
-        supabase_client = get_supabase()
+        supabase_client = get_supabase_admin()
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
