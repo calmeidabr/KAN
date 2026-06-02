@@ -1419,14 +1419,29 @@ Instruções cruciais:
         # -------------------------------------------------------------------------
         if "mostrar_selector_talentos" not in st.session_state:
             st.session_state["mostrar_selector_talentos"] = False
+        if "mostrar_selector_aderencia" not in st.session_state:
+            st.session_state["mostrar_selector_aderencia"] = False
+        if "aderencia_confirmado" not in st.session_state:
+            st.session_state["aderencia_confirmado"] = False
 
         st.write("---")
-        col_sec_title, col_sec_btn = st.columns([2.5, 1])
+        col_sec_title, col_sec_btn = st.columns([2.2, 1.3])
         with col_sec_title:
             st.markdown("<h2 style='margin:0; font-family: Outfit; font-weight: 800; line-height: 1.2; color: #F4F7FB;'>Candidatos Associados ao Processo</h2>", unsafe_allow_html=True)
         with col_sec_btn:
             if st.button("➕ Associar Talentos", key="btn_add_assoc_talents", use_container_width=True):
                 st.session_state["mostrar_selector_talentos"] = True
+                st.session_state["mostrar_selector_aderencia"] = False
+                st.session_state["aderencia_confirmado"] = False
+                st.rerun()
+            
+            st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+            
+            if st.button("🎯 Associar por Aderência", key="btn_add_assoc_by_match", use_container_width=True):
+                st.session_state["mostrar_selector_aderencia"] = True
+                st.session_state["mostrar_selector_talentos"] = False
+                st.session_state["talentos_aderencia_temporarios"] = list(st.session_state["candidatos_vagas"].get(vaga["id"], []))
+                st.rerun()
 
         # Renderizar seletor de associação
         if st.session_state["mostrar_selector_talentos"]:
@@ -1474,6 +1489,212 @@ Instruções cruciais:
                     if st.button("Cancelar", use_container_width=True, key="btn_canc_assoc"):
                         st.session_state["mostrar_selector_talentos"] = False
                         st.rerun()
+
+        # Renderizar seletor de associação por aderência
+        if st.session_state.get("mostrar_selector_aderencia", False):
+            with st.container(border=True):
+                st.markdown("#### Selecionar por Nível de Aderência")
+                
+                # Slider de percentual
+                slider_val = st.slider(
+                    "Selecione o percentual (%) mínimo de aderência desejado:",
+                    min_value=0,
+                    max_value=100,
+                    value=st.session_state.get("aderencia_minima_selecionada", 50),
+                    step=5,
+                    key="slider_match_pct"
+                )
+                
+                col_c1, col_c2 = st.columns([1, 4])
+                with col_c1:
+                    if st.button("Confirmar", type="primary", key="btn_confirm_aderencia_slider", use_container_width=True):
+                        st.session_state["aderencia_confirmado"] = True
+                        st.session_state["aderencia_minima_selecionada"] = slider_val
+                        st.rerun()
+                with col_c2:
+                    if st.button("Cancelar Seleção", key="btn_cancel_aderencia_slider"):
+                        st.session_state["mostrar_selector_aderencia"] = False
+                        st.session_state["aderencia_confirmado"] = False
+                        if "talentos_aderencia_temporarios" in st.session_state:
+                            del st.session_state["talentos_aderencia_temporarios"]
+                        st.rerun()
+
+                # Se clicou em confirmar, mostrar as listas e o box de confirmação
+                if st.session_state.get("aderencia_confirmado", False):
+                    min_pct = st.session_state.get("aderencia_minima_selecionada", 50)
+                    st.write(f"**Exibindo talentos com aderência maior ou igual a {min_pct}%**")
+                    
+                    # Filtrar os talentos
+                    talentos_empresa = [
+                        r for r in matching_results 
+                        if r["Empresa"] == empresa_selecionada and r["Aderência (%)"] >= min_pct
+                    ]
+                    
+                    is_admin = st.session_state.get("logged_user") == "adminkan"
+                    talentos_totais = [
+                        r for r in matching_results 
+                        if r["Aderência (%)"] >= min_pct
+                    ] if is_admin else []
+
+                    # 1. Tabela Talentos da Empresa
+                    st.markdown("##### 🏢 Talentos da Empresa")
+                    if not talentos_empresa:
+                        st.info("Nenhum talento da empresa atende ao nível de aderência selecionado.")
+                    else:
+                        col_h1, col_h2, col_h3, col_h4 = st.columns([1, 4, 3, 2])
+                        with col_h1: st.write("**Ação**")
+                        with col_h2: st.write("**Nome**")
+                        with col_h3: st.write("**Profissão**")
+                        with col_h4: st.write("**Aderência**")
+                        
+                        st.markdown("<hr style='margin: 4px 0;'/>", unsafe_allow_html=True)
+                        for idx, t in enumerate(talentos_empresa):
+                            t_name = t["Nome"]
+                            col_r1, col_r2, col_r3, col_r4 = st.columns([1, 4, 3, 2])
+                            with col_r1:
+                                is_already_added = t_name in st.session_state.get("talentos_aderencia_temporarios", [])
+                                if is_already_added:
+                                    st.markdown("<span style='color: #4CAF50; font-weight: bold;'>✓</span>", unsafe_allow_html=True)
+                                else:
+                                    if st.button("＋", key=f"btn_add_emp_t_{idx}_{vaga['id']}", use_container_width=True):
+                                        if "talentos_aderencia_temporarios" not in st.session_state:
+                                            st.session_state["talentos_aderencia_temporarios"] = []
+                                        st.session_state["talentos_aderencia_temporarios"].append(t_name)
+                                        st.rerun()
+                            with col_r2:
+                                st.write(t_name)
+                            with col_r3:
+                                st.write(t["Profissão"])
+                            with col_r4:
+                                st.write(f"{t['Aderência (%)']}%")
+                            st.markdown("<hr style='margin: 2px 0; opacity: 0.3;'/>", unsafe_allow_html=True)
+                        
+                        # Opção para adicionar todos os talentos filtrados desta tabela
+                        st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+                        if st.button("Adicionar Todos da Empresa", key=f"btn_add_all_emp_{vaga['id']}"):
+                            if "talentos_aderencia_temporarios" not in st.session_state:
+                                st.session_state["talentos_aderencia_temporarios"] = []
+                            for t in talentos_empresa:
+                                if t["Nome"] not in st.session_state["talentos_aderencia_temporarios"]:
+                                    st.session_state["talentos_aderencia_temporarios"].append(t["Nome"])
+                            st.toast("Todos os talentos da empresa foram adicionados.", icon="✓")
+                            st.rerun()
+
+                    # 2. Tabela Talentos Totais (adminkan apenas)
+                    if is_admin:
+                        st.write("")
+                        st.markdown("##### 🌍 Todos os Talentos do Sistema (Admin Master)")
+                        if not talentos_totais:
+                            st.info("Nenhum talento no sistema atende ao nível de aderência selecionado.")
+                        else:
+                            col_th1, col_th2, col_th3, col_th4, col_th5 = st.columns([1, 4, 3, 2, 2])
+                            with col_th1: st.write("**Ação**")
+                            with col_th2: st.write("**Nome**")
+                            with col_th3: st.write("**Profissão**")
+                            with col_th4: st.write("**Empresa**")
+                            with col_th5: st.write("**Aderência**")
+                            
+                            st.markdown("<hr style='margin: 4px 0;'/>", unsafe_allow_html=True)
+                            for idx, t in enumerate(talentos_totais):
+                                t_name = t["Nome"]
+                                col_tr1, col_tr2, col_tr3, col_tr4, col_tr5 = st.columns([1, 4, 3, 2, 2])
+                                with col_tr1:
+                                    is_already_added = t_name in st.session_state.get("talentos_aderencia_temporarios", [])
+                                    if is_already_added:
+                                        st.markdown("<span style='color: #4CAF50; font-weight: bold;'>✓</span>", unsafe_allow_html=True)
+                                    else:
+                                        if st.button("＋", key=f"btn_add_tot_t_{idx}_{vaga['id']}", use_container_width=True):
+                                            if "talentos_aderencia_temporarios" not in st.session_state:
+                                                st.session_state["talentos_aderencia_temporarios"] = []
+                                            st.session_state["talentos_aderencia_temporarios"].append(t_name)
+                                            st.rerun()
+                                with col_tr2:
+                                    st.write(t_name)
+                                with col_tr3:
+                                    st.write(t["Profissão"])
+                                with col_tr4:
+                                    st.write(t["Empresa"])
+                                with col_tr5:
+                                    st.write(f"{t['Aderência (%)']}%")
+                                st.markdown("<hr style='margin: 2px 0; opacity: 0.3;'/>", unsafe_allow_html=True)
+                            
+                            st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+                            if st.button("Adicionar Todos os Talentos Totais", key=f"btn_add_all_tot_{vaga['id']}"):
+                                if "talentos_aderencia_temporarios" not in st.session_state:
+                                    st.session_state["talentos_aderencia_temporarios"] = []
+                                for t in talentos_totais:
+                                    if t["Nome"] not in st.session_state["talentos_aderencia_temporarios"]:
+                                        st.session_state["talentos_aderencia_temporarios"].append(t["Nome"])
+                                st.toast("Todos os talentos totais foram adicionados.", icon="✓")
+                                st.rerun()
+
+                    # Box com os nomes dos selecionados para confirmação ou remoção
+                    st.write("")
+                    st.markdown("##### 📋 Candidatos Pré-Selecionados")
+                    staged_talents = st.session_state.get("talentos_aderencia_temporarios", [])
+                    
+                    if not staged_talents:
+                        st.info("Nenhum candidato selecionado para este processo ainda.")
+                    else:
+                        with st.container(border=True):
+                            st.markdown("<p style='font-size: 0.88em; color: #7F8798; margin-bottom: 12px;'>Revise a lista de candidatos participantes. Clique em '❌' para remover individualmente.</p>", unsafe_allow_html=True)
+                            
+                            # Renderizar em colunas compactas
+                            num_cols = 3
+                            for i in range(0, len(staged_talents), num_cols):
+                                row_items = staged_talents[i:i+num_cols]
+                                cols = st.columns(num_cols)
+                                for col_idx, item in enumerate(row_items):
+                                    with cols[col_idx]:
+                                        with st.container(border=True):
+                                            col_card_name, col_card_del = st.columns([4, 1.2])
+                                            with col_card_name:
+                                                st.markdown(f"<span style='font-family: Outfit; font-size: 0.9rem; font-weight: 600;'>{item}</span>", unsafe_allow_html=True)
+                                            with col_card_del:
+                                                if st.button("❌", key=f"btn_remove_staged_{item}_{vaga['id']}", use_container_width=True):
+                                                    st.session_state["talentos_aderencia_temporarios"].remove(item)
+                                                    st.rerun()
+
+                    # Ações finais
+                    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+                    col_save1, col_save2 = st.columns(2)
+                    with col_save1:
+                        if st.button("Salvar Talentos do Processo", type="primary", use_container_width=True, key=f"btn_save_aderencia_talents_{vaga['id']}"):
+                            candidatos_selecionados = st.session_state.get("talentos_aderencia_temporarios", [])
+                            st.session_state["candidatos_vagas"][vaga["id"]] = candidatos_selecionados
+                            
+                            # Salvar/Atualizar no Supabase na tabela processos_seletivos
+                            try:
+                                check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga["id"]).execute()
+                                if check_ex and check_ex.data:
+                                    row_id = check_ex.data[0]["id"]
+                                    supabase_client.table("processos_seletivos").update({
+                                        "candidatos": candidatos_selecionados,
+                                        "empresa": empresa_selecionada,
+                                        "updated_at": "now()"
+                                    }).eq("id", row_id).execute()
+                                else:
+                                    supabase_client.table("processos_seletivos").insert({
+                                        "vaga_id": vaga["id"],
+                                        "empresa": empresa_selecionada,
+                                        "candidatos": candidatos_selecionados
+                                    }).execute()
+                                
+                                st.success("Talentos do processo salvos com sucesso!")
+                                st.session_state["mostrar_selector_aderencia"] = False
+                                st.session_state["aderencia_confirmado"] = False
+                                if "talentos_aderencia_temporarios" in st.session_state:
+                                    del st.session_state["talentos_aderencia_temporarios"]
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Erro ao salvar associação no banco de dados: {e}")
+                    with col_save2:
+                        if st.button("Cancelar e Fechar", use_container_width=True, key=f"btn_cancel_aderencia_save_{vaga['id']}"):
+                            st.session_state["mostrar_selector_aderencia"] = False
+                            st.session_state["aderencia_confirmado"] = False
+                            if "talentos_aderencia_temporarios" in st.session_state:
+                                del st.session_state["talentos_aderencia_temporarios"]
+                            st.rerun()
 
         # Renderizar os Cards dos Candidatos Associados
         associated_names = st.session_state["candidatos_vagas"].get(vaga["id"], [])
