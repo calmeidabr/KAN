@@ -1619,7 +1619,7 @@ Instruções cruciais:
                                 st.markdown("<hr style='margin: 2px 0; opacity: 0.3;'/>", unsafe_allow_html=True)
                             
                             st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
-                            if st.button("Adicionar Todos os Talentos Totais", key=f"btn_add_all_tot_{vaga['id']}"):
+                            if st.button("Adicionar todos os talentos", key=f"btn_add_all_tot_{vaga['id']}"):
                                 if "talentos_aderencia_temporarios" not in st.session_state:
                                     st.session_state["talentos_aderencia_temporarios"] = []
                                 for t in talentos_totais:
@@ -1649,7 +1649,7 @@ Instruções cruciais:
                                         with st.container(border=True):
                                             col_card_name, col_card_del = st.columns([4, 1.2])
                                             with col_card_name:
-                                                st.markdown(f"<span style='font-family: Outfit; font-size: 0.9rem; font-weight: 600;'>{item}</span>", unsafe_allow_html=True)
+                                                st.markdown(f"<span style='font-family: \"Outfit\", sans-serif; font-size: 0.9rem; font-weight: 600;'>{item}</span>", unsafe_allow_html=True)
                                             with col_card_del:
                                                 if st.button("❌", key=f"btn_remove_staged_{item}_{vaga['id']}", use_container_width=True):
                                                     st.session_state["talentos_aderencia_temporarios"].remove(item)
