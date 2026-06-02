@@ -1577,7 +1577,7 @@ Instruções cruciais:
                             for t in talentos_empresa:
                                 if t["Nome"] not in st.session_state["talentos_aderencia_temporarios"]:
                                     st.session_state["talentos_aderencia_temporarios"].append(t["Nome"])
-                            st.toast("Todos os talentos da empresa foram adicionados.", icon="✓")
+                            st.toast("Todos os talentos da empresa foram adicionados.", icon="✅")
                             st.rerun()
 
                     # 2. Tabela Talentos Totais (adminkan apenas)
@@ -1625,7 +1625,7 @@ Instruções cruciais:
                                 for t in talentos_totais:
                                     if t["Nome"] not in st.session_state["talentos_aderencia_temporarios"]:
                                         st.session_state["talentos_aderencia_temporarios"].append(t["Nome"])
-                                st.toast("Todos os talentos totais foram adicionados.", icon="✓")
+                                st.toast("Todos os talentos totais foram adicionados.", icon="✅")
                                 st.rerun()
 
                     # Box com os nomes dos selecionados para confirmação ou remoção
