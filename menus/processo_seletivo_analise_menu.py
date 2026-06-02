@@ -1021,8 +1021,6 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 color: #F4F7FB !important;
                 font-weight: 700 !important;
             }}
-        </style>;
-            }}
         </style>
         
         <div class="matching-page-wrapper" style="display: none;"></div>
