@@ -1501,7 +1501,7 @@ Instruções cruciais:
                     min_value=0,
                     max_value=100,
                     value=st.session_state.get("aderencia_minima_selecionada", 50),
-                    step=5,
+                    step=1,
                     key="slider_match_pct"
                 )
                 
