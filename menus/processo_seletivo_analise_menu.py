@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import json
+import google.generativeai as genai
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, get_supabase_admin
 from utils.helpers import remover_acentos, format_vaga_title
@@ -823,6 +824,32 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 text-transform: uppercase !important;
                 font-family: 'Outfit', sans-serif !important;
             }}
+            
+            /* Botão Premium IA */
+            div[class*="st-key-btn_ia_sug_req_"] button {{
+                background: linear-gradient(135deg, #7A2B8A 0%, #B92B2B 50%, #F08A00 100%) !important;
+                color: #FFFFFF !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                font-size: 0.95rem !important;
+                border: none !important;
+                border-radius: 8px !important;
+                padding: 10px 20px !important;
+                box-shadow: 0 4px 15px rgba(122, 43, 138, 0.3) !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 8px !important;
+            }}
+            div[class*="st-key-btn_ia_sug_req_"] button:hover {{
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 20px rgba(122, 43, 138, 0.5) !important;
+                color: #FFFFFF !important;
+            }}
+            div[class*="st-key-btn_ia_sug_req_"] button:active {{
+                transform: translateY(0) !important;
+            }}
         </style>
         
         <div class="matching-page-wrapper" style="display: none;"></div>
@@ -1010,6 +1037,88 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     mapped.append(str(req).strip())
             return mapped
 
+        def sugerir_requisitos_ia(vaga_dict):
+            api_key = st.secrets.get("gemini", {}).get("api_key")
+            if not api_key:
+                st.error("Chave de API do Gemini não configurada em st.secrets.")
+                return None
+
+            try:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('models/gemini-2.5-flash')
+
+                vaga_nome = vaga_dict.get("nome_vaga", "")
+                senioridade = vaga_dict.get("senioridade", "")
+                descricao_vaga = vaga_dict.get("descricao_vaga", "")
+
+                prompt = f"""
+Você é um especialista em recrutamento e seleção de talentos com foco em perfil comportamental.
+Analise a descrição, o título e a senioridade da vaga a seguir para sugerir os requisitos comportamentais mais adequados.
+
+VAGA: {vaga_nome}
+SENIORIDADE: {senioridade}
+DESCRIÇÃO: {descricao_vaga or "Nenhuma descrição fornecida."}
+
+Opções válidas disponíveis para cada uma das categorias:
+- KAN Ideal: {kan_opcoes}
+- Perfis Ideais: {perfis_opcoes}
+- Categorias: {categorias_opcoes}
+- Qualidades: {qualidades_opcoes}
+
+Com base no seu conhecimento técnico e no descritivo da vaga, selecione:
+1. Até 2 KAN Ideais (dentre {kan_opcoes})
+2. De 1 a 3 Perfis Ideais (dentre {perfis_opcoes})
+3. De 1 a 2 Categorias (dentre {categorias_opcoes})
+4. De 2 a 5 Qualidades (dentre {qualidades_opcoes})
+
+Instruções cruciais:
+- Escolha APENAS opções que estão EXATAMENTE listadas nas opções válidas correspondentes acima (respeitando a grafia exata das opções).
+- Não crie novas opções que não estejam presentes nas listas fornecidas.
+- Caso a descrição da vaga esteja vazia, infira os requisitos comportamentais ideais apenas com base no título e na senioridade da vaga.
+- Retorne EXCLUSIVAMENTE um objeto JSON válido, sem markdown do tipo ```json, sem explicações ou tags extras, no seguinte formato:
+{{
+  "kan_ideal": ["opção1", ...],
+  "perfis_ideais": ["opção1", ...],
+  "categorias_ideais": ["opção1", ...],
+  "qualidades_ideais": ["opção1", ...]
+}}
+"""
+                response = model.generate_content(prompt)
+                res_text = response.text.strip()
+                
+                if res_text.startswith("```"):
+                    res_text = res_text.split("```")[1]
+                    if res_text.startswith("json"):
+                        res_text = res_text[4:]
+                res_text = res_text.strip()
+
+                data = json.loads(res_text)
+
+                def filter_valid(items, valid_options):
+                    valid_map = {v.strip().upper(): v for v in valid_options}
+                    filtered = []
+                    for item in items:
+                        item_up = str(item).strip().upper()
+                        if item_up in valid_map:
+                            filtered.append(valid_map[item_up])
+                    return filtered
+
+                suggested_kan = filter_valid(data.get("kan_ideal", []), kan_opcoes)
+                suggested_perfis = filter_valid(data.get("perfis_ideais", []), perfis_opcoes)
+                suggested_cats = filter_valid(data.get("categorias_ideais", []), categorias_opcoes)
+                suggested_quals = filter_valid(data.get("qualidades_ideais", []), qualidades_opcoes)
+
+                return {
+                    "kan_ideal": suggested_kan,
+                    "perfis_ideais": suggested_perfis,
+                    "categorias_ideais": suggested_cats,
+                    "qualidades_ideais": suggested_quals
+                }
+
+            except Exception as e:
+                st.error(f"Erro ao gerar sugestões com a IA: {e}")
+                return None
+
         # Mapear para obter a capitalização correta dos defaults
         mapped_kan = map_to_options(vaga_kan_list, kan_opcoes)
         mapped_perfis = map_to_options(raw_perfis, perfis_opcoes)
@@ -1060,6 +1169,32 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             with st.expander("Requisitos Comportamentais para este Processo", expanded=False):
                 st.markdown("<p style='font-family: Outfit; font-size: 0.95em;'>Modifique os requisitos específicos para este processo seletivo. Essas alterações afetarão o cálculo de aderência em tempo real e podem ser salvas no banco de dados.</p>", unsafe_allow_html=True)
                 
+                # Sugestão de Requisitos com IA
+                col_ia, _ = st.columns([1.5, 2.5])
+                with col_ia:
+                    if st.button("Sugerir com IA", key=f"btn_ia_sug_req_{vaga_id_int}", use_container_width=True):
+                        with st.spinner("IA analisando a vaga..."):
+                            sugestoes = sugerir_requisitos_ia(vaga)
+                            if sugestoes:
+                                st.session_state["custom_kan_vagas"][vaga_id_int] = sugestoes["kan_ideal"]
+                                st.session_state["custom_perfis_vagas"][vaga_id_int] = sugestoes["perfis_ideais"]
+                                st.session_state["custom_categorias_vagas"][vaga_id_int] = sugestoes["categorias_ideais"]
+                                st.session_state["custom_qualidades_vagas"][vaga_id_int] = sugestoes["qualidades_ideais"]
+
+                                if f"custom_kan_sel_{vaga_id_int}" in st.session_state:
+                                    del st.session_state[f"custom_kan_sel_{vaga_id_int}"]
+                                if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
+                                    del st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
+                                if f"custom_categorias_sel_{vaga_id_int}" in st.session_state:
+                                    del st.session_state[f"custom_categorias_sel_{vaga_id_int}"]
+                                if f"custom_qualidades_sel_{vaga_id_int}" in st.session_state:
+                                    del st.session_state[f"custom_qualidades_sel_{vaga_id_int}"]
+
+                                st.toast("Sugestões geradas com sucesso! Revise e salve abaixo.", icon="✨")
+                                st.rerun()
+
+                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
                 col_sel1, col_sel2, col_sel3, col_sel4 = st.columns(4)
                 with col_sel1:
                     novos_kans = st.multiselect(
