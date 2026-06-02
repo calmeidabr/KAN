@@ -1649,7 +1649,7 @@ Instruções cruciais:
                                         with st.container(border=True):
                                             col_card_name, col_card_del = st.columns([4, 1.2])
                                             with col_card_name:
-                                                st.markdown(f"<span style='font-family: \"Outfit\", sans-serif; font-size: 0.9rem; font-weight: 600;'>{item}</span>", unsafe_allow_html=True)
+                                                st.markdown(f"<span style='font-family: sans-serif; font-size: 0.9rem; font-weight: 600;'>{item}</span>", unsafe_allow_html=True)
                                             with col_card_del:
                                                 if st.button("❌", key=f"btn_remove_staged_{item}_{vaga['id']}", use_container_width=True):
                                                     st.session_state["talentos_aderencia_temporarios"].remove(item)
