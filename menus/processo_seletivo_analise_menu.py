@@ -1086,27 +1086,41 @@ Instruções cruciais:
                 response = model.generate_content(prompt)
                 res_text = response.text.strip()
                 
-                if res_text.startswith("```"):
-                    res_text = res_text.split("```")[1]
-                    if res_text.startswith("json"):
-                        res_text = res_text[4:]
-                res_text = res_text.strip()
+                # Encontrar a primeira chave '{' e a última '}' para isolar o JSON robustamente
+                first_brace = res_text.find('{')
+                last_brace = res_text.rfind('}')
+                if first_brace != -1 and last_brace != -1:
+                    json_str = res_text[first_brace:last_brace+1]
+                else:
+                    json_str = res_text
 
-                data = json.loads(res_text)
+                # Fazer o parsing do JSON de forma robusta
+                try:
+                    data = json.loads(json_str)
+                except Exception:
+                    import ast
+                    data = ast.literal_eval(json_str)
 
+                # Chaves alternativas (fallback se o modelo usar nomes mais simples)
+                kan_raw = data.get("kan_ideal", data.get("kan", []))
+                perfis_raw = data.get("perfis_ideais", data.get("perfis", []))
+                cats_raw = data.get("categorias_ideais", data.get("categorias", []))
+                quals_raw = data.get("qualidades_ideais", data.get("qualidades", []))
+
+                # Normalizar usando remoção de acentos e maiúsculas
                 def filter_valid(items, valid_options):
-                    valid_map = {v.strip().upper(): v for v in valid_options}
+                    valid_map = {remover_acentos(v.strip().upper()): v for v in valid_options}
                     filtered = []
                     for item in items:
-                        item_up = str(item).strip().upper()
-                        if item_up in valid_map:
-                            filtered.append(valid_map[item_up])
+                        item_norm = remover_acentos(str(item).strip().upper())
+                        if item_norm in valid_map:
+                            filtered.append(valid_map[item_norm])
                     return filtered
 
-                suggested_kan = filter_valid(data.get("kan_ideal", []), kan_opcoes)
-                suggested_perfis = filter_valid(data.get("perfis_ideais", []), perfis_opcoes)
-                suggested_cats = filter_valid(data.get("categorias_ideais", []), categorias_opcoes)
-                suggested_quals = filter_valid(data.get("qualidades_ideais", []), qualidades_opcoes)
+                suggested_kan = filter_valid(kan_raw, kan_opcoes)
+                suggested_perfis = filter_valid(perfis_raw, perfis_opcoes)
+                suggested_cats = filter_valid(cats_raw, categorias_opcoes)
+                suggested_quals = filter_valid(quals_raw, qualidades_opcoes)
 
                 return {
                     "kan_ideal": suggested_kan,
@@ -1176,19 +1190,17 @@ Instruções cruciais:
                         with st.spinner("IA analisando a vaga..."):
                             sugestoes = sugerir_requisitos_ia(vaga)
                             if sugestoes:
+                                # 1. Atualizar as variáveis de session_state do backup
                                 st.session_state["custom_kan_vagas"][vaga_id_int] = sugestoes["kan_ideal"]
                                 st.session_state["custom_perfis_vagas"][vaga_id_int] = sugestoes["perfis_ideais"]
                                 st.session_state["custom_categorias_vagas"][vaga_id_int] = sugestoes["categorias_ideais"]
                                 st.session_state["custom_qualidades_vagas"][vaga_id_int] = sugestoes["qualidades_ideais"]
 
-                                if f"custom_kan_sel_{vaga_id_int}" in st.session_state:
-                                    del st.session_state[f"custom_kan_sel_{vaga_id_int}"]
-                                if f"custom_perfis_sel_{vaga_id_int}" in st.session_state:
-                                    del st.session_state[f"custom_perfis_sel_{vaga_id_int}"]
-                                if f"custom_categorias_sel_{vaga_id_int}" in st.session_state:
-                                    del st.session_state[f"custom_categorias_sel_{vaga_id_int}"]
-                                if f"custom_qualidades_sel_{vaga_id_int}" in st.session_state:
-                                    del st.session_state[f"custom_qualidades_sel_{vaga_id_int}"]
+                                # 2. Atualizar o estado direto dos widgets multiselect com a capitalização correta
+                                st.session_state[f"custom_kan_sel_{vaga_id_int}"] = map_to_options(sugestoes["kan_ideal"], kan_opcoes)
+                                st.session_state[f"custom_perfis_sel_{vaga_id_int}"] = map_to_options(sugestoes["perfis_ideais"], perfis_opcoes)
+                                st.session_state[f"custom_categorias_sel_{vaga_id_int}"] = map_to_options(sugestoes["categorias_ideais"], categorias_opcoes)
+                                st.session_state[f"custom_qualidades_sel_{vaga_id_int}"] = map_to_options(sugestoes["qualidades_ideais"], qualidades_opcoes)
 
                                 st.toast("Sugestões geradas com sucesso! Revise e salve abaixo.", icon="✨")
                                 st.rerun()
