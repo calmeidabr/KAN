@@ -957,9 +957,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             .stApp:has(.matching-page-wrapper) .score-widget {{
                 background: linear-gradient(135deg, rgba(23, 27, 42, 0.4) 0%, rgba(13, 16, 22, 0.3) 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                border-radius: 10px !important;
-                padding: 10px 12px !important;
-                margin-top: 12px !important;
+                border-radius: 8px !important;
+                padding: 6px 8px !important;
+                margin-top: 8px !important;
                 box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
                 transition: all 0.25s ease !important;
             }}
@@ -971,33 +971,33 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 display: flex !important;
                 justify-content: space-between !important;
                 align-items: center !important;
-                margin-bottom: 8px !important;
+                margin-bottom: 6px !important;
             }}
             .stApp:has(.matching-page-wrapper) .score-title {{
-                font-size: 0.68rem !important;
+                font-size: 0.58rem !important;
                 color: #7F8798 !important;
                 font-weight: 700 !important;
                 text-transform: uppercase !important;
-                letter-spacing: 0.6px !important;
+                letter-spacing: 0.5px !important;
             }}
             .stApp:has(.matching-page-wrapper) .score-badge {{
-                background: rgba(240, 138, 0, 0.1) !important;
-                border: 1px solid rgba(240, 138, 0, 0.25) !important;
-                padding: 2px 8px !important;
-                border-radius: 6px !important;
-                font-weight: 800 !important;
-                font-size: 0.8rem !important;
+                background: rgba(240, 138, 0, 0.08) !important;
+                border: 1px solid rgba(240, 138, 0, 0.20) !important;
+                padding: 1px 5px !important;
+                border-radius: 4px !important;
+                font-weight: 700 !important;
+                font-size: 0.68rem !important;
                 color: #F08A00 !important;
                 display: inline-flex !important;
                 align-items: center !important;
-                gap: 4px !important;
+                gap: 2px !important;
                 font-family: 'Outfit', sans-serif !important;
             }}
             .stApp:has(.matching-page-wrapper) .score-breakdown {{
                 display: flex !important;
                 justify-content: space-between !important;
                 border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
-                padding-top: 8px !important;
+                padding-top: 6px !important;
                 gap: 4px !important;
             }}
             .stApp:has(.matching-page-wrapper) .breakdown-item {{
@@ -1010,16 +1010,18 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
             }}
             .stApp:has(.matching-page-wrapper) .breakdown-label {{
-                font-size: 0.58rem !important;
+                font-size: 0.52rem !important;
                 color: #7F8798 !important;
                 text-transform: uppercase !important;
                 font-weight: 700 !important;
-                letter-spacing: 0.4px !important;
+                letter-spacing: 0.3px !important;
             }}
             .stApp:has(.matching-page-wrapper) .breakdown-val {{
-                font-size: 0.72rem !important;
+                font-size: 0.68rem !important;
                 color: #F4F7FB !important;
                 font-weight: 700 !important;
+            }}
+        </style>;
             }}
         </style>
         
@@ -1916,7 +1918,8 @@ Instruções cruciais:
                         "pts_kan": pts_kan,
                         "pts_perfil": pts_perfil,
                         "pts_qual": pts_qual,
-                        "total_pts": total_pts
+                        "total_pts": total_pts,
+                        "aderencia_pct": r["Aderência (%)"]
                     })
                     
             # Ordenar por pontuação descendente
@@ -1991,13 +1994,19 @@ Instruções cruciais:
                                     <div class="cand-req-label">Qualidades</div>
                                     <div class="cand-req-value-cell">{quals_badges}</div>
                                 </div>
+                                <div class="cand-req-row">
+                                    <div class="cand-req-label">Aderência %</div>
+                                    <div class="cand-req-value-cell">
+                                        <span class="cand-req-value highlight-kan" style="font-weight: 700;">{cand['aderencia_pct']}%</span>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="score-widget">
                                 <div class="score-main">
                                     <span class="score-title">COMPATIBILIDADE</span>
                                     <div class="score-badge">
-                                        <span>⚡ {cand['total_pts']} Pontos</span>
+                                        <span>⚡ {cand['total_pts']} pts</span>
                                     </div>
                                 </div>
                                 <div class="score-breakdown">
