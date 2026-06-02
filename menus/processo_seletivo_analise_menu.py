@@ -850,6 +850,177 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             div[class*="st-key-btn_ia_sug_req_"] button:active {{
                 transform: translateY(0) !important;
             }}
+            
+            /* Overrides para os Cards de Candidatos Associados */
+            .stApp:has(.matching-page-wrapper) .avatar-halo-wrapper {{
+                display: flex !important;
+                justify-content: center !important;
+                margin-top: 5px !important;
+                margin-bottom: 12px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .avatar-halo {{
+                width: 86px !important;
+                height: 86px !important;
+                border-radius: 50% !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 3px !important;
+                background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 50%, #F08A00 100%) !important;
+                box-shadow: 0 4px 12px rgba(91, 20, 99, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.01) !important;
+                position: relative !important;
+                transition: box-shadow 0.3s ease !important;
+            }}
+            .stApp:has(.matching-page-wrapper) div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
+                box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3), 0 0 0 4px rgba(240, 138, 0, 0.03) !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .avatar-img {{
+                width: 80px !important;
+                height: 80px !important;
+                border-radius: 50% !important;
+                object-fit: cover !important;
+                border: 2px solid #171B2A !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .font-avatar-bg {{
+                background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 100%) !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .avatar-initial {{
+                font-family: 'Outfit', sans-serif !important;
+                font-size: 1.5rem !important;
+                font-weight: 800 !important;
+                color: #F4F7FB !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .dob-text {{
+                margin: 4px 0 12px 0 !important;
+                color: #7F8798 !important;
+                font-size: 0.72rem !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 5px !important;
+                font-weight: 500 !important;
+                letter-spacing: 0.2px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .dob-text i {{
+                color: #7A2B8A !important;
+                font-size: 10px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .talent-link-container div.row-widget.stButton > button {{
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                color: #F4F7FB !important;
+                text-decoration: none !important;
+                border-bottom: 2px solid transparent !important;
+                text-align: center !important;
+                font-size: 1.05rem !important;
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                box-shadow: none !important;
+                display: inline-block !important;
+                margin: 0 auto !important;
+                transition: all 0.2s ease !important;
+                line-height: 1.2 !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .talent-link-container div.row-widget.stButton > button:hover {{
+                color: #FF9D1F !important;
+                border-bottom: 2px solid #FF9D1F !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .btn-excluir-link {{
+                position: absolute !important;
+                top: 12px !important;
+                left: 12px !important;
+                width: 28px !important;
+                height: 28px !important;
+                min-width: 28px !important;
+                min-height: 28px !important;
+                background: rgba(255, 255, 255, 0.03) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                color: #7F8798 !important;
+                opacity: 0.7 !important;
+                border-radius: 8px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-decoration: none !important;
+                box-shadow: none !important;
+                transition: all 0.2s ease !important;
+                z-index: 11 !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .btn-excluir-link:hover {{
+                background: rgba(239, 68, 68, 0.12) !important;
+                border-color: rgba(239, 68, 68, 0.25) !important;
+                color: #EF4444 !important;
+                opacity: 1 !important;
+                transform: scale(1.05) !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .score-widget {{
+                background: linear-gradient(135deg, rgba(23, 27, 42, 0.4) 0%, rgba(13, 16, 22, 0.3) 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.05) !important;
+                border-radius: 10px !important;
+                padding: 10px 12px !important;
+                margin-top: 12px !important;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
+                transition: all 0.25s ease !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .score-widget:hover {{
+                border-color: rgba(240, 138, 0, 0.2) !important;
+                background: linear-gradient(135deg, rgba(23, 27, 42, 0.6) 0%, rgba(13, 16, 22, 0.5) 100%) !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .score-main {{
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                margin-bottom: 8px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .score-title {{
+                font-size: 0.68rem !important;
+                color: #7F8798 !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.6px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .score-badge {{
+                background: rgba(240, 138, 0, 0.1) !important;
+                border: 1px solid rgba(240, 138, 0, 0.25) !important;
+                padding: 2px 8px !important;
+                border-radius: 6px !important;
+                font-weight: 800 !important;
+                font-size: 0.8rem !important;
+                color: #F08A00 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 4px !important;
+                font-family: 'Outfit', sans-serif !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .score-breakdown {{
+                display: flex !important;
+                justify-content: space-between !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+                padding-top: 8px !important;
+                gap: 4px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .breakdown-item {{
+                flex: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .border-l {{
+                border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .breakdown-label {{
+                font-size: 0.58rem !important;
+                color: #7F8798 !important;
+                text-transform: uppercase !important;
+                font-weight: 700 !important;
+                letter-spacing: 0.4px !important;
+            }}
+            .stApp:has(.matching-page-wrapper) .breakdown-val {{
+                font-size: 0.72rem !important;
+                color: #F4F7FB !important;
+                font-weight: 700 !important;
+            }}
         </style>
         
         <div class="matching-page-wrapper" style="display: none;"></div>
