@@ -118,18 +118,33 @@ class HierarquiaMenu(BaseMenu):
         /* Ajuste para ícones de microações nos botões da hierarquia */
         div[class*="st-key-btn_edit_cargo_tree_"] button::before {
             content: "\\e12f" !important;
+            font-family: "lucide" !important;
             font-size: 16px !important;
             margin-right: 0 !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            line-height: 1 !important;
+            display: inline-block !important;
         }
         div[class*="st-key-btn_set_lider_"] button::before {
             content: "\\e1d6" !important;
+            font-family: "lucide" !important;
             font-size: 16px !important;
             margin-right: 0 !important;
             color: #ff9f43 !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            line-height: 1 !important;
+            display: inline-block !important;
         }
         div[class*="st-key-btn_rem_"] button::before {
+            font-family: "lucide" !important;
             font-size: 16px !important;
             margin-right: 0 !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            line-height: 1 !important;
+            display: inline-block !important;
         }
         </style>
         """, unsafe_allow_html=True)
