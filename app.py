@@ -80,7 +80,7 @@ class App:
             """, unsafe_allow_html=True)
             
             menu_groups = {
-                "CADASTROS": ["Talentos", "Vagas", "Hierarquia e Equipes", "SaaS Multi-Tenant"],
+                "CADASTROS": ["Talentos", "Vagas", "Hierarquia e Equipes", "Equipes", "SaaS Multi-Tenant"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
@@ -164,13 +164,11 @@ class App:
         equipes = carregar_equipes()
         for idx, eq in enumerate(equipes):
             if eq["nome"] == nome_equipe:
-                if eq.get("empresa"):
-                    st.session_state["sel_emp_hier"] = eq["empresa"]
-                st.session_state[f"h_eq_open_{idx}"] = True
-                st.session_state["h_add_equipe_mode"] = False
+                st.session_state[f"eq_open_{idx}"] = True
+                st.session_state["add_equipe_mode"] = False
             else:
-                st.session_state[f"h_eq_open_{idx}"] = False
-        st.session_state["sidebar_menu"] = "Hierarquia e Equipes"
+                st.session_state[f"eq_open_{idx}"] = False
+        st.session_state["sidebar_menu"] = "Equipes"
 
     def run(self):
         if not check_password():
