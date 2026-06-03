@@ -539,6 +539,7 @@ def _fetch_supabase_clientes():
                     'repeticao_1': row.get('rep1_val', ''),
                     'repeticao_2': row.get('rep2_val', ''),
                     'mapa_detalhado': row.get('mapa_detalhado', {}),
+                    'lider': bool(row.get('lider', False)),
                     'has_json': True if p_json else False
                 }
                 if row.get('ai_diagnosis'):

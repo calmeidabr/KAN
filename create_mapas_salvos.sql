@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS mapas_salvos (
     ai_diagnosis TEXT,
     perfil_json TEXT,
     usuario TEXT,
+    lider BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

@@ -116,7 +116,17 @@ class HierarquiaMenu(BaseMenu):
             flex-shrink: 0;
         }
         /* Ajuste para ícones de microações nos botões da hierarquia */
-        div[class*="st-key-btn_edit_cargo_tree_"] button::before,
+        div[class*="st-key-btn_edit_cargo_tree_"] button::before {
+            content: "\\e12f" !important;
+            font-size: 16px !important;
+            margin-right: 0 !important;
+        }
+        div[class*="st-key-btn_set_lider_"] button::before {
+            content: "\\e1d6" !important;
+            font-size: 16px !important;
+            margin-right: 0 !important;
+            color: #ff9f43 !important;
+        }
         div[class*="st-key-btn_rem_"] button::before {
             font-size: 16px !important;
             margin-right: 0 !important;
@@ -256,6 +266,7 @@ class HierarquiaMenu(BaseMenu):
                                     t_info = clientes[t_nome]
                                     t_cargo = t_info.get("cargo", "Sem Cargo")
                                     foto_b64 = t_info.get("foto_base64")
+                                    is_lider = t_info.get("lider", False)
                                     
                                     cols_tree = st.columns([1, 6, 9])
                                     with cols_tree[0]:
@@ -263,7 +274,7 @@ class HierarquiaMenu(BaseMenu):
                                     with cols_tree[1]:
                                         from components.card import premium_card_container
                                         with premium_card_container(variant="compact"):
-                                            card_cols = st.columns([1, 2.8, 0.7])
+                                            card_cols = st.columns([1, 2.4, 1.1])
                                             with card_cols[0]:
                                                 if foto_b64:
                                                     st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); display: block;" />', unsafe_allow_html=True)
@@ -272,12 +283,50 @@ class HierarquiaMenu(BaseMenu):
                                             with card_cols[1]:
                                                 st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
                                                 st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
+                                                if is_lider:
+                                                    st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-flex; align-items: center; margin-left: 6px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
                                                 st.markdown('</div>', unsafe_allow_html=True)
                                                 st.markdown(f"<span style='color: var(--accent); font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
                                             with card_cols[2]:
                                                 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-                                                if st.button(" ", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
-                                                    modal_editar_cargo(t_nome, t_cargo, cargos_list)
+                                                btn_cols = st.columns(2)
+                                                with btn_cols[0]:
+                                                    if st.button(" ", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
+                                                        modal_editar_cargo(t_nome, t_cargo, cargos_list)
+                                                with btn_cols[1]:
+                                                    help_lider = "Remover Liderança" if is_lider else "Tornar Líder"
+                                                    if st.button(" ", key=f"btn_set_lider_{ch['departamento_id']}_{t_nome}", help=help_lider, use_container_width=True, type="primary" if is_lider else "secondary"):
+                                                        client_admin = get_supabase_admin()
+                                                        novo_estado = not is_lider
+                                                        if client_admin:
+                                                            try:
+                                                                import time
+                                                                if novo_estado:
+                                                                    client_admin.table("mapas_salvos").update({"lider": False}).eq("departamento", ch["departamento_id"]).execute()
+                                                                client_admin.table("mapas_salvos").update({"lider": novo_estado}).eq("nome", t_nome).execute()
+                                                                st.cache_data.clear()
+                                                                st.toast(f"✅ {t_nome} definido como Líder!" if novo_estado else f"Liderança de {t_nome} removida!")
+                                                                time.sleep(1)
+                                                                st.rerun()
+                                                            except Exception as ex:
+                                                                st.error(f"Erro ao salvar no banco: {ex}")
+                                                        else:
+                                                            import time
+                                                            if "clientes_local_data" not in st.session_state:
+                                                                st.session_state["clientes_local_data"] = {}
+                                                            if novo_estado:
+                                                                for name, info in clientes.items():
+                                                                    if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]:
+                                                                        if name not in st.session_state["clientes_local_data"]:
+                                                                            st.session_state["clientes_local_data"][name] = info.copy()
+                                                                        st.session_state["clientes_local_data"][name]["lider"] = False
+                                                            if t_nome not in st.session_state["clientes_local_data"]:
+                                                                st.session_state["clientes_local_data"][t_nome] = t_info.copy()
+                                                            st.session_state["clientes_local_data"][t_nome]["lider"] = novo_estado
+                                                            st.cache_data.clear()
+                                                            st.toast("✅ Liderança atualizada localmente!")
+                                                            time.sleep(1)
+                                                            st.rerun()
                             
                             # Botão de popover para adicionar/alterar membro
                             st.markdown("<div style='padding-left: " + str(level * 25 + 20) + "px; margin-top: 8px;'></div>", unsafe_allow_html=True)
@@ -300,14 +349,18 @@ class HierarquiaMenu(BaseMenu):
                                         options=cargos_list,
                                         key=f"sel_cargo_dept_{ch['departamento_id']}"
                                     )
+                                    lider_sel = st.checkbox("Definir como Líder", key=f"sel_lider_dept_{ch['departamento_id']}")
                                     if st.button("Associar ao Departamento", key=f"btn_assoc_dept_{ch['departamento_id']}", type="primary", use_container_width=True):
                                         if talento_sel != "Selecione...":
                                             client_admin = get_supabase_admin()
                                             if client_admin:
                                                 try:
+                                                    if lider_sel:
+                                                        client_admin.table("mapas_salvos").update({"lider": False}).eq("departamento", ch["departamento_id"]).execute()
                                                     client_admin.table("mapas_salvos").update({
                                                         "departamento": ch["departamento_id"],
-                                                        "cargo": cargo_sel
+                                                        "cargo": cargo_sel,
+                                                        "lider": lider_sel
                                                     }).eq("nome", talento_sel).execute()
                                                     st.cache_data.clear()
                                                     st.success(f"{talento_sel} associado como {cargo_sel}!")
@@ -318,10 +371,17 @@ class HierarquiaMenu(BaseMenu):
                                             else:
                                                 if "clientes_local_data" not in st.session_state:
                                                     st.session_state["clientes_local_data"] = {}
+                                                if lider_sel:
+                                                    for name, info in clientes.items():
+                                                        if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]:
+                                                            if name not in st.session_state["clientes_local_data"]:
+                                                                st.session_state["clientes_local_data"][name] = info.copy()
+                                                            st.session_state["clientes_local_data"][name]["lider"] = False
                                                 if talento_sel not in st.session_state["clientes_local_data"]:
                                                     st.session_state["clientes_local_data"][talento_sel] = clientes.get(talento_sel, {}).copy()
                                                 st.session_state["clientes_local_data"][talento_sel]["departamento"] = ch["departamento_id"]
                                                 st.session_state["clientes_local_data"][talento_sel]["cargo"] = cargo_sel
+                                                st.session_state["clientes_local_data"][talento_sel]["lider"] = lider_sel
                                                 st.cache_data.clear()
                                                 st.success(f"{talento_sel} associado localmente!")
                                                 time.sleep(1)
