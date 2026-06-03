@@ -654,7 +654,7 @@ st.markdown("""
     div[class*="st-key-save_bottom_"] button::before, div[class*="st-key-btn_save_"] button::before { content: "\\e14d" !important; }
     div[class*="st-key-btn_add_"] button::before, div[class*="st-key-btn_start_add"] button::before { content: "\\e13d" !important; }
     div[class*="st-key-btn_eq_clear_temp"] button::before, div[class*="st-key-btn_canc_"] button::before { content: "\\e1b2" !important; }
-    div[class*="st-key-btn_d_eq_"] button::before, div[class*="st-key-btn_rem_"] button::before, div[class*="st-key-btn_delete_"] button::before { content: "\\e18e" !important; }
+    div[class*="st-key-btn_d_eq_"] button::before, div[class*="st-key-btn_rem_"] button::before, div[class*="st-key-btn_delete_"] button::before { content: "\\e18d" !important; }
     div[class*="st-key-btn_excluir_ed_"] button::before, div[class*="st-key-btn_excluir_"] button::before { content: "\\e1a3" !important; }
     div[class*="st-key-btn_edit_"] button::before { content: "\\e172" !important; }
     div[class*="st-key-btn_qa_diag"] button::before { content: "\\e09b" !important; }

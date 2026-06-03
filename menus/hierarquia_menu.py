@@ -151,7 +151,7 @@ class HierarquiaMenu(BaseMenu):
             display: inline-block !important;
         }
         div[class*="st-key-btn_rem_"] button::before {
-            content: "\\e18e" !important;
+            content: "\\e18d" !important;
             font-family: "lucide" !important;
             font-size: 16px !important;
             margin-right: 0 !important;

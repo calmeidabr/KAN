@@ -51,9 +51,11 @@ class EquipesMenu(BaseMenu):
             display: inline-block !important;
         }
         div[class*="st-key-btn_rem_"] button::before {
+            content: "\\e18d" !important;
             font-family: "lucide" !important;
             font-size: 16px !important;
             margin-right: 0 !important;
+            color: #ff3333 !important;
             font-style: normal !important;
             font-weight: normal !important;
             line-height: 1 !important;
