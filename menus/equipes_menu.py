@@ -15,6 +15,52 @@ class EquipesMenu(BaseMenu):
     def render(self):
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Gestão de Equipes</h2>", unsafe_allow_html=True)
         st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Agrupe talentos em equipes personalizadas, importando membros por empresas, departamentos ou individualmente.</p>", unsafe_allow_html=True)
+        
+        # CSS para formatar os botões de talento como hyperlinks e microações
+        st.markdown("""
+        <style>
+        div.talent-link-container div.row-widget.stButton > button {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            color: var(--accent) !important;
+            text-decoration: underline !important;
+            text-align: left !important;
+            font-weight: bold !important;
+            box-shadow: none !important;
+            display: inline !important;
+            margin: 0 !important;
+        }
+        div.talent-link-container div.row-widget.stButton > button:hover {
+            color: var(--accent-hover) !important;
+            background: transparent !important;
+        }
+        div.talent-link-container {
+            display: inline-block !important;
+        }
+        /* Ajuste para ícones de microações nos botões das equipes */
+        div[class*="st-key-btn_set_lider_"] button::before {
+            content: "\\e1d6" !important;
+            font-family: "lucide" !important;
+            font-size: 16px !important;
+            margin-right: 0 !important;
+            color: #ff9f43 !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+        }
+        div[class*="st-key-btn_rem_"] button::before {
+            font-family: "lucide" !important;
+            font-size: 16px !important;
+            margin-right: 0 !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            line-height: 1 !important;
+            display: inline-block !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
         st.write("---")
 
         supabase_client = get_supabase_admin()
@@ -328,8 +374,8 @@ class EquipesMenu(BaseMenu):
                             membros_atuais = st.session_state[key_temp_membros]
                             temp_lider = st.session_state[key_temp_lider]
 
-                            # Linha de cabeçalho: Renomear equipe e checkbox de liderança
-                            col_nome_eq1, col_nome_eq2 = st.columns([4, 3])
+                            # Linha de cabeçalho: Renomear equipe
+                            col_nome_eq1, col_nome_eq2 = st.columns([5, 2])
                             with col_nome_eq1:
                                 novo_nome_eq = st.text_input(
                                     "Nome da Equipe:", 
@@ -338,8 +384,7 @@ class EquipesMenu(BaseMenu):
                                 )
                                 st.session_state[key_temp_nome] = novo_nome_eq
                             with col_nome_eq2:
-                                st.write("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                                edit_lider_mode = st.checkbox("Definir Líder da Equipe", key=f"chk_edit_lider_{idx}")
+                                st.write("")
 
                             # Upload e exibição de foto da equipe na edição
                             col_edit_foto1, col_edit_foto2 = st.columns([1, 6])
@@ -362,108 +407,125 @@ class EquipesMenu(BaseMenu):
                             if not membros_atuais:
                                 st.info("Nenhum membro vinculado a esta equipe no momento.")
                             else:
-                                if edit_lider_mode:
-                                    st.caption("Clique em **Tornar Líder** para eleger o líder e/ou **Excluir** para remover o membro.")
-                                    # Cards interativos com controles de Liderança e Exclusão
-                                    cols = st.columns(3)
-                                    for m_idx, m_nome in enumerate(sorted(membros_atuais)):
-                                        col = cols[m_idx % 3]
-                                        m_info = clientes.get(m_nome)
-                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;"><i class="icon-crown" style="font-size:14px; margin-right:4px; vertical-align:middle;"></i>Líder</span>' if m_nome == temp_lider else ''
+                                st.caption("Clique no ícone de Coroa para definir a liderança (salva instantaneamente) ou no ícone de Lixeira para remover o membro.")
+                                # Cards interativos com controles de Liderança e Exclusão
+                                cols = st.columns(3)
+                                for m_idx, m_nome in enumerate(sorted(membros_atuais)):
+                                    col = cols[m_idx % 3]
+                                    m_info = clientes.get(m_nome)
+                                    is_lider_m = (temp_lider == m_nome)
 
-                                        with col:
-                                            with st.container(border=True):
-                                                avatar_html = ""
-                                                m_role = "Cadastro não encontrado"
-                                                if m_info:
-                                                    m_foto = m_info.get("foto_base64")
-                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div>'
-                                                    
-                                                    m_profissao = m_info.get("profissao", "")
-                                                    if "profissao" not in m_info:
-                                                        m_profissao = m_info.get("cargo", "")
-                                                        m_cargo_oficial = ""
-                                                    else:
-                                                        m_cargo_oficial = m_info.get("cargo", "")
-                                                    
-                                                    m_role = m_profissao or "Sem Profissão"
-                                                    if m_cargo_oficial:
-                                                        m_role = f"{m_role} ({m_cargo_oficial})"
+                                    with col:
+                                        with st.container(border=True):
+                                            avatar_html = ""
+                                            m_role = "Cadastro não encontrado"
+                                            if m_info:
+                                                m_foto = m_info.get("foto_base64")
+                                                avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div>'
+                                                
+                                                m_profissao = m_info.get("profissao", "")
+                                                if "profissao" not in m_info:
+                                                    m_profissao = m_info.get("cargo", "")
+                                                    m_cargo_oficial = ""
                                                 else:
-                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
+                                                    m_cargo_oficial = m_info.get("cargo", "")
+                                                
+                                                m_role = m_profissao or "Sem Profissão"
+                                                if m_cargo_oficial:
+                                                    m_role = f"{m_role} ({m_cargo_oficial})"
+                                            else:
+                                                avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
 
-                                                col_img, col_txt = st.columns([1, 3.5])
-                                                with col_img:
-                                                    st.markdown(avatar_html, unsafe_allow_html=True)
-                                                with col_txt:
-                                                    st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
-                                                    st.button(m_nome, key=f"lnk_eq_m_ed_{idx}_{m_idx}", on_click=self.app.ver_cadastro_talento, args=(m_nome,))
-                                                    if m_nome == temp_lider:
-                                                        st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
-                                                    st.markdown('</div>', unsafe_allow_html=True)
-                                                    st.markdown(f"<span style='font-size:0.75em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top: -2px;'>{m_role}</span>", unsafe_allow_html=True)
+                                            col_img, col_txt = st.columns([1, 3.5])
+                                            with col_img:
+                                                st.markdown(avatar_html, unsafe_allow_html=True)
+                                            with col_txt:
+                                                st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
+                                                st.button(m_nome, key=f"lnk_eq_m_ed_{idx}_{m_idx}", on_click=self.app.ver_cadastro_talento, args=(m_nome,))
+                                                if is_lider_m:
+                                                    st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
+                                                st.markdown('</div>', unsafe_allow_html=True)
+                                                st.markdown(f"<span style='font-size:0.75em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top: -2px;'>{m_role}</span>", unsafe_allow_html=True)
 
-                                                col_btn1, col_btn2 = st.columns(2)
-                                                with col_btn1:
-                                                    is_selected = (temp_lider == m_nome)
-                                                    if is_selected:
-                                                        st.button("Líder", key=f"btn_sel_{idx}_{m_idx}", type="primary", disabled=True, use_container_width=True)
-                                                    else:
-                                                        if st.button("Tornar Líder", key=f"btn_set_{idx}_{m_idx}", use_container_width=True):
-                                                            st.session_state[key_temp_lider] = m_nome
-                                                            st.rerun()
-                                                with col_btn2:
-                                                    if st.button("Excluir", key=f"btn_excluir_ed_{idx}_{m_idx}", use_container_width=True, type="secondary"):
-                                                        st.session_state[key_temp_membros].remove(m_nome)
-                                                        if temp_lider == m_nome:
-                                                            st.session_state[key_temp_lider] = None
+                                            col_btn1, col_btn2 = st.columns(2)
+                                            with col_btn1:
+                                                help_lider = "Remover Liderança" if is_lider_m else "Tornar Líder"
+                                                if st.button(" ", key=f"btn_set_lider_eq_{idx}_{m_idx}", help=help_lider, use_container_width=True, type="primary" if is_lider_m else "secondary"):
+                                                    novo_lider = None if is_lider_m else m_nome
+                                                    st.session_state[key_temp_lider] = novo_lider
+                                                    
+                                                    # Salva liderança no banco instantaneamente
+                                                    novos_membros_payload = []
+                                                    for nome_temp in st.session_state[key_temp_membros]:
+                                                        novos_membros_payload.append({
+                                                            "nome": nome_temp,
+                                                            "lider": (nome_temp == novo_lider)
+                                                        })
+                                                    
+                                                    sucesso_lider = False
+                                                    payload = {
+                                                        "membros": novos_membros_payload,
+                                                        "updated_at": datetime.datetime.now().isoformat()
+                                                    }
+                                                    if supabase_client:
+                                                        try:
+                                                            supabase_client.table("equipes").update(payload).eq("nome", eq["nome"]).execute()
+                                                            sucesso_lider = True
+                                                        except Exception as ex:
+                                                            st.error(f"Erro ao salvar no banco de dados: {ex}")
+                                                    
+                                                    if not sucesso_lider:
+                                                        if "equipes_local_data" in st.session_state:
+                                                            for eq_local in st.session_state["equipes_local_data"]:
+                                                                if eq_local["nome"] == eq["nome"]:
+                                                                    eq_local["membros"] = json.dumps(novos_membros_payload, ensure_ascii=False)
+                                                                    sucesso_lider = True
+                                                                    break
+                                                    if sucesso_lider:
+                                                        st.cache_data.clear()
+                                                        st.toast(f"👑 {m_nome} definido como Líder da Equipe!" if novo_lider else "Liderança removida!")
+                                                        time.sleep(1)
                                                         st.rerun()
-                                else:
-                                    st.caption("Clique em **Excluir da Equipe** para remover o membro.")
-                                    # Cards interativos apenas com opção de Exclusão
-                                    cols = st.columns(3)
-                                    for m_idx, m_nome in enumerate(sorted(membros_atuais)):
-                                        col = cols[m_idx % 3]
-                                        m_info = clientes.get(m_nome)
-                                        badge_lider_temp = '<span style="color: #ff9f43; font-weight: bold; font-size: 0.85em; display: inline-block; margin-left: 6px;"><i class="icon-crown" style="font-size:14px; margin-right:4px; vertical-align:middle;"></i>Líder</span>' if m_nome == temp_lider else ''
 
-                                        with col:
-                                            with st.container(border=True):
-                                                avatar_html = ""
-                                                m_role = "Cadastro não encontrado"
-                                                if m_info:
-                                                    m_foto = m_info.get("foto_base64")
-                                                    avatar_html = f'<img src="data:image/png;base64,{m_foto}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #F18617; flex-shrink:0;"/>' if m_foto else '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div>'
-                                                    
-                                                    m_profissao = m_info.get("profissao", "")
-                                                    if "profissao" not in m_info:
-                                                        m_profissao = m_info.get("cargo", "")
-                                                        m_cargo_oficial = ""
-                                                    else:
-                                                        m_cargo_oficial = m_info.get("cargo", "")
-                                                    
-                                                    m_role = m_profissao or "Sem Profissão"
-                                                    if m_cargo_oficial:
-                                                        m_role = f"{m_role} ({m_cargo_oficial})"
-                                                else:
-                                                    avatar_html = '<div style="width:50px; height:50px; border-radius:50%; background:rgba(241,134,23,0.2); border:2px solid #F18617; display:flex; align-items:center; justify-content:center; font-size:1.5em; flex-shrink:0;"><i class="icon-help-circle" style="font-size:24px; color:#F18617;"></i></div>'
-
-                                                col_img, col_txt = st.columns([1, 3.5])
-                                                with col_img:
-                                                    st.markdown(avatar_html, unsafe_allow_html=True)
-                                                with col_txt:
-                                                    st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.9em; margin-bottom: 2px;">', unsafe_allow_html=True)
-                                                    st.button(m_nome, key=f"lnk_eq_m_view_{idx}_{m_idx}", on_click=self.app.ver_cadastro_talento, args=(m_nome,))
-                                                    if m_nome == temp_lider:
-                                                        st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-block; margin-left: 4px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
-                                                    st.markdown('</div>', unsafe_allow_html=True)
-                                                    st.markdown(f"<span style='font-size:0.75em; opacity:0.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; margin-top: -2px;'>{m_role}</span>", unsafe_allow_html=True)
-
-                                                if st.button("Excluir da Equipe", key=f"btn_excluir_{idx}_{m_idx}", use_container_width=True, type="secondary"):
+                                            with col_btn2:
+                                                if st.button(" ", key=f"btn_rem_eq_{idx}_{m_idx}", help="Excluir da Equipe", use_container_width=True, type="secondary"):
                                                     st.session_state[key_temp_membros].remove(m_nome)
                                                     if temp_lider == m_nome:
                                                         st.session_state[key_temp_lider] = None
-                                                    st.rerun()
+                                                    
+                                                    # Salva exclusão no banco instantaneamente
+                                                    novo_lider = st.session_state[key_temp_lider]
+                                                    novos_membros_payload = []
+                                                    for nome_temp in st.session_state[key_temp_membros]:
+                                                        novos_membros_payload.append({
+                                                            "nome": nome_temp,
+                                                            "lider": (nome_temp == novo_lider)
+                                                        })
+                                                    
+                                                    sucesso_excluir = False
+                                                    payload = {
+                                                        "membros": novos_membros_payload,
+                                                        "updated_at": datetime.datetime.now().isoformat()
+                                                    }
+                                                    if supabase_client:
+                                                        try:
+                                                            supabase_client.table("equipes").update(payload).eq("nome", eq["nome"]).execute()
+                                                            sucesso_excluir = True
+                                                        except Exception as ex:
+                                                            st.error(f"Erro ao salvar no banco de dados: {ex}")
+                                                    
+                                                    if not sucesso_excluir:
+                                                        if "equipes_local_data" in st.session_state:
+                                                            for eq_local in st.session_state["equipes_local_data"]:
+                                                                if eq_local["nome"] == eq["nome"]:
+                                                                    eq_local["membros"] = json.dumps(novos_membros_payload, ensure_ascii=False)
+                                                                    sucesso_excluir = True
+                                                                    break
+                                                    if sucesso_excluir:
+                                                        st.cache_data.clear()
+                                                        st.toast(f"❌ {m_nome} removido da equipe!")
+                                                        time.sleep(1)
+                                                        st.rerun()
 
                             st.write("")
                             # Rodapé com ações de Salvar / Resetar
@@ -714,16 +776,16 @@ class EquipesMenu(BaseMenu):
                                                     # Desenha o preenchimento do triângulo
                                                     draw_m.polygon(poly_points, fill=cor)
                                                     
-                                                    # Se for o líder, adiciona uma borda (outline) branca e mais fina
+                                                    # Se for o líder, adiciona uma borda (outline) branca e mais destacada
                                                     if m_nome == lider_atual:
-                                                        draw_m.line(poly_points + [poly_points[0]], fill=(255, 255, 255, 255), width=3)
+                                                        draw_m.line(poly_points + [poly_points[0]], fill=(255, 255, 255, 255), width=5)
                                                         
                                                     img_final = Image.alpha_composite(img_final, layer_m)
 
                                                     cx = sum(p[0] for p in poly_points) // 3
                                                     cy = sum(p[1] for p in poly_points) // 3
                                                     primeiro_nome = str(m_nome).split()[0]
-                                                    nome_display = f"L. {primeiro_nome}" if m_nome == lider_atual else primeiro_nome
+                                                    nome_display = f"👑 {primeiro_nome}" if m_nome == lider_atual else primeiro_nome
                                                     draw_notes.text((cx - 20, cy - 12), nome_display, fill=(30, 30, 30), font=font_label)
 
                                                     # Adiciona a esfera preta no vértice do KAN (poly_points[0])

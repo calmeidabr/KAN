@@ -39,6 +39,7 @@ class App:
             "Talentos": lambda: TalentosMenu(self).render(),
             "Vagas": lambda: ProcessosMenu(self).render(),
             "Hierarquia / Deptos": lambda: HierarquiaMenu(self).render(),
+            "Hierarquia e Equipes": lambda: HierarquiaMenu(self).render(),
             "Equipes": lambda: EquipesMenu(self).render(),
             "Empresas": lambda: EmpresasMenu(self).render(),
             "SaaS Multi-Tenant": lambda: TenantCrudMenu(self).render(),
@@ -79,7 +80,7 @@ class App:
             """, unsafe_allow_html=True)
             
             menu_groups = {
-                "CADASTROS": ["Talentos", "Vagas", "Hierarquia / Deptos", "Equipes", "Empresas", "SaaS Multi-Tenant"],
+                "CADASTROS": ["Talentos", "Vagas", "Hierarquia e Equipes", "SaaS Multi-Tenant"],
                 "ANÁLISES": ["Diagnósticos", "Mapas", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
@@ -163,11 +164,13 @@ class App:
         equipes = carregar_equipes()
         for idx, eq in enumerate(equipes):
             if eq["nome"] == nome_equipe:
-                st.session_state[f"eq_open_{idx}"] = True
-                st.session_state["add_equipe_mode"] = False
+                if eq.get("empresa"):
+                    st.session_state["sel_emp_hier"] = eq["empresa"]
+                st.session_state[f"h_eq_open_{idx}"] = True
+                st.session_state["h_add_equipe_mode"] = False
             else:
-                st.session_state[f"eq_open_{idx}"] = False
-        st.session_state["sidebar_menu"] = "Equipes"
+                st.session_state[f"h_eq_open_{idx}"] = False
+        st.session_state["sidebar_menu"] = "Hierarquia e Equipes"
 
     def run(self):
         if not check_password():
