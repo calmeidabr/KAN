@@ -842,6 +842,17 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 justify-content: center !important;
                 gap: 8px !important;
             }}
+            div[class*="st-key-btn_ia_sug_req_"] button::before {{
+                font-family: 'lucide' !important;
+                content: "\\e412" !important;
+                display: inline-block !important;
+                margin-right: 8px !important;
+                font-size: 18px !important;
+                font-style: normal !important;
+                font-weight: normal !important;
+                color: inherit !important;
+                line-height: 1 !important;
+            }}
             div[class*="st-key-btn_ia_sug_req_"] button:hover {{
                 transform: translateY(-2px) !important;
                 box-shadow: 0 6px 20px rgba(122, 43, 138, 0.5) !important;
