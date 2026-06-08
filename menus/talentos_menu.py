@@ -11,6 +11,12 @@ from utils.helpers import compress_image_to_b64
 
 class TalentosMenu(BaseMenu):
     def render(self):
+        # Garantir que a câmera inicia fechada ao alternar para esta página
+        current_menu = st.session_state.get('sidebar_menu', 'Talentos')
+        if st.session_state.get('last_sidebar_menu') != current_menu:
+            st.session_state['cad_camera_aberta'] = False
+            st.session_state['last_sidebar_menu'] = current_menu
+
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Cadastro de Talentos</h2>", unsafe_allow_html=True)
         st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Cadastre talentos na base e consulte seus perfis comportamentais.</p>", unsafe_allow_html=True)
         st.write("---")
@@ -34,8 +40,11 @@ class TalentosMenu(BaseMenu):
                 cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key="cad_foto")
             with col_f3:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
-                if st.button("Ativar Câmera", use_container_width=True, key="cad_cam_btn"):
-                    st.session_state['cad_camera_aberta'] = True
+                cam_aberta = st.session_state.get('cad_camera_aberta', False)
+                cam_label = "Fechar Câmera" if cam_aberta else "Ativar Câmera"
+                if st.button(cam_label, use_container_width=True, key="cad_cam_btn"):
+                    st.session_state['cad_camera_aberta'] = not cam_aberta
+                    st.rerun()
                 st.caption("Leitura de Documento via IA")
             
             if st.session_state.get('cad_camera_aberta', False):
