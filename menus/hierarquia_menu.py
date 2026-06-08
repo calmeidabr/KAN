@@ -1024,6 +1024,9 @@ class HierarquiaMenu(BaseMenu):
                             if key_temp_lider not in st.session_state: st.session_state[key_temp_lider] = lider_atual
                             if key_temp_nome not in st.session_state: st.session_state[key_temp_nome] = eq["nome"]
                             if key_temp_foto not in st.session_state: st.session_state[key_temp_foto] = eq.get("foto_base64") or ""
+                            
+                            key_ocultos = f"h_eq_membros_ocultos_{idx}"
+                            if key_ocultos not in st.session_state: st.session_state[key_ocultos] = set()
 
                             membros_atuais = st.session_state[key_temp_membros]
                             temp_lider = st.session_state[key_temp_lider]
@@ -1097,10 +1100,10 @@ class HierarquiaMenu(BaseMenu):
                                             st.markdown('</div>', unsafe_allow_html=True)
                                             st.caption(m_info.get("cargo", "Sem Cargo") if m_info else "Sem cadastro")
                                         
-                                        col_btn1, col_btn2 = st.columns(2)
+                                        col_btn1, col_btn2, col_btn3 = st.columns(3)
                                         with col_btn1:
-                                            # Botão Coroa
-                                            if st.button(" ", key=f"btn_set_lider_eq_{idx}_{m_idx}", help="Definir Líder", use_container_width=True, type="primary" if is_lider_m else "secondary"):
+                                            # Botão Coroa (Líder)
+                                            if st.button("👑", key=f"btn_set_lider_eq_{idx}_{m_idx}", help="Definir Líder", use_container_width=True, type="primary" if is_lider_m else "secondary"):
                                                 novo_lider = None if is_lider_m else m_nome
                                                 st.session_state[key_temp_lider] = novo_lider
                                                 novos_payload = [{"nome": n, "lider": (n == novo_lider)} for n in st.session_state[key_temp_membros]]
@@ -1123,8 +1126,19 @@ class HierarquiaMenu(BaseMenu):
                                                     time.sleep(1)
                                                     st.rerun()
                                         with col_btn2:
+                                            # Botão Ocultar/Exibir Triângulo (Olho)
+                                            is_oculto = m_nome in st.session_state[key_ocultos]
+                                            btn_eye_label = "🙈" if is_oculto else "👁️"
+                                            btn_eye_help = "Mostrar no gráfico" if is_oculto else "Ocultar no gráfico"
+                                            if st.button(btn_eye_label, key=f"btn_hide_eq_{idx}_{m_idx}", help=btn_eye_help, use_container_width=True, type="secondary" if is_oculto else "primary"):
+                                                if is_oculto:
+                                                    st.session_state[key_ocultos].discard(m_nome)
+                                                else:
+                                                    st.session_state[key_ocultos].add(m_nome)
+                                                st.rerun()
+                                        with col_btn3:
                                             # Botão Excluir
-                                            if st.button(" ", key=f"btn_rem_eq_{idx}_{m_idx}", help="Excluir Membro", use_container_width=True, type="secondary"):
+                                            if st.button("❌", key=f"btn_rem_eq_{idx}_{m_idx}", help="Excluir Membro", use_container_width=True, type="secondary"):
                                                 st.session_state[key_temp_membros].remove(m_nome)
                                                 if temp_lider == m_nome: st.session_state[key_temp_lider] = None
                                                 novos_payload = [{"nome": n, "lider": (n == st.session_state[key_temp_lider])} for n in st.session_state[key_temp_membros]]
@@ -1283,7 +1297,10 @@ class HierarquiaMenu(BaseMenu):
                                 erros = []
 
                                 with st.spinner("Calculando triângulos..."):
+                                    ocultos = st.session_state.get(f"h_eq_membros_ocultos_{idx}", set())
                                     for m_nome in membros_visiveis:
+                                        if m_nome in ocultos:
+                                            continue
                                         m_info = clientes.get(m_nome)
                                         if not m_info or not m_info.get("data_nascimento"):
                                             erros.append(f"{m_nome}: sem data ou cadastro")
