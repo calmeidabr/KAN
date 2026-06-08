@@ -29,15 +29,17 @@ class TalentosMenu(BaseMenu):
 
         clientes = carregar_todos_clientes()
 
+        version = st.session_state.get('form_version', 0)
+
         with st.container(border=True):
             st.subheader("Novo Cadastro")
-            cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key="cad_nome")
+            cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key=f"cad_nome_{version}")
             
             col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
             with col_f1:
-                cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key="cad_data")
+                cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key=f"cad_data_{version}")
             with col_f2:
-                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key="cad_foto")
+                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"cad_foto_{version}")
             with col_f3:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                 cam_aberta = st.session_state.get('cad_camera_aberta', False)
@@ -78,19 +80,19 @@ class TalentosMenu(BaseMenu):
 
             col_f4, col_f5, col_f6, col_f7 = st.columns([1, 1, 1, 1])
             with col_f4:
-                cad_profissao = st.text_input("Profissão:", key="cad_profissao")
+                cad_profissao = st.text_input("Profissão:", key=f"cad_profissao_{version}")
             with col_f5:
-                cad_emp = st.text_input("Grupo (opcional):", key="cad_grupo")
+                cad_emp = st.text_input("Grupo (opcional):", key=f"cad_grupo_{version}")
             with col_f6:
                 opcoes_empresa = ["Nenhuma / Não associada"] + nomes_empresas
-                cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key="cad_empresa_sel")
+                cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key=f"cad_empresa_{version}")
             with col_f7:
-                cad_link = st.text_input("LinkedIn (URL):", key="cad_link")
+                cad_link = st.text_input("LinkedIn (URL):", key=f"cad_link_{version}")
                 
-            cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key="cad_exp")
+            cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key=f"cad_exp_{version}")
             
-            if st.session_state.get("cad_nome"):
-                nome_consultado = st.session_state.get("cad_nome")
+            if cad_nome:
+                nome_consultado = cad_nome
                 from models.database import carregar_equipes
                 eq_pertence = []
                 for eq in carregar_equipes():
@@ -196,8 +198,9 @@ class TalentosMenu(BaseMenu):
                             st.session_state['ocr_data_nascimento'] = ''
             with col_b2:
                 if st.button("Novo", use_container_width=True, key="cad_novo_btn"):
-                    for k in ["cad_nome", "cad_data", "cad_profissao", "cad_grupo", "cad_empresa_sel", "cad_link", "cad_exp", "ocr_nome", "ocr_data_nascimento", "cad_foto"]:
-                        st.session_state.pop(k, None)
+                    st.session_state['form_version'] = st.session_state.get('form_version', 0) + 1
+                    st.session_state['ocr_nome'] = ''
+                    st.session_state['ocr_data_nascimento'] = ''
                     st.session_state['cad_camera_aberta'] = False
                     st.rerun()
 
