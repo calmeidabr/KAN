@@ -1779,7 +1779,7 @@ Instruções cruciais:
             if st.button("🎯 Associar por Aderência", key="btn_add_assoc_by_match", use_container_width=True):
                 st.session_state["mostrar_selector_aderencia"] = True
                 st.session_state["mostrar_selector_talentos"] = False
-                st.session_state["talentos_aderencia_temporarios"] = list(st.session_state["candidatos_vagas"].get(vaga["id"], []))
+                st.session_state["talentos_aderencia_temporarios"] = list(st.session_state["candidatos_vagas"].get(vaga_id_int, []))
                 st.rerun()
 
         # Renderizar seletor de associação
@@ -1792,14 +1792,14 @@ Instruções cruciais:
                 candidatos_selecionados = st.multiselect(
                     "Selecione os talentos que participarão deste processo:",
                     options=opcoes_talentos,
-                    default=st.session_state["candidatos_vagas"].get(vaga["id"], []),
+                    default=st.session_state["candidatos_vagas"].get(vaga_id_int, []),
                     key="selector_talentos_multiselect"
                 )
                 
                 col_actions1, col_actions2 = st.columns(2)
                 with col_actions1:
                     if st.button("Salvar Associação", type="primary", use_container_width=True, key="btn_save_changes_assoc"):
-                        st.session_state["candidatos_vagas"][vaga["id"]] = candidatos_selecionados
+                        st.session_state["candidatos_vagas"][vaga_id_int] = candidatos_selecionados
                         
                         # Salvar/Atualizar no Supabase na tabela processos_seletivos
                         try:
@@ -1990,7 +1990,7 @@ Instruções cruciais:
                                             with col_card_name:
                                                 st.markdown(f"<span style='font-family: sans-serif; font-size: 0.9rem; font-weight: 600;'>{item}</span>", unsafe_allow_html=True)
                                             with col_card_del:
-                                                if st.button("❌", key=f"btn_remove_staged_{item}_{vaga['id']}", use_container_width=True):
+                                                if st.button("❌", key=f"btn_remove_staged_{item}_{vaga_id_int}", use_container_width=True):
                                                     st.session_state["talentos_aderencia_temporarios"].remove(item)
                                                     st.rerun()
 
@@ -1998,9 +1998,9 @@ Instruções cruciais:
                     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
                     col_save1, col_save2 = st.columns(2)
                     with col_save1:
-                        if st.button("Salvar Talentos do Processo", type="primary", use_container_width=True, key=f"btn_save_aderencia_talents_{vaga['id']}"):
+                        if st.button("Salvar Talentos do Processo", type="primary", use_container_width=True, key=f"btn_save_aderencia_talents_{vaga_id_int}"):
                             candidatos_selecionados = st.session_state.get("talentos_aderencia_temporarios", [])
-                            st.session_state["candidatos_vagas"][vaga["id"]] = candidatos_selecionados
+                            st.session_state["candidatos_vagas"][vaga_id_int] = candidatos_selecionados
                             
                             # Salvar/Atualizar no Supabase na tabela processos_seletivos
                             try:
@@ -2036,7 +2036,7 @@ Instruções cruciais:
                             st.rerun()
 
         # Renderizar os Cards dos Candidatos Associados
-        associated_names = st.session_state["candidatos_vagas"].get(vaga["id"], [])
+        associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
         
         if associated_names:
             candidatos_processo = []
@@ -2208,7 +2208,7 @@ Instruções cruciais:
         df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
         
         if not df_matching_empresa.empty:
-            associated_cands = st.session_state["candidatos_vagas"].get(vaga["id"], [])
+            associated_cands = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
             
             # Construir a tabela em HTML com scroll lateral e estilo lilás/borda branca
             table_html = """
@@ -2240,9 +2240,9 @@ Instruções cruciais:
                 
                 # Definir botão de ação (link circular '+' ou '✓')
                 if is_assoc:
-                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga["id"]}" target="_self">✓</a>'
+                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}" target="_self">✓</a>'
                 else:
-                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga["id"]}" target="_self">+</a>'
+                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}" target="_self">+</a>'
                 
                 table_html += f"""
                         <tr>
