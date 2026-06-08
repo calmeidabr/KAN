@@ -116,17 +116,83 @@ class HierarquiaMenu(BaseMenu):
         div.talent-link-container {
             display: inline-block !important;
         }
+        /* Ajuste específico para tirar bordas e ajustar largura dos links de talento no grid e nas equipes */
+        div[class*="st-key-lnk_grid_"] button,
+        div[class*="st-key-lnk_h_eq_m_"] button {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            color: var(--accent) !important;
+            text-decoration: underline !important;
+            text-align: left !important;
+            font-weight: bold !important;
+            box-shadow: none !important;
+            display: inline !important;
+            margin: 0 !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+        div[class*="st-key-lnk_grid_"] button:hover,
+        div[class*="st-key-lnk_h_eq_m_"] button:hover {
+            color: var(--accent-hover) !important;
+            background: transparent !important;
+            text-decoration: underline !important;
+        }
+        /* Classes para Avatares Circulares Perfeitos (Crop Circular) */
+        .hierarquia-card-avatar-img {
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            max-width: 48px !important;
+            max-height: 48px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid var(--accent) !important;
+            display: block !important;
+            aspect-ratio: 1/1 !important;
+        }
+        .hierarquia-card-avatar-img-40 {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid var(--accent) !important;
+            display: block !important;
+            aspect-ratio: 1/1 !important;
+        }
+        .hierarquia-card-avatar-img-40-noborder {
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            max-width: 40px !important;
+            max-height: 40px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            display: block !important;
+            aspect-ratio: 1/1 !important;
+        }
         .hierarquia-card-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(240, 138, 0, 0.1);
-            border: 2px solid var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            flex-shrink: 0;
+            width: 48px !important;
+            height: 48px !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            max-width: 48px !important;
+            max-height: 48px !important;
+            border-radius: 50% !important;
+            background: rgba(240, 138, 0, 0.1) !important;
+            border: 2px solid var(--accent) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 1.3em !important;
+            flex-shrink: 0 !important;
+            aspect-ratio: 1/1 !important;
         }
         /* Destaque para líder - Customiza a variante selected do premium-card */
         .premium-card-wrapper.variant-selected div[data-testid="stVerticalBlockBorderWrapper"],
@@ -484,12 +550,12 @@ class HierarquiaMenu(BaseMenu):
                                     card_variant = "selected" if is_lider else "compact"
                                     
                                     with premium_card_container(variant=card_variant):
-                                        card_cols = st.columns([1, 2.4, 0.8])
+                                        card_cols = st.columns([1.1, 4.2, 0.7])
                                         with card_cols[0]:
                                             if foto_b64:
-                                                st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); display: block;" />', unsafe_allow_html=True)
+                                                st.markdown(f'<img src="data:image/png;base64,{foto_b64}" class="hierarquia-card-avatar-img" />', unsafe_allow_html=True)
                                             else:
-                                                st.markdown('<div class="hierarquia-card-avatar" style="width: 50px; height: 50px;"><i class="icon-user" style="color: var(--accent);"></i></div>', unsafe_allow_html=True)
+                                                st.markdown('<div class="hierarquia-card-avatar"><i class="icon-user" style="color: var(--accent);"></i></div>', unsafe_allow_html=True)
                                         with card_cols[1]:
                                             st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
                                             st.button(t_nome, key=f"lnk_grid_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
@@ -910,7 +976,7 @@ class HierarquiaMenu(BaseMenu):
                         with c1:
                             foto = eq.get("foto_base64")
                             if foto:
-                                st.markdown(f'<img src="data:image/png;base64,{foto}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);" />', unsafe_allow_html=True)
+                                st.markdown(f'<img src="data:image/png;base64,{foto}" class="hierarquia-card-avatar-img-40" />', unsafe_allow_html=True)
                             else:
                                 st.markdown("👥")
                         with c2:
@@ -1020,7 +1086,7 @@ class HierarquiaMenu(BaseMenu):
                                         with c_img:
                                             m_foto = m_info.get("foto_base64") if m_info else None
                                             if m_foto:
-                                                st.markdown(f'<img src="data:image/png;base64,{m_foto}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" />', unsafe_allow_html=True)
+                                                st.markdown(f'<img src="data:image/png;base64,{m_foto}" class="hierarquia-card-avatar-img-40-noborder" />', unsafe_allow_html=True)
                                             else:
                                                 st.markdown("👤")
                                         with c_txt:
