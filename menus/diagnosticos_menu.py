@@ -167,7 +167,7 @@ class DiagnosticosMenu(BaseMenu):
                 col_img_diag, col_txt_diag = st.columns([1, 4])
                 with col_img_diag:
                     st.markdown(f'''
-                    <div style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid #F18617; box-shadow: 0px 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; background-color: #1b0520; margin-bottom: 25px;">
+                    <div style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid var(--accent); box-shadow: 0px 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; background-color: var(--panel-bg); margin-bottom: 25px;">
                         <img src="data:image/png;base64,{foto_b64}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                     </div>
                     ''', unsafe_allow_html=True)
@@ -192,37 +192,38 @@ class DiagnosticosMenu(BaseMenu):
                     width: 100%; 
                     border-collapse: collapse; 
                     margin-top: 15px; 
-                    background: rgba(255,255,255,0.03); 
+                    background: var(--panel-bg); 
+                    border: 1px solid var(--panel-border);
                     border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                    box-shadow: var(--card-shadow);
                 }
                 .perfil-custom-table th { 
-                    background-color: #F18617; 
-                    color: #270828; 
+                    background-color: var(--accent); 
+                    color: var(--button-primary-text); 
                     padding: 14px 20px; 
                     text-align: left; 
                     font-size: 1.05em; 
                     font-weight: 800;
                 }
                 .perfil-custom-table td { 
-                    border-bottom: 1px solid rgba(255,255,255,0.08); 
+                    border-bottom: 1px solid var(--divider); 
                     vertical-align: top; 
                     padding: 16px 20px; 
                 }
-                .p-label { color: #F18617; font-weight: 800; font-size: 1.1em; margin-bottom: 8px; }
+                .p-label { color: var(--accent); font-weight: 800; font-size: 1.1em; margin-bottom: 8px; }
                 .p-badge { 
                     display: inline-block; 
-                    background: linear-gradient(135deg, #F18617 0%, #D97706 100%); 
-                    color: #1b0520; 
+                    background: linear-gradient(135deg, var(--accent) 0%, #D97706 100%); 
+                    color: var(--button-primary-text); 
                     font-weight: 900; 
                     font-size: 1.2em; 
                     padding: 4px 14px; 
                     border-radius: 8px; 
-                    box-shadow: 0 4px 10px rgba(241,134,23,0.3);
+                    box-shadow: 0 4px 10px rgba(240, 138, 0, 0.3);
                     margin-bottom: 8px; 
                 }
-                .p-desc { color: #FFFFFF; font-size: 0.95em; line-height: 1.6; text-align: justify; }
+                .p-desc { color: var(--text-main); font-size: 0.95em; line-height: 1.6; text-align: justify; }
                 </style>""", unsafe_allow_html=True)
                 
                 html_table = '<table class="perfil-custom-table"><thead><tr><th style="width: 28%;">Indicador KAN / Valor</th><th>Análise e Interpretação</th></tr></thead><tbody>'
@@ -316,49 +317,50 @@ class DiagnosticosMenu(BaseMenu):
                     width: 100%; 
                     border-collapse: collapse; 
                     margin-top: 15px; 
-                    background: rgba(255,255,255,0.03); 
+                    background: var(--panel-bg); 
+                    border: 1px solid var(--panel-border);
                     border-radius: 12px;
                     overflow: hidden;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+                    box-shadow: var(--card-shadow);
                 }
                 .mapa-table th { 
-                    background-color: #F18617; 
-                    color: #270828; 
+                    background-color: var(--accent); 
+                    color: var(--button-primary-text); 
                     padding: 14px 20px; 
                     text-align: left; 
                     font-size: 1.05em; 
                     font-weight: 800;
                 }
                 .mapa-table td { 
-                    border-bottom: 1px solid rgba(255,255,255,0.08); 
+                    border-bottom: 1px solid var(--divider); 
                     vertical-align: top; 
                     padding: 16px 20px; 
                 }
                 .mapa-campo-titulo { 
-                    color: #F18617; 
+                    color: var(--accent); 
                     font-weight: 800; 
                     font-size: 1.1em; 
                     margin-bottom: 8px;
                 }
                 .mapa-numero-destaque { 
                     display: inline-block; 
-                    background: linear-gradient(135deg, #F18617 0%, #D97706 100%); 
-                    color: #1b0520; 
+                    background: linear-gradient(135deg, var(--accent) 0%, #D97706 100%); 
+                    color: var(--button-primary-text); 
                     font-weight: 900; 
                     font-size: 1.3em; 
                     padding: 3px 12px; 
                     border-radius: 6px; 
-                    box-shadow: 0 3px 8px rgba(241,134,23,0.3);
+                    box-shadow: 0 3px 8px rgba(240, 138, 0, 0.3);
                     margin-bottom: 8px;
                 }
                 .mapa-explicacao { 
                     font-size: 0.82em; 
-                    color: rgba(255,255,255,0.55); 
+                    color: var(--text-muted); 
                     font-style: italic; 
                     line-height: 1.4;
                 }
                 .mapa-desc-cel { 
-                    color: #FFFFFF; 
+                    color: var(--text-main); 
                     font-size: 0.95em; 
                     line-height: 1.6; 
                     text-align: justify; 

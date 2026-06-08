@@ -34,6 +34,22 @@ def get_base64_of_bin_file(bin_file):
         data = f.read()
     return base64.b64encode(data).decode()
 
+@st.cache_data
+def load_text_file(filepath):
+    import os
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            return f.read()
+    return ""
+
+@st.cache_data
+def get_base64_logo(logo_path):
+    import os
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return ""
+
 def compress_image_to_b64(uploaded_file, max_width=1280, quality=75):
     try:
         img = Image.open(uploaded_file)

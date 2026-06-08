@@ -25,21 +25,24 @@ class HomeMenu(BaseMenu):
             margin-bottom: 25px;
         }
         .kpi-card {
-            background: rgba(255,255,255,0.04);
-            border-left: 4px solid #F18617;
+            background: var(--panel-bg);
+            border-left: 4px solid var(--accent);
+            border-top: 1px solid var(--panel-border);
+            border-right: 1px solid var(--panel-border);
+            border-bottom: 1px solid var(--panel-border);
             border-radius: 12px;
             padding: 18px 22px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: var(--card-shadow);
             transition: all 0.3s ease;
         }
         .kpi-card:hover {
             transform: translateY(-2px);
-            background: rgba(255,255,255,0.07);
+            background: var(--hover-bg);
         }
         .kpi-title {
             font-size: 0.85em;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.6);
+            color: var(--text-soft);
             margin-bottom: 5px;
             font-weight: 700;
             letter-spacing: 0.5px;
@@ -47,12 +50,12 @@ class HomeMenu(BaseMenu):
         .kpi-value {
             font-size: 2.2em;
             font-weight: 900;
-            color: #FFFFFF;
+            color: var(--text-main);
             line-height: 1.1;
         }
         .kpi-sub {
             font-size: 0.75em;
-            color: #39ff14;
+            color: var(--accent);
             margin-top: 5px;
             font-weight: 600;
         }
@@ -77,7 +80,7 @@ class HomeMenu(BaseMenu):
             <div class="kpi-card" style="border-left-color: #39ff14;">
                 <div class="kpi-title">Motor IA</div>
                 <div class="kpi-value" style="font-size: 1.6em; padding-top: 5px;">Gemini 2.5</div>
-                <div class="kpi-sub">● Flash Ativo</div>
+                <div class="kpi-sub" style="color: #39ff14;">● Flash Ativo</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -105,7 +108,7 @@ class HomeMenu(BaseMenu):
             
             if 'banners_data' not in st.session_state:
                 st.session_state.banners_data = [
-                    {"id": 1, "title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "#F18617", "img_path": banner1_path},
+                    {"id": 1, "title": "Diagnóstico Inteligente", "subtitle": "Análise comportamental profunda e instantânea.", "accent": "var(--accent)", "img_path": banner1_path},
                     {"id": 2, "title": "Gestão de Talentos", "subtitle": "Dados precisos para equipes de alta performance.", "accent": "#00d2ff", "img_path": banner2_path},
                     {"id": 3, "title": "Inovação Humana", "subtitle": "A inteligência por trás do comportamento.", "accent": "#39ff14", "img_path": banner3_path}
                 ]
@@ -186,7 +189,7 @@ class HomeMenu(BaseMenu):
             if header_img != "◇":
                 st.image(header_img, width=80)
             else:
-                st.markdown("<h4 style='margin:10px 0 0 0; color: #F18617;'>◇ KAN</h4>", unsafe_allow_html=True)
+                st.markdown("<h4 style='margin:10px 0 0 0; color: var(--accent);'>◇ KAN</h4>", unsafe_allow_html=True)
                 
         with col_nav2:
             c1, c2, c3 = st.columns([1, 1, 1])
@@ -202,17 +205,17 @@ class HomeMenu(BaseMenu):
                     st.session_state.carousel_index = (st.session_state.carousel_index + 1) % num_banners
                     st.rerun()
 
-        st.markdown("<br><hr style='border-color: rgba(255,255,255,0.1); margin: 30px 0;'><br>", unsafe_allow_html=True)
-        st.markdown("<h3>Acesso Rápido</h3><p style='color: rgba(255,255,255,0.6); margin-bottom: 25px;'>Navegue diretamente pelos módulos principais do sistema</p>", unsafe_allow_html=True)
+        st.markdown("<br><hr style='border-color: var(--divider); margin: 30px 0;'><br>", unsafe_allow_html=True)
+        st.markdown("<h3>Acesso Rápido</h3><p style='color: var(--text-soft); margin-bottom: 25px;'>Navegue diretamente pelos módulos principais do sistema</p>", unsafe_allow_html=True)
 
         col_q1, col_q2 = st.columns(2)
         with col_q1:
             with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px; display: flex; align-items: center; gap: 8px;'><i class='icon-compass' style='color: #F18617; font-size: 20px;'></i>Diagnósticos</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
+                st.markdown("<h3 style='margin-bottom:10px; display: flex; align-items: center; gap: 8px;'><i class='icon-compass' style='color: var(--accent); font-size: 20px;'></i>Diagnósticos</h3><p style='color: var(--text-soft); font-size: 0.95em; min-height: 50px;'>Avaliação comportamental corporativa instantânea para tomada de decisão.</p>", unsafe_allow_html=True)
                 if st.button("Acessar Diagnósticos", key="btn_qa_diag", use_container_width=True, type="primary"):
                     self.app.navigate("Diagnósticos")
         with col_q2:
             with st.container(border=True):
-                st.markdown("<h3 style='margin-bottom:10px; display: flex; align-items: center; gap: 8px;'><i class='icon-users' style='color: #F18617; font-size: 20px;'></i>Talentos & OCR</h3><p style='color: rgba(255,255,255,0.7); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
+                st.markdown("<h3 style='margin-bottom:10px; display: flex; align-items: center; gap: 8px;'><i class='icon-users' style='color: var(--accent); font-size: 20px;'></i>Talentos & OCR</h3><p style='color: var(--text-soft); font-size: 0.95em; min-height: 50px;'>Cadastre novos membros manualmente ou via leitura de documento por IA.</p>", unsafe_allow_html=True)
                 if st.button("Cadastrar Talentos", key="btn_qa_tal", use_container_width=True, type="primary"):
                     self.app.navigate("Talentos")

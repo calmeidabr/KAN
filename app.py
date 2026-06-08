@@ -58,14 +58,13 @@ class App:
 
     def render_sidebar(self):
         with st.sidebar:
-            import base64
             import os
+            from utils.helpers import get_base64_logo
             logo_html = ""
             try:
                 logo_path = os.path.join("images", "kan_logo_header.png")
-                if os.path.exists(logo_path):
-                    with open(logo_path, "rb") as f:
-                        logo_b64 = base64.b64encode(f.read()).decode()
+                logo_b64 = get_base64_logo(logo_path)
+                if logo_b64:
                     logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="max-height: 40px; width: auto; display: block; margin-bottom: 4px;">'
                 else:
                     logo_html = '<span style="font-size: 1.15em; color: var(--text-main); margin-right: 8px; font-weight: 700;">◇ KAN</span>'

@@ -146,10 +146,10 @@ else:
 st.markdown(f"<style>{theme_variables}</style>", unsafe_allow_html=True)
 
 # Injetar CSS de Cards do Design System
+from utils.helpers import load_text_file
 card_css_path = os.path.join("frontend", "card.css")
-if os.path.exists(card_css_path):
-    with open(card_css_path, "r", encoding="utf-8") as f:
-        card_css = f.read()
+card_css = load_text_file(card_css_path)
+if card_css:
     st.markdown(f"<style>{card_css}</style>", unsafe_allow_html=True)
 
 st.markdown("""

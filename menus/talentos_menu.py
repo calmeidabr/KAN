@@ -225,9 +225,9 @@ class TalentosMenu(BaseMenu):
                             # Avatar/Foto
                             foto_b64 = t["foto_base64"]
                             if foto_b64:
-                                avatar_html = f'<div style="display: flex; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #F18617; display: block;" /></div>'
+                                avatar_html = f'<div style="display: flex; align-items: center; height: 100%;"><img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); display: block;" /></div>'
                             else:
-                                avatar_html = '<div style="display: flex; align-items: center; height: 100%;"><div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(241,134,23,0.2); border: 2px solid #F18617; display: flex; align-items: center; justify-content: center; font-size: 1.5em;"><i class="icon-user" style="font-size:24px; color:#F18617;"></i></div></div>'
+                                avatar_html = '<div style="display: flex; align-items: center; height: 100%;"><div style="width: 50px; height: 50px; border-radius: 50%; background: var(--sidebar-item-active-bg); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.5em;"><i class="icon-user" style="font-size:24px; color:var(--accent);"></i></div></div>'
                             
                             col_c_avatar, col_c_info = st.columns([1, 3.2])
                             with col_c_avatar:
@@ -238,10 +238,10 @@ class TalentosMenu(BaseMenu):
                                 st.markdown('</div>', unsafe_allow_html=True)
                                 
                                 role_lbl = t["Profissão"] or "Sem Profissão"
-                                st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{role_lbl}'><i class='icon-briefcase' style='font-size:12px; color: #F18617; margin-right:4px;'></i>{role_lbl}</span>", unsafe_allow_html=True)
+                                st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{role_lbl}'><i class='icon-briefcase' style='font-size:12px; color: var(--accent); margin-right:4px;'></i>{role_lbl}</span>", unsafe_allow_html=True)
                                 
                                 if t["Grupo"]:
-                                    st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{t['Grupo']}'><i class='icon-tag' style='font-size: 12px; color: #F18617; margin-right:4px;'></i>{t['Grupo']}</span>", unsafe_allow_html=True)
+                                    st.markdown(f"<span style='font-size: 0.78em; opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' title='{t['Grupo']}'><i class='icon-tag' style='font-size: 12px; color: var(--accent); margin-right:4px;'></i>{t['Grupo']}</span>", unsafe_allow_html=True)
                                 else:
                                     st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 
@@ -262,7 +262,7 @@ class TalentosMenu(BaseMenu):
                                         membro_de.append(eq["nome"])
 
                                 if membro_de:
-                                    st.markdown("<span style='font-size: 0.78em; opacity: 0.7; display: block; margin-top: 4px;'><i class='icon-users' style='font-size:12px; color: #F18617; margin-right:4px;'></i>Equipes:</span>", unsafe_allow_html=True)
+                                    st.markdown("<span style='font-size: 0.78em; opacity: 0.7; display: block; margin-top: 4px;'><i class='icon-users' style='font-size:12px; color: var(--accent); margin-right:4px;'></i>Equipes:</span>", unsafe_allow_html=True)
                                     st.markdown('<div class="talent-link-container" style="display: block; font-size: 0.75em; margin-bottom: 4px;">', unsafe_allow_html=True)
                                     for eq_idx, eq_nome in enumerate(membro_de):
                                         st.button(eq_nome, key=f"lnk_eq_card_{t['Nome']}_{eq_nome}_{eq_idx}", on_click=self.app.ver_equipe, args=(eq_nome,))
@@ -271,7 +271,7 @@ class TalentosMenu(BaseMenu):
                                     st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
                                     
                                 if t["LinkedIn"]:
-                                    st.markdown(f"<a href='{t['LinkedIn']}' target='_blank' style='font-size: 0.75em; color: #F18617; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;'><i class='icon-linkedin' style='font-size:12px;'></i>LinkedIn</a>", unsafe_allow_html=True)
+                                    st.markdown(f"<a href='{t['LinkedIn']}' target='_blank' style='font-size: 0.75em; color: var(--accent); font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;'><i class='icon-linkedin' style='font-size:12px;'></i>LinkedIn</a>", unsafe_allow_html=True)
                                 else:
                                     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
                 
