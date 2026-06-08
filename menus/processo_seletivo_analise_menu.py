@@ -2234,11 +2234,15 @@ Instruções cruciais:
                 nome_cand = row["Nome"]
                 is_assoc = nome_cand in associated_cands
                 
+                # Codificar o nome do candidato de forma segura para URLs
+                import urllib.parse
+                nome_cand_encoded = urllib.parse.quote(nome_cand)
+                
                 # Definir botão de ação (link circular '+' ou '✓')
                 if is_assoc:
-                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand.replace(" ", "+")}&vaga_id={vaga["id"]}" target="_self">✓</a>'
+                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga["id"]}" target="_self">✓</a>'
                 else:
-                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand.replace(" ", "+")}&vaga_id={vaga["id"]}" target="_self">+</a>'
+                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga["id"]}" target="_self">+</a>'
                 
                 table_html += f"""
                         <tr>
