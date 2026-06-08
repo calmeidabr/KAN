@@ -16,6 +16,23 @@ class TalentosMenu(BaseMenu):
         if st.session_state.get('last_sidebar_menu') != current_menu:
             st.session_state['cad_camera_aberta'] = False
             st.session_state['last_sidebar_menu'] = current_menu
+            st.session_state['limpar_formulario'] = True
+
+        # Processar a limpeza de inputs antes da criação dos widgets
+        if st.session_state.get('limpar_formulario', False):
+            st.session_state['cad_nome'] = ""
+            st.session_state['cad_data'] = ""
+            st.session_state['cad_profissao'] = ""
+            st.session_state['cad_grupo'] = ""
+            st.session_state['cad_empresa_sel'] = "Nenhuma / Não associada"
+            st.session_state['cad_link'] = ""
+            st.session_state['cad_exp'] = ""
+            st.session_state['ocr_nome'] = ""
+            st.session_state['ocr_data_nascimento'] = ""
+            st.session_state['cad_camera_aberta'] = False
+            if "cad_foto" in st.session_state:
+                del st.session_state["cad_foto"]
+            st.session_state['limpar_formulario'] = False
 
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Cadastro de Talentos</h2>", unsafe_allow_html=True)
         st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Cadastre talentos na base e consulte seus perfis comportamentais.</p>", unsafe_allow_html=True)
@@ -29,17 +46,15 @@ class TalentosMenu(BaseMenu):
 
         clientes = carregar_todos_clientes()
 
-        version = st.session_state.get('form_version', 0)
-
         with st.container(border=True):
             st.subheader("Novo Cadastro")
-            cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key=f"cad_nome_{version}")
+            cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key="cad_nome")
             
             col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
             with col_f1:
-                cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key=f"cad_data_{version}")
+                cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key="cad_data")
             with col_f2:
-                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"cad_foto_{version}")
+                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key="cad_foto")
             with col_f3:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                 cam_aberta = st.session_state.get('cad_camera_aberta', False)
@@ -80,19 +95,19 @@ class TalentosMenu(BaseMenu):
 
             col_f4, col_f5, col_f6, col_f7 = st.columns([1, 1, 1, 1])
             with col_f4:
-                cad_profissao = st.text_input("Profissão:", key=f"cad_profissao_{version}")
+                cad_profissao = st.text_input("Profissão:", key="cad_profissao")
             with col_f5:
-                cad_emp = st.text_input("Grupo (opcional):", key=f"cad_grupo_{version}")
+                cad_emp = st.text_input("Grupo (opcional):", key="cad_grupo")
             with col_f6:
                 opcoes_empresa = ["Nenhuma / Não associada"] + nomes_empresas
-                cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key=f"cad_empresa_{version}")
+                cad_empresa_sel = st.selectbox("Empresa (opcional):", options=opcoes_empresa, key="cad_empresa_sel")
             with col_f7:
-                cad_link = st.text_input("LinkedIn (URL):", key=f"cad_link_{version}")
+                cad_link = st.text_input("LinkedIn (URL):", key="cad_link")
                 
-            cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key=f"cad_exp_{version}")
+            cad_exp = st.text_area("Experiências Profissionais / Bio", placeholder="Resumo profissional para a IA...", height=80, key="cad_exp")
             
-            if cad_nome:
-                nome_consultado = cad_nome
+            if st.session_state.get("cad_nome"):
+                nome_consultado = st.session_state.get("cad_nome")
                 from models.database import carregar_equipes
                 eq_pertence = []
                 for eq in carregar_equipes():
@@ -163,6 +178,8 @@ class TalentosMenu(BaseMenu):
                                 st.session_state['ocr_nome'] = ''
                                 st.session_state['ocr_data_nascimento'] = ''
                                 st.cache_data.clear()
+                                st.session_state['limpar_formulario'] = True
+                                st.rerun()
                             except Exception as ex:
                                 st.error(f"Erro ao salvar no banco de dados: {ex}")
                         else:
@@ -196,12 +213,11 @@ class TalentosMenu(BaseMenu):
                             st.success("cadastro salvo com sucesso (armazenamento local ativo).")
                             st.session_state['ocr_nome'] = ''
                             st.session_state['ocr_data_nascimento'] = ''
+                            st.session_state['limpar_formulario'] = True
+                            st.rerun()
             with col_b2:
                 if st.button("Novo", use_container_width=True, key="cad_novo_btn"):
-                    st.session_state['form_version'] = st.session_state.get('form_version', 0) + 1
-                    st.session_state['ocr_nome'] = ''
-                    st.session_state['ocr_data_nascimento'] = ''
-                    st.session_state['cad_camera_aberta'] = False
+                    st.session_state['limpar_formulario'] = True
                     st.rerun()
 
         st.write("---")
