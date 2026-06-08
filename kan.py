@@ -544,6 +544,7 @@ st.markdown("""
     .st-key-menutalentos button::before { content: "\\e1a4" !important; } /* users */
     .st-key-menuvagas button::before { content: "\\e062" !important; } /* briefcase */
     .st-key-menuhierarquiadeptos button::before { content: "\\e125" !important; } /* network */
+    .st-key-menuempresaeorganograma button::before { content: "\\e125" !important; } /* network */
     .st-key-menuequipes button::before { content: "\\e342" !important; } /* user-cog */
     .st-key-menuempresas button::before { content: "\\e1cc" !important; } /* building */
     .st-key-menusaas button::before { content: "\\e0e8" !important; } /* globe */
