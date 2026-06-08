@@ -11,6 +11,10 @@ from utils.helpers import compress_image_to_b64
 
 class TalentosMenu(BaseMenu):
     def render(self):
+        # Inicializar semente de reset se não existir
+        if 'form_reset_id' not in st.session_state:
+            st.session_state['form_reset_id'] = 0
+
         # Garantir que a câmera inicia fechada ao alternar para esta página
         current_menu = st.session_state.get('sidebar_menu', 'Talentos')
         if st.session_state.get('last_sidebar_menu') != current_menu:
@@ -30,8 +34,16 @@ class TalentosMenu(BaseMenu):
             st.session_state['ocr_nome'] = ""
             st.session_state['ocr_data_nascimento'] = ""
             st.session_state['cad_camera_aberta'] = False
+            
+            # Limpar chaves antigas de fotos do session_state
+            prev_reset_id = st.session_state.get('form_reset_id', 0)
+            if f"cad_foto_{prev_reset_id}" in st.session_state:
+                del st.session_state[f"cad_foto_{prev_reset_id}"]
             if "cad_foto" in st.session_state:
                 del st.session_state["cad_foto"]
+                
+            # Incrementar o ID para limpar os widgets dinamicamente
+            st.session_state['form_reset_id'] = prev_reset_id + 1
             st.session_state['limpar_formulario'] = False
 
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Cadastro de Talentos</h2>", unsafe_allow_html=True)
@@ -50,11 +62,12 @@ class TalentosMenu(BaseMenu):
             st.subheader("Novo Cadastro")
             cad_nome = st.text_input("Nome Completo (Conforme certidão)*:", value=st.session_state.get('ocr_nome', ''), key="cad_nome")
             
+            reset_id = st.session_state.get('form_reset_id', 0)
             col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
             with col_f1:
                 cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key="cad_data")
             with col_f2:
-                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key="cad_foto")
+                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"cad_foto_{reset_id}")
             with col_f3:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                 cam_aberta = st.session_state.get('cad_camera_aberta', False)
@@ -65,7 +78,7 @@ class TalentosMenu(BaseMenu):
                 st.caption("Leitura de Documento via IA")
             
             if st.session_state.get('cad_camera_aberta', False):
-                foto_doc = st.camera_input("Tire uma foto legível do seu documento", key="cad_cam_in")
+                foto_doc = st.camera_input("Tire uma foto legível do seu documento", key=f"cad_cam_in_{reset_id}")
                 if foto_doc:
                     with st.spinner("Extraindo dados do documento..."):
                         try:

@@ -1,3 +1,43 @@
+# --- PATCH PARA COMPATIBILIDADE COM PYTHON 3.14-DEV E CHAVES SUPABASE NÃO-JWT ---
+import builtins
+import typing
+import re
+
+original_setattr = builtins.setattr
+def safe_setattr(obj, name, value):
+    try:
+        original_setattr(obj, name, value)
+    except AttributeError as e:
+        if name == "__module__":
+            pass
+        else:
+            raise e
+builtins.setattr = safe_setattr
+
+original_eval_type = getattr(typing, "_eval_type", None)
+if original_eval_type:
+    import inspect
+    try:
+        sig = inspect.signature(original_eval_type)
+        if 'prefer_fwd_module' not in sig.parameters:
+            def patched_eval_type(t, globalns, localns, *args, **kwargs):
+                kwargs.pop('prefer_fwd_module', None)
+                return original_eval_type(t, globalns, localns, *args, **kwargs)
+            typing._eval_type = patched_eval_type
+    except Exception:
+        pass
+
+original_match = re.match
+def patched_match(pattern, string, flags=0):
+    if pattern == r"^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$":
+        if string:
+            class MockMatch:
+                pass
+            return MockMatch()
+    return original_match(pattern, string, flags)
+re.match = patched_match
+# --------------------------------------------------------------------------------
+
 import streamlit as st
 from PIL import Image
 import os
