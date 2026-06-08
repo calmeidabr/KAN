@@ -293,17 +293,66 @@ class DiagnosticosMenu(BaseMenu):
                         st.error(f"Erro na IA: {e}")
 
                 st.markdown("---")
+                st.markdown("""
+                <style>
+                    /* Forçar alinhamento e dimensões consistentes dos botões de ação do Perfil */
+                    div[class*="st-key-dl_p_csv_"] button,
+                    div[class*="st-key-dl_p_pdf_"] button,
+                    div[class*="st-key-save_bottom_"] button {
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        gap: 8px !important;
+                        height: 42px !important;
+                        color: #FFFFFF !important;
+                        font-family: 'Inter', sans-serif !important;
+                        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                        border-radius: 8px !important;
+                    }
+
+                    /* Configuração dos ícones Lucide baseados em SVG Base64 */
+                    div[class*="st-key-dl_p_csv_"] button::before,
+                    div[class*="st-key-dl_p_pdf_"] button::before,
+                    div[class*="st-key-save_bottom_"] button::before {
+                        content: "" !important;
+                        display: inline-flex !important;
+                        width: 16px !important;
+                        height: 16px !important;
+                        margin-right: 8px !important;
+                        background-size: contain !important;
+                        background-repeat: no-repeat !important;
+                        background-position: center !important;
+                        vertical-align: middle !important;
+                    }
+
+                    /* Ícone de download/arquivo (file-spreadsheet) para CSV */
+                    div[class*="st-key-dl_p_csv_"] button::before {
+                        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTYgMjJhMiAyIDAgMCAxLTItMlY0YTIgMiAwIDAgMSAyLTJoOGEyLjQgMi40IDAgMCAxIDEuNzA0LjcwNmwzLjU4OCAzLjU4OEEyLjQgMi40IDAgMCAxIDIwIDh2MTJhMiAyIDAgMCAxLTIgMnoiIC8+PHBhdGggZD0iTTE0IDJ2NWExIDEgMCAwIDAgMSAxaDUiIC8+PHBhdGggZD0iTTggMTNoMiIgLz48cGF0aCBkPSJNMTQgMTNoMiIgLz48cGF0aCBkPSJNOCAxN2gyIiAvPjxwYXRoIGQ9Ik0xNCAxN2gyIiAvPjwvc3ZnPg==") !important;
+                    }
+
+                    /* Ícone de download/documento (file-text) para PDF */
+                    div[class*="st-key-dl_p_pdf_"] button::before {
+                        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTYgMjJhMiAyIDAgMCAxLTItMlY0YTIgMiAwIDAgMSAyLTJoOGEyLjQgMi40IDAgMCAxIDEuNzA0LjcwNmwzLjU4OCAzLjU4OEEyLjQgMi40IDAgMCAxIDIwIDh2MTJhMiAyIDAgMCAxLTIgMnoiIC8+PHBhdGggZD0iTTE0IDJ2NWExIDEgMCAwIDAgMSAxaDUiIC8+TTEwIDlIOCIgLz48cGF0aCBkPSJNMTYgMTNIOCIgLz48cGF0aCBkPSJNMTYgMTdIOCIgLz48L3N2Zz4=") !important;
+                    }
+
+                    /* Ícone de database/salvar (database) para Salvar na Base de Dados */
+                    div[class*="st-key-save_bottom_"] button::before {
+                        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGVsbGlwc2UgY3g9IjEyIiBjeT0iNSIgcng9IjkiIHJ5PSIzIiAvPjxwYXRoIGQ9Ik0zIDVWMTlBOSAzIDAgMCAwIDIxIDE5VjUiIC8+PHBhdGggZD0iTTMgMTJBOSAzIDAgMCAwIDIxIDEyIiAvPjwvc3ZnPg==") !important;
+                    }
+                </style>
+                """, unsafe_allow_html=True)
+
                 st.subheader("Salvar Perfil Comportamental")
                 col_p1, col_p2, col_p3 = st.columns(3)
                 df_perfil = pd.DataFrame(dados_perfil)
                 nome_limpo_p = remover_acentos(nome).replace(' ', '_')
                 with col_p1:
                     csv_p = df_perfil.to_csv(sep=';', index=False).encode('utf-8')
-                    st.download_button("Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key=f"dl_p_csv_{nome}")
+                    st.download_button("Baixar Perfil como CSV", data=csv_p, file_name=f"perfil_{nome_limpo_p}.csv", mime="text/csv", key=f"dl_p_csv_{nome}", use_container_width=True)
                 with col_p2:
                     data_str_pdf = data_input.strftime('%d/%m/%Y')
                     pdf_p = gerar_pdf(nome, data_str_pdf, dados_perfil, titulo="Perfil Comportamental KAN")
-                    st.download_button("Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key=f"dl_p_pdf_{nome}")
+                    st.download_button("Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key=f"dl_p_pdf_{nome}", use_container_width=True)
                 with col_p3:
                     if st.button("Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
                         salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
