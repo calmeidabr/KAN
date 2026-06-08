@@ -127,8 +127,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "candidatos": new_cands,
                                     "updated_at": "now()"
                                 }).eq("id", row_id).execute()
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import traceback
+                            st.error(f"Erro ao salvar exclusão no banco de dados para vaga {vaga_id_int}: {e}")
+                            st.text(traceback.format_exc())
+                            st.stop()
             # Limpar parâmetros específicos de exclusão e recarregar a tela limpa
             del st.query_params["excluir_cand"]
             if "vaga_id" in st.query_params:
@@ -168,8 +171,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                 "empresa": emp_sel,
                                 "candidatos": new_cands
                             }).execute()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import traceback
+                        st.error(f"Erro ao salvar associação no banco de dados para vaga {vaga_id_int}: {e}")
+                        st.text(traceback.format_exc())
+                        st.stop()
             
             del st.query_params["assoc_cand"]
             if "vaga_id" in st.query_params:
@@ -202,8 +208,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     "empresa": emp_sel,
                                     "updated_at": "now()"
                                 }).eq("id", row_id).execute()
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            import traceback
+                            st.error(f"Erro ao salvar desassociação no banco de dados para vaga {vaga_id_int}: {e}")
+                            st.text(traceback.format_exc())
+                            st.stop()
             
             del st.query_params["deassoc_cand"]
             if "vaga_id" in st.query_params:
