@@ -12,10 +12,13 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.VPS_HOST }}
+          host: 2.25.132.148
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
+          port:  22
+          protocol: tcp4
+          timeout: 60s
+          command_timeout: 20m
           script: |
             cd /var/www/app-mundokan
             git reset --hard HEAD
