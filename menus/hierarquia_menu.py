@@ -128,38 +128,58 @@ class HierarquiaMenu(BaseMenu):
             font-size: 1.5em;
             flex-shrink: 0;
         }
-        /* Ajuste para ícones de microações nos botões da hierarquia */
-        div[class*="st-key-btn_edit_cargo_tree_"] button::before {
-            content: "\\e12f" !important;
-            font-family: "lucide" !important;
-            font-size: 16px !important;
-            margin-right: 0 !important;
-            font-style: normal !important;
-            font-weight: normal !important;
-            line-height: 1 !important;
-            display: inline-block !important;
+        /* Destaque para líder - Customiza a variante selected do premium-card */
+        .premium-card-wrapper.variant-selected div[data-testid="stVerticalBlockBorderWrapper"],
+        .premium-card-wrapper.variant-selected div[data-testid="stContainer"] {
+            border-color: var(--accent) !important;
+            background: rgba(240, 138, 0, 0.03) !important;
+            box-shadow: 0 4px 15px rgba(240, 138, 0, 0.1) !important;
         }
-        div[class*="st-key-btn_set_lider_"] button::before {
-            content: "\\e1d6" !important;
-            font-family: "lucide" !important;
-            font-size: 16px !important;
-            margin-right: 0 !important;
-            color: #ff9f43 !important;
-            font-style: normal !important;
-            font-weight: normal !important;
-            line-height: 1 !important;
-            display: inline-block !important;
+        /* Estilos para árvore de departamentos (tree sidebar) */
+        div[class*="st-key-tree_btn_"] button {
+            text-align: left !important;
+            justify-content: flex-start !important;
+            border: none !important;
+            background: transparent !important;
+            padding: 6px 12px !important;
+            font-size: 0.95em !important;
+            color: var(--text-soft) !important;
+            border-radius: 8px !important;
+            transition: all 0.2s ease !important;
+            height: auto !important;
+            min-height: 0 !important;
+            display: flex !important;
+            align-items: center !important;
         }
-        div[class*="st-key-btn_rem_"] button::before {
-            content: "\\e18d" !important;
-            font-family: "lucide" !important;
-            font-size: 16px !important;
-            margin-right: 0 !important;
-            color: #ff3333 !important;
-            font-style: normal !important;
-            font-weight: normal !important;
-            line-height: 1 !important;
-            display: inline-block !important;
+        div[class*="st-key-tree_btn_"] button:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--text-main) !important;
+        }
+        div[class*="st-key-tree_btn_"] button[kind="primary"] {
+            background: rgba(240, 138, 0, 0.15) !important;
+            color: var(--accent) !important;
+            font-weight: 600 !important;
+            border-left: 3px solid var(--accent) !important;
+            border-radius: 0 8px 8px 0 !important;
+        }
+        /* Ajuste do botão kebab/popover de ações */
+        div[class*="st-key-kebab_"] button {
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            font-size: 1.15em !important;
+            color: var(--text-soft) !important;
+            box-shadow: none !important;
+            width: 32px !important;
+            height: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 50% !important;
+        }
+        div[class*="st-key-kebab_"] button:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: var(--accent) !important;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -252,57 +272,261 @@ class HierarquiaMenu(BaseMenu):
             else:
                 cargos_list = carregar_cargos()
                 dept_map_list = {d["departamento_id"]: d["nome"] for d in deptos}
-
-                def render_tree(parent_id, level=0):
-                    children = [d for d in deptos if (d.get("parent_id") == parent_id) or (parent_id == "Nenhum (Nível Mais Alto)" and (d.get("parent_id") is None or d.get("parent_id") == "Nenhum (Nível Mais Alto)"))]
-                    for ch in sorted(children, key=lambda x: x.get("ordem", 0)):
-                        indent = "\u00A0\u00A0\u00A0\u00A0" * level
-                        prefix = "└─ " if level > 0 else ""
-                        dept_talents = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]]
+                
+                # Inicializa estados de navegação
+                if "selected_dept_id" not in st.session_state:
+                    st.session_state["selected_dept_id"] = "all"
+                    
+                if "expanded_depts" not in st.session_state:
+                    st.session_state["expanded_depts"] = {d["departamento_id"] for d in deptos}
+                    
+                # Se o departamento selecionado foi deletado ou não existe na lista atual, reseta para "all"
+                if st.session_state["selected_dept_id"] != "all" and st.session_state["selected_dept_id"] not in dept_map_list:
+                    st.session_state["selected_dept_id"] = "all"
+                    
+                # Helper recursivo para buscar todos os descendentes (drill down)
+                def obter_subdepartamentos_recursivo(parent_id, deptos_list):
+                    sub_ids = [parent_id]
+                    for d in deptos_list:
+                        p_id = d.get("parent_id")
+                        if p_id == parent_id:
+                            sub_ids.extend(obter_subdepartamentos_recursivo(d["departamento_id"], deptos_list))
+                    return sub_ids
+                    
+                def obter_caminho_breadcrumb(dept_id, deptos_list):
+                    path = []
+                    curr_id = dept_id
+                    visited = set()
+                    while curr_id and curr_id not in ["Nenhum (Nível Mais Alto)", "root"] and curr_id not in visited:
+                        visited.add(curr_id)
+                        found = False
+                        for d in deptos_list:
+                            if d["departamento_id"] == curr_id:
+                                path.append(d)
+                                curr_id = d.get("parent_id")
+                                found = True
+                                break
+                        if not found:
+                            break
+                    path.reverse()
+                    return path
+                    
+                col_tree, col_main = st.columns([1, 2.8], gap="medium")
+                
+                with col_tree:
+                    st.markdown("<h4 style='margin-top:0; color: var(--text-main); font-weight:700;'>📁 Departamentos</h4>", unsafe_allow_html=True)
+                    st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+                    
+                    is_all_selected = st.session_state["selected_dept_id"] == "all"
+                    if st.button("🏢 Todos", key="tree_btn_all", use_container_width=True, type="primary" if is_all_selected else "secondary"):
+                        st.session_state["selected_dept_id"] = "all"
+                        st.rerun()
                         
-                        with st.container(border=True):
-                            st.markdown(f"<div style='padding-left: {level * 25}px;'><span style='color: var(--accent); font-weight: bold;'>{prefix}</span> <span style='font-size: 1.15em; font-weight: bold; color: #FFFFFF;'>{ch['nome']}</span></div>", unsafe_allow_html=True)
+                    def render_dept_tree_node(parent_id, level=0):
+                        children = [
+                            d for d in deptos
+                            if (d.get("parent_id") == parent_id) or 
+                               (parent_id == "root" and d.get("parent_id") in [None, "", "Nenhum (Nível Mais Alto)"])
+                        ]
+                        for ch in sorted(children, key=lambda x: x.get("ordem", 0)):
+                            ch_id = ch["departamento_id"]
+                            ch_children = [d for d in deptos if d.get("parent_id") == ch_id]
+                            has_children = len(ch_children) > 0
                             
-                            if dept_talents:
-                                for t_nome in sorted(dept_talents):
+                            indent = "\u00A0\u00A0" * level
+                            is_expanded = ch_id in st.session_state["expanded_depts"]
+                            is_selected = st.session_state["selected_dept_id"] == ch_id
+                            
+                            if has_children:
+                                icon = "📂" if is_expanded else "📁"
+                            else:
+                                icon = "📄"
+                                
+                            btn_label = f"{indent}{icon} {ch['nome']}"
+                            
+                            if st.button(btn_label, key=f"tree_btn_{ch_id}", use_container_width=True, type="primary" if is_selected else "secondary"):
+                                st.session_state["selected_dept_id"] = ch_id
+                                if has_children:
+                                    if is_expanded:
+                                        st.session_state["expanded_depts"].discard(ch_id)
+                                    else:
+                                        st.session_state["expanded_depts"].add(ch_id)
+                                st.rerun()
+                                
+                            if has_children and is_expanded:
+                                render_dept_tree_node(ch_id, level + 1)
+                                
+                    render_dept_tree_node("root", 0)
+                    
+                    st.markdown("---")
+                    if st.button("📝 Editar Estrutura", type="secondary", key=f"btn_edit_str_{empresa_selecionada}", use_container_width=True):
+                        st.session_state[state_key_edit] = True
+                        st.session_state[state_key_builder] = [
+                            {"id": d["departamento_id"], "nome": d["nome"], "parent_id": d.get("parent_id") or "Nenhum (Nível Mais Alto)"}
+                            for d in deptos
+                        ]
+                        st.rerun()
+                        
+                with col_main:
+                    selected_dept_id = st.session_state["selected_dept_id"]
+                    path = []
+                    if selected_dept_id != "all":
+                        path = obter_caminho_breadcrumb(selected_dept_id, deptos)
+                        
+                    # Breadcrumb
+                    breadcrumb_parts = ["🏢 " + empresa_selecionada.upper()]
+                    for d in path:
+                        breadcrumb_parts.append(f"📂 {d['nome']}")
+                    breadcrumb_str = " &nbsp;&gt;&nbsp; ".join(breadcrumb_parts)
+                    st.markdown(f"<div style='font-size: 0.95em; color: var(--text-soft); margin-bottom: 15px;'>{breadcrumb_str}</div>", unsafe_allow_html=True)
+                    
+                    dept_name = "Todos os Departamentos" if selected_dept_id == "all" else dept_map_list[selected_dept_id]
+                    
+                    col_header, col_link = st.columns([2.5, 1.5])
+                    with col_header:
+                        st.markdown(f"<h3 style='margin:0; color:var(--text-main); font-weight:800;'>{dept_name}</h3>", unsafe_allow_html=True)
+                        
+                    with col_link:
+                        if selected_dept_id != "all":
+                            with st.popover("➕ Vincular Talento", use_container_width=True):
+                                st.markdown(f"**Vincular a: {dept_name}**")
+                                company_talents = sorted(talentos_da_empresa)
+                                talento_sel = st.selectbox(
+                                    "Selecione o Talento:",
+                                    options=["Selecione..."] + company_talents,
+                                    key=f"sel_talent_dept_{selected_dept_id}"
+                                )
+                                cargo_sel = st.selectbox(
+                                    "Selecione o Cargo:",
+                                    options=cargos_list,
+                                    key=f"sel_cargo_dept_{selected_dept_id}"
+                                )
+                                lider_sel = st.checkbox("Definir como Líder", key=f"sel_lider_dept_{selected_dept_id}")
+                                if st.button("Associar", key=f"btn_assoc_dept_{selected_dept_id}", type="primary", use_container_width=True):
+                                    if talento_sel != "Selecione...":
+                                        if supabase_client:
+                                            try:
+                                                if lider_sel:
+                                                    supabase_client.table("mapas_salvos").update({"lider": False}).eq("departamento", selected_dept_id).execute()
+                                                supabase_client.table("mapas_salvos").update({
+                                                    "departamento": selected_dept_id,
+                                                    "cargo": cargo_sel,
+                                                    "lider": lider_sel
+                                                }).eq("nome", talento_sel).execute()
+                                                st.cache_data.clear()
+                                                st.success(f"{talento_sel} associado com sucesso!")
+                                                time.sleep(1)
+                                                st.rerun()
+                                            except Exception as ex:
+                                                st.error(f"Erro ao salvar: {ex}")
+                                        else:
+                                            if "clientes_local_data" not in st.session_state:
+                                                st.session_state["clientes_local_data"] = {}
+                                            if lider_sel:
+                                                for name, info in clientes.items():
+                                                    if info.get("empresa") == empresa_selecionada and info.get("departamento") == selected_dept_id:
+                                                        if name not in st.session_state["clientes_local_data"]:
+                                                            st.session_state["clientes_local_data"][name] = info.copy()
+                                                        st.session_state["clientes_local_data"][name]["lider"] = False
+                                            if talento_sel not in st.session_state["clientes_local_data"]:
+                                                st.session_state["clientes_local_data"][talento_sel] = clientes.get(talento_sel, {}).copy()
+                                            st.session_state["clientes_local_data"][talento_sel]["departamento"] = selected_dept_id
+                                            st.session_state["clientes_local_data"][talento_sel]["cargo"] = cargo_sel
+                                            st.session_state["clientes_local_data"][talento_sel]["lider"] = lider_sel
+                                            st.cache_data.clear()
+                                            st.success("Associado localmente!")
+                                            time.sleep(1)
+                                            st.rerun()
+                                            
+                    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+                    col_search, col_filter = st.columns([1.8, 1.2])
+                    with col_search:
+                        search_query = st.text_input("🔍 Buscar colaborador...", placeholder="Nome ou cargo", key="search_colab")
+                    with col_filter:
+                        filter_role = st.selectbox("Filtrar por Cargo:", options=["Todos"] + sorted(list(cargos_list)), key="filter_role_colab")
+                        
+                    if selected_dept_id == "all":
+                        talents_in_dept = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento")]
+                    else:
+                        target_depts = set(obter_subdepartamentos_recursivo(selected_dept_id, deptos))
+                        talents_in_dept = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") in target_depts]
+                        
+                    filtered_talents = []
+                    for t_nome in talents_in_dept:
+                        t_info = clientes[t_nome]
+                        t_cargo = t_info.get("cargo", "Sem Cargo")
+                        
+                        if search_query:
+                            q = search_query.lower()
+                            if q not in t_nome.lower() and q not in t_cargo.lower():
+                                continue
+                        if filter_role != "Todos" and t_cargo != filter_role:
+                            continue
+                        filtered_talents.append(t_nome)
+                        
+                    if not filtered_talents:
+                        st.info("Nenhum colaborador encontrado neste setor com os filtros ativos.")
+                    else:
+                        def sort_key(nome):
+                            info = clientes.get(nome, {})
+                            is_lider = info.get("lider", False)
+                            return (not is_lider, nome)
+                            
+                        ordered_talents = sorted(filtered_talents, key=sort_key)
+                        
+                        cols_per_row = 3
+                        from components.card import premium_card_container
+                        
+                        for i in range(0, len(ordered_talents), cols_per_row):
+                            row_members = ordered_talents[i:i + cols_per_row]
+                            cols = st.columns(cols_per_row)
+                            for idx, t_nome in enumerate(row_members):
+                                with cols[idx]:
                                     t_info = clientes[t_nome]
                                     t_cargo = t_info.get("cargo", "Sem Cargo")
                                     foto_b64 = t_info.get("foto_base64")
                                     is_lider = t_info.get("lider", False)
+                                    t_dept_id = t_info.get("departamento")
+                                    t_dept_name = dept_map_list.get(t_dept_id, "Sem Setor")
                                     
-                                    cols_tree = st.columns([1, 6, 9])
-                                    with cols_tree[0]:
-                                        st.markdown(f"<div style='padding-left: {level * 25 + 20}px;'></div>", unsafe_allow_html=True)
-                                    with cols_tree[1]:
-                                        from components.card import premium_card_container
-                                        with premium_card_container(variant="compact"):
-                                            card_cols = st.columns([1, 2.4, 1.1])
-                                            with card_cols[0]:
-                                                if foto_b64:
-                                                    st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); display: block;" />', unsafe_allow_html=True)
-                                                else:
-                                                    st.markdown('<div class="hierarquia-card-avatar"><i class="icon-user" style="color: var(--accent);"></i></div>', unsafe_allow_html=True)
-                                            with card_cols[1]:
-                                                st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
-                                                st.button(t_nome, key=f"lnk_tree_{ch['departamento_id']}_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
-                                                if is_lider:
-                                                    st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-flex; align-items: center; margin-left: 6px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
-                                                st.markdown('</div>', unsafe_allow_html=True)
-                                                st.markdown(f"<span style='color: var(--accent); font-weight: bold; font-size: 0.85em; display: block; margin-top: -6px;'>{t_cargo}</span>", unsafe_allow_html=True)
-                                            with card_cols[2]:
-                                                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-                                                btn_cols = st.columns(3)
-                                                with btn_cols[0]:
-                                                    if st.button(" ", key=f"btn_edit_cargo_tree_{ch['departamento_id']}_{t_nome}", help="Editar Cargo", use_container_width=True):
-                                                        modal_editar_cargo(t_nome, t_cargo, cargos_list)
-                                                with btn_cols[1]:
-                                                    help_lider = "Remover Liderança" if is_lider else "Tornar Líder"
-                                                    if st.button(" ", key=f"btn_set_lider_{ch['departamento_id']}_{t_nome}", help=help_lider, use_container_width=True, type="primary" if is_lider else "secondary"):
-                                                        novo_estado = not is_lider
+                                    card_variant = "selected" if is_lider else "compact"
+                                    
+                                    with premium_card_container(variant=card_variant):
+                                        card_cols = st.columns([1, 2.4, 0.8])
+                                        with card_cols[0]:
+                                            if foto_b64:
+                                                st.markdown(f'<img src="data:image/png;base64,{foto_b64}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); display: block;" />', unsafe_allow_html=True)
+                                            else:
+                                                st.markdown('<div class="hierarquia-card-avatar" style="width: 50px; height: 50px;"><i class="icon-user" style="color: var(--accent);"></i></div>', unsafe_allow_html=True)
+                                        with card_cols[1]:
+                                            st.markdown('<div class="talent-link-container" style="margin-top: -2px;">', unsafe_allow_html=True)
+                                            st.button(t_nome, key=f"lnk_grid_{t_nome}", on_click=self.app.ver_cadastro_talento, args=(t_nome,))
+                                            if is_lider:
+                                                st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; display: inline-flex; align-items: center; margin-left: 2px;"><i class="icon-crown" style="font-size:12px; margin-right:2px; vertical-align:middle;"></i>Líder</span>', unsafe_allow_html=True)
+                                            st.markdown('</div>', unsafe_allow_html=True)
+                                            
+                                            if selected_dept_id == "all":
+                                                st.markdown(f"<span style='color: var(--accent); font-weight: bold; font-size: 0.8em; display: block; margin-top: -3px;'>{t_dept_name}</span>", unsafe_allow_html=True)
+                                                st.markdown(f"<span style='color: var(--text-soft); font-size: 0.85em; display: block; margin-top: -3px;'>{t_cargo}</span>", unsafe_allow_html=True)
+                                            else:
+                                                st.markdown(f"<span style='color: var(--accent); font-weight: bold; font-size: 0.85em; display: block; margin-top: -4px;'>{t_cargo}</span>", unsafe_allow_html=True)
+                                                if t_dept_id != selected_dept_id:
+                                                    st.markdown(f"<span style='color: var(--text-soft); font-size: 0.78em; display: block; margin-top: -3px;'>Setor: {t_dept_name}</span>", unsafe_allow_html=True)
+                                                    
+                                        with card_cols[2]:
+                                            with st.popover("⚙️", key=f"kebab_{t_nome}_{t_dept_id}", help="Ações"):
+                                                if st.button("📝 Editar Cargo", key=f"pop_edit_{t_nome}_{t_dept_id}", use_container_width=True):
+                                                    modal_editar_cargo(t_nome, t_cargo, cargos_list)
+                                                    
+                                                help_lider = "Remover Liderança" if is_lider else "Tornar Líder"
+                                                if st.button("👑 Liderança" if not is_lider else "🥈 Liderança", key=f"pop_lider_{t_nome}_{t_dept_id}", help=help_lider, use_container_width=True):
+                                                    novo_estado = not is_lider
+                                                    curr_t_dept = t_info.get("departamento")
+                                                    if curr_t_dept:
                                                         if supabase_client:
                                                             try:
                                                                 if novo_estado:
-                                                                    supabase_client.table("mapas_salvos").update({"lider": False}).eq("departamento", ch["departamento_id"]).execute()
+                                                                    supabase_client.table("mapas_salvos").update({"lider": False}).eq("departamento", curr_t_dept).execute()
                                                                 supabase_client.table("mapas_salvos").update({"lider": novo_estado}).eq("nome", t_nome).execute()
                                                                 st.cache_data.clear()
                                                                 st.toast(f"👑 {t_nome} definido como Líder!" if novo_estado else f"Liderança de {t_nome} removida!")
@@ -311,92 +535,46 @@ class HierarquiaMenu(BaseMenu):
                                                             except Exception as ex:
                                                                 st.error(f"Erro ao salvar no banco: {ex}")
                                                         else:
-                                                            if "clientes_local_data" not in st.session_state: st.session_state["clientes_local_data"] = {}
+                                                            if "clientes_local_data" not in st.session_state:
+                                                                st.session_state["clientes_local_data"] = {}
                                                             if novo_estado:
                                                                 for name, info in clientes.items():
-                                                                    if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]:
-                                                                        if name not in st.session_state["clientes_local_data"]: st.session_state["clientes_local_data"][name] = info.copy()
+                                                                    if info.get("empresa") == empresa_selecionada and info.get("departamento") == curr_t_dept:
+                                                                        if name not in st.session_state["clientes_local_data"]:
+                                                                            st.session_state["clientes_local_data"][name] = info.copy()
                                                                         st.session_state["clientes_local_data"][name]["lider"] = False
-                                                            if t_nome not in st.session_state["clientes_local_data"]: st.session_state["clientes_local_data"][t_nome] = t_info.copy()
+                                                            if t_nome not in st.session_state["clientes_local_data"]:
+                                                                st.session_state["clientes_local_data"][t_nome] = t_info.copy()
                                                             st.session_state["clientes_local_data"][t_nome]["lider"] = novo_estado
                                                             st.cache_data.clear()
                                                             st.toast("✅ Liderança atualizada localmente!")
                                                             time.sleep(1)
                                                             st.rerun()
-                                                with btn_cols[2]:
-                                                    if st.button(" ", key=f"btn_rem_dept_{ch['departamento_id']}_{t_nome}", help="Remover do Departamento", use_container_width=True):
-                                                        if supabase_client:
-                                                            try:
-                                                                supabase_client.table("mapas_salvos").update({"departamento": None, "lider": False}).eq("nome", t_nome).execute()
-                                                                st.cache_data.clear()
-                                                                st.toast(f"❌ {t_nome} removido do departamento!")
-                                                                time.sleep(1)
-                                                                st.rerun()
-                                                            except Exception as ex:
-                                                                st.error(f"Erro ao salvar: {ex}")
-                                                        else:
-                                                            if "clientes_local_data" not in st.session_state: st.session_state["clientes_local_data"] = {}
-                                                            if t_nome not in st.session_state["clientes_local_data"]: st.session_state["clientes_local_data"][t_nome] = t_info.copy()
-                                                            st.session_state["clientes_local_data"][t_nome]["departamento"] = None
-                                                            st.session_state["clientes_local_data"][t_nome]["lider"] = False
+                                                            
+                                                if st.button("❌ Desvincular", key=f"pop_rem_{t_nome}_{t_dept_id}", help="Remover do Departamento", use_container_width=True):
+                                                    if supabase_client:
+                                                        try:
+                                                            supabase_client.table("mapas_salvos").update({"departamento": None, "lider": False}).eq("nome", t_nome).execute()
                                                             st.cache_data.clear()
-                                                            st.toast("✅ Removido localmente!")
+                                                            st.toast(f"❌ {t_nome} removido do departamento!")
                                                             time.sleep(1)
                                                             st.rerun()
-                             
-                            cols_assoc = st.columns([1, 10])
-                            with cols_assoc[0]:
-                                st.markdown(f"<div style='width: {level * 25}px;'></div>", unsafe_allow_html=True)
-                            with cols_assoc[1]:
-                                with st.popover("Vincular Talento", use_container_width=False):
-                                    st.markdown(f"**Departamento: {ch['nome']}**")
-                                    company_talents = sorted(talentos_da_empresa)
-                                    talento_sel = st.selectbox(
-                                        "Selecione o Talento:",
-                                        options=["Selecione..."] + company_talents,
-                                        key=f"sel_talent_dept_{ch['departamento_id']}"
-                                    )
-                                    cargo_sel = st.selectbox(
-                                        "Selecione o Cargo:",
-                                        options=cargos_list,
-                                        key=f"sel_cargo_dept_{ch['departamento_id']}"
-                                    )
-                                    lider_sel = st.checkbox("Definir como Líder", key=f"sel_lider_dept_{ch['departamento_id']}")
-                                    if st.button("Associar", key=f"btn_assoc_dept_{ch['departamento_id']}", type="primary", use_container_width=True):
-                                        if talento_sel != "Selecione...":
-                                            if supabase_client:
-                                                try:
-                                                    if lider_sel:
-                                                        supabase_client.table("mapas_salvos").update({"lider": False}).eq("departamento", ch["departamento_id"]).execute()
-                                                    supabase_client.table("mapas_salvos").update({
-                                                        "departamento": ch["departamento_id"],
-                                                        "cargo": cargo_sel,
-                                                        "lider": lider_sel
-                                                    }).eq("nome", talento_sel).execute()
-                                                    st.cache_data.clear()
-                                                    st.success(f"{talento_sel} associado com sucesso!")
-                                                    time.sleep(1)
-                                                    st.rerun()
-                                                except Exception as ex:
-                                                    st.error(f"Erro ao salvar: {ex}")
-                                            else:
-                                                if "clientes_local_data" not in st.session_state: st.session_state["clientes_local_data"] = {}
-                                                if lider_sel:
-                                                    for name, info in clientes.items():
-                                                        if info.get("empresa") == empresa_selecionada and info.get("departamento") == ch["departamento_id"]:
-                                                            if name not in st.session_state["clientes_local_data"]: st.session_state["clientes_local_data"][name] = info.copy()
-                                                            st.session_state["clientes_local_data"][name]["lider"] = False
-                                                if talento_sel not in st.session_state["clientes_local_data"]: st.session_state["clientes_local_data"][talento_sel] = clientes.get(talento_sel, {}).copy()
-                                                st.session_state["clientes_local_data"][talento_sel]["departamento"] = ch["departamento_id"]
-                                                st.session_state["clientes_local_data"][talento_sel]["cargo"] = cargo_sel
-                                                st.session_state["clientes_local_data"][talento_sel]["lider"] = lider_sel
-                                                st.cache_data.clear()
-                                                st.success("Associado localmente!")
-                                                time.sleep(1)
-                                                st.rerun()
-                        render_tree(ch["departamento_id"], level + 1)
-                
-                render_tree("Nenhum (Nível Mais Alto)", 0)
+                                                        except Exception as ex:
+                                                            st.error(f"Erro ao salvar: {ex}")
+                                                    else:
+                                                        if "clientes_local_data" not in st.session_state:
+                                                            st.session_state["clientes_local_data"] = {}
+                                                        if t_nome not in st.session_state["clientes_local_data"]:
+                                                            st.session_state["clientes_local_data"][t_nome] = t_info.copy()
+                                                        st.session_state["clientes_local_data"][t_nome]["departamento"] = None
+                                                        st.session_state["clientes_local_data"][t_nome]["lider"] = False
+                                                        st.cache_data.clear()
+                                                        st.toast("✅ Removido localmente!")
+                                                        time.sleep(1)
+                                                        st.rerun()
+                                                        
+                                                if st.button("🔍 Ver Perfil", key=f"pop_perf_{t_nome}_{t_dept_id}", use_container_width=True):
+                                                    self.app.ver_cadastro_talento(t_nome)
         else:
             # Construtor da Hierarquia
             st.subheader(f"Construtor de Hierarquia: {empresa_selecionada}")
