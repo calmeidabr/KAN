@@ -1032,6 +1032,68 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 color: #F4F7FB !important;
                 font-weight: 700 !important;
             }}
+
+            /* Estilos customizados da tabela de ranking por aderência */
+            .custom-table-header {{
+                font-family: 'Outfit', sans-serif !important;
+                font-weight: 700 !important;
+                font-size: 0.82rem !important;
+                color: #8C96A8 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.5px !important;
+                padding: 6px 0 !important;
+            }}
+            .custom-table-cell {{
+                font-family: 'Inter', sans-serif !important;
+                font-size: 0.85rem !important;
+                color: #F4F7FB !important;
+                padding: 4px 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                min-height: 28px !important;
+            }}
+
+            /* Botões de Ação no Ranking de Aderência (Associar) */
+            div[class*="st-key-btn_assoc_rank_"] button {{
+                background-color: transparent !important;
+                color: #F08A00 !important;
+                border: 1px solid #F08A00 !important;
+                font-size: 0.72rem !important;
+                padding: 4px 8px !important;
+                height: auto !important;
+                min-height: 26px !important;
+                border-radius: 6px !important;
+                font-weight: 700 !important;
+                transition: all 0.2s ease !important;
+                line-height: 1.2 !important;
+                text-transform: none !important;
+            }}
+            div[class*="st-key-btn_assoc_rank_"] button:hover {{
+                background-color: rgba(240, 138, 0, 0.1) !important;
+                border-color: #FF9D1F !important;
+                color: #FF9D1F !important;
+            }}
+
+            /* Botões de Ação no Ranking de Aderência (Remover) */
+            div[class*="st-key-btn_deassoc_rank_"] button {{
+                background-color: rgba(239, 68, 68, 0.1) !important;
+                color: #EF4444 !important;
+                border: 1px solid rgba(239, 68, 68, 0.4) !important;
+                font-size: 0.72rem !important;
+                padding: 4px 8px !important;
+                height: auto !important;
+                min-height: 26px !important;
+                border-radius: 6px !important;
+                font-weight: 700 !important;
+                transition: all 0.2s ease !important;
+                line-height: 1.2 !important;
+                text-transform: none !important;
+            }}
+            div[class*="st-key-btn_deassoc_rank_"] button:hover {{
+                background-color: rgba(239, 68, 68, 0.2) !important;
+                border-color: #EF4444 !important;
+                color: #EF4444 !important;
+            }}
         </style>
         
         <div class="matching-page-wrapper" style="display: none;"></div>
@@ -2051,8 +2113,98 @@ Instruções cruciais:
         df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
         
         if not df_matching_empresa.empty:
-            df_display = df_matching_empresa.drop(columns=["talento_detalhes", "foto_base64", "data_nascimento", "Empresa"])
-            st.dataframe(df_display, use_container_width=True, hide_index=True)
+            # Cabeçalho da Tabela
+            col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1.8, 1.3, 1.3, 1.0, 1.0, 1.1, 1.1, 1.1, 1.3])
+            with col1: st.markdown("<div class='custom-table-header'>Nome</div>", unsafe_allow_html=True)
+            with col2: st.markdown("<div class='custom-table-header'>Profissão</div>", unsafe_allow_html=True)
+            with col3: st.markdown("<div class='custom-table-header'>Grupo</div>", unsafe_allow_html=True)
+            with col4: st.markdown("<div class='custom-table-header' style='text-align: center;'>Aderência (%)</div>", unsafe_allow_html=True)
+            with col5: st.markdown("<div class='custom-table-header' style='text-align: center;'>KAN</div>", unsafe_allow_html=True)
+            with col6: st.markdown("<div class='custom-table-header' style='text-align: center;'>Perfil</div>", unsafe_allow_html=True)
+            with col7: st.markdown("<div class='custom-table-header' style='text-align: center;'>Categoria</div>", unsafe_allow_html=True)
+            with col8: st.markdown("<div class='custom-table-header' style='text-align: center;'>Qualidades</div>", unsafe_allow_html=True)
+            with col9: st.markdown("<div class='custom-table-header' style='text-align: center;'>Ação</div>", unsafe_allow_html=True)
+            
+            st.markdown("<hr style='margin: 8px 0; border-color: rgba(255,255,255,0.15);'/>", unsafe_allow_html=True)
+            
+            associated_cands = st.session_state["candidatos_vagas"].get(vaga["id"], [])
+            
+            for idx_row, row in df_matching_empresa.iterrows():
+                col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1.8, 1.3, 1.3, 1.0, 1.0, 1.1, 1.1, 1.1, 1.3])
+                
+                nome_cand = row["Nome"]
+                is_assoc = nome_cand in associated_cands
+                
+                with col1:
+                    st.markdown(f"<div class='custom-table-cell'><strong>{nome_cand}</strong></div>", unsafe_allow_html=True)
+                with col2:
+                    st.markdown(f"<div class='custom-table-cell'>{row['Profissão']}</div>", unsafe_allow_html=True)
+                with col3:
+                    st.markdown(f"<div class='custom-table-cell'>{row['Grupo']}</div>", unsafe_allow_html=True)
+                with col4:
+                    st.markdown(f"<div class='custom-table-cell' style='text-align: center;'>{row['Aderência (%)']}%</div>", unsafe_allow_html=True)
+                with col5:
+                    st.markdown(f"<div class='custom-table-cell' style='text-align: center;'>{row['KAN']}</div>", unsafe_allow_html=True)
+                with col6:
+                    st.markdown(f"<div class='custom-table-cell' style='text-align: center;'>{row['Perfil']}</div>", unsafe_allow_html=True)
+                with col7:
+                    st.markdown(f"<div class='custom-table-cell' style='text-align: center;'>{row['Categoria']}</div>", unsafe_allow_html=True)
+                with col8:
+                    st.markdown(f"<div class='custom-table-cell' style='text-align: center;'>{row['Qualidades']}</div>", unsafe_allow_html=True)
+                    
+                with col9:
+                    if is_assoc:
+                        if st.button("Remover", key=f"btn_deassoc_rank_{idx_row}_{vaga['id']}", use_container_width=True):
+                            associated_cands.remove(nome_cand)
+                            st.session_state["candidatos_vagas"][vaga["id"]] = associated_cands
+                            
+                            try:
+                                check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga["id"]).execute()
+                                if check_ex and check_ex.data:
+                                    row_id = check_ex.data[0]["id"]
+                                    supabase_client.table("processos_seletivos").update({
+                                        "candidatos": associated_cands,
+                                        "updated_at": "now()"
+                                    }).eq("id", row_id).execute()
+                                else:
+                                    supabase_client.table("processos_seletivos").insert({
+                                        "vaga_id": vaga["id"],
+                                        "empresa": empresa_selecionada,
+                                        "candidatos": associated_cands
+                                    }).execute()
+                                st.toast(f"{nome_cand} removido do processo!", icon="🗑️")
+                            except Exception as e:
+                                st.error(f"Erro ao salvar no banco: {e}")
+                            
+                            st.rerun()
+                    else:
+                        if st.button("Associar", key=f"btn_assoc_rank_{idx_row}_{vaga['id']}", use_container_width=True):
+                            if vaga["id"] not in st.session_state["candidatos_vagas"]:
+                                st.session_state["candidatos_vagas"][vaga["id"]] = []
+                            st.session_state["candidatos_vagas"][vaga["id"]].append(nome_cand)
+                            updated_cands = st.session_state["candidatos_vagas"][vaga["id"]]
+                            
+                            try:
+                                check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga["id"]).execute()
+                                if check_ex and check_ex.data:
+                                    row_id = check_ex.data[0]["id"]
+                                    supabase_client.table("processos_seletivos").update({
+                                        "candidatos": updated_cands,
+                                        "updated_at": "now()"
+                                    }).eq("id", row_id).execute()
+                                else:
+                                    supabase_client.table("processos_seletivos").insert({
+                                        "vaga_id": vaga["id"],
+                                        "empresa": empresa_selecionada,
+                                        "candidatos": updated_cands
+                                    }).execute()
+                                st.toast(f"{nome_cand} associado ao processo!", icon="✅")
+                            except Exception as e:
+                                st.error(f"Erro ao salvar no banco: {e}")
+                            
+                            st.rerun()
+                            
+                st.markdown("<hr style='margin: 4px 0; border-color: rgba(255,255,255,0.06);'/>", unsafe_allow_html=True)
         else:
             st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
 
