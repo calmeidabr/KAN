@@ -53,10 +53,34 @@ def fetch_fortalezas():
     try:
         if client:
             resp = client.table("fortalezas").select("*").execute()
-            return {str(int(get_from_row(row, 'triangulo'))): {"fortaleza": get_from_row(row, 'fortaleza'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'triangulo') is not None}
+            if resp.data:
+                res_dict = {}
+                for row in resp.data:
+                    num_val = get_from_row(row, 'triangulo')
+                    if num_val is not None:
+                        res_dict[str(int(num_val))] = {"fortaleza": get_from_row(row, 'fortaleza'), "descricao": get_from_row(row, 'descricao')}
+                if res_dict: return res_dict
     except Exception:
         pass
-    return {}
+        
+    try:
+        df = pd.read_csv("Fortaleza.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("Fortaleza.csv", sep=",")
+        res_dict = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            num_val = get_from_row(row_dict, 'triangulo')
+            if num_val is not None:
+                try: key_str = str(int(float(num_val)))
+                except: key_str = str(num_val).strip()
+                res_dict[key_str] = {
+                    "fortaleza": get_from_row(row_dict, 'fortaleza'),
+                    "descricao": get_from_row(row_dict, 'descricao')
+                }
+        return res_dict
+    except Exception:
+        return {}
 
 FORTALEZAS_DB = fetch_fortalezas()
 
@@ -66,10 +90,34 @@ def fetch_kan():
     try:
         if client:
             resp = client.table("kans").select("*").execute()
-            return {str(int(get_from_row(row, 'numero'))): {"kan": get_from_row(row, 'kan'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
+            if resp.data:
+                res_dict = {}
+                for row in resp.data:
+                    num_val = get_from_row(row, 'numero')
+                    if num_val is not None:
+                        res_dict[str(int(num_val))] = {"kan": get_from_row(row, 'kan'), "descricao": get_from_row(row, 'descricao')}
+                if res_dict: return res_dict
     except Exception:
         pass
-    return {}
+        
+    try:
+        df = pd.read_csv("KAN.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("KAN.csv", sep=",")
+        res_dict = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            num_val = get_from_row(row_dict, 'numero')
+            if num_val is not None:
+                try: key_str = str(int(float(num_val)))
+                except: key_str = str(num_val).strip()
+                res_dict[key_str] = {
+                    "kan": get_from_row(row_dict, 'kan'),
+                    "descricao": get_from_row(row_dict, 'descricao')
+                }
+        return res_dict
+    except Exception:
+        return {}
 
 KAN_DB = fetch_kan()
 
@@ -79,10 +127,34 @@ def fetch_desafios():
     try:
         if client:
             resp = client.table("desafios").select("*").execute()
-            return {str(int(get_from_row(row, 'dia_nascimento'))): {"desafio": get_from_row(row, 'desafio'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'dia_nascimento') is not None}
+            if resp.data:
+                res_dict = {}
+                for row in resp.data:
+                    num_val = get_from_row(row, 'dia_nascimento')
+                    if num_val is not None:
+                        res_dict[str(int(num_val))] = {"desafio": get_from_row(row, 'desafio'), "descricao": get_from_row(row, 'descricao')}
+                if res_dict: return res_dict
     except Exception:
         pass
-    return {}
+        
+    try:
+        df = pd.read_csv("Desafio.csv", sep=";")
+        if df.shape[1] <= 1:
+            df = pd.read_csv("Desafio.csv", sep=",")
+        res_dict = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            num_val = get_from_row(row_dict, 'dia do nascimento') or get_from_row(row_dict, 'dia_nascimento')
+            if num_val is not None and pd.notna(num_val):
+                try: key_str = str(int(float(num_val)))
+                except: key_str = str(num_val).strip()
+                res_dict[key_str] = {
+                    "desafio": get_from_row(row_dict, 'desafio'),
+                    "descricao": get_from_row(row_dict, 'descricao')
+                }
+        return res_dict
+    except Exception:
+        return {}
 
 DESAFIOS_DB = fetch_desafios()
 
@@ -188,7 +260,12 @@ def fetch_peso():
         if client:
             resp = client.table("peso").select("*").execute()
             if resp.data:
-                res_dict = {row['campo']: row['peso'] for row in resp.data}
+                res_dict = {}
+                for row in resp.data:
+                    c = get_from_row(row, 'campo')
+                    p = get_from_row(row, 'peso')
+                    if c is not None and p is not None:
+                        res_dict[c] = p
                 if res_dict: return res_dict
     except Exception: pass
         
@@ -196,7 +273,14 @@ def fetch_peso():
         df = pd.read_csv("peso.csv", sep=";")
         if df.shape[1] <= 1:
             df = pd.read_csv("peso.csv", sep=",")
-        return {row['campo']: row['peso'] for _, row in df.iterrows()}
+        res_dict = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            c = get_from_row(row_dict, 'campo')
+            p = get_from_row(row_dict, 'peso')
+            if c is not None and p is not None:
+                res_dict[c] = p
+        return res_dict
     except Exception: return {}
 
 PESO_DB = fetch_peso()
@@ -300,14 +384,28 @@ def fetch_peso_categoria():
     try:
         if client:
             resp = client.table("peso_categoria").select("*").execute()
-            if resp.data: return {row['campo']: row['peso'] for row in resp.data}
+            if resp.data:
+                res_dict = {}
+                for row in resp.data:
+                    c = get_from_row(row, 'campo')
+                    p = get_from_row(row, 'peso') or get_from_row(row, 'peso_categoria')
+                    if c is not None and p is not None:
+                        res_dict[c] = p
+                if res_dict: return res_dict
     except Exception: pass
         
     try:
         df = pd.read_csv("peso_categoria.csv", sep=";")
         if df.shape[1] <= 1:
             df = pd.read_csv("peso_categoria.csv", sep=",")
-        return {row['campo']: row['peso'] for _, row in df.iterrows()}
+        res_dict = {}
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+            c = get_from_row(row_dict, 'campo')
+            p = get_from_row(row_dict, 'peso') or get_from_row(row_dict, 'peso_categoria')
+            if c is not None and p is not None:
+                res_dict[c] = p
+        return res_dict
     except Exception: return {}
 
 PESO_CATEGORIA_DB = fetch_peso_categoria()

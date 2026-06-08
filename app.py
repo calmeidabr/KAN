@@ -191,6 +191,10 @@ class App:
                 st.session_state["sidebar_menu"] = nav_val
             del st.query_params["nav"]
 
+        # Se houver parâmetros de ação de processos seletivos, força a rota correspondente
+        if any(x in st.query_params for x in ["assoc_cand", "deassoc_cand", "excluir_cand"]):
+            st.session_state["sidebar_menu"] = "Processo seletivo"
+
         self.render_sidebar()
 
         escolha = st.session_state.get("sidebar_menu", "Home")

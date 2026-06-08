@@ -113,6 +113,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 except:
                     vaga_id_int = vaga_id
                 
+                # Manter a vaga ativa selecionada
+                try:
+                    res_v = supabase_client.table("vagas").select("nome_vaga, senioridade").eq("id", vaga_id_int).execute()
+                    if res_v and res_v.data:
+                        v_info = res_v.data[0]
+                        st.session_state["analise_proc_vaga_sel"] = f"{v_info['nome_vaga']} ({v_info['senioridade']})"
+                except Exception:
+                    pass
+                
                 if vaga_id_int in st.session_state["candidatos_vagas"]:
                     if cand_nome in st.session_state["candidatos_vagas"][vaga_id_int]:
                         st.session_state["candidatos_vagas"][vaga_id_int].remove(cand_nome)
@@ -147,6 +156,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     vaga_id_int = int(vaga_id)
                 except:
                     vaga_id_int = vaga_id
+                
+                # Manter a vaga ativa selecionada
+                try:
+                    res_v = supabase_client.table("vagas").select("nome_vaga, senioridade").eq("id", vaga_id_int).execute()
+                    if res_v and res_v.data:
+                        v_info = res_v.data[0]
+                        st.session_state["analise_proc_vaga_sel"] = f"{v_info['nome_vaga']} ({v_info['senioridade']})"
+                except Exception:
+                    pass
                 
                 if vaga_id_int not in st.session_state["candidatos_vagas"]:
                     st.session_state["candidatos_vagas"][vaga_id_int] = []
@@ -191,6 +209,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                     vaga_id_int = int(vaga_id)
                 except:
                     vaga_id_int = vaga_id
+                
+                # Manter a vaga ativa selecionada
+                try:
+                    res_v = supabase_client.table("vagas").select("nome_vaga, senioridade").eq("id", vaga_id_int).execute()
+                    if res_v and res_v.data:
+                        v_info = res_v.data[0]
+                        st.session_state["analise_proc_vaga_sel"] = f"{v_info['nome_vaga']} ({v_info['senioridade']})"
+                except Exception:
+                    pass
                 
                 if vaga_id_int in st.session_state["candidatos_vagas"]:
                     if cand_nome in st.session_state["candidatos_vagas"][vaga_id_int]:
@@ -2113,7 +2140,7 @@ Instruções cruciais:
                             cand_nome_encoded = urllib.parse.quote(cand['Nome'])
                             vaga_id_encoded = urllib.parse.quote(str(vaga['id']))
                             btn_excluir_html = f"""
-                            <a href="?excluir_cand={cand_nome_encoded}&vaga_id={vaga_id_encoded}" target="_self" class="btn-excluir-link" title="Remover do processo">
+                            <a href="?excluir_cand={cand_nome_encoded}&vaga_id={vaga_id_encoded}&nav=Processo%20seletivo" target="_self" class="btn-excluir-link" title="Remover do processo">
                                 <i class="icon-user-minus"></i>
                             </a>
                             """
@@ -2249,9 +2276,9 @@ Instruções cruciais:
                 
                 # Definir botão de ação (link circular '+' ou '✓')
                 if is_assoc:
-                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}" target="_self">✓</a>'
+                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}&nav=Processo%20seletivo" target="_self">✓</a>'
                 else:
-                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}" target="_self">+</a>'
+                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}&nav=Processo%20seletivo" target="_self">+</a>'
                 
                 table_html += f"""
                         <tr>
