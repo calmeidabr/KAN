@@ -219,15 +219,7 @@ class HierarquiaMenu(BaseMenu):
                 st.session_state[state_key_edit] = False
                 
             if not st.session_state[state_key_edit]:
-                if deptos:
-                    if st.button("Editar Departamentos", type="secondary", key=f"btn_edit_str_{empresa_selecionada}"):
-                        st.session_state[state_key_edit] = True
-                        st.session_state[state_key_builder] = [
-                            {"id": d["departamento_id"], "nome": d["nome"], "parent_id": d.get("parent_id") or "Nenhum (Nível Mais Alto)"}
-                            for d in deptos
-                        ]
-                        st.rerun()
-                else:
+                if not deptos:
                     if st.button("Criar Departamentos", type="primary", key=f"btn_start_add_str_{empresa_selecionada}"):
                         st.session_state[state_key_edit] = True
                         st.session_state[state_key_builder] = [
