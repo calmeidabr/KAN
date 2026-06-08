@@ -196,18 +196,9 @@ class TalentosMenu(BaseMenu):
                             st.session_state['ocr_data_nascimento'] = ''
             with col_b2:
                 if st.button("Novo", use_container_width=True, key="cad_novo_btn"):
-                    st.session_state["cad_nome"] = ""
-                    st.session_state["cad_data"] = ""
-                    st.session_state["cad_profissao"] = ""
-                    st.session_state["cad_grupo"] = ""
-                    st.session_state["cad_empresa_sel"] = "Nenhuma / Não associada"
-                    st.session_state["cad_link"] = ""
-                    st.session_state["cad_exp"] = ""
-                    st.session_state["ocr_nome"] = ""
-                    st.session_state["ocr_data_nascimento"] = ""
-                    st.session_state["cad_camera_aberta"] = False
-                    if "cad_foto" in st.session_state:
-                        del st.session_state["cad_foto"]
+                    for k in ["cad_nome", "cad_data", "cad_profissao", "cad_grupo", "cad_empresa_sel", "cad_link", "cad_exp", "ocr_nome", "ocr_data_nascimento", "cad_foto"]:
+                        st.session_state.pop(k, None)
+                    st.session_state['cad_camera_aberta'] = False
                     st.rerun()
 
         st.write("---")
