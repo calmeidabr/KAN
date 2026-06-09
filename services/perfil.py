@@ -149,21 +149,21 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
         add_row_mapa("Missão", missao, "Missao")
 
         if dividas_carmicas:
-            dividas_str = ', '.join(str(d) for d in dividas_carmicas)
-            dividas_parts = [f"<b>{d}</b>: {get_desc_mapa('Divida Carmica', str(d)) or d}" for d in dividas_carmicas]
-            add_row("Dívidas Cármicas", dividas_str, ' | '.join(dividas_parts))
+            dividas_str = ', '.join(str(d) for d in dividas_carmicas if d is not None)
+            dividas_parts = [f"<b>{d}</b>: {get_desc_mapa('Divida Carmica', str(d)) or d}" for d in dividas_carmicas if d is not None]
+            add_row("Dívidas Cármicas", dividas_str, ' | '.join(str(x) for x in dividas_parts if x is not None))
         else: add_row("Dívidas Cármicas", None, "Não há")
 
         if licoes_carmicas:
-            licoes_str = ', '.join(str(l) for l in licoes_carmicas)
-            licoes_parts = [f"<b>{l}</b>: {get_desc_mapa('Licao Carmica', str(l)) or l}" for l in licoes_carmicas]
-            add_row("Lições Cármicas", licoes_str, ' | '.join(licoes_parts))
+            licoes_str = ', '.join(str(l) for l in licoes_carmicas if l is not None)
+            licoes_parts = [f"<b>{l}</b>: {get_desc_mapa('Licao Carmica', str(l)) or l}" for l in licoes_carmicas if l is not None]
+            add_row("Lições Cármicas", licoes_str, ' | '.join(str(x) for x in licoes_parts if x is not None))
         else: add_row("Lições Cármicas", None, "Não há")
 
         if tendencias_ocultas:
-            tend_str = ', '.join(str(t) for t in tendencias_ocultas)
-            tend_parts = [f"<b>{t}</b>: {get_desc_mapa('Tendencia Oculta', str(t)) or t}" for t in tendencias_ocultas]
-            add_row("Tendências Ocultas", tend_str, ' | '.join(tend_parts))
+            tend_str = ', '.join(str(t) for t in tendencias_ocultas if t is not None)
+            tend_parts = [f"<b>{t}</b>: {get_desc_mapa('Tendencia Oculta', str(t)) or t}" for t in tendencias_ocultas if t is not None]
+            add_row("Tendências Ocultas", tend_str, ' | '.join(str(x) for x in tend_parts if x is not None))
         else: add_row("Tendências Ocultas", None, "Não há")
 
         desc_resp = get_desc_mapa("Resposta Subconsciente", str(extract_num(resposta_subconsciente))) if resposta_subconsciente else ""
@@ -321,46 +321,55 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
             for p, s in totais_s[totais_s > 0].items():
                 if max_s / s <= st.session_state.get('score_perfil_corte_slider', 1.8): perfis_escolhidos.append(p)
                 else: break
-        perfil_val = ", ".join(perfis_escolhidos); p_desc_list = []
+        perfil_val = ", ".join(str(x) for x in perfis_escolhidos if x is not None); p_desc_list = []
         for p in perfis_escolhidos:
+            if p is None: continue
             d = ""; pn = remover_acentos(p).upper()
             for k_desc, v_desc in PERFIL_DESCRICAO_DB.items():
-                if remover_acentos(k_desc).upper() == pn: d = v_desc; break
+                if k_desc and remover_acentos(k_desc).upper() == pn: d = v_desc; break
             if d: p_desc_list.append(d)
-        add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(p_desc_list) if p_desc_list else "")
+        add_row_perfil_split("Perfil", perfil_val, "<br><br>".join(str(x) for x in p_desc_list if x is not None) if p_desc_list else "")
         
         modo_corte_cat = st.session_state.get('corte_categoria_modo', 'Calculo')
         cat_sel = cat_dia_natalicio if modo_corte_cat == 'Dia Natalicio' else (score_cat_df['TOTAL'].sort_values(ascending=False).index[0] if not score_cat_df['TOTAL'].empty else "")
-        cat_d = ""; cn = remover_acentos(cat_sel).upper()
-        for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
-            if remover_acentos(k_desc).upper() == cn: cat_d = v_desc; break
-        add_row_perfil_split("Categoria", cat_sel, cat_d)
+        cat_d = ""; cn = remover_acentos(cat_sel).upper() if cat_sel else ""
+        if cn:
+            for k_desc, v_desc in CATEGORIA_DESCRICAO_DB.items():
+                if k_desc and remover_acentos(k_desc).upper() == cn: cat_d = v_desc; break
+        add_row_perfil_split("Categoria", cat_sel if cat_sel else "", cat_d)
         
         campos_para_dif = [extract_num(motivacao), extract_num(impressao), extract_num(expressao), extract_num(destino), extract_num(missao), str(nascimento[0]), str(triangulo_base), str(num_psiquico)]
         dif_ativos = []; dif_d_list = []
         for v_dif in ["11", "22"]:
             if v_dif in campos_para_dif:
                 d_dif = DIFERENCIAIS_DESC_DB.get(v_dif)
-                if d_dif: dif_ativos.append(d_dif['diferencial']); dif_d_list.append(f"<b>{d_dif['diferencial']}</b>: {d_dif['descricao']}")
-        if dif_ativos: add_row_perfil_split("Diferenciais", ", ".join(dif_ativos), "<br><br>".join(dif_d_list))
+                if d_dif:
+                    dif_val = d_dif.get('diferencial')
+                    if dif_val is not None:
+                        dif_ativos.append(dif_val)
+                        dif_d_list.append(f"<b>{dif_val}</b>: {d_dif.get('descricao') or ''}")
+        if dif_ativos: add_row_perfil_split("Diferenciais", ", ".join(str(x) for x in dif_ativos if x is not None), "<br><br>".join(str(x) for x in dif_d_list if x is not None))
         
         totais_q = score_qual_df['TOTAL'].sort_values(ascending=False); q_escolhidas = list(totais_q[totais_q > 0].index)[:2]; q_d_list = []
         for q in q_escolhidas:
+            if q is None: continue
             d = ""; qn = remover_acentos(q).upper()
             for k_desc, v_desc in QUALIDADES_DB.items():
-                if remover_acentos(k_desc).upper() == qn: d = v_desc; break
+                if k_desc and remover_acentos(k_desc).upper() == qn: d = v_desc; break
             if d: q_d_list.append(f"<b>{q}</b>: {d}")
-        add_row_perfil_split("Qualidades", ", ".join(q_escolhidas), "<br>".join(q_d_list) if q_d_list else "")
+        add_row_perfil_split("Qualidades", ", ".join(str(x) for x in q_escolhidas if x is not None), "<br>".join(str(x) for x in q_d_list if x is not None) if q_d_list else "")
         
         user_name_key = f"diag_{nome}"
         cl_map = carregar_todos_clientes()
         desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (cl_map.get(nome, {}).get('ai_diagnosis')) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
         add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
-        f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "N/E", "descricao": ""}); add_row_perfil_split("Fortaleza", f_data['fortaleza'], f_data['descricao'])
-        d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "N/E", "descricao": ""}); add_row_perfil_split("Desafio", d_data['desafio'], d_data['descricao'])
+        f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "N/E", "descricao": ""}); add_row_perfil_split("Fortaleza", f_data.get('fortaleza', 'N/E'), f_data.get('descricao', ''))
+        d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "N/E", "descricao": ""}); add_row_perfil_split("Desafio", d_data.get('desafio', 'N/E'), d_data.get('descricao', ''))
         
         return dados, dados_perfil, kan, estrutural, direcionamento, rep1, repeticao_mapa, repeticao_2_mapa, repeticao_3_mapa, score_df_calc, score_cat_df, score_qual_df, pd.DataFrame(dados_auditoria_qual)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         st.error(f"Erro nos cálculos: {e}"); return [], [], None, None, None, None, None, None, None, None, None, None, None
 
 @st.cache_data(ttl=3600)
