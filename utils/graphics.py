@@ -139,4 +139,8 @@ def gerar_svg_triangulos_harmonicos(membros_triangulos, lider_nome=None, width=1
             svg_parts.append('  </g>')
             
     svg_parts.append('</svg>')
-    return "\n".join(svg_parts)
+    svg_str = "\n".join(svg_parts)
+    # Minifica a string SVG removendo indentações e quebras de linha
+    # para evitar que o markdown parser do Streamlit interprete como bloco de código.
+    return "".join(line.strip() for line in svg_str.split("\n") if line.strip())
+
