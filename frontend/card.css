@@ -69,8 +69,10 @@
     width: 100%;
 }
 
+div[data-testid="stVerticalBlockBorderWrapper"],
 .premium-card-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
-.premium-card-wrapper div[data-testid="stContainer"] {
+.premium-card-wrapper div[data-testid="stContainer"],
+.stExpander {
     background: var(--card-bg) !important;
     border: var(--card-border-width) solid var(--card-border-color) !important;
     border-top: var(--card-border-top-width) solid var(--card-border-top-color) !important;
@@ -82,8 +84,10 @@
     transition: var(--card-transition) !important;
 }
 
+div[data-testid="stVerticalBlockBorderWrapper"]::before,
 .premium-card-wrapper div[data-testid="stVerticalBlockBorderWrapper"]::before,
-.premium-card-wrapper div[data-testid="stContainer"]::before {
+.premium-card-wrapper div[data-testid="stContainer"]::before,
+.stExpander::before {
     content: "" !important;
     position: absolute !important;
     top: 0 !important;
@@ -95,10 +99,24 @@
     z-index: 1 !important;
 }
 
+div[data-testid="stVerticalBlockBorderWrapper"] > div,
 .premium-card-wrapper div[data-testid="stVerticalBlockBorderWrapper"] > div,
-.premium-card-wrapper div[data-testid="stContainer"] > div {
+.premium-card-wrapper div[data-testid="stContainer"] > div,
+.stExpander > * {
     position: relative !important;
     z-index: 2 !important;
+}
+
+/* HOVER PADRÃO PARA TODOS OS CONTAINERS COM BORDA (EFEITO GLOW SUAVE) */
+div[data-testid="stVerticalBlockBorderWrapper"]:hover,
+.stExpander:hover {
+    border-color: var(--card-hover-border-color) !important;
+    box-shadow: var(--card-hover-shadow) !important;
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"]:hover::before,
+.stExpander:hover::before {
+    background: var(--card-hover-glow) !important;
 }
 
 /* VARIANTE: COMPACT */
@@ -108,7 +126,7 @@
     padding: var(--card-padding-compact) !important;
 }
 
-/* VARIANTE: INTERACTIVE (HOVER EFFECTS) */
+/* VARIANTE: INTERACTIVE (HOVER EFFECTS COM ELEVAÇÃO) */
 .premium-card.variant-interactive:hover,
 .premium-card-wrapper.variant-interactive:hover div[data-testid="stVerticalBlockBorderWrapper"],
 .premium-card-wrapper.variant-interactive:hover div[data-testid="stContainer"] {
