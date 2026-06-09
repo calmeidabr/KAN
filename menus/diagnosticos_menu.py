@@ -71,7 +71,7 @@ class DiagnosticosMenu(BaseMenu):
 
         tem_foto = bool(info_cliente.get('foto_base64')) or (nome in st.session_state['fotos'])
         if not tem_foto:
-            foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"foto_existente_{nome}")
+            foto_upload_existente = st.file_uploader("Carregar Foto (Opcional)", type=["png", "jpg", "jpeg", "webp"], key=f"foto_existente_{nome}")
             if foto_upload_existente:
                 foto_bytes = foto_upload_existente.getvalue()
                 st.session_state['fotos'][nome] = foto_bytes

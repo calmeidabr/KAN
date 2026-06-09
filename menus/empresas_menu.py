@@ -103,7 +103,7 @@ class EmpresasMenu(BaseMenu):
                     ed_status = st.selectbox("Status", options=["Ativa", "Inativa"], index=0 if emp_em_edicao.get("status", "Ativa") == "Ativa" else 1, key="ed_emp_status")
 
                 st.write("**Logo da Empresa:**")
-                up_logo_ed = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_logo_ed_emp")
+                up_logo_ed = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="up_logo_ed_emp")
 
                 st.write("---")
                 col_eb1, col_eb2, col_eb3 = st.columns([2, 2, 4])
@@ -189,7 +189,7 @@ class EmpresasMenu(BaseMenu):
                     n_status = st.selectbox("Status", options=["Ativa", "Inativa"], index=0, key="add_emp_status")
 
                 st.write("**Logo da Empresa:**")
-                up_logo_add = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_logo_add_emp")
+                up_logo_add = st.file_uploader("Fazer upload do logo (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="up_logo_add_emp")
 
                 st.write("---")
                 col_b1, col_b2, col_b3 = st.columns([2, 2, 4])

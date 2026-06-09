@@ -67,7 +67,7 @@ class TalentosMenu(BaseMenu):
             with col_f1:
                 cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key="cad_data")
             with col_f2:
-                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg"], key=f"cad_foto_{reset_id}")
+                cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg", "webp"], key=f"cad_foto_{reset_id}")
             with col_f3:
                 st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
                 cam_aberta = st.session_state.get('cad_camera_aberta', False)

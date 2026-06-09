@@ -94,7 +94,7 @@ class EquipesMenu(BaseMenu):
                 # 1. Definir o Nome da Equipe
                 sugestao_nome = f"Equipe {len(equipes) + 1}"
                 nome_equipe = st.text_input("Nome da Equipe*", value=sugestao_nome, key="add_eq_nome")
-                foto_upload = st.file_uploader("Foto da Equipe (Opcional)", type=["png", "jpg", "jpeg"], key="add_eq_foto")
+                foto_upload = st.file_uploader("Foto da Equipe (Opcional)", type=["png", "jpg", "jpeg", "webp"], key="add_eq_foto")
 
                 st.write("---")
                 st.markdown("**Filtros e Adição em Lote**")
@@ -401,7 +401,7 @@ class EquipesMenu(BaseMenu):
                                 else:
                                     st.markdown('<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><div style="font-size: 1.5em; width: 50px; height: 50px; min-width: 50px; min-height: 50px; max-width: 50px; max-height: 50px; border-radius: 50%; background: rgba(0, 75, 255, 0.08); border: 2px solid #004BFF; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #004BFF; flex-shrink: 0;">T</div></div>', unsafe_allow_html=True)
                             with col_edit_foto2:
-                                upload_ed_file = st.file_uploader("Alterar Foto da Equipe", type=["png", "jpg", "jpeg"], key=f"file_edit_foto_{idx}")
+                                upload_ed_file = st.file_uploader("Alterar Foto da Equipe", type=["png", "jpg", "jpeg", "webp"], key=f"file_edit_foto_{idx}")
                                 if upload_ed_file:
                                     foto_ed_b64 = compress_image_to_b64(upload_ed_file, max_width=400)
                                     if foto_ed_b64 and foto_ed_b64 != st.session_state[key_temp_foto]:

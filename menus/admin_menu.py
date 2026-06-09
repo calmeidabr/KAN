@@ -271,7 +271,7 @@ class AdminMenu(BaseMenu):
                             ed_st = st.selectbox("Status", ["Ativo", "Inativo"], index=0 if u_obj.get("status", "Ativo") == "Ativo" else 1, key="ed_st")
 
                         st.write("**Foto de Perfil:**")
-                        up_foto = st.file_uploader("Fazer upload de nova foto (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_foto_usr")
+                        up_foto = st.file_uploader("Fazer upload de nova foto (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="up_foto_usr")
                         
                         col_s1, col_s2, col_s3 = st.columns([2, 2, 4])
                         with col_s1:
@@ -385,7 +385,7 @@ class AdminMenu(BaseMenu):
                         add_st = st.selectbox("Status", ["Ativo", "Inativo"], index=0, key="add_st_in")
 
                     st.write("**Foto de Perfil:**")
-                    up_foto_add = st.file_uploader("Fazer upload de foto (PNG/JPG)", type=["png", "jpg", "jpeg"], key="up_foto_add_usr")
+                    up_foto_add = st.file_uploader("Fazer upload de foto (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="up_foto_add_usr")
                     
                     col_sa1, col_sa2, col_sa3 = st.columns([2, 2, 4])
                     with col_sa1:
@@ -927,7 +927,7 @@ class AdminMenu(BaseMenu):
             
             with st.expander("Biblioteca de Imagens (Assets)", expanded=False):
                 st.write("Suba novas imagens para usar nos banners.")
-                new_asset_file = st.file_uploader("Upload de nova imagem para biblioteca", type=["png", "jpg", "jpeg"], key="upload_asset")
+                new_asset_file = st.file_uploader("Upload de nova imagem para biblioteca", type=["png", "jpg", "jpeg", "webp"], key="upload_asset")
                 new_asset_name = st.text_input("Nome da imagem no sistema", key="asset_name")
                 if st.button("Adicionar à Biblioteca"):
                     if new_asset_file and new_asset_name:

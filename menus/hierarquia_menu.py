@@ -745,7 +745,7 @@ class HierarquiaMenu(BaseMenu):
                 ed_em = st.text_input("Email", value=emp_em_edicao.get("email") or "", key="h_ed_emp_e")
                 ed_status = st.selectbox("Status", options=["Ativa", "Inativa"], index=0 if emp_em_edicao.get("status", "Ativa") == "Ativa" else 1, key="h_ed_emp_status")
 
-            up_logo_ed = st.file_uploader("Logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="h_up_logo_ed_emp")
+            up_logo_ed = st.file_uploader("Logo (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="h_up_logo_ed_emp")
             
             col_eb1, col_eb2 = st.columns(2)
             with col_eb1:
@@ -804,7 +804,7 @@ class HierarquiaMenu(BaseMenu):
                 n_resp = st.text_input("Responsável", key="h_add_emp_resp")
                 n_em = st.text_input("Email", key="h_add_emp_e")
 
-            up_logo_add = st.file_uploader("Logo (PNG/JPG)", type=["png", "jpg", "jpeg"], key="h_up_logo_add_emp")
+            up_logo_add = st.file_uploader("Logo (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="h_up_logo_add_emp")
 
             col_b1, col_b2 = st.columns(2)
             with col_b1:
@@ -887,7 +887,7 @@ class HierarquiaMenu(BaseMenu):
             st.subheader("Adicionar Nova Equipe")
             with st.container(border=True):
                 nome_equipe = st.text_input("Nome da Equipe*", value=f"Equipe {len(equipes_da_empresa) + 1}", key="h_add_eq_nome")
-                foto_upload = st.file_uploader("Foto da Equipe (Opcional)", type=["png", "jpg", "jpeg"], key="h_add_eq_foto")
+                foto_upload = st.file_uploader("Foto da Equipe (Opcional)", type=["png", "jpg", "jpeg", "webp"], key="h_add_eq_foto")
 
                 # Seleção fina de membros da própria empresa
                 membros_finais = st.multiselect(
@@ -1038,7 +1038,7 @@ class HierarquiaMenu(BaseMenu):
                                 novo_nome_eq = st.text_input("Nome da Equipe:", value=st.session_state[key_temp_nome], key=f"h_txt_nome_eq_{idx}")
                                 st.session_state[key_temp_nome] = novo_nome_eq
 
-                            upload_ed_file = st.file_uploader("Alterar Foto", type=["png", "jpg", "jpeg"], key=f"h_file_edit_foto_{idx}")
+                            upload_ed_file = st.file_uploader("Alterar Foto", type=["png", "jpg", "jpeg", "webp"], key=f"h_file_edit_foto_{idx}")
                             if upload_ed_file:
                                 foto_ed_b64 = compress_image_to_b64(upload_ed_file, max_width=400)
                                 if foto_ed_b64:
