@@ -3,8 +3,10 @@ import pandas as pd
 import json
 import google.generativeai as genai
 from menus.base_menu import BaseMenu
-from models.database import carregar_empresas, get_supabase_admin
+from models.database import carregar_empresas, get_supabase_admin, carregar_equipes
 from utils.helpers import remover_acentos, format_vaga_title
+from services.harmonia import calcular_harmonia_trio, obter_vertices_triangulo, classificar_relacao_geometrica
+from utils.graphics import gerar_svg_triangulos_harmonicos
 
 class ProcessoSeletivoAnaliseMenu(BaseMenu):
     def render(self):
@@ -23,9 +25,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.session_state["custom_categorias_vagas"] = {}
             st.session_state["custom_qualidades_vagas"] = {}
             st.session_state["custom_kan_vagas"] = {}
+            st.session_state["equipes_vagas"] = {}
+            st.session_state["historico_harmonia_vagas"] = {}
             # Carregar as associações e customizações existentes de processos_seletivos do Supabase
             try:
-                res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos, perfis_ideais, categorias_ideais, qualidades_ideais, kan_ideal").execute()
+                try:
+                    res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos, perfis_ideais, categorias_ideais, qualidades_ideais, kan_ideal, equipe, historico_harmonia").execute()
+                except Exception:
+                    res_proc = supabase_client.table("processos_seletivos").select("vaga_id, candidatos, perfis_ideais, categorias_ideais, qualidades_ideais, kan_ideal").execute()
+                
                 if res_proc and res_proc.data:
                     for r in res_proc.data:
                         v_id = r.get("vaga_id")
@@ -34,6 +42,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                         custom_c = r.get("categorias_ideais")
                         custom_q = r.get("qualidades_ideais")
                         custom_k = r.get("kan_ideal")
+                        eq_nome = r.get("equipe")
+                        hist_harm = r.get("historico_harmonia", [])
+                        
                         if v_id is not None:
                             try:
                                 v_id_int = int(v_id)
@@ -48,6 +59,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                                     st.session_state["candidatos_vagas"][v_id_int] = json.loads(cands)
                                 except:
                                     st.session_state["candidatos_vagas"][v_id_int] = []
+                                    
+                            # Equipe e historico de harmonia
+                            st.session_state["equipes_vagas"][v_id_int] = eq_nome
+                            st.session_state["historico_harmonia_vagas"][v_id_int] = hist_harm if isinstance(hist_harm, list) else []
                                     
                             # Perfis customizados
                             if custom_p is not None:
@@ -98,6 +113,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             st.session_state["custom_perfis_vagas"] = {}
         if "custom_categorias_vagas" not in st.session_state:
             st.session_state["custom_categorias_vagas"] = {}
+        if "equipes_vagas" not in st.session_state:
+            st.session_state["equipes_vagas"] = {}
+        if "historico_harmonia_vagas" not in st.session_state:
+            st.session_state["historico_harmonia_vagas"] = {}
         if "custom_qualidades_vagas" not in st.session_state:
             st.session_state["custom_qualidades_vagas"] = {}
         if "custom_kan_vagas" not in st.session_state:
@@ -2077,275 +2096,633 @@ Instruções cruciais:
                                 del st.session_state["talentos_aderencia_temporarios"]
                             st.rerun()
 
-        # Renderizar os Cards dos Candidatos Associados
-        associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
-        
-        if associated_names:
-            candidatos_processo = []
-            for r in matching_results:
-                if r["Nome"] in associated_names:
-                    t_kan = r["talento_detalhes"]["kan"]
-                    t_perfis = r["talento_detalhes"]["perfis"]
-                    t_quals = r["talento_detalhes"]["qualidades"]
-                    t_cats = r["talento_detalhes"]["categorias"]
-                    
-                    # 1. KAN Match (3 pts)
-                    pts_kan = 0
-                    if vaga_kan_list:
-                        t_kan_norm = remover_acentos(t_kan).upper().strip()
-                        vaga_kan_list_norm = [remover_acentos(k).upper().strip() for k in vaga_kan_list]
-                        if t_kan_norm in vaga_kan_list_norm:
-                            pts_kan = 3
-                            
-                    # 2. Perfil Match (2 pts por match)
-                    pts_perfil = 0
-                    if vaga_perfis:
-                        vaga_perfis_norm = [remover_acentos(p).upper().strip() for p in vaga_perfis]
-                        talento_perfis_norm = [remover_acentos(p).upper().strip() for p in t_perfis]
-                        perfis_intersect = set(vaga_perfis_norm).intersection(set(talento_perfis_norm))
-                        pts_perfil = 2 * len(perfis_intersect)
-                        
-                    # 3. Qualidades Match (1 pt por match)
-                    pts_qual = 0
-                    if vaga_quals:
-                        vaga_quals_norm = [remover_acentos(q).upper().strip() for q in vaga_quals]
-                        talento_quals_norm = [remover_acentos(q).upper().strip() for q in t_quals]
-                        quals_intersect = set(vaga_quals_norm).intersection(set(talento_quals_norm))
-                        pts_qual = 1 * len(quals_intersect)
-                        
-                    total_pts = pts_kan + pts_perfil + pts_qual
-                    
-                    candidatos_processo.append({
-                        "Nome": r["Nome"],
-                        "data_nascimento": r["data_nascimento"],
-                        "foto_base64": r["foto_base64"],
-                        "kan": t_kan,
-                        "perfil_list": t_perfis,
-                        "categoria_list": t_cats,
-                        "qualidades_list": t_quals,
-                        "pts_kan": pts_kan,
-                        "pts_perfil": pts_perfil,
-                        "pts_qual": pts_qual,
-                        "total_pts": total_pts,
-                        "aderencia_pct": r["Aderência (%)"]
-                    })
-                    
-            # Ordenar por pontuação descendente
-            candidatos_processo = sorted(candidatos_processo, key=lambda x: x["total_pts"], reverse=True)
-            
-            # Exibir cards lado a lado com tamanho uniforme
-            cards_per_row = 4
-            for i in range(0, len(candidatos_processo), cards_per_row):
-                chunk = candidatos_processo[i:i + cards_per_row]
-                cols = st.columns(cards_per_row)
-                for idx, cand in enumerate(chunk):
-                    with cols[idx]:
-                        with st.container(border=True):
-                            # Botão de Excluir HTML (posicionado absolutamente via CSS no canto superior esquerdo)
-                            import urllib.parse
-                            cand_nome_encoded = urllib.parse.quote(cand['Nome'])
-                            vaga_id_encoded = urllib.parse.quote(str(vaga['id']))
-                            btn_excluir_html = f"""
-                            <a href="?excluir_cand={cand_nome_encoded}&vaga_id={vaga_id_encoded}&nav=Processo%20seletivo" target="_self" class="btn-excluir-link" title="Remover do processo">
-                                <i class="icon-user-minus"></i>
-                            </a>
-                            """
-                            st.markdown(btn_excluir_html, unsafe_allow_html=True)
+        # Criar abas do Streamlit para separar Aderência e Harmonia de Equipe
+        tab_req, tab_harm = st.tabs(["🔍 Aderência aos Requisitos da Vaga", "⚖️ Escolha por Harmonia de Equipe"])
 
-                            # Gerar HTML do avatar/foto crop com halo sutil da marca (roxo/laranja)
-                            if cand["foto_base64"]:
-                                avatar_html = f"""
-                                <div class="avatar-halo-wrapper">
-                                    <div class="avatar-halo">
-                                        <img src="data:image/png;base64,{cand["foto_base64"]}" class="avatar-img">
+        with tab_req:
+            # Renderizar os Cards dos Candidatos Associados
+            associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
+            
+            if associated_names:
+                candidatos_processo = []
+                for r in matching_results:
+                    if r["Nome"] in associated_names:
+                        t_kan = r["talento_detalhes"]["kan"]
+                        t_perfis = r["talento_detalhes"]["perfis"]
+                        t_quals = r["talento_detalhes"]["qualidades"]
+                        t_cats = r["talento_detalhes"]["categorias"]
+                        
+                        # 1. KAN Match (3 pts)
+                        pts_kan = 0
+                        if vaga_kan_list:
+                            t_kan_norm = remover_acentos(t_kan).upper().strip()
+                            vaga_kan_list_norm = [remover_acentos(k).upper().strip() for k in vaga_kan_list]
+                            if talento_kan_norm in vaga_kan_list_norm:
+                                pts_kan = 3
+                                
+                        # 2. Perfil Match (2 pts por match)
+                        pts_perfil = 0
+                        if vaga_perfis:
+                            vaga_perfis_norm = [remover_acentos(p).upper().strip() for p in vaga_perfis]
+                            talento_perfis_norm = [remover_acentos(p).upper().strip() for p in t_perfis]
+                            perfis_intersect = set(vaga_perfis_norm).intersection(set(talento_perfis_norm))
+                            pts_perfil = 2 * len(perfis_intersect)
+                            
+                        # 3. Qualidades Match (1 pt por match)
+                        pts_qual = 0
+                        if vaga_quals:
+                            vaga_quals_norm = [remover_acentos(q).upper().strip() for q in vaga_quals]
+                            talento_quals_norm = [remover_acentos(q).upper().strip() for q in t_quals]
+                            quals_intersect = set(vaga_quals_norm).intersection(set(talento_quals_norm))
+                            pts_qual = 1 * len(quals_intersect)
+                            
+                        total_pts = pts_kan + pts_perfil + pts_qual
+                        
+                        candidatos_processo.append({
+                            "Nome": r["Nome"],
+                            "data_nascimento": r["data_nascimento"],
+                            "foto_base64": r["foto_base64"],
+                            "kan": t_kan,
+                            "perfil_list": t_perfis,
+                            "categoria_list": t_cats,
+                            "qualidades_list": t_quals,
+                            "pts_kan": pts_kan,
+                            "pts_perfil": pts_perfil,
+                            "pts_qual": pts_qual,
+                            "total_pts": total_pts,
+                            "aderencia_pct": r["Aderência (%)"]
+                        })
+                        
+                # Ordenar por pontuação descendente
+                candidatos_processo = sorted(candidatos_processo, key=lambda x: x["total_pts"], reverse=True)
+                
+                # Exibir cards lado a lado com tamanho uniforme
+                cards_per_row = 4
+                for i in range(0, len(candidatos_processo), cards_per_row):
+                    chunk = candidatos_processo[i:i + cards_per_row]
+                    cols = st.columns(cards_per_row)
+                    for idx, cand in enumerate(chunk):
+                        with cols[idx]:
+                            with st.container(border=True):
+                                # Botão de Excluir HTML (posicionado absolutamente via CSS no canto superior esquerdo)
+                                import urllib.parse
+                                cand_nome_encoded = urllib.parse.quote(cand['Nome'])
+                                vaga_id_encoded = urllib.parse.quote(str(vaga['id']))
+                                btn_excluir_html = f"""
+                                <a href="?excluir_cand={cand_nome_encoded}&vaga_id={vaga_id_encoded}&nav=Processo%20seletivo" target="_self" class="btn-excluir-link" title="Remover do processo">
+                                    <i class="icon-user-minus"></i>
+                                </a>
+                                """
+                                st.markdown(btn_excluir_html, unsafe_allow_html=True)
+ 
+                                # Gerar HTML do avatar/foto crop com halo sutil da marca (roxo/laranja)
+                                if cand["foto_base64"]:
+                                    avatar_html = f"""
+                                    <div class="avatar-halo-wrapper">
+                                        <div class="avatar-halo">
+                                            <img src="data:image/png;base64,{cand["foto_base64"]}" class="avatar-img">
+                                        </div>
+                                    </div>
+                                    """
+                                else:
+                                    avatar_html = f"""
+                                    <div class="avatar-halo-wrapper">
+                                        <div class="avatar-halo font-avatar-bg">
+                                            <span class="avatar-initial">{cand["Nome"][0].upper()}</span>
+                                        </div>
+                                    </div>
+                                    """
+                                st.markdown(avatar_html, unsafe_allow_html=True)
+ 
+                                # Nome do candidato (como link do st.button)
+                                st.markdown('<div class="talent-link-container" style="text-align: center; margin-bottom: 2px;">', unsafe_allow_html=True)
+                                st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}", on_click=self.app.ver_cadastro_talento, args=(cand['Nome'],))
+                                st.markdown('</div>', unsafe_allow_html=True)
+ 
+                                # Detalhes, Atributos e Score em HTML premium usando o mesmo estilo de tabela
+                                kan_badges = f'<span class="cand-req-value highlight-kan">{cand["kan"].upper()}</span>' if cand["kan"] and cand["kan"] not in ("Nenhum", "Nenhum / Não Exigido") else '<span class="cand-req-value">NENHUM</span>'
+                                perfis_badges = "".join([f'<span class="cand-req-value">{p.strip().upper()}</span>' for p in cand['perfil_list'] if p.strip()]) if cand['perfil_list'] else '<span class="cand-req-value">NENHUM</span>'
+                                cats_badges = "".join([f'<span class="cand-req-value">{c.strip().upper()}</span>' for c in cand['categoria_list'] if c.strip()]) if cand['categoria_list'] else '<span class="cand-req-value">NENHUMA</span>'
+                                quals_badges = "".join([f'<span class="cand-req-value">{q.strip().upper()}</span>' for q in cand['qualidades_list'] if q.strip()]) if cand['qualidades_list'] else '<span class="cand-req-value">NENHUMA</span>'
+ 
+                                card_details_html = f"""
+                                <p class="dob-text"><i class="icon-calendar"></i> Nascimento: {cand['data_nascimento']}</p>
+                                
+                                <div class="cand-req-table">
+                                    <div class="cand-req-row">
+                                        <div class="cand-req-label">KAN</div>
+                                        <div class="cand-req-value-cell">{kan_badges}</div>
+                                    </div>
+                                    <div class="cand-req-row">
+                                        <div class="cand-req-label">Perfis</div>
+                                        <div class="cand-req-value-cell">{perfis_badges}</div>
+                                    </div>
+                                    <div class="cand-req-row">
+                                        <div class="cand-req-label">Categorias</div>
+                                        <div class="cand-req-value-cell">{cats_badges}</div>
+                                    </div>
+                                    <div class="cand-req-row">
+                                        <div class="cand-req-label">Qualidades</div>
+                                        <div class="cand-req-value-cell">{quals_badges}</div>
+                                    </div>
+                                    <div class="cand-req-row">
+                                        <div class="cand-req-label">Aderência %</div>
+                                        <div class="cand-req-value-cell">
+                                            <span class="cand-req-value highlight-kan" style="font-weight: 700;">{cand['aderencia_pct']}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="score-widget">
+                                    <div class="score-main">
+                                        <span class="score-title">COMPATIBILIDADE</span>
+                                        <div class="score-badge">
+                                            <span>⚡ {cand['total_pts']} pts</span>
+                                        </div>
+                                    </div>
+                                    <div class="score-breakdown">
+                                        <div class="breakdown-item">
+                                            <span class="breakdown-label">KAN</span>
+                                            <span class="breakdown-val">+{cand['pts_kan']}</span>
+                                        </div>
+                                        <div class="breakdown-item border-l">
+                                            <span class="breakdown-label">Perfil</span>
+                                            <span class="breakdown-val">+{cand['pts_perfil']}</span>
+                                        </div>
+                                        <div class="breakdown-item border-l">
+                                            <span class="breakdown-label">Qualidades</span>
+                                            <span class="breakdown-val">+{cand['pts_qual']}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 """
-                            else:
-                                avatar_html = f"""
-                                <div class="avatar-halo-wrapper">
-                                    <div class="avatar-halo font-avatar-bg">
-                                        <span class="avatar-initial">{cand["Nome"][0].upper()}</span>
-                                    </div>
-                                </div>
-                                """
-                            st.markdown(avatar_html, unsafe_allow_html=True)
-
-                            # Nome do candidato (como link do st.button)
-                            st.markdown('<div class="talent-link-container" style="text-align: center; margin-bottom: 2px;">', unsafe_allow_html=True)
-                            st.button(cand['Nome'], key=f"lnk_cand_card_{cand['Nome']}_{vaga['id']}", on_click=self.app.ver_cadastro_talento, args=(cand['Nome'],))
-                            st.markdown('</div>', unsafe_allow_html=True)
-
-                            # Detalhes, Atributos e Score em HTML premium usando o mesmo estilo de tabela
-                            kan_badges = f'<span class="cand-req-value highlight-kan">{cand["kan"].upper()}</span>' if cand["kan"] and cand["kan"] not in ("Nenhum", "Nenhum / Não Exigido") else '<span class="cand-req-value">NENHUM</span>'
-                            perfis_badges = "".join([f'<span class="cand-req-value">{p.strip().upper()}</span>' for p in cand['perfil_list'] if p.strip()]) if cand['perfil_list'] else '<span class="cand-req-value">NENHUM</span>'
-                            cats_badges = "".join([f'<span class="cand-req-value">{c.strip().upper()}</span>' for c in cand['categoria_list'] if c.strip()]) if cand['categoria_list'] else '<span class="cand-req-value">NENHUMA</span>'
-                            quals_badges = "".join([f'<span class="cand-req-value">{q.strip().upper()}</span>' for q in cand['qualidades_list'] if q.strip()]) if cand['qualidades_list'] else '<span class="cand-req-value">NENHUMA</span>'
-
-                            card_details_html = f"""
-                            <p class="dob-text"><i class="icon-calendar"></i> Nascimento: {cand['data_nascimento']}</p>
-                            
-                            <div class="cand-req-table">
-                                <div class="cand-req-row">
-                                    <div class="cand-req-label">KAN</div>
-                                    <div class="cand-req-value-cell">{kan_badges}</div>
-                                </div>
-                                <div class="cand-req-row">
-                                    <div class="cand-req-label">Perfis</div>
-                                    <div class="cand-req-value-cell">{perfis_badges}</div>
-                                </div>
-                                <div class="cand-req-row">
-                                    <div class="cand-req-label">Categorias</div>
-                                    <div class="cand-req-value-cell">{cats_badges}</div>
-                                </div>
-                                <div class="cand-req-row">
-                                    <div class="cand-req-label">Qualidades</div>
-                                    <div class="cand-req-value-cell">{quals_badges}</div>
-                                </div>
-                                <div class="cand-req-row">
-                                    <div class="cand-req-label">Aderência %</div>
-                                    <div class="cand-req-value-cell">
-                                        <span class="cand-req-value highlight-kan" style="font-weight: 700;">{cand['aderencia_pct']}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="score-widget">
-                                <div class="score-main">
-                                    <span class="score-title">COMPATIBILIDADE</span>
-                                    <div class="score-badge">
-                                        <span>⚡ {cand['total_pts']} pts</span>
-                                    </div>
-                                </div>
-                                <div class="score-breakdown">
-                                    <div class="breakdown-item">
-                                        <span class="breakdown-label">KAN</span>
-                                        <span class="breakdown-val">+{cand['pts_kan']}</span>
-                                    </div>
-                                    <div class="breakdown-item border-l">
-                                        <span class="breakdown-label">Perfil</span>
-                                        <span class="breakdown-val">+{cand['pts_perfil']}</span>
-                                    </div>
-                                    <div class="breakdown-item border-l">
-                                        <span class="breakdown-label">Qualidades</span>
-                                        <span class="breakdown-val">+{cand['pts_qual']}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            """
-                            st.markdown(card_details_html, unsafe_allow_html=True)
-        else:
-            st.info("Nenhum talento associado a este processo seletivo ainda. Clique em 'Associar Talentos' acima para selecionar participantes.")
-
-        # Ordenar por aderência
-        df_matching = pd.DataFrame(matching_results).sort_values(by="Aderência (%)", ascending=False)
-        
-        # -------------------------------------------------------------------------
-        # TABELAS GERAIS E COMPARATIVOS
-        # -------------------------------------------------------------------------
-        st.write("---")
-        st.markdown(f"<h3 class='section-title-sub'>Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})</h3>", unsafe_allow_html=True)
-        
-        # Filtrar o ranking geral pela empresa selecionada
-        df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
-        
-        if not df_matching_empresa.empty:
-            associated_cands = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
+                                st.markdown(card_details_html, unsafe_allow_html=True)
+            else:
+                st.info("Nenhum talento associado a este processo seletivo ainda. Clique em 'Associar Talentos' acima para selecionar participantes.")
+ 
+            # Ordenar por aderência
+            df_matching = pd.DataFrame(matching_results).sort_values(by="Aderência (%)", ascending=False)
             
-            # Construir a tabela em HTML com scroll lateral e estilo lilás/borda branca
-            table_html = """
-            <div class="scrollable-table-wrapper">
-                <table class="scrollable-table">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Profissão</th>
-                            <th>Grupo</th>
-                            <th style="text-align: center;">Aderência (%)</th>
-                            <th style="text-align: center;">KAN</th>
-                            <th style="text-align: center;">Perfil</th>
-                            <th style="text-align: center;">Categoria</th>
-                            <th style="text-align: center;">Qualidades</th>
-                            <th style="text-align: center;">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            """
+            # -------------------------------------------------------------------------
+            # TABELAS GERAIS E COMPARATIVOS
+            # -------------------------------------------------------------------------
+            st.write("---")
+            st.markdown(f"<h3 class='section-title-sub'>Ranking Geral de Aderência (Todos os Talentos de {empresa_selecionada})</h3>", unsafe_allow_html=True)
             
-            for idx_row, row in df_matching_empresa.iterrows():
-                nome_cand = row["Nome"]
-                is_assoc = nome_cand in associated_cands
+            # Filtrar o ranking geral pela empresa selecionada
+            df_matching_empresa = df_matching[df_matching["Empresa"] == empresa_selecionada]
+            
+            if not df_matching_empresa.empty:
+                associated_cands = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
                 
-                # Codificar o nome do candidato de forma segura para URLs
-                import urllib.parse
-                nome_cand_encoded = urllib.parse.quote(nome_cand)
+                # Construir a tabela em HTML com scroll lateral e estilo lilás/borda branca
+                table_html = """
+                <div class="scrollable-table-wrapper">
+                    <table class="scrollable-table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Profissão</th>
+                                <th>Grupo</th>
+                                <th style="text-align: center;">Aderência (%)</th>
+                                <th style="text-align: center;">KAN</th>
+                                <th style="text-align: center;">Perfil</th>
+                                <th style="text-align: center;">Categoria</th>
+                                <th style="text-align: center;">Qualidades</th>
+                                <th style="text-align: center;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                """
                 
-                # Definir botão de ação (link circular '+' ou '✓')
-                if is_assoc:
-                    action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}&nav=Processo%20seletivo" target="_self">✓</a>'
+                for idx_row, row in df_matching_empresa.iterrows():
+                    nome_cand = row["Nome"]
+                    is_assoc = nome_cand in associated_cands
+                    
+                    # Codificar o nome do candidato de forma segura para URLs
+                    import urllib.parse
+                    nome_cand_encoded = urllib.parse.quote(nome_cand)
+                    
+                    # Definir botão de ação (link circular '+' ou '✓')
+                    if is_assoc:
+                        action_html = f'<a class="action-link-btn btn-deassoc" href="?deassoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}&nav=Processo%20seletivo" target="_self">✓</a>'
+                    else:
+                        action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}&nav=Processo%20seletivo" target="_self">+</a>'
+                    
+                    table_html += f"""
+                            <tr>
+                                <td><strong>{nome_cand}</strong></td>
+                                <td>{row["Profissão"]}</td>
+                                <td>{row["Grupo"]}</td>
+                                <td style="text-align: center;"><strong>{row["Aderência (%)"]}%</strong></td>
+                                <td style="text-align: center;">{row["KAN"]}</td>
+                                <td style="text-align: center;">{row["Perfil"]}</td>
+                                <td style="text-align: center;">{row["Categoria"]}</td>
+                                <td style="text-align: center;">{row["Qualidades"]}</td>
+                                <td style="text-align: center;">{action_html}</td>
+                            </tr>
+                    """
+                    
+                table_html += """
+                        </tbody>
+                    </table>
+                </div>
+                """
+                table_html_minified = "".join(line.strip() for line in table_html.split("\n") if line.strip())
+                st.markdown(table_html_minified, unsafe_allow_html=True)
+            else:
+                st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
+ 
+            st.write("---")
+            st.markdown("<h3 class='section-title-sub'>Comparativo Detalhado Side-by-Side</h3>", unsafe_allow_html=True)
+            
+            selected_talent_nome = st.selectbox("Selecione um talento para visualizar o comparativo detalhado:", options=df_matching["Nome"].tolist(), key="select_side_by_side_talent")
+            
+            talent_row = df_matching[df_matching["Nome"] == selected_talent_nome].iloc[0]
+            talento_detalhes = talent_row["talento_detalhes"]
+ 
+            col_comp1, col_comp2 = st.columns(2)
+            
+            with col_comp1:
+                with st.container(border=True):
+                    st.markdown(f"#### Requisitos da Vaga\n**{vaga_selecionada_nome}**")
+                    kan_exigido_str = ", ".join(vaga_kan_list) if vaga_kan_list else "Nenhum"
+                    comp_req_html = f"""
+                    <div class="comp-row"><strong>KAN Exigido:</strong> <code class="code-highlight">{kan_exigido_str.upper()}</code></div>
+                    <div class="comp-row"><strong>Perfis Exigidos:</strong> <code class="code-highlight">{', '.join(vaga_perfis) if vaga_perfis else 'Nenhum'}</code></div>
+                    <div class="comp-row"><strong>Categorias Exigidas:</strong> <code class="code-highlight">{', '.join(vaga_cats) if vaga_cats else 'Nenhuma'}</code></div>
+                    <div class="comp-row"><strong>Qualidades Exigidas:</strong> <code class="code-highlight">{', '.join(vaga_quals) if vaga_quals else 'Nenhuma'}</code></div>
+                    """
+                    st.markdown(comp_req_html, unsafe_allow_html=True)
+ 
+            with col_comp2:
+                with st.container(border=True):
+                    st.markdown(f"#### Perfil do Talento\n**<a href='?ver_talento={selected_talent_nome}' target='_self' style='color: #F4F7FB; text-decoration: none; border-bottom: 1px dashed #F08A00;'>{selected_talent_nome}</a>**", unsafe_allow_html=True)
+                    comp_talent_html = f"""
+                    <div class="comp-row"><strong>KAN do Talento:</strong> <code class="code-highlight">{talento_detalhes['kan']}</code></div>
+                    <div class="comp-row"><strong>Perfis do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['perfis']) if talento_detalhes['perfis'] else 'Nenhum'}</code></div>
+                    <div class="comp-row"><strong>Categorias do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['categorias']) if talento_detalhes['categorias'] else 'Nenhuma'}</code></div>
+                    <div class="comp-row"><strong>Qualidades do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['qualidades']) if talento_detalhes['qualidades'] else 'Nenhuma'}</code></div>
+                    """
+                    st.markdown(comp_talent_html, unsafe_allow_html=True)
+ 
+            # Barra de progresso de aderência
+            aderencia_percent = talent_row["Aderência (%)"]
+            st.markdown(f"### Aderência Geral: **{aderencia_percent}%**")
+            st.progress(max(0, min(100, int(aderencia_percent))))
+
+        with tab_harm:
+            import datetime
+            from components.card import premium_card_container
+            
+            # 1. Carregar as equipes disponíveis da empresa selecionada
+            equipes_disponiveis = [eq for eq in carregar_equipes() if eq.get("empresa") == empresa_selecionada]
+            nomes_equipes = [eq["nome"] for eq in equipes_disponiveis if eq.get("nome")]
+            
+            equipe_associada = st.session_state["equipes_vagas"].get(vaga_id_int)
+            
+            if not equipe_associada or equipe_associada not in nomes_equipes:
+                st.info("Nenhuma equipe associada a este processo seletivo ainda. Para realizar a análise de harmonia comportamental de triângulos, associe uma equipe abaixo.")
+                if nomes_equipes:
+                    col_eq_sel, col_eq_btn = st.columns([3, 1])
+                    with col_eq_sel:
+                        eq_selecionada = st.selectbox(
+                            "Selecione a equipe de destino para esta vaga:",
+                            options=["Nenhuma"] + nomes_equipes,
+                            key=f"sel_eq_vaga_{vaga_id_int}"
+                        )
+                    with col_eq_btn:
+                        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True)
+                        if st.button("Associar Equipe", type="primary", key=f"btn_save_eq_{vaga_id_int}", use_container_width=True):
+                            if eq_selecionada != "Nenhuma":
+                                st.session_state["equipes_vagas"][vaga_id_int] = eq_selecionada
+                                try:
+                                    check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                                    if check_ex and check_ex.data:
+                                        row_id = check_ex.data[0]["id"]
+                                        supabase_client.table("processos_seletivos").update({
+                                            "equipe": eq_selecionada,
+                                            "updated_at": "now()"
+                                        }).eq("id", row_id).execute()
+                                    else:
+                                        supabase_client.table("processos_seletivos").insert({
+                                            "vaga_id": vaga_id_int,
+                                            "empresa": empresa_selecionada,
+                                            "equipe": eq_selecionada,
+                                            "candidatos": []
+                                        }).execute()
+                                    st.success(f"Equipe '{eq_selecionada}' associada com sucesso!")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.success(f"Equipe '{eq_selecionada}' associada localmente na sessão.")
+                                    st.rerun()
                 else:
-                    action_html = f'<a class="action-link-btn btn-assoc" href="?assoc_cand={nome_cand_encoded}&vaga_id={vaga_id_int}&nav=Processo%20seletivo" target="_self">+</a>'
+                    st.warning("Nenhuma equipe cadastrada para a empresa selecionada. Por favor, crie equipes na tela 'Gestão de Equipes' antes de prosseguir.")
+            else:
+                # Se tiver equipe associada
+                col_eq_info, col_eq_actions = st.columns([3.2, 1.2])
+                with col_eq_info:
+                    st.markdown(f"<h4 style='margin: 0; padding-top: 8px;'>Equipe Associada: <span style='color: #F08A00; font-weight: 700;'>{equipe_associada}</span></h4>", unsafe_allow_html=True)
+                with col_eq_actions:
+                    if st.button("🔄 Alterar Equipe", key=f"btn_change_eq_{vaga_id_int}", use_container_width=True):
+                        st.session_state["equipes_vagas"][vaga_id_int] = None
+                        try:
+                            check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                            if check_ex and check_ex.data:
+                                row_id = check_ex.data[0]["id"]
+                                supabase_client.table("processos_seletivos").update({
+                                    "equipe": None,
+                                    "updated_at": "now()"
+                                }).eq("id", row_id).execute()
+                        except Exception:
+                            pass
+                        st.rerun()
                 
-                table_html += f"""
-                        <tr>
-                            <td><strong>{nome_cand}</strong></td>
-                            <td>{row["Profissão"]}</td>
-                            <td>{row["Grupo"]}</td>
-                            <td style="text-align: center;"><strong>{row["Aderência (%)"]}%</strong></td>
-                            <td style="text-align: center;">{row["KAN"]}</td>
-                            <td style="text-align: center;">{row["Perfil"]}</td>
-                            <td style="text-align: center;">{row["Categoria"]}</td>
-                            <td style="text-align: center;">{row["Qualidades"]}</td>
-                            <td style="text-align: center;">{action_html}</td>
-                        </tr>
-                """
+                # Carregar os membros da equipe associada
+                eq_dados = next((eq for eq in equipes_disponiveis if eq["nome"] == equipe_associada), None)
+                membros_equipe = []
+                if eq_dados:
+                    membros_raw = eq_dados.get("membros", [])
+                    if isinstance(membros_raw, list):
+                        membros_equipe = membros_raw
+                    elif isinstance(membros_raw, str):
+                        try:
+                            membros_equipe = json.loads(membros_raw)
+                        except:
+                            pass
                 
-            table_html += """
-                    </tbody>
-                </table>
-            </div>
-            """
-            table_html_minified = "".join(line.strip() for line in table_html.split("\n") if line.strip())
-            st.markdown(table_html_minified, unsafe_allow_html=True)
-        else:
-            st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
-
-        st.write("---")
-        st.markdown("<h3 class='section-title-sub'>Comparativo Detalhado Side-by-Side</h3>", unsafe_allow_html=True)
-        
-        selected_talent_nome = st.selectbox("Selecione um talento para visualizar o comparativo detalhado:", options=df_matching["Nome"].tolist(), key="select_side_by_side_talent")
-        
-        talent_row = df_matching[df_matching["Nome"] == selected_talent_nome].iloc[0]
-        talento_detalhes = talent_row["talento_detalhes"]
-
-        col_comp1, col_comp2 = st.columns(2)
-        
-        with col_comp1:
-            with st.container(border=True):
-                st.markdown(f"#### Requisitos da Vaga\n**{vaga_selecionada_nome}**")
-                kan_exigido_str = ", ".join(vaga_kan_list) if vaga_kan_list else "Nenhum"
-                comp_req_html = f"""
-                <div class="comp-row"><strong>KAN Exigido:</strong> <code class="code-highlight">{kan_exigido_str.upper()}</code></div>
-                <div class="comp-row"><strong>Perfis Exigidos:</strong> <code class="code-highlight">{', '.join(vaga_perfis) if vaga_perfis else 'Nenhum'}</code></div>
-                <div class="comp-row"><strong>Categorias Exigidas:</strong> <code class="code-highlight">{', '.join(vaga_cats) if vaga_cats else 'Nenhuma'}</code></div>
-                <div class="comp-row"><strong>Qualidades Exigidas:</strong> <code class="code-highlight">{', '.join(vaga_quals) if vaga_quals else 'Nenhuma'}</code></div>
-                """
-                st.markdown(comp_req_html, unsafe_allow_html=True)
-
-        with col_comp2:
-            with st.container(border=True):
-                st.markdown(f"#### Perfil do Talento\n**<a href='?ver_talento={selected_talent_nome}' target='_self' style='color: #F4F7FB; text-decoration: none; border-bottom: 1px dashed #F08A00;'>{selected_talent_nome}</a>**", unsafe_allow_html=True)
-                comp_talent_html = f"""
-                <div class="comp-row"><strong>KAN do Talento:</strong> <code class="code-highlight">{talento_detalhes['kan']}</code></div>
-                <div class="comp-row"><strong>Perfis do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['perfis']) if talento_detalhes['perfis'] else 'Nenhum'}</code></div>
-                <div class="comp-row"><strong>Categorias do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['categorias']) if talento_detalhes['categorias'] else 'Nenhuma'}</code></div>
-                <div class="comp-row"><strong>Qualidades do Talento:</strong> <code class="code-highlight">{', '.join(talento_detalhes['qualidades']) if talento_detalhes['qualidades'] else 'Nenhuma'}</code></div>
-                """
-                st.markdown(comp_talent_html, unsafe_allow_html=True)
-
-        # Barra de progresso de aderência
-        aderencia_percent = talent_row["Aderência (%)"]
-        st.markdown(f"### Aderência Geral: **{aderencia_percent}%**")
-        st.progress(max(0, min(100, int(aderencia_percent))))
+                if len(membros_equipe) < 2:
+                    st.warning(f"A equipe '{equipe_associada}' possui apenas {len(membros_equipe)} membro(s) cadastrado(s). A análise de harmonia comportamental de triângulos exige pelo menos 2 membros na equipe para formar um trio com o candidato.")
+                    st.info("Por favor, adicione pelo menos 2 membros a esta equipe na tela 'Gestão de Equipes' para habilitar a análise.")
+                else:
+                    st.write("---")
+                    # Se tiver mais de 2 membros, permite selecionar quais 2 membros compõem o trio
+                    if len(membros_equipe) > 2:
+                        membros_trio = st.multiselect(
+                            "Selecione exatamente 2 membros da equipe para compor o trio de análise com o candidato:",
+                            options=sorted(membros_equipe),
+                            default=sorted(membros_equipe)[:2],
+                            max_selections=2,
+                            key=f"membros_trio_sel_{vaga_id_int}"
+                        )
+                    else:
+                        membros_trio = sorted(membros_equipe)
+                        
+                    if len(membros_trio) != 2:
+                        st.warning("⚠️ Por favor, selecione exatamente 2 membros da equipe para realizar o cálculo de harmonia.")
+                    else:
+                        membro1_nome, membro2_nome = membros_trio[0], membros_trio[1]
+                        
+                        # Carregar dados dos membros em ms_dict
+                        m1_info = ms_dict.get(membro1_nome)
+                        m2_info = ms_dict.get(membro2_nome)
+                        
+                        if not m1_info or not m2_info:
+                            st.error("Erro: Cadastro de membros da equipe associada incompleto ou não localizado na base de dados de talentos.")
+                        else:
+                            # Calcular vertices e KAN dos membros
+                            v1, k1 = obter_vertices_triangulo(membro1_nome, m1_info["data_nascimento"])
+                            v2, k2 = obter_vertices_triangulo(membro2_nome, m2_info["data_nascimento"])
+                            
+                            m1_dict = {"nome": membro1_nome, "vertices": v1, "kan": k1}
+                            m2_dict = {"nome": membro2_nome, "vertices": v2, "kan": k2}
+                            
+                            # Candidatos do processo
+                            associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
+                            
+                            if not associated_names:
+                                st.info("Nenhum candidato associado a este processo seletivo ainda. Associe candidatos na aba 'Aderência' para calcular a harmonia.")
+                            else:
+                                # Calcular harmonia para cada candidato
+                                ranking_harmonia = []
+                                with st.spinner("Calculando harmonia comportamental de triângulos para os candidatos..."):
+                                    for c_nome in associated_names:
+                                        c_info = ms_dict.get(c_nome)
+                                        if c_info:
+                                            # Encontra KAN cadastrado do candidato
+                                            t_kan_cadastrado = "Nenhum"
+                                            for r in matching_results:
+                                                if r["Nome"] == c_nome:
+                                                    t_kan_cadastrado = r["talento_detalhes"]["kan"]
+                                                    break
+                                            
+                                            vc, kc = obter_vertices_triangulo(c_nome, c_info["data_nascimento"])
+                                            
+                                            # Se o KAN cadastrado for valido, usa ele. Caso contrario, o calculado
+                                            kan_candidato = t_kan_cadastrado if t_kan_cadastrado not in ("Nenhum", "", None) else kc
+                                            
+                                            cand_dict = {"nome": c_nome, "vertices": vc, "kan": kan_candidato}
+                                            
+                                            # Calcula harmonia
+                                            res_harm = calcular_harmonia_trio(m1_dict, m2_dict, cand_dict)
+                                            ranking_harmonia.append({
+                                                "Nome": c_nome,
+                                                "nota": res_harm["nota_final"],
+                                                "faixa": res_harm["faixa"],
+                                                "blocos": res_harm["blocos"],
+                                                "justificativa": res_harm["justificativa"],
+                                                "vertices": vc,
+                                                "kan": kan_candidato,
+                                                "foto_base64": c_info.get("foto_base64")
+                                            })
+                                
+                                # Ordenar por nota final de harmonia descendente
+                                ranking_harmonia = sorted(ranking_harmonia, key=lambda x: x["nota"], reverse=True)
+                                
+                                # Renderizar a lista em cards do ranking de harmonia
+                                st.markdown("<h3 class='section-title-sub'>Ranking de Harmonia Comportamental de Equipe</h3>", unsafe_allow_html=True)
+                                
+                                # Exibe a tabela de ranking com scroll e barra de rolagem horizontal/vertical
+                                table_harm_html = """
+                                <div class="scrollable-table-wrapper">
+                                    <table class="scrollable-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Candidato</th>
+                                                <th style="text-align: center;">Nota de Harmonia (%)</th>
+                                                <th style="text-align: center;">Nível de Encaixe</th>
+                                                <th style="text-align: center;">KAN Principal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                """
+                                for r in ranking_harmonia:
+                                    # Cor baseada na nota
+                                    n_val = r["nota"]
+                                    if n_val >= 85.0:
+                                        c_hex = "#4CAF50"
+                                    elif n_val >= 70.0:
+                                        c_hex = "#9C27B0"
+                                    elif n_val >= 55.0:
+                                        c_hex = "#FF9800"
+                                    else:
+                                        c_hex = "#F44336"
+                                        
+                                    table_harm_html += f"""
+                                            <tr>
+                                                <td><strong>{r['Nome']}</strong></td>
+                                                <td style="text-align: center; color: {c_hex};"><strong>{r['nota']}%</strong></td>
+                                                <td style="text-align: center;"><span style="background: {c_hex}; color: #FFFFFF; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 12px;">{r['faixa']}</span></td>
+                                                <td style="text-align: center;">{r['kan']}</td>
+                                            </tr>
+                                    """
+                                table_harm_html += """
+                                        </tbody>
+                                    </table>
+                                </div>
+                                """
+                                table_harm_html_minified = "".join(line.strip() for line in table_harm_html.split("\n") if line.strip())
+                                st.markdown(table_harm_html_minified, unsafe_allow_html=True)
+                                
+                                st.write("---")
+                                
+                                # Selectbox para detalhar analise de um candidato
+                                cand_nomes_list = [r["Nome"] for r in ranking_harmonia]
+                                c_selecionado_nome = st.selectbox(
+                                    "Selecione um candidato para visualizar a Análise de Harmonia de Triângulos detalhada:",
+                                    options=cand_nomes_list,
+                                    key=f"harm_cand_sel_det_{vaga_id_int}"
+                                )
+                                
+                                cand_sel_dados = next((r for r in ranking_harmonia if r["Nome"] == c_selecionado_nome), None)
+                                
+                                if cand_sel_dados:
+                                    # Renderiza o SVG inline interativo
+                                    st.markdown("#### Visualização dos Triângulos Harmônicos")
+                                    
+                                    # Prepara dicionario de triangulos
+                                    resultados_tri = {
+                                        membro1_nome: v1,
+                                        membro2_nome: v2,
+                                        c_selecionado_nome: cand_sel_dados["vertices"]
+                                    }
+                                    
+                                    lider_atual = eq_dados.get("lider") if eq_dados else None
+                                    svg_html = gerar_svg_triangulos_harmonicos(resultados_tri, lider_nome=lider_atual)
+                                    st.markdown(svg_html, unsafe_allow_html=True)
+                                    
+                                    # Detalhes da Análise Premium
+                                    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+                                    
+                                    with premium_card_container(variant="default"):
+                                        # Cabecalho da analise com nota e badge
+                                        col_n1, col_n2 = st.columns([3, 1])
+                                        with col_n1:
+                                            st.markdown(f"<h3 style='margin:0; font-family: Outfit; font-weight: 800; color: #F4F7FB;'>Análise de {c_selecionado_nome}</h3>", unsafe_allow_html=True)
+                                        with col_n2:
+                                            # Cor do badge baseada na nota
+                                            faixa_c = cand_sel_dados["faixa"]
+                                            nota_c = cand_sel_dados["nota"]
+                                            if nota_c >= 85.0:
+                                                badge_color = "#4CAF50" # Verde
+                                            elif nota_c >= 70.0:
+                                                badge_color = "#9C27B0" # Roxo
+                                            elif nota_c >= 55.0:
+                                                badge_color = "#FF9800" # Laranja
+                                            else:
+                                                badge_color = "#F44336" # Vermelho
+                                            st.markdown(f"<span style='background: {badge_color}; color: #FFFFFF; font-family: Outfit; font-weight: 700; font-size: 0.9rem; padding: 6px 12px; border-radius: 20px; display: inline-block; text-align: center; float: right;'>{faixa_c} ({nota_c}%)</span>", unsafe_allow_html=True)
+                                            
+                                        st.write("---")
+                                        
+                                        # Justificativa descritiva
+                                        st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6; color: #E0E4EC; text-align: justify;'>{cand_sel_dados['justificativa']}</p>", unsafe_allow_html=True)
+                                        
+                                        # Breakdown de pontuacao por bloco
+                                        st.write("")
+                                        st.markdown("#### Detalhamento por Critério de Equipe")
+                                        
+                                        # Grid de 5 blocos
+                                        col_b1, col_b2, col_b3, col_b4, col_b5 = st.columns(5)
+                                        blocos = cand_sel_dados["blocos"]
+                                        
+                                        with col_b1:
+                                            st.metric("Complementaridade", f"{round(blocos['complementaridade'], 1)}/5.0")
+                                            st.caption("Equilíbrio de KANs")
+                                        with col_b2:
+                                            st.metric("Integração Geométrica", f"{round(blocos['integracao'], 1)}/5.0")
+                                            st.caption("Conexões de Triângulos")
+                                        with col_b3:
+                                            st.metric("Balanceamento", f"{round(blocos['balanceamento'], 1)}/5.0")
+                                            st.caption("Cobertura de Planos")
+                                        with col_b4:
+                                            st.metric("Potencial de Entrega", f"{round(blocos['entrega'], 1)}/5.0")
+                                            st.caption("Materialidade/Praticidade")
+                                        with col_b5:
+                                            st.metric("Segurança Relacional", f"{round(blocos['conflito'], 1)}/5.0")
+                                            st.caption("Mitigação de Conflitos")
+                                        
+                                        st.write("---")
+                                        
+                                        # Historico de observacoes anteriores deste candidato para esta vaga
+                                        hist_vaga = st.session_state["historico_harmonia_vagas"].get(vaga_id_int, [])
+                                        obs_anterior = ""
+                                        for h_ent in hist_vaga:
+                                            if h_ent.get("candidato") == c_selecionado_nome:
+                                                obs_anterior = h_ent.get("observacoes", "")
+                                                break
+                                                
+                                        # Campo de observacoes do analista
+                                        st.markdown("##### Observações Manuais do Analista")
+                                        obs_text = st.text_area(
+                                            "Registre notas de entrevista ou considerações estratégicas (não altera a pontuação matemática):",
+                                            value=obs_anterior,
+                                            placeholder="Ex: Candidato demonstrou excelente abertura para colaborar com a liderança no KAN de Finalidade, confirmando a estabilidade indicada na geometria...",
+                                            key=f"obs_harm_{c_selecionado_nome}_{vaga_id_int}",
+                                            height=100
+                                        )
+                                        
+                                        # Botão para salvar
+                                        if st.button("💾 Confirmar e Salvar Análise de Harmonia", type="primary", use_container_width=True, key=f"btn_save_harm_obs_{c_selecionado_nome}_{vaga_id_int}"):
+                                            nova_entrada = {
+                                                "candidato": c_selecionado_nome,
+                                                "equipe": equipe_associada,
+                                                "membros_trio": membros_trio,
+                                                "nota": nota_c,
+                                                "faixa": faixa_c,
+                                                "data": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
+                                                "observacoes": obs_text.strip(),
+                                                "justificativa": cand_sel_dados["justificativa"]
+                                            }
+                                            
+                                            # Atualiza na lista de historico local da vaga
+                                            novo_hist = [h for h in hist_vaga if h.get("candidato") != c_selecionado_nome]
+                                            novo_hist.append(nova_entrada)
+                                            st.session_state["historico_harmonia_vagas"][vaga_id_int] = novo_hist
+                                            
+                                            # Salvar no Supabase
+                                            try:
+                                                check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                                                if check_ex and check_ex.data:
+                                                    row_id = check_ex.data[0]["id"]
+                                                    supabase_client.table("processos_seletivos").update({
+                                                        "historico_harmonia": novo_hist,
+                                                        "updated_at": "now()"
+                                                    }).eq("id", row_id).execute()
+                                                else:
+                                                    supabase_client.table("processos_seletivos").insert({
+                                                        "vaga_id": vaga_id_int,
+                                                        "empresa": empresa_selecionada,
+                                                        "candidatos": [],
+                                                        "equipe": equipe_associada,
+                                                        "historico_harmonia": novo_hist
+                                                    }).execute()
+                                                st.toast("Análise de harmonia salva com sucesso!", icon="✅")
+                                                st.rerun()
+                                            except Exception as e:
+                                                st.toast(f"Análise salva localmente. Nota: Execute o script SQL no Supabase para persistência total: {e}", icon="⚠️")
+                                                st.rerun()
+                                    
+                                    # Seção de Histórico de análises da vaga
+                                    if hist_vaga:
+                                        st.write("")
+                                        st.markdown("#### Histórico de Análises Confirmadas")
+                                        for idx_h, h_ent in enumerate(hist_vaga):
+                                            with st.expander(f"📋 {h_ent['candidato']} - {h_ent['faixa']} ({h_ent['nota']}%) em {h_ent['data']}", expanded=False):
+                                                st.markdown(f"<p style='font-size: 1rem; line-height: 1.5; color: #E0E4EC; text-align: justify;'>{h_ent.get('justificativa', '')}</p>", unsafe_allow_html=True)
+                                                if h_ent.get("observacoes"):
+                                                    st.markdown(f"<div style='background: rgba(255,255,255,0.02); padding: 10px; border-left: 3px solid #F08A00; border-radius: 4px; font-style: italic; color: #AAB3C5;'>{h_ent['observacoes']}</div>", unsafe_allow_html=True)
+                                                else:
+                                                    st.write("**Sem observações manuais registradas.**")
 
         st.markdown("</div>", unsafe_allow_html=True)

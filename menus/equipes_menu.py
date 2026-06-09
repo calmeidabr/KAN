@@ -11,6 +11,7 @@ from services.numerologia import calcular_numerologia, reduce_number
 from services.perfil import calcular_perfil_comportamental
 from utils.helpers import compress_image_to_b64
 from utils.graphics import gerar_svg_triangulos_harmonicos
+from services.harmonia import obter_vertices_triangulo
 
 class EquipesMenu(BaseMenu):
     def render(self):
@@ -619,77 +620,10 @@ class EquipesMenu(BaseMenu):
                             st.markdown("### <i class='icon-activity' style='font-size: 20px; vertical-align: middle; margin-right: 8px; color: #F18617;'></i>Triângulos Harmônicos da Equipe", unsafe_allow_html=True)
 
                             def _calcular_vertices(nome_comp, data_nasc_str):
-                                """Retorna lista de 3 vértices do triângulo harmônico ou None."""
-                                def _clean(v):
-                                    if v is None: return None
-                                    s = str(v).split(" - ")[0]
-                                    return int(s) if s.isdigit() and int(s) > 0 else None
+                                """Retorna lista de 3 vértices do triângulo harmônico usando a função compartilhada."""
                                 try:
-                                    if isinstance(data_nasc_str, (datetime.datetime, datetime.date)):
-                                        nasc_dt = data_nasc_str
-                                    else:
-                                        try:
-                                            nasc_dt = datetime.datetime.strptime(data_nasc_str, "%d/%m/%Y")
-                                        except ValueError:
-                                            nasc_dt = datetime.datetime.strptime(data_nasc_str, "%Y-%m-%d")
-                                    nasc_tuple = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
-                                    now_dt = datetime.datetime.now()
-                                    data_at = (now_dt.day, now_dt.month, now_dt.year)
-
-                                    res = calcular_numerologia(nome_comp, nasc_tuple, data_at)
-                                    (expressao, motivacao, impressao, destino, _, _, _, missao, _, _,
-                                     _, _, _, _, _, _, ciclos_vida, momentos_decisivos, triangulo_base, _, _, _) = res
-
-                                    estrutural, direcionamento, kan, rep1, rep2 = calcular_perfil_comportamental(
-                                        expressao, motivacao, impressao, nasc_tuple[0],
-                                        destino, missao,
-                                        ciclos_vida['ciclo2']['numero'],
-                                        momentos_decisivos['momento3']['numero'],
-                                        triangulo_base
-                                    )
-
-                                    todos_num = []
-                                    for v_it in [expressao, motivacao, impressao, destino, missao, nasc_tuple[0]]:
-                                        if isinstance(v_it, int): todos_num.append(v_it)
-                                        elif isinstance(v_it, str) and str(v_it).isdigit(): todos_num.append(int(v_it))
-                                    for c_key in ciclos_vida:
-                                        num_c = ciclos_vida[c_key].get('numero')
-                                        if isinstance(num_c, int): todos_num.append(num_c)
-                                    for m_key in momentos_decisivos:
-                                        num_m = momentos_decisivos[m_key].get('numero')
-                                        if isinstance(num_m, int): todos_num.append(num_m)
-                                    num_ps = reduce_number(nasc_tuple[0])
-                                    todos_num.append(num_ps)
-                                    if isinstance(triangulo_base, int): todos_num.append(triangulo_base)
-
-                                    c_tot = Counter(todos_num)
-                                    r_tot = sorted([(n, c) for n, c in c_tot.items()], key=lambda x: (-x[1], x[0]))
-                                    r2_v = r_tot[0][0] if r_tot else 0
-                                    r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
-                                    r4_v = r_tot[2][0] if len(r_tot) > 2 else 0
-
-                                    todos_comp = [
-                                        {"campo": "KAN",            "valor": _clean(kan)},
-                                        {"campo": "ESTRUTURAL",     "valor": _clean(estrutural)},
-                                        {"campo": "DIRECIONAMENTO", "valor": _clean(direcionamento)},
-                                        {"campo": "REPETIÇÃO 1",    "valor": _clean(rep1)},
-                                        {"campo": "REP. MAPA",      "valor": r2_v if r2_v else None},
-                                        {"campo": "REP. MAPA 2",    "valor": r3_v if r3_v else None},
-                                        {"campo": "REP. MAPA 3",    "valor": r4_v if r4_v else None},
-                                    ]
-
-                                    verts = []
-                                    vals_seen = set()
-                                    for it in todos_comp:
-                                        v_it = it["valor"]
-                                        if v_it is not None and v_it not in [11, 22] and v_it not in vals_seen:
-                                            verts.append({"campo": it["campo"], "valor": v_it})
-                                            vals_seen.add(v_it)
-                                        if len(verts) == 3:
-                                            break
-
-                                    if len(verts) == 3:
-                                        return verts
+                                    verts, kan = obter_vertices_triangulo(nome_comp, data_nasc_str)
+                                    return verts
                                 except Exception as ex:
                                     st.warning(f"⚠️ Erro ao calcular {nome_comp}: {ex}")
                                 return None
