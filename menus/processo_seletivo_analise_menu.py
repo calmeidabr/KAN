@@ -2443,13 +2443,20 @@ Instruções cruciais:
                 membros_equipe = []
                 if eq_dados:
                     membros_raw = eq_dados.get("membros", [])
-                    if isinstance(membros_raw, list):
-                        membros_equipe = membros_raw
-                    elif isinstance(membros_raw, str):
+                    if isinstance(membros_raw, str):
                         try:
-                            membros_equipe = json.loads(membros_raw)
+                            membros_raw = json.loads(membros_raw)
                         except:
-                            pass
+                            membros_raw = []
+                    
+                    if isinstance(membros_raw, list):
+                        for m in membros_raw:
+                            if isinstance(m, dict):
+                                nome_m = m.get("nome")
+                                if nome_m:
+                                    membros_equipe.append(nome_m)
+                            elif m:
+                                membros_equipe.append(str(m))
                 
                 if len(membros_equipe) < 2:
                     st.warning(f"A equipe '{equipe_associada}' possui apenas {len(membros_equipe)} membro(s) cadastrado(s). A análise de harmonia comportamental de triângulos exige pelo menos 2 membros na equipe para formar um trio com o candidato.")
