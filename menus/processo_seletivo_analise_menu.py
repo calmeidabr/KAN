@@ -1144,9 +1144,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-weight: 700 !important;
             }}
 
-            /* Estilos customizados da tabela de ranking por aderência (com scroll lateral) */
+            /* Estilos customizados da tabela de ranking por aderência (com scroll lateral e vertical) */
             .scrollable-table-wrapper {{
                 overflow-x: auto !important;
+                overflow-y: auto !important;
+                max-height: 480px !important;
                 width: 100% !important;
                 border-radius: 12px !important;
                 border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -1163,6 +1165,9 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 min-width: 1050px !important; /* Força scroll horizontal em telas menores */
             }}
             .scrollable-table th {{
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 10 !important;
                 background-color: #4a1b4d !important; /* Fundo lilás escuro */
                 color: #FFFFFF !important;
                 font-family: 'Outfit', sans-serif !important;
