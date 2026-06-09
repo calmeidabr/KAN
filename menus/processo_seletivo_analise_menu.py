@@ -1519,8 +1519,9 @@ Instruções cruciais:
         vaga_quals = [q.upper() for q in mapped_quals]
 
         # Container visual dos requisitos da Vaga
-        with st.container(border=True):
-            st.markdown(f"### Perfil Comportamental Desejado")
+        from components.card import premium_card_container
+        with premium_card_container(variant="default"):
+            st.markdown('<h3 class="premium-card__title" style="margin-bottom: 20px !important;">Perfil Comportamental Desejado</h3>', unsafe_allow_html=True)
             
             # Renderizar requisitos com HTML estilizado premium (composição editorial)
             kan_badges = "".join([f'<span class="profile-req-value highlight-kan">{k.upper()}</span>' for k in mapped_kan]) if mapped_kan else '<span class="profile-req-value">NENHUM</span>'

@@ -272,3 +272,31 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover::before,
     box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
     text-decoration: none !important;
 }
+
+/* EVITAR BORDA SUPERIOR DUPLA E GLOW RADIAL EM EXPANDERS/CONTAINERS ANINHADOS */
+div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stVerticalBlockBorderWrapper"] .stExpander,
+.premium-card-trigger + div div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger + div .stExpander,
+.premium-card-trigger + div div[data-testid="stLayoutWrapper"] div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger + div div[data-testid="stLayoutWrapper"] .stExpander,
+.premium-card-trigger + div div.st-emotion-cache-18kf3ut div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger + div div.st-emotion-cache-18kf3ut .stExpander,
+.premium-card-trigger + div div.e1rw0b1u4 div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger + div div.e1rw0b1u4 .stExpander {
+    border-top: var(--card-border-width) solid var(--card-border-color) !important;
+}
+
+div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stVerticalBlockBorderWrapper"]::before,
+div[data-testid="stVerticalBlockBorderWrapper"] .stExpander::before,
+.premium-card-trigger + div div[data-testid="stVerticalBlockBorderWrapper"]::before,
+.premium-card-trigger + div .stExpander::before,
+.premium-card-trigger + div div[data-testid="stLayoutWrapper"] div[data-testid="stVerticalBlockBorderWrapper"]::before,
+.premium-card-trigger + div div[data-testid="stLayoutWrapper"] .stExpander::before,
+.premium-card-trigger + div div.st-emotion-cache-18kf3ut div[data-testid="stVerticalBlockBorderWrapper"]::before,
+.premium-card-trigger + div div.st-emotion-cache-18kf3ut .stExpander::before,
+.premium-card-trigger + div div.e1rw0b1u4 div[data-testid="stVerticalBlockBorderWrapper"]::before,
+.premium-card-trigger + div div.e1rw0b1u4 .stExpander::before {
+    display: none !important;
+}
+
