@@ -313,6 +313,7 @@ class EquipesMenu(BaseMenu):
                     from components.card import premium_card_container
                     with premium_card_container(variant="interactive"):
                         # Padrão KAN de Cards
+                        st.markdown('<div class="horizontal-columns-trigger"></div>', unsafe_allow_html=True)
                         col_card1, col_card2, col_card3, col_card4, col_card5, col_card6 = st.columns([0.5, 2.6, 2.0, 1.3, 1.5, 0.6])
                         with col_card1:
                             foto_b64 = eq.get("foto_base64")

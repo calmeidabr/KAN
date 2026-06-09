@@ -65,7 +65,6 @@ def premium_card_container(variant="default", key=None):
         variant (str): Visual modifier ('default', 'compact', 'interactive', 'selected').
         key (str): Optional unique key.
     """
-    st.markdown(f'<div class="premium-card-wrapper variant-{variant}">', unsafe_allow_html=True)
+    st.markdown(f'<div class="premium-card-trigger" data-variant="{variant}"></div>', unsafe_allow_html=True)
     with st.container(border=True):
         yield
-    st.markdown('</div>', unsafe_allow_html=True)

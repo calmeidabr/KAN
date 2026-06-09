@@ -63,16 +63,19 @@
     z-index: 2 !important;
 }
 
-/* WRAPPER PARA CONTAINER STREAMLIT */
+/* WRAPPER E GATILHOS PARA CONTAINER STREAMLIT */
 .premium-card-wrapper {
     margin-bottom: 16px;
     width: 100%;
 }
 
+/* Gatilho para direcionar o próximo container Streamlit (resolve aninhamento e especificidade) */
 div[data-testid="stVerticalBlockBorderWrapper"],
-.premium-card-wrapper div[data-testid="stVerticalBlockBorderWrapper"],
-.premium-card-wrapper div[data-testid="stContainer"],
-.stExpander {
+.stExpander,
+.premium-card-trigger + div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger + div[data-testid="stLayoutWrapper"],
+.premium-card-trigger + div.st-emotion-cache-18kf3ut,
+.premium-card-trigger + div.e1rw0b1u4 {
     background: var(--card-bg) !important;
     border: var(--card-border-width) solid var(--card-border-color) !important;
     border-top: var(--card-border-top-width) solid var(--card-border-top-color) !important;
@@ -85,9 +88,11 @@ div[data-testid="stVerticalBlockBorderWrapper"],
 }
 
 div[data-testid="stVerticalBlockBorderWrapper"]::before,
-.premium-card-wrapper div[data-testid="stVerticalBlockBorderWrapper"]::before,
-.premium-card-wrapper div[data-testid="stContainer"]::before,
-.stExpander::before {
+.stExpander::before,
+.premium-card-trigger + div[data-testid="stVerticalBlockBorderWrapper"]::before,
+.premium-card-trigger + div[data-testid="stLayoutWrapper"]::before,
+.premium-card-trigger + div.st-emotion-cache-18kf3ut::before,
+.premium-card-trigger + div.e1rw0b1u4::before {
     content: "" !important;
     position: absolute !important;
     top: 0 !important;
@@ -100,36 +105,50 @@ div[data-testid="stVerticalBlockBorderWrapper"]::before,
 }
 
 div[data-testid="stVerticalBlockBorderWrapper"] > div,
-.premium-card-wrapper div[data-testid="stVerticalBlockBorderWrapper"] > div,
-.premium-card-wrapper div[data-testid="stContainer"] > div,
-.stExpander > * {
+.stExpander > *,
+.premium-card-trigger + div[data-testid="stVerticalBlockBorderWrapper"] > div,
+.premium-card-trigger + div[data-testid="stLayoutWrapper"] > div,
+.premium-card-trigger + div.st-emotion-cache-18kf3ut > div,
+.premium-card-trigger + div.e1rw0b1u4 > div {
     position: relative !important;
     z-index: 2 !important;
 }
 
 /* HOVER PADRÃO PARA TODOS OS CONTAINERS COM BORDA (EFEITO GLOW SUAVE) */
 div[data-testid="stVerticalBlockBorderWrapper"]:hover,
-.stExpander:hover {
+.stExpander:hover,
+.premium-card-trigger + div[data-testid="stVerticalBlockBorderWrapper"]:hover,
+.premium-card-trigger + div[data-testid="stLayoutWrapper"]:hover,
+.premium-card-trigger + div.st-emotion-cache-18kf3ut:hover,
+.premium-card-trigger + div.e1rw0b1u4:hover {
     border-color: var(--card-hover-border-color) !important;
     box-shadow: var(--card-hover-shadow) !important;
 }
 
 div[data-testid="stVerticalBlockBorderWrapper"]:hover::before,
-.stExpander:hover::before {
+.stExpander:hover::before,
+.premium-card-trigger + div[data-testid="stVerticalBlockBorderWrapper"]:hover::before,
+.premium-card-trigger + div[data-testid="stLayoutWrapper"]:hover::before,
+.premium-card-trigger + div.st-emotion-cache-18kf3ut:hover::before,
+.premium-card-trigger + div.e1rw0b1u4:hover::before {
     background: var(--card-hover-glow) !important;
 }
 
 /* VARIANTE: COMPACT */
 .premium-card.variant-compact,
-.premium-card-wrapper.variant-compact div[data-testid="stVerticalBlockBorderWrapper"],
-.premium-card-wrapper.variant-compact div[data-testid="stContainer"] {
+.premium-card-trigger[data-variant="compact"] + div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger[data-variant="compact"] + div[data-testid="stLayoutWrapper"],
+.premium-card-trigger[data-variant="compact"] + div.st-emotion-cache-18kf3ut,
+.premium-card-trigger[data-variant="compact"] + div.e1rw0b1u4 {
     padding: var(--card-padding-compact) !important;
 }
 
 /* VARIANTE: INTERACTIVE (HOVER EFFECTS COM ELEVAÇÃO) */
 .premium-card.variant-interactive:hover,
-.premium-card-wrapper.variant-interactive:hover div[data-testid="stVerticalBlockBorderWrapper"],
-.premium-card-wrapper.variant-interactive:hover div[data-testid="stContainer"] {
+.premium-card-trigger[data-variant="interactive"] + div[data-testid="stVerticalBlockBorderWrapper"]:hover,
+.premium-card-trigger[data-variant="interactive"] + div[data-testid="stLayoutWrapper"]:hover,
+.premium-card-trigger[data-variant="interactive"] + div.st-emotion-cache-18kf3ut:hover,
+.premium-card-trigger[data-variant="interactive"] + div.e1rw0b1u4:hover {
     transform: translateY(-3px) !important;
     border-color: var(--card-hover-border-color) !important;
     box-shadow: var(--card-hover-shadow) !important;
@@ -137,17 +156,39 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover::before,
 }
 
 .premium-card.variant-interactive:hover::before,
-.premium-card-wrapper.variant-interactive:hover div[data-testid="stVerticalBlockBorderWrapper"]::before,
-.premium-card-wrapper.variant-interactive:hover div[data-testid="stContainer"]::before {
+.premium-card-trigger[data-variant="interactive"] + div[data-testid="stVerticalBlockBorderWrapper"]:hover::before,
+.premium-card-trigger[data-variant="interactive"] + div[data-testid="stLayoutWrapper"]:hover::before,
+.premium-card-trigger[data-variant="interactive"] + div.st-emotion-cache-18kf3ut:hover::before,
+.premium-card-trigger[data-variant="interactive"] + div.e1rw0b1u4:hover::before {
     background: var(--card-hover-glow) !important;
 }
 
 /* VARIANTE: SELECTED */
 .premium-card.variant-selected,
-.premium-card-wrapper.variant-selected div[data-testid="stVerticalBlockBorderWrapper"],
-.premium-card-wrapper.variant-selected div[data-testid="stContainer"] {
+.premium-card-trigger[data-variant="selected"] + div[data-testid="stVerticalBlockBorderWrapper"],
+.premium-card-trigger[data-variant="selected"] + div[data-testid="stLayoutWrapper"],
+.premium-card-trigger[data-variant="selected"] + div.st-emotion-cache-18kf3ut,
+.premium-card-trigger[data-variant="selected"] + div.e1rw0b1u4 {
     border-color: var(--card-selected-border-color) !important;
     box-shadow: var(--card-selected-shadow) !important;
+}
+
+/* GATILHO PARA FORÇAR COLUNAS HORIZONTAIS SEM QUEBRA RESPOSIVA */
+.horizontal-columns-trigger + div[data-testid="stHorizontalBlock"],
+.horizontal-columns-trigger + div.st-emotion-cache-16q9gqg,
+.horizontal-columns-trigger + div.e1f1zs2c3 {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 16px !important;
+}
+
+.horizontal-columns-trigger + div[data-testid="stHorizontalBlock"] > div,
+.horizontal-columns-trigger + div.st-emotion-cache-16q9gqg > div,
+.horizontal-columns-trigger + div.e1f1zs2c3 > div {
+    min-width: 0 !important;
 }
 
 /* ELEMENTOS INTERNOS DO CARD */
