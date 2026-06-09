@@ -20,10 +20,10 @@ class DiagnosticosMenu(BaseMenu):
             st.session_state['show_mapa'] = False
             st.session_state['show_perfil'] = True
         else:
-            st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Mapas Detalhados</h2>", unsafe_allow_html=True)
-            st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Visualização completa de dados numerológicos e arquétipos.</p>", unsafe_allow_html=True)
-            st.session_state['show_mapa'] = True
-            st.session_state['show_perfil'] = False
+            st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Perfil Comportamental - Soft Skills</h2>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Mapeamento de perfil e forças comportamentais.</p>", unsafe_allow_html=True)
+            st.session_state['show_mapa'] = False
+            st.session_state['show_perfil'] = True
 
         supabase_client = get_supabase_admin()
         clientes_salvos = carregar_todos_clientes()
@@ -128,13 +128,9 @@ class DiagnosticosMenu(BaseMenu):
 
         st.markdown("---")
         
-        col_t1, col_t2 = st.columns(2)
-        with col_t1:
-            show_p_chk = st.checkbox("Exibir Perfil Comportamental", value=st.session_state['show_perfil'], key=f"chk_p_{nome}")
-            st.session_state['show_perfil'] = show_p_chk
-        with col_t2:
-            show_m_chk = st.checkbox("Exibir Tabela Completa do Mapa", value=st.session_state['show_mapa'], key=f"chk_m_{nome}")
-            st.session_state['show_mapa'] = show_m_chk
+        # O perfil comportamental abre diretamente de forma fixa e a tabela do mapa fica restrita ao painel de controle
+        st.session_state['show_perfil'] = True
+        st.session_state['show_mapa'] = False
 
         empresa = info_cliente.get('empresa', '')
         res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, profissao, empresa)
