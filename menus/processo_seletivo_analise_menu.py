@@ -2441,6 +2441,7 @@ Instruções cruciais:
                 # Carregar os membros da equipe associada
                 eq_dados = next((eq for eq in equipes_disponiveis if eq["nome"] == equipe_associada), None)
                 membros_equipe = []
+                lider_nome = None
                 if eq_dados:
                     membros_raw = eq_dados.get("membros", [])
                     if isinstance(membros_raw, str):
@@ -2455,87 +2456,151 @@ Instruções cruciais:
                                 nome_m = m.get("nome")
                                 if nome_m:
                                     membros_equipe.append(nome_m)
+                                    if m.get("lider"):
+                                        lider_nome = nome_m
                             elif m:
                                 membros_equipe.append(str(m))
                 
-                if len(membros_equipe) < 2:
-                    st.warning(f"A equipe '{equipe_associada}' possui apenas {len(membros_equipe)} membro(s) cadastrado(s). A análise de harmonia comportamental de triângulos exige pelo menos 2 membros na equipe para formar um trio com o candidato.")
-                    st.info("Por favor, adicione pelo menos 2 membros a esta equipe na tela 'Gestão de Equipes' para habilitar a análise.")
+                # Filtrar apenas os membros que existem em ms_dict e têm data de nascimento
+                membros_validos = []
+                for m_nome in membros_equipe:
+                    m_info = ms_dict.get(m_nome)
+                    if m_info and m_info.get("data_nascimento"):
+                        membros_validos.append(m_nome)
+                
+                if len(membros_validos) < 2:
+                    st.warning(f"A equipe '{equipe_associada}' possui apenas {len(membros_validos)} membro(s) com cadastro completo. A análise de harmonia comportamental de triângulos exige pelo menos 2 membros ativos para formar a equipe.")
+                    st.info("Por favor, adicione mais membros a esta equipe na tela 'Gestão de Equipes' para habilitar a análise.")
                 else:
                     st.write("---")
-                    # Se tiver mais de 2 membros, permite selecionar quais 2 membros compõem o trio
-                    if len(membros_equipe) > 2:
-                        membros_trio = st.multiselect(
-                            "Selecione exatamente 2 membros da equipe para compor o trio de análise com o candidato:",
-                            options=sorted(membros_equipe),
-                            default=sorted(membros_equipe)[:2],
-                            max_selections=2,
-                            key=f"membros_trio_sel_{vaga_id_int}"
-                        )
+                    
+                    # Candidatos do processo
+                    associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
+                    
+                    if not associated_names:
+                        st.info("Nenhum candidato associado a este processo seletivo ainda. Associe candidatos na aba 'Aderência' para calcular a harmonia.")
                     else:
-                        membros_trio = sorted(membros_equipe)
+                        import itertools
+                        combinacoes_membros = list(itertools.combinations(membros_validos, 2))
                         
-                    if len(membros_trio) != 2:
-                        st.warning("⚠️ Por favor, selecione exatamente 2 membros da equipe para realizar o cálculo de harmonia.")
-                    else:
-                        membro1_nome, membro2_nome = membros_trio[0], membros_trio[1]
+                        # Calcular harmonia para cada candidato consolidando todos os membros
+                        ranking_harmonia = []
+                        with st.spinner("Calculando harmonia comportamental de triângulos para todos os membros da equipe..."):
+                            for c_nome in associated_names:
+                                c_info = ms_dict.get(c_nome)
+                                if c_info:
+                                    # Encontra KAN cadastrado do candidato
+                                    t_kan_cadastrado = "Nenhum"
+                                    for r in matching_results:
+                                        if r["Nome"] == c_nome:
+                                            t_kan_cadastrado = r["talento_detalhes"]["kan"]
+                                            break
+                                    
+                                    vc, kc = obter_vertices_triangulo(c_nome, c_info["data_nascimento"])
+                                    
+                                    # Se o KAN cadastrado for valido, usa ele. Caso contrario, o calculado
+                                    kan_candidato = t_kan_cadastrado if t_kan_cadastrado not in ("Nenhum", "", None) else kc
+                                    cand_dict = {"nome": c_nome, "vertices": vc, "kan": kan_candidato}
+                                    
+                                    # Acumuladores ponderados
+                                    soma_notas = 0.0
+                                    soma_pesos = 0.0
+                                    soma_blocos = {
+                                        "complementaridade": 0.0,
+                                        "integracao": 0.0,
+                                        "balanceamento": 0.0,
+                                        "entrega": 0.0,
+                                        "conflito": 0.0
+                                    }
+                                    
+                                    melhor_trio_harmonia = -1.0
+                                    melhor_trio_justificativa = ""
+                                    melhor_trio_membros = None
+                                    
+                                    lider_trio_encontrado = False
+                                    melhor_lider_trio_harmonia = -1.0
+                                    melhor_lider_trio_justificativa = ""
+                                    melhor_lider_trio_membros = None
+                                    
+                                    for m1_nome, m2_nome in combinacoes_membros:
+                                        m1_info = ms_dict[m1_nome]
+                                        m2_info = ms_dict[m2_nome]
+                                        
+                                        v1, k1 = obter_vertices_triangulo(m1_nome, m1_info["data_nascimento"])
+                                        v2, k2 = obter_vertices_triangulo(m2_nome, m2_info["data_nascimento"])
+                                        
+                                        m1_dict = {"nome": m1_nome, "vertices": v1, "kan": k1}
+                                        m2_dict = {"nome": m2_nome, "vertices": v2, "kan": k2}
+                                        
+                                        res_harm_trio = calcular_harmonia_trio(m1_dict, m2_dict, cand_dict)
+                                        
+                                        # Considere um peso maior para o líder, se houver
+                                        contem_lider = (lider_nome and lider_nome in (m1_nome, m2_nome))
+                                        peso_trio = 2.0 if contem_lider else 1.0
+                                        
+                                        soma_notas += res_harm_trio["nota_final"] * peso_trio
+                                        soma_pesos += peso_trio
+                                        for b_key in soma_blocos:
+                                            soma_blocos[b_key] += res_harm_trio["blocos"][b_key] * peso_trio
+                                            
+                                        if contem_lider:
+                                            if res_harm_trio["nota_final"] > melhor_lider_trio_harmonia:
+                                                melhor_lider_trio_harmonia = res_harm_trio["nota_final"]
+                                                melhor_lider_trio_justificativa = res_harm_trio["justificativa"]
+                                                melhor_lider_trio_membros = (m1_nome, m2_nome)
+                                                lider_trio_encontrado = True
+                                                
+                                        if res_harm_trio["nota_final"] > melhor_trio_harmonia:
+                                            melhor_trio_harmonia = res_harm_trio["nota_final"]
+                                            melhor_trio_justificativa = res_harm_trio["justificativa"]
+                                            melhor_trio_membros = (m1_nome, m2_nome)
+                                    
+                                    # Finais ponderados
+                                    nota_final = round(soma_notas / soma_pesos, 1) if soma_pesos > 0 else 0.0
+                                    blocos_finais = {}
+                                    for b_key in soma_blocos:
+                                        blocos_finais[b_key] = round(soma_blocos[b_key] / soma_pesos, 2) if soma_pesos > 0 else 0.0
+                                        
+                                    if lider_trio_encontrado:
+                                        justificativa_base = melhor_lider_trio_justificativa
+                                        m_ref1, m_ref2 = melhor_lider_trio_membros
+                                        lider_texto = f" Análise prioritária focada na integração com a liderança (**{lider_nome}**) e **{m_ref2 if m_ref1 == lider_nome else m_ref1}**."
+                                    else:
+                                        justificativa_base = melhor_trio_justificativa
+                                        m_ref1, m_ref2 = melhor_trio_membros
+                                        lider_texto = ""
+                                        
+                                    if len(membros_validos) > 2:
+                                        justificativa_final = f"**Análise Consolidada de Equipe ({len(membros_validos)} membros):** {justificativa_base}{lider_texto}"
+                                    else:
+                                        justificativa_final = justificativa_base
+                                        
+                                    if nota_final >= 85.0:
+                                        faixa = "Encaixe Muito Alto"
+                                    elif nota_final >= 70.0:
+                                        faixa = "Bom Encaixe"
+                                    elif nota_final >= 55.0:
+                                        faixa = "Encaixe Moderado"
+                                    elif nota_final >= 40.0:
+                                        faixa = "Encaixe Frágil"
+                                    else:
+                                        faixa = "Encaixe Baixo"
+                                        
+                                    ranking_harmonia.append({
+                                        "Nome": c_nome,
+                                        "nota": nota_final,
+                                        "faixa": faixa,
+                                        "blocos": blocos_finais,
+                                        "justificativa": justificativa_final,
+                                        "vertices": vc,
+                                        "kan": kan_candidato,
+                                        "foto_base64": c_info.get("foto_base64")
+                                    })
                         
-                        # Carregar dados dos membros em ms_dict
-                        m1_info = ms_dict.get(membro1_nome)
-                        m2_info = ms_dict.get(membro2_nome)
-                        
-                        if not m1_info or not m2_info:
-                            st.error("Erro: Cadastro de membros da equipe associada incompleto ou não localizado na base de dados de talentos.")
-                        else:
-                            # Calcular vertices e KAN dos membros
-                            v1, k1 = obter_vertices_triangulo(membro1_nome, m1_info["data_nascimento"])
-                            v2, k2 = obter_vertices_triangulo(membro2_nome, m2_info["data_nascimento"])
-                            
-                            m1_dict = {"nome": membro1_nome, "vertices": v1, "kan": k1}
-                            m2_dict = {"nome": membro2_nome, "vertices": v2, "kan": k2}
-                            
-                            # Candidatos do processo
-                            associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
-                            
-                            if not associated_names:
-                                st.info("Nenhum candidato associado a este processo seletivo ainda. Associe candidatos na aba 'Aderência' para calcular a harmonia.")
-                            else:
-                                # Calcular harmonia para cada candidato
-                                ranking_harmonia = []
-                                with st.spinner("Calculando harmonia comportamental de triângulos para os candidatos..."):
-                                    for c_nome in associated_names:
-                                        c_info = ms_dict.get(c_nome)
-                                        if c_info:
-                                            # Encontra KAN cadastrado do candidato
-                                            t_kan_cadastrado = "Nenhum"
-                                            for r in matching_results:
-                                                if r["Nome"] == c_nome:
-                                                    t_kan_cadastrado = r["talento_detalhes"]["kan"]
-                                                    break
-                                            
-                                            vc, kc = obter_vertices_triangulo(c_nome, c_info["data_nascimento"])
-                                            
-                                            # Se o KAN cadastrado for valido, usa ele. Caso contrario, o calculado
-                                            kan_candidato = t_kan_cadastrado if t_kan_cadastrado not in ("Nenhum", "", None) else kc
-                                            
-                                            cand_dict = {"nome": c_nome, "vertices": vc, "kan": kan_candidato}
-                                            
-                                            # Calcula harmonia
-                                            res_harm = calcular_harmonia_trio(m1_dict, m2_dict, cand_dict)
-                                            ranking_harmonia.append({
-                                                "Nome": c_nome,
-                                                "nota": res_harm["nota_final"],
-                                                "faixa": res_harm["faixa"],
-                                                "blocos": res_harm["blocos"],
-                                                "justificativa": res_harm["justificativa"],
-                                                "vertices": vc,
-                                                "kan": kan_candidato,
-                                                "foto_base64": c_info.get("foto_base64")
-                                            })
-                                
-                                # Ordenar por nota final de harmonia descendente
-                                ranking_harmonia = sorted(ranking_harmonia, key=lambda x: x["nota"], reverse=True)
-                                
+                        # Ordenar por nota final de harmonia descendente
+                        ranking_harmonia = sorted(ranking_harmonia, key=lambda x: x["nota"], reverse=True)
+                        membros_trio = membros_validos
+                        if True:
                                 # Renderizar a lista em cards do ranking de harmonia
                                 st.markdown("<h3 class='section-title-sub'>Ranking de Harmonia Comportamental de Equipe</h3>", unsafe_allow_html=True)
                                 
@@ -2597,15 +2662,17 @@ Instruções cruciais:
                                     # Renderiza o SVG inline interativo
                                     st.markdown("#### Visualização dos Triângulos Harmônicos")
                                     
-                                    # Prepara dicionario de triangulos
-                                    resultados_tri = {
-                                        membro1_nome: v1,
-                                        membro2_nome: v2,
-                                        c_selecionado_nome: cand_sel_dados["vertices"]
-                                    }
+                                    # Prepara dicionario de triangulos com todos os membros da equipe e o candidato
+                                    resultados_tri = {}
+                                    for m_nome in membros_validos:
+                                        m_info = ms_dict.get(m_nome)
+                                        if m_info:
+                                            v_m, _ = obter_vertices_triangulo(m_nome, m_info["data_nascimento"])
+                                            resultados_tri[m_nome] = v_m
                                     
-                                    lider_atual = eq_dados.get("lider") if eq_dados else None
-                                    svg_html = gerar_svg_triangulos_harmonicos(resultados_tri, lider_nome=lider_atual)
+                                    resultados_tri[c_selecionado_nome] = cand_sel_dados["vertices"]
+                                    
+                                    svg_html = gerar_svg_triangulos_harmonicos(resultados_tri, lider_nome=lider_nome)
                                     st.markdown(svg_html, unsafe_allow_html=True)
                                     
                                     # Detalhes da Análise Premium
