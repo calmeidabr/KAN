@@ -367,6 +367,7 @@ class EquipesMenu(BaseMenu):
                             key_temp_lider = f"temp_lider_{idx}"
                             key_temp_nome = f"temp_nome_{idx}"
                             key_temp_foto = f"temp_foto_{idx}"
+                            key_temp_empresa = f"temp_empresa_{idx}"
                             
                             # Inicializa estados temporários se não existirem
                             if key_temp_membros not in st.session_state:
@@ -377,12 +378,14 @@ class EquipesMenu(BaseMenu):
                                 st.session_state[key_temp_nome] = eq["nome"]
                             if key_temp_foto not in st.session_state:
                                 st.session_state[key_temp_foto] = eq.get("foto_base64") or ""
+                            if key_temp_empresa not in st.session_state:
+                                st.session_state[key_temp_empresa] = eq.get("empresa") or "Todas"
 
                             membros_atuais = st.session_state[key_temp_membros]
                             temp_lider = st.session_state[key_temp_lider]
 
-                            # Linha de cabeçalho: Renomear equipe
-                            col_nome_eq1, col_nome_eq2 = st.columns([5, 2])
+                            # Linha de cabeçalho: Renomear equipe e empresa associada
+                            col_nome_eq1, col_emp_eq = st.columns([4, 3])
                             with col_nome_eq1:
                                 novo_nome_eq = st.text_input(
                                     "Nome da Equipe:", 
@@ -390,8 +393,14 @@ class EquipesMenu(BaseMenu):
                                     key=f"txt_nome_eq_{idx}"
                                 )
                                 st.session_state[key_temp_nome] = novo_nome_eq
-                            with col_nome_eq2:
-                                st.write("")
+                            with col_emp_eq:
+                                nova_emp_eq = st.selectbox(
+                                    "Empresa Associada:",
+                                    options=["Todas"] + nomes_empresas,
+                                    index=(["Todas"] + nomes_empresas).index(st.session_state[key_temp_empresa]) if st.session_state[key_temp_empresa] in (["Todas"] + nomes_empresas) else 0,
+                                    key=f"sb_emp_eq_{idx}"
+                                )
+                                st.session_state[key_temp_empresa] = nova_emp_eq
 
                             # Upload e exibição de foto da equipe na edição
                             col_edit_foto1, col_edit_foto2 = st.columns([1, 6])
@@ -544,7 +553,8 @@ class EquipesMenu(BaseMenu):
                                     st.session_state[key_temp_membros] != lista_membros or
                                     st.session_state[key_temp_lider] != lider_atual or
                                     st.session_state[key_temp_nome].strip() != eq["nome"] or
-                                    st.session_state[key_temp_foto] != (eq.get("foto_base64") or "")
+                                    st.session_state[key_temp_foto] != (eq.get("foto_base64") or "") or
+                                    st.session_state[key_temp_empresa] != (eq.get("empresa") or "Todas")
                                 )
                                 if has_changes:
                                     st.warning("Há alterações não salvas nesta equipe!")
@@ -576,6 +586,7 @@ class EquipesMenu(BaseMenu):
                                             "nome": nome_final,
                                             "membros": novos_membros,
                                             "foto_base64": st.session_state[key_temp_foto],
+                                            "empresa": st.session_state[key_temp_empresa] if st.session_state[key_temp_empresa] != "Todas" else None,
                                             "updated_at": datetime.datetime.now().isoformat()
                                         }
                                         if supabase_client:
@@ -593,6 +604,7 @@ class EquipesMenu(BaseMenu):
                                                         eq_local["nome"] = nome_final
                                                         eq_local["membros"] = json.dumps(novos_membros, ensure_ascii=False)
                                                         eq_local["foto_base64"] = st.session_state[key_temp_foto]
+                                                        eq_local["empresa"] = st.session_state[key_temp_empresa] if st.session_state[key_temp_empresa] != "Todas" else None
                                                         eq_local["updated_at"] = datetime.datetime.now().isoformat()
                                                         sucesso_save = True
                                                         break
@@ -604,6 +616,7 @@ class EquipesMenu(BaseMenu):
                                             st.session_state.pop(key_temp_lider, None)
                                             st.session_state.pop(key_temp_nome, None)
                                             st.session_state.pop(key_temp_foto, None)
+                                            st.session_state.pop(key_temp_empresa, None)
                                             time.sleep(1)
                                             st.rerun()
 
@@ -612,6 +625,7 @@ class EquipesMenu(BaseMenu):
                                     st.session_state.pop(key_temp_lider, None)
                                     st.session_state.pop(key_temp_nome, None)
                                     st.session_state.pop(key_temp_foto, None)
+                                    st.session_state.pop(key_temp_empresa, None)
                                     st.rerun()
 
                         # ── Seção: Triângulos Harmônicos ────────────────────────
