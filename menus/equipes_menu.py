@@ -420,6 +420,30 @@ class EquipesMenu(BaseMenu):
 
                             st.write("")
 
+                            # Seção para adicionar novos membros temporariamente
+                            st.write("---")
+                            st.markdown("##### ➕ Adicionar Membros à Equipe")
+                            talentos_disponiveis = sorted([nome for nome in clientes.keys() if nome not in membros_atuais])
+                            if talentos_disponiveis:
+                                col_add_sel, col_add_btn = st.columns([5, 2])
+                                with col_add_sel:
+                                    membros_a_adicionar = st.multiselect(
+                                        "Selecione talentos para adicionar a esta equipe:",
+                                        options=talentos_disponiveis,
+                                        key=f"ms_add_membros_{idx}",
+                                        label_visibility="collapsed"
+                                    )
+                                with col_add_btn:
+                                    if st.button("➕ Adicionar", key=f"btn_add_membros_action_{idx}", use_container_width=True):
+                                        if membros_a_adicionar:
+                                            st.session_state[key_temp_membros].extend(membros_a_adicionar)
+                                            st.toast(f"✅ {len(membros_a_adicionar)} membro(s) adicionado(s) temporariamente! Salve as alterações para confirmar.", icon="✅")
+                                            st.rerun()
+                            else:
+                                st.caption("Todos os talentos cadastrados já pertencem a esta equipe.")
+                            
+                            st.write("---")
+
                             if not membros_atuais:
                                 st.info("Nenhum membro vinculado a esta equipe no momento.")
                             else:
