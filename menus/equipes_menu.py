@@ -10,6 +10,7 @@ from models.database import carregar_empresas, carregar_todos_clientes, carregar
 from services.numerologia import calcular_numerologia, reduce_number
 from services.perfil import calcular_perfil_comportamental
 from utils.helpers import compress_image_to_b64
+from utils.graphics import gerar_svg_triangulos_harmonicos
 
 class EquipesMenu(BaseMenu):
     def render(self):
@@ -732,74 +733,10 @@ class EquipesMenu(BaseMenu):
                                         st.warning(f"<i class='icon-alert-triangle'></i> {e_msg}", unsafe_allow_html=True)
 
                                 if resultados_tri:
-                                    # Imagem comparativa
-                                    if os.path.exists(path_fundo):
-                                        try:
-                                            fundo_img = Image.open(path_fundo).convert("RGBA")
-                                            try:
-                                                font_label = ImageFont.truetype("arial.ttf", 34)
-                                            except Exception:
-                                                font_label = ImageFont.load_default()
-
-                                            img_final = fundo_img.copy()
-                                            layer_notes = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                                            draw_notes = ImageDraw.Draw(layer_notes)
-
-                                            cores = [
-                                                (255, 200, 100, 130), (100, 200, 255, 130),
-                                                (200, 255, 100, 130), (255, 100, 200, 130),
-                                                (100, 255, 200, 130), (255, 160, 100, 130),
-                                                (160, 100, 255, 130), (100, 160, 255, 130),
-                                            ]
-
-                                            # Ordena os triângulos para que o do líder seja desenhado por último (por cima de todos)
-                                            itens_tri = list(resultados_tri.items())
-                                            itens_tri_ordenados = sorted(
-                                                itens_tri,
-                                                key=lambda item: 1 if item[0] == lider_atual else 0
-                                            )
-
-                                            for i, (m_nome, verts) in enumerate(itens_tri_ordenados):
-                                                poly_points = []
-                                                for v in verts:
-                                                    val_num = int(v["valor"])
-                                                    if val_num in coords_map:
-                                                        poly_points.append(coords_map[val_num])
-                                                    else:
-                                                        val_red = sum(int(d) for d in str(val_num))
-                                                        if val_red in coords_map:
-                                                            poly_points.append(coords_map[val_red])
-
-                                                if len(poly_points) == 3:
-                                                    cor = cores[i % len(cores)]
-                                                    layer_m = Image.new("RGBA", fundo_img.size, (255, 255, 255, 0))
-                                                    draw_m = ImageDraw.Draw(layer_m)
-                                                    
-                                                    # Desenha o preenchimento do triângulo
-                                                    draw_m.polygon(poly_points, fill=cor)
-                                                    
-                                                    # Se for o líder, adiciona uma borda (outline) branca e mais destacada
-                                                    if m_nome == lider_atual:
-                                                        draw_m.line(poly_points + [poly_points[0]], fill=(255, 255, 255, 255), width=5)
-                                                        
-                                                    img_final = Image.alpha_composite(img_final, layer_m)
-
-                                                    cx = sum(p[0] for p in poly_points) // 3
-                                                    cy = sum(p[1] for p in poly_points) // 3
-                                                    primeiro_nome = str(m_nome).split()[0]
-                                                    nome_display = f"👑 {primeiro_nome}" if m_nome == lider_atual else primeiro_nome
-                                                    draw_notes.text((cx - 20, cy - 12), nome_display, fill=(30, 30, 30), font=font_label)
-
-                                                    # Adiciona a esfera preta no vértice do KAN (poly_points[0])
-                                                    k_vertex = poly_points[0]
-                                                    draw_notes.ellipse((k_vertex[0]-4, k_vertex[1]-4, k_vertex[0]+4, k_vertex[1]+4), fill=(0, 0, 0))
-
-                                            img_final = Image.alpha_composite(img_final, layer_notes)
-                                            st.image(img_final.convert("RGB"), caption=f"Comparativo de Triângulos Harmônicos — {eq['nome']}", use_container_width=True)
-
-                                        except Exception as ex:
-                                            st.error(f"Erro ao gerar imagem: {ex}")
-                                    else:
-                                        st.info("ℹ️ Imagem de fundo não encontrada (images/plano_kan_fundo.jpg). Os dados da tabela acima estão disponíveis.")
+                                    try:
+                                        svg_html = gerar_svg_triangulos_harmonicos(resultados_tri, lider_nome=lider_atual)
+                                        st.markdown(svg_html, unsafe_allow_html=True)
+                                    except Exception as ex:
+                                        st.error(f"Erro ao gerar gráfico interativo: {ex}")
                                 else:
                                     st.warning("Nenhum triângulo harmônico pôde ser calculado para os membros selecionados.")
