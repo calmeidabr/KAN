@@ -964,7 +964,20 @@ class AdminMenu(BaseMenu):
                 b_sub = b.get('subtitle', '')
                 b_cta = b.get('cta_text', b.get('cta', ''))
                 b_link = b.get('cta_link', b.get('link', '#'))
-                b_accent = b.get('accent_color', b.get('accent', '#F18617'))
+                
+                # Validação robusta de cor hexadecimal para evitar StreamlitAPIException no st.color_picker
+                raw_accent = b.get('accent_color') or b.get('accent') or '#F18617'
+                if not isinstance(raw_accent, str):
+                    raw_accent = '#F18617'
+                raw_accent = raw_accent.strip()
+                if raw_accent and not raw_accent.startswith('#'):
+                    raw_accent = '#' + raw_accent
+                import re
+                if re.match(r"^#[0-9a-fA-F]{3}$|^#[0-9a-fA-F]{6}$", raw_accent):
+                    b_accent = raw_accent
+                else:
+                    b_accent = '#F18617'
+                
                 b_asset_id = b.get('asset_id')
                 
                 with st.expander(f"Banner {b_id}: {b_title}"):
