@@ -2570,6 +2570,18 @@ Instruções cruciais:
                                         m_ref1, m_ref2 = melhor_trio_membros
                                         lider_texto = ""
                                         
+                                    # Formatar string com todos os membros válidos para citar no texto explicativo
+                                    if len(membros_validos) > 1:
+                                        nomes_formatados = ", ".join(membros_validos[:-1]) + " e " + membros_validos[-1]
+                                    else:
+                                        nomes_formatados = membros_validos[0] if membros_validos else ""
+
+                                    if len(membros_validos) > 2 and m_ref1 and m_ref2:
+                                        alvo_pt1 = f"com a equipe formada por **{m_ref1}** e **{m_ref2}**"
+                                        alvo_pt2 = f"com a equipe formada por **{m_ref2}** e **{m_ref1}**"
+                                        substituicao = f"com a equipe formada por **{nomes_formatados}**"
+                                        justificativa_base = justificativa_base.replace(alvo_pt1, substituicao).replace(alvo_pt2, substituicao)
+
                                     if len(membros_validos) > 2:
                                         justificativa_final = f"**Análise Consolidada de Equipe ({len(membros_validos)} membros):** {justificativa_base}{lider_texto}"
                                     else:
@@ -2626,7 +2638,7 @@ Instruções cruciais:
                                     elif n_val >= 70.0:
                                         c_hex = "#9C27B0"
                                     elif n_val >= 55.0:
-                                        c_hex = "#FF9800"
+                                        c_hex = "#8B5CF6" # Lilás
                                     else:
                                         c_hex = "#F44336"
                                         
@@ -2692,7 +2704,7 @@ Instruções cruciais:
                                             elif nota_c >= 70.0:
                                                 badge_color = "#9C27B0" # Roxo
                                             elif nota_c >= 55.0:
-                                                badge_color = "#FF9800" # Laranja
+                                                badge_color = "#8B5CF6" # Lilás
                                             else:
                                                 badge_color = "#F44336" # Vermelho
                                             st.markdown(f"<span style='background: {badge_color}; color: #FFFFFF; font-family: Outfit; font-weight: 700; font-size: 0.9rem; padding: 6px 12px; border-radius: 20px; display: inline-block; text-align: center; float: right;'>{faixa_c} ({nota_c}%)</span>", unsafe_allow_html=True)

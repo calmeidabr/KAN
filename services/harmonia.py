@@ -205,7 +205,31 @@ def calcular_harmonia_trio(membro1, membro2, candidato, pesos=None):
         
     n1, n2, nc = membro1["nome"], membro2["nome"], candidato["nome"]
     v1, v2, vc = membro1["vertices"], membro2["vertices"], candidato["vertices"]
-    k1, k2, kc = membro1["kan"], membro2["kan"], candidato["kan"]
+    
+    def normalizar_nome_kan(k_val):
+        if k_val is None:
+            return "Nenhum"
+        k_str = str(k_val).strip()
+        # Mapeamento de números/floats para nomes de KAN
+        if k_str in ("3", "3.0"):
+            return "Criação"
+        if k_str in ("6", "6.0"):
+            return "Movimento"
+        if k_str in ("9", "9.0"):
+            return "Finalidade"
+        # Trata capitalizações e grafias comuns
+        k_cap = k_str.capitalize()
+        if k_cap in ("Criação", "Criacao"):
+            return "Criação"
+        if k_cap in ("Movimento"):
+            return "Movimento"
+        if k_cap in ("Finalidade"):
+            return "Finalidade"
+        return k_cap
+
+    k1 = normalizar_nome_kan(membro1["kan"])
+    k2 = normalizar_nome_kan(membro2["kan"])
+    kc = normalizar_nome_kan(candidato["kan"])
     
     # --- BLOCO 1: Complementaridade de KANs (peso 25%) ---
     # Trio ideal possui Criação, Movimento e Finalidade representados
