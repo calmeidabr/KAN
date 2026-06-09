@@ -89,7 +89,8 @@ class EquipesMenu(BaseMenu):
 
         if st.session_state["add_equipe_mode"]:
             st.subheader("Adicionar Equipe")
-            with st.container(border=True):
+            from components.card import premium_card_container
+            with premium_card_container(variant="default"):
                 # 1. Definir o Nome da Equipe
                 sugestao_nome = f"Equipe {len(equipes) + 1}"
                 nome_equipe = st.text_input("Nome da Equipe*", value=sugestao_nome, key="add_eq_nome")
@@ -309,7 +310,8 @@ class EquipesMenu(BaseMenu):
                         else:
                             lista_membros.append(m)
                     
-                    with st.container(border=True):
+                    from components.card import premium_card_container
+                    with premium_card_container(variant="interactive"):
                         # Padrão KAN de Cards
                         col_card1, col_card2, col_card3, col_card4, col_card5, col_card6 = st.columns([0.5, 2.6, 2.0, 1.3, 1.5, 0.6])
                         with col_card1:
@@ -419,7 +421,9 @@ class EquipesMenu(BaseMenu):
                                     is_lider_m = (temp_lider == m_nome)
 
                                     with col:
-                                        with st.container(border=True):
+                                        from components.card import premium_card_container
+                                        card_variant = "selected" if is_lider_m else "default"
+                                        with premium_card_container(variant=card_variant):
                                             avatar_html = ""
                                             m_role = "Cadastro não encontrado"
                                             if m_info:
