@@ -49,7 +49,7 @@ class AdminMenu(BaseMenu):
         
         supabase_client = get_supabase_admin()
         
-        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab5, t_tab_soft = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Banners", "Soft Skills"])
+        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab_mapa_num, t_tab5, t_tab_soft = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Mapa Numerológico", "Banners", "Soft Skills"])
         
         with t_tab1:
             st.subheader("Editor de Configurações (Tabelas)")
@@ -921,6 +921,231 @@ class AdminMenu(BaseMenu):
                     st.info("Nenhum mapa salvo na base de dados.")
             except Exception as e:
                 st.error(f"Erro ao carregar mapas salvos: {e}")
+
+        with t_tab_mapa_num:
+            st.subheader("Visualizador de Mapa Numerológico")
+            st.markdown("Gere e visualize o Mapa Numerológico Cabalístico completo de qualquer talento cadastrado na base de dados.")
+            
+            clientes_salvos = carregar_todos_clientes()
+            opcoes_clientes = sorted(list(clientes_salvos.keys()))
+            if not opcoes_clientes:
+                st.info("Nenhum talento cadastrado na base de dados.")
+            else:
+                cliente_selecionado = st.selectbox(
+                    "Selecione um talento para visualizar o mapa:", 
+                    options=opcoes_clientes, 
+                    key="admin_mapa_num_select"
+                )
+                
+                # Botão gerar mapa numerológico
+                btn_gerar = st.button("Gerar Mapa Numerológico", key="btn_admin_mapa_num_gerar", type="primary")
+                
+                # Mantém controle do estado de exibição
+                if "admin_show_mapa" not in st.session_state:
+                    st.session_state["admin_show_mapa"] = False
+                if "admin_last_selected_talento" not in st.session_state:
+                    st.session_state["admin_last_selected_talento"] = cliente_selecionado
+                
+                if st.session_state["admin_last_selected_talento"] != cliente_selecionado:
+                    st.session_state["admin_show_mapa"] = False
+                    st.session_state["admin_last_selected_talento"] = cliente_selecionado
+                    
+                if btn_gerar:
+                    st.session_state["admin_show_mapa"] = True
+                    
+                if st.session_state["admin_show_mapa"]:
+                    st.write("---")
+                    
+                    nome = cliente_selecionado
+                    info_cliente = clientes_salvos[nome]
+                    data_str = info_cliente['data_nascimento']
+                    
+                    profissao = info_cliente.get('profissao', '')
+                    if 'profissao' not in info_cliente:
+                        profissao = info_cliente.get('cargo', '')
+                        cargo = ''
+                    else:
+                        cargo = info_cliente.get('cargo', '')
+                        
+                    grupo = info_cliente.get('grupo', info_cliente.get('empresa', ''))
+                    linkedin = info_cliente.get('linkedin_url', '')
+                    experiencias = info_cliente.get('experiencias', '')
+                    
+                    try:
+                        dia, mes, ano = map(int, data_str.split('/'))
+                        data_input = datetime.date(ano, mes, dia)
+                    except Exception:
+                        data_input = datetime.date.today()
+
+                    hoje = datetime.date.today()
+                    data_atual_tup = (hoje.day, hoje.month, hoje.year)
+                    nascimento_tup = (data_input.day, data_input.month, data_input.year)
+
+                    empresa = info_cliente.get('empresa', '')
+                    res_calc = realizar_calculos_completos(nome, nascimento_tup, data_atual_tup, profissao, empresa)
+                    dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, score_df_calc, score_cat_df, score_qual_df, auditoria_qual_df = res_calc
+                    
+                    # Exibição do Header do Talento (Foto, Nome e Info)
+                    foto_b64 = info_cliente.get('foto_base64')
+                    if foto_b64 and "base64," in foto_b64:
+                        foto_b64 = foto_b64.split("base64,")[1]
+                        
+                    subinfo_parts = [data_str]
+                    for p in [profissao, cargo, grupo]:
+                        if p and str(p).lower() != "nan" and str(p).strip() != "":
+                            subinfo_parts.append(str(p))
+                    subinfo_text = " | ".join(subinfo_parts)
+                    
+                    # Injeção de CSS para formatação de links de talentos
+                    st.markdown("""
+                    <style>
+                    div.talent-link-container div.row-widget.stButton > button {
+                        border: none !important;
+                        background: transparent !important;
+                        padding: 0 !important;
+                        color: var(--accent) !important;
+                        text-decoration: underline !important;
+                        text-align: left !important;
+                        font-weight: bold !important;
+                        box-shadow: none !important;
+                        display: inline !important;
+                        margin: 0 !important;
+                    }
+                    div.talent-link-container div.row-widget.stButton > button:hover {
+                        color: var(--accent-hover) !important;
+                        background: transparent !important;
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+                    
+                    if foto_b64:
+                        col_img_diag, col_txt_diag = st.columns([1, 4])
+                        with col_img_diag:
+                            st.markdown(f'''
+                            <div style="width: 120px; height: 120px; min-width: 120px; min-height: 120px; border-radius: 50%; overflow: hidden; border: 3px solid var(--accent); box-shadow: 0px 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; background-color: var(--panel-bg); margin-bottom: 25px;">
+                                <img src="data:image/png;base64,{foto_b64}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                            </div>
+                            ''', unsafe_allow_html=True)
+                        with col_txt_diag:
+                            st.markdown('<div style="height: 15px;"></div>', unsafe_allow_html=True)
+                            st.markdown('<div class="talent-link-container" style="font-size: 1.6em; font-weight: bold; display: inline-block;">', unsafe_allow_html=True)
+                            st.button(nome, key="lnk_admin_mapa_header_nome_foto", on_click=self.app.ver_cadastro_talento, args=(nome,))
+                            st.markdown('</div>', unsafe_allow_html=True)
+                            st.markdown(f"<p style='font-size: 1.1em; color: var(--text-soft); font-weight: 500; margin-top: 5px;'>{subinfo_text}</p>", unsafe_allow_html=True)
+                    else:
+                        st.markdown('<div class="talent-link-container" style="font-size: 1.6em; font-weight: bold; display: inline-block;">', unsafe_allow_html=True)
+                        st.button(nome, key="lnk_admin_mapa_header_nome_nofoto", on_click=self.app.ver_cadastro_talento, args=(nome,))
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown(f"<p style='font-size: 1.1em; color: var(--text-soft); font-weight: 500; margin-top: 5px;'>{subinfo_text}</p>", unsafe_allow_html=True)
+                        
+                    st.write("---")
+                    st.subheader("Mapa Numerológico Cabalístico")
+                    
+                    # CSS do Mapa
+                    st.markdown("""
+                    <style>
+                    .mapa-table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin-top: 15px; 
+                        background: var(--panel-bg); 
+                        border: 1px solid var(--panel-border);
+                        border-radius: 12px;
+                        overflow: hidden;
+                        box-shadow: var(--card-shadow);
+                    }
+                    .mapa-table th { 
+                        background-color: var(--accent); 
+                        color: var(--button-primary-text); 
+                        padding: 14px 20px; 
+                        text-align: left; 
+                        font-size: 1.05em; 
+                        font-weight: 800;
+                    }
+                    .mapa-table td { 
+                        border-bottom: 1px solid var(--divider); 
+                        vertical-align: top; 
+                        padding: 16px 20px; 
+                    }
+                    .mapa-campo-titulo { 
+                        color: var(--accent); 
+                        font-weight: 800; 
+                        font-size: 1.1em; 
+                        margin-bottom: 8px;
+                    }
+                    .mapa-numero-destaque { 
+                        display: inline-block; 
+                        background: linear-gradient(135deg, var(--accent) 0%, #D97706 100%); 
+                        color: var(--button-primary-text); 
+                        font-weight: 900; 
+                        font-size: 1.3em; 
+                        padding: 3px 12px; 
+                        border-radius: 6px; 
+                        box-shadow: 0 3px 8px rgba(240, 138, 0, 0.3);
+                        margin-bottom: 8px;
+                    }
+                    .mapa-explicacao { 
+                        font-size: 0.82em; 
+                        color: var(--text-muted); 
+                        font-style: italic; 
+                        line-height: 1.4;
+                    }
+                    .mapa-desc-cel { 
+                        color: var(--text-main); 
+                        font-size: 0.95em; 
+                        line-height: 1.6; 
+                        text-align: justify; 
+                    }
+                    </style>
+                    """, unsafe_allow_html=True)
+
+                    html_mapa = '<table class="mapa-table"><thead><tr><th style="width:28%">Campo / Número / Definição</th><th>Descrição Detalhada</th></tr></thead><tbody>'
+                    for item in dados:
+                        campo_raw = item['Campo']
+                        resultado_raw = item['Resultado']
+
+                        if ' - ' in campo_raw:
+                            partes_campo = campo_raw.rsplit(' - ', 1)
+                            label_campo = partes_campo[0]
+                            numero_badge = f"<div class='mapa-numero-destaque'>{partes_campo[1]}</div>"
+                        else:
+                            label_campo = campo_raw
+                            numero_badge = ""
+
+                        explicacao_html = ""
+                        if item.get("Explicacao"):
+                            explicacao_html = f"<div class='mapa-explicacao'>{item['Explicacao']}</div>"
+
+                        cel_resultado = f"<div class='mapa-desc-cel'>{resultado_raw}</div>" if resultado_raw else ""
+
+                        html_mapa += (
+                            f"<tr>"
+                            f"<td>"
+                            f"<div class='mapa-campo-titulo'>{label_campo}</div>"
+                            f"{numero_badge}"
+                            f"{explicacao_html}"
+                            f"</td>"
+                            f"<td>{cel_resultado}</td>"
+                            f"</tr>"
+                        )
+                    html_mapa += "</tbody></table>"
+                    st.markdown(html_mapa, unsafe_allow_html=True)
+                    
+                    # Seção de download
+                    st.markdown("---")
+                    st.subheader("Baixar Resultados do Mapa")
+                    col1, col2 = st.columns(2)
+                    nome_limpo = remover_acentos(nome).replace(' ', '_')
+                    df = pd.DataFrame(dados)
+                    
+                    from services.pdf_generator import gerar_pdf
+                    with col1:
+                        csv = df.to_csv(sep=';', index=False).encode('utf-8')
+                        st.download_button("Baixar Mapa como CSV", data=csv, file_name=f"mapa_{nome_limpo}.csv", mime="text/csv", key=f"dl_admin_mapa_csv_{nome}", use_container_width=True)
+                    with col2:
+                        data_str_pdf = data_input.strftime('%d/%m/%Y')
+                        pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalístico")
+                        st.download_button("Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key=f"dl_admin_mapa_pdf_{nome}", use_container_width=True)
 
         with t_tab5:
             st.subheader("Gerenciamento de Banners e Imagens")
