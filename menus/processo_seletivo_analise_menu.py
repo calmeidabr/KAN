@@ -2300,7 +2300,8 @@ Instruções cruciais:
                 </table>
             </div>
             """
-            st.markdown(table_html, unsafe_allow_html=True)
+            table_html_minified = "".join(line.strip() for line in table_html.split("\n") if line.strip())
+            st.markdown(table_html_minified, unsafe_allow_html=True)
         else:
             st.info(f"Nenhum talento cadastrado originalmente na empresa {empresa_selecionada}. No entanto, você ainda pode associar livremente talentos de outras empresas ao processo usando o botão acima!")
 
