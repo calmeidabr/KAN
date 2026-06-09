@@ -183,7 +183,6 @@ class App:
             nome_ver = st.query_params["ver_talento"]
             del st.query_params["ver_talento"]
             self.ver_cadastro_talento(nome_ver)
-            st.rerun()
 
         if "nav" in st.query_params:
             nav_val = st.query_params.get("nav")
