@@ -48,8 +48,7 @@ class App:
             "Analytics": lambda: AnalyticsMenu(self).render(),
             "Processo seletivo": lambda: ProcessoSeletivoAnaliseMenu(self).render(),
             "Painel de Controle": lambda: AdminMenu(self).render(),
-            "Diagnósticos": lambda: DiagnosticosMenu(self).render(mode="diagnostico"),
-            "Perfil Comportamental - Soft Skills": lambda: DiagnosticosMenu(self).render(mode="mapa")
+            "Diagnósticos": lambda: DiagnosticosMenu(self).render(mode="diagnostico")
         }
 
     def navigate(self, route):
@@ -80,7 +79,7 @@ class App:
             
             menu_groups = {
                 "CADASTROS": ["Talentos", "Vagas", "Empresa e Organograma", "Equipes", "SaaS Multi-Tenant"],
-                "ANÁLISES": ["Diagnósticos", "Perfil Comportamental - Soft Skills", "Analytics", "Processo seletivo"],
+                "ANÁLISES": ["Diagnósticos", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
             if st.session_state.get("logged_user") == "adminkan":

@@ -3,7 +3,7 @@ import pandas as pd
 from utils.helpers import get_from_row, remover_acentos, normalize_key
 
 MENU_PRINCIPAL = [
-    "Home", "Talentos", "Vagas", "Diagnósticos", "Perfil Comportamental - Soft Skills", "Analytics",
+    "Home", "Talentos", "Vagas", "Diagnósticos", "Analytics",
     "Hierarquia / Deptos", "Equipes", "Empresa", "Usuários"
 ]
 
