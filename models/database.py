@@ -34,16 +34,34 @@ def get_supabase():
 def get_supabase_admin():
     return init_supabase_admin_client()
 
+def parse_arcanos_sql():
+    arcanos = {}
+    try:
+        import os
+        import re
+        filepath = "arcanos.sql"
+        if os.path.exists(filepath):
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+            matches = re.findall(r"VALUES\s*\(\s*(\d+)\s*,\s*'([^']*)'\s*,\s*'([^']*)'\s*\)", content)
+            for num, nome, desc in matches:
+                desc_clean = desc.replace("''", "'")
+                arcanos[str(num)] = {"nome": nome, "descricao": desc_clean}
+    except Exception:
+        pass
+    return arcanos
+
 @st.cache_data(ttl=3600)
 def fetch_arcanos():
-    client = get_supabase()
+    client = get_supabase_admin()  # Usa o admin client para contornar restrições de RLS do anon client
     try:
         if client:
             resp = client.table("arcanos").select("*").execute()
-            return {str(int(get_from_row(row, 'numero'))): {"nome": get_from_row(row, 'nome'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
+            if resp.data:
+                return {str(int(get_from_row(row, 'numero'))): {"nome": get_from_row(row, 'nome'), "descricao": get_from_row(row, 'descricao')} for row in resp.data if get_from_row(row, 'numero') is not None}
     except Exception:
         pass
-    return {}
+    return parse_arcanos_sql()  # Fallback local lendo arcanos.sql
 
 ARCANOS_DB = fetch_arcanos()
 
