@@ -2889,7 +2889,8 @@ Instruções cruciais:
     </div>
 </div>
 """
-                                    st.markdown(card_diagnostico_html, unsafe_allow_html=True)
+                                    card_diagnostico_html_limpo = "\n".join(line.lstrip() for line in card_diagnostico_html.split("\n"))
+                                    st.markdown(card_diagnostico_html_limpo, unsafe_allow_html=True)
                                     
                                     st.write("---")
                                     
