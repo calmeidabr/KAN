@@ -31,8 +31,97 @@ def init_supabase_admin_client():
 def get_supabase():
     return init_supabase_client()
 
-def get_supabase_admin():
-    return init_supabase_admin_client()
+class LazyDB:
+    def __init__(self, fetch_func):
+        self._fetch_func = fetch_func
+        self._data = None
+
+    def _ensure_data(self):
+        if self._data is None:
+            self._data = self._fetch_func()
+
+    def get(self, key, default=None):
+        self._ensure_data()
+        return self._data.get(key, default)
+
+    def __getitem__(self, key):
+        self._ensure_data()
+        return self._data[key]
+
+    def __contains__(self, key):
+        self._ensure_data()
+        return key in self._data
+
+    def __len__(self):
+        self._ensure_data()
+        return len(self._data)
+
+    def __iter__(self):
+        self._ensure_data()
+        return iter(self._data)
+
+    def __bool__(self):
+        self._ensure_data()
+        return bool(self._data)
+
+    def keys(self):
+        self._ensure_data()
+        return self._data.keys()
+
+    def values(self):
+        self._ensure_data()
+        return self._data.values()
+
+    def items(self):
+        self._ensure_data()
+        return self._data.items()
+
+    def copy(self):
+        self._ensure_data()
+        return self._data.copy()
+
+    def __repr__(self):
+        self._ensure_data()
+        return repr(self._data)
+
+
+class LazyList:
+    def __init__(self, fetch_func):
+        self._fetch_func = fetch_func
+        self._data = None
+
+    def _ensure_data(self):
+        if self._data is None:
+            self._data = self._fetch_func()
+
+    def __getitem__(self, index):
+        self._ensure_data()
+        return self._data[index]
+
+    def __len__(self):
+        self._ensure_data()
+        return len(self._data)
+
+    def __iter__(self):
+        self._ensure_data()
+        return iter(self._data)
+
+    def __contains__(self, item):
+        self._ensure_data()
+        return item in self._data
+
+    def __bool__(self):
+        self._ensure_data()
+        return bool(self._data)
+
+    def copy(self):
+        self._ensure_data()
+        return self._data.copy()
+
+    def __repr__(self):
+        self._ensure_data()
+        return repr(self._data)
+
 
 def parse_arcanos_sql():
     arcanos = {}
@@ -63,7 +152,7 @@ def fetch_arcanos():
         pass
     return parse_arcanos_sql()  # Fallback local lendo arcanos.sql
 
-ARCANOS_DB = fetch_arcanos()
+ARCANOS_DB = LazyDB(fetch_arcanos)
 
 @st.cache_data(ttl=3600)
 def fetch_fortalezas():
@@ -100,7 +189,7 @@ def fetch_fortalezas():
     except Exception:
         return {}
 
-FORTALEZAS_DB = fetch_fortalezas()
+FORTALEZAS_DB = LazyDB(fetch_fortalezas)
 
 @st.cache_data(ttl=3600)
 def fetch_kan():
@@ -137,7 +226,7 @@ def fetch_kan():
     except Exception:
         return {}
 
-KAN_DB = fetch_kan()
+KAN_DB = LazyDB(fetch_kan)
 
 @st.cache_data(ttl=3600)
 def fetch_desafios():
@@ -174,7 +263,7 @@ def fetch_desafios():
     except Exception:
         return {}
 
-DESAFIOS_DB = fetch_desafios()
+DESAFIOS_DB = LazyDB(fetch_desafios)
 
 @st.cache_data(ttl=3600)
 def fetch_matriz():
@@ -210,7 +299,7 @@ def fetch_matriz():
         return resultado
     except Exception: return {}
 
-MATRIZ_DB = fetch_matriz()
+MATRIZ_DB = LazyDB(fetch_matriz)
 
 @st.cache_data(ttl=3600)
 def fetch_atributos():
@@ -238,7 +327,7 @@ def fetch_atributos():
         return resultado
     except Exception: return {}
 
-ATRIBUTOS_DB = fetch_atributos()
+ATRIBUTOS_DB = LazyDB(fetch_atributos)
 
 @st.cache_data(ttl=3600)
 def fetch_repeticao():
@@ -269,7 +358,7 @@ def fetch_repeticao():
         return resultado
     except Exception: return {}
 
-REPETICAO_DB = fetch_repeticao()
+REPETICAO_DB = LazyDB(fetch_repeticao)
 
 @st.cache_data(ttl=3600)
 def fetch_peso():
@@ -301,7 +390,7 @@ def fetch_peso():
         return res_dict
     except Exception: return {}
 
-PESO_DB = fetch_peso()
+PESO_DB = LazyDB(fetch_peso)
 
 @st.cache_data(ttl=3600)
 def fetch_perfis():
@@ -319,7 +408,7 @@ def fetch_perfis():
         return [row['perfil'] for _, row in df.iterrows() if 'perfil' in row]
     except Exception: return ["Lider", "Criativo", "Executor", "Resultado", "Vendedor", "Influenciador", "Comunicador"]
 
-PERFIS_DB = fetch_perfis()
+PERFIS_DB = LazyList(fetch_perfis)
 
 @st.cache_data(ttl=3600)
 def fetch_perfil_descricao():
@@ -338,7 +427,7 @@ def fetch_perfil_descricao():
         return {str(get_from_row(row.to_dict(), 'perfil')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
     except Exception: return {}
 
-PERFIL_DESCRICAO_DB = fetch_perfil_descricao()
+PERFIL_DESCRICAO_DB = LazyDB(fetch_perfil_descricao)
 
 @st.cache_data(ttl=3600)
 def fetch_qualidades():
@@ -357,7 +446,7 @@ def fetch_qualidades():
         return {str(get_from_row(row.to_dict(), 'qualidade')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
     except Exception: return {}
 
-QUALIDADES_DB = fetch_qualidades()
+QUALIDADES_DB = LazyDB(fetch_qualidades)
 
 @st.cache_data(ttl=3600)
 def fetch_lista_categoria():
@@ -375,7 +464,7 @@ def fetch_lista_categoria():
         return [get_from_row(row.to_dict(), 'categoria') for _, row in df.iterrows()]
     except Exception: return []
 
-LISTA_CATEGORIA_DB = fetch_lista_categoria()
+LISTA_CATEGORIA_DB = LazyList(fetch_lista_categoria)
 
 @st.cache_data(ttl=3600)
 def fetch_categoria_descricao():
@@ -394,7 +483,7 @@ def fetch_categoria_descricao():
         return {str(get_from_row(row.to_dict(), 'categoria')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
     except Exception: return {}
 
-CATEGORIA_DESCRICAO_DB = fetch_categoria_descricao()
+CATEGORIA_DESCRICAO_DB = LazyDB(fetch_categoria_descricao)
 
 @st.cache_data(ttl=3600)
 def fetch_peso_categoria():
@@ -426,7 +515,7 @@ def fetch_peso_categoria():
         return res_dict
     except Exception: return {}
 
-PESO_CATEGORIA_DB = fetch_peso_categoria()
+PESO_CATEGORIA_DB = LazyDB(fetch_peso_categoria)
 
 @st.cache_data(ttl=3600)
 def fetch_campo_definicao():
@@ -445,7 +534,7 @@ def fetch_campo_definicao():
         return {row['CAMPO']: row['EXPLICACAO'] for _, row in df.iterrows()}
     except Exception: return {}
 
-CAMPO_DEFINICAO_DB = fetch_campo_definicao()
+CAMPO_DEFINICAO_DB = LazyDB(fetch_campo_definicao)
 
 @st.cache_data(ttl=3600)
 def fetch_diferenciais_descricao():
@@ -464,7 +553,7 @@ def fetch_diferenciais_descricao():
         return {str(get_from_row(row.to_dict(), 'no')): {'diferencial': get_from_row(row.to_dict(), 'diferencial'), 'descricao': get_from_row(row.to_dict(), 'descricao')} for _, row in df.iterrows()}
     except Exception: return {}
 
-DIFERENCIAIS_DESC_DB = fetch_diferenciais_descricao()
+DIFERENCIAIS_DESC_DB = LazyDB(fetch_diferenciais_descricao)
 
 @st.cache_data(ttl=3600)
 def fetch_descricoes_mapa():
@@ -511,7 +600,7 @@ def fetch_descricoes_mapa():
         except Exception: pass
     return resultado
 
-DESCRICOES_MAPA_DB = fetch_descricoes_mapa()
+DESCRICOES_MAPA_DB = LazyDB(fetch_descricoes_mapa)
 
 def get_desc_mapa(categoria, valor):
     if not DESCRICOES_MAPA_DB: return ""
@@ -595,7 +684,8 @@ def _fetch_supabase_clientes():
     cl_salvos = {}
     if client:
         try:
-            response = client.table("mapas_salvos").select("*").execute()
+            # Otimização: Não selecionamos foto_base64 e ai_diagnosis na listagem geral para economizar payload na rede
+            response = client.table("mapas_salvos").select("nome, data_nascimento, profissao, cargo, grupo, empresa, departamento, linkedin_url, experiencias, lider, perfil_json").execute()
             for row in response.data:
                 p_json = row.get('perfil_json')
                 perfil_val, categoria_val, qualidades_val, kan_val, fortaleza_val, desafio_val = "", "", "", None, "", ""
@@ -642,8 +732,9 @@ def _fetch_supabase_clientes():
                     'departamento': row.get('departamento', ''),
                     'linkedin_url': row.get('linkedin_url', ''),
                     'experiencias': row.get('experiencias', ''),
-                    'foto_base64': row.get('foto_base64', ''),
-                    'ai_diagnosis': row.get('ai_diagnosis', ''),
+                    # As colunas abaixo serão carregadas sob demanda usando fetch_cliente_detalhes ou fetch_fotos_clientes
+                    'foto_base64': '', 
+                    'ai_diagnosis': '', 
                     'kan': kan_val,
                     'perfil': perfil_val,
                     'categoria': categoria_val,
@@ -658,14 +749,37 @@ def _fetch_supabase_clientes():
                     'lider': bool(row.get('lider', False)),
                     'has_json': True if p_json else False
                 }
-                if row.get('ai_diagnosis'):
-                    if "ai_diagnosis" not in st.session_state: st.session_state["ai_diagnosis"] = {}
-                    st.session_state["ai_diagnosis"][f"diag_{row['nome']}"] = row['ai_diagnosis']
         except Exception as e:
             st.error(f"Erro no _fetch_db_clientes: {e}")
     else:
         st.error("Erro: Conexão administrativa retornou None. Verifique as chaves nos Secrets.")
     return cl_salvos
+
+@st.cache_data(ttl=60)
+def fetch_cliente_detalhes(nome):
+    client = get_supabase_admin()
+    if client and nome:
+        try:
+            res = client.table("mapas_salvos").select("foto_base64, ai_diagnosis, perfil_json").eq("nome", nome).execute()
+            if res.data:
+                return res.data[0]
+        except Exception:
+            pass
+    return None
+
+@st.cache_data(ttl=60)
+def fetch_fotos_clientes(nomes):
+    if not nomes:
+        return {}
+    client = get_supabase_admin()
+    if client:
+        try:
+            res = client.table("mapas_salvos").select("nome, foto_base64").in_("nome", nomes).execute()
+            if res.data:
+                return {r["nome"]: r["foto_base64"] for r in res.data if r.get("foto_base64")}
+        except Exception:
+            pass
+    return {}
 
 def carregar_todos_clientes():
     cl_salvos = _fetch_supabase_clientes().copy()

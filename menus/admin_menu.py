@@ -49,7 +49,7 @@ class AdminMenu(BaseMenu):
         
         supabase_client = get_supabase_admin()
         
-        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab_mapa_num, t_tab5, t_tab_soft = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Mapa Numerológico", "Banners", "Soft Skills"])
+        t_tab1, t_tab2, t_tab3, t_tab4, t_tab_auditoria, t_tab_mapas, t_tab_mapa_num, t_tab5, t_tab_soft, t_tab_estudos = st.tabs(["Tabelas", "Base", "Usuários", "Empresas", "Auditoria", "Mapas Salvos", "Mapa Numerológico", "Banners", "Soft Skills", "Estudos"])
         
         with t_tab1:
             st.subheader("Editor de Configurações (Tabelas)")
@@ -1297,3 +1297,194 @@ class AdminMenu(BaseMenu):
                     st.error(f"Erro ao buscar soft skills: {e}")
             else:
                 st.warning("Conexão com o banco indisponível.")
+
+        with t_tab_estudos:
+            st.subheader("Central de Estudos Metodológicos KAN")
+            st.markdown("Guia conceitual, referências e ferramentas interativas para o aprimoramento na análise comportamental KAN.")
+            
+            from components.card import premium_card_container
+            
+            sub_estudos_tab1, sub_estudos_tab2, sub_estudos_tab3 = st.tabs(["📚 Metodologia KAN", "🧬 Guia Comportamental", "🧮 Calculadora de Estudo"])
+            
+            with sub_estudos_tab1:
+                st.markdown("### As Três Forças Primordiais do KAN")
+                st.markdown("A metodologia KAN baseia-se no equilíbrio e na dinâmica entre três forças fundamentais, representadas pelos números correspondentes:")
+                
+                col_k1, col_k2, col_k3 = st.columns(3)
+                with col_k1:
+                    with premium_card_container(variant="default"):
+                        st.markdown("<h4 style='color: #F08A00; margin-top:0;'>🎨 Criação (KAN 3)</h4>", unsafe_allow_html=True)
+                        st.write("**Foco:** Comunicação, expressividade, inovação, sociabilidade e originalidade artística.")
+                        st.write("**Perfil Típico:** Ideadores, comunicadores natos, profissionais de marketing e relações públicas.")
+                        st.caption("Representa o início de novas ideias e a habilidade de conectá-las socialmente.")
+                with col_k2:
+                    with premium_card_container(variant="default"):
+                        st.markdown("<h4 style='color: #8B5CF6; margin-top:0;'>⚡ Movimento (KAN 6)</h4>", unsafe_allow_html=True)
+                        st.write("**Foco:** Conciliação, harmonia, responsabilidade, acolhimento e suporte social.")
+                        st.write("**Perfil Típico:** Mediadores, psicólogos, gestores de RH e líderes comunitários.")
+                        st.caption("Representa a sustentação das relações, empatia e o zelo pelo equilíbrio do time.")
+                with col_k3:
+                    with premium_card_container(variant="default"):
+                        st.markdown("<h4 style='color: #EF4444; margin-top:0;'>🎯 Finalidade (KAN 9)</h4>", unsafe_allow_html=True)
+                        st.write("**Foco:** Altruísmo, entrega, conclusão, propósito elevado e visão humanitária.")
+                        st.write("**Perfil Típico:** Diretores estratégicos, mentores, filósofos e líderes visionários.")
+                        st.caption("Representa a concretização dos propósitos, desapego e foco em resultados coletivos.")
+                
+                st.markdown("---")
+                st.markdown("### 📐 Triângulos Harmônicos no Plano de Tesla")
+                st.markdown("""
+                Os triângulos harmônicos mapeiam os três principais vértices de competência de cada indivíduo no Plano de Tesla. A interação espacial desses triângulos define o grau de harmonia de uma equipe:
+                
+                *   **Sobreposição Idêntica:** Alinhamento absoluto de propósitos e estilos, mas com potencial de redundância ou pontos cegos comuns.
+                *   **Lateral em Comum / Vértice em Comum:** Forte sinergia e cooperação imediata sobre pontos de apoio semelhantes.
+                *   **Atravessamento:** Alta interdependência dinâmica que exige boa comunicação para não gerar atrito operacional.
+                *   **Afastamento:** Estilos muito distintos. Excelente para complementaridade estratégica, mas requer mediação do líder para evitar ruídos.
+                """)
+            
+            with sub_estudos_tab2:
+                st.markdown("### Guia de Interpretação Numerológica")
+                st.markdown("Cada indicador do mapa desempenha um papel único na constituição da personalidade e atitude profissional:")
+                
+                with st.container(border=True):
+                    st.markdown("**1. Número Psíquico** (Dia de Nascimento reduzido):")
+                    st.write("Representa como o indivíduo se enxerga interiormente, suas motivações mais profundas, hábitos cotidianos e preferências de conduta.")
+                    
+                    st.markdown("**2. Destino** (Soma total da Data de Nascimento):")
+                    st.write("Indica o caminho de vida, os tipos de oportunidades e aprendizados que o indivíduo encontrará ao longo de sua trajetória profissional.")
+                    
+                    st.markdown("**3. Expressão** (Soma do valor de todas as letras do Nome Completo):")
+                    st.write("Como a pessoa se expressa e interage com o mundo externo, seus talentos naturais de comunicação e competências visíveis.")
+                    
+                    st.markdown("**4. Motivação** (Soma apenas das Vogais do Nome Completo):")
+                    st.write("Os desejos íntimos da alma, aquilo que realmente move e apaixona o indivíduo por trás das cortinas operacionais.")
+                    
+                    st.markdown("**5. Impressão** (Soma apenas das Consoantes do Nome Completo):")
+                    st.write("A primeira impressão que o indivíduo transmite aos outros no ambiente corporativo e social, a imagem externa.")
+                    
+                    st.markdown("**6. Missão** (Soma da Expressão e do Destino):")
+                    st.write("O propósito final de realização nesta existência, o legado que o profissional aspira a consolidar.")
+            
+            with sub_estudos_tab3:
+                st.markdown("### 🧮 Calculadora de Estudo e Simulação")
+                st.markdown("Utilize esta ferramenta para simular cálculos numerológicos e entender a decomposição da metodologia KAN para qualquer indivíduo.")
+                
+                col_calc1, col_calc2 = st.columns(2)
+                with col_calc1:
+                    nome_simul = st.text_input("Nome Completo para Simulação:", value="Nome de Teste Exemplo", key="estudos_nome_simul")
+                with col_calc2:
+                    data_simul = st.date_input("Data de Nascimento para Simulação:", datetime.date(1990, 1, 1), key="estudos_data_simul")
+                
+                if st.button("Executar Simulação de Estudo", type="primary", key="estudos_btn_calc"):
+                    nasc_tuple = (data_simul.day, data_simul.month, data_simul.year)
+                    now_dt = datetime.datetime.now()
+                    data_at = (now_dt.day, now_dt.month, now_dt.year)
+                    
+                    try:
+                        res = calcular_numerologia(nome_simul, nasc_tuple, data_at)
+                        (expressao, motivacao, impressao, destino, _, _, _, missao, _, _, 
+                         _, _, _, _, _, _, ciclos_vida, momentos_decisivos, triangulo_base, _, _, _) = res
+                        
+                        estrutural, direcionamento, kan_num, rep1, rep2 = calcular_perfil_comportamental(
+                            expressao, motivacao, impressao, nasc_tuple[0],
+                            destino, missao, ciclos_vida['ciclo2']['numero'], momentos_decisivos['momento3']['numero'],
+                            triangulo_base
+                        )
+                        
+                        st.write("---")
+                        st.markdown("#### 📊 Resultados Obtidos na Simulação")
+                        
+                        col_r1, col_r2, col_r3 = st.columns(3)
+                        with col_r1:
+                            with premium_card_container(variant="compact"):
+                                st.write("**Motivação (Alma):**")
+                                st.markdown(f"<span style='font-size: 1.5em; font-weight: bold; color: var(--accent);'>{motivacao}</span>", unsafe_allow_html=True)
+                        with col_r2:
+                            with premium_card_container(variant="compact"):
+                                st.write("**Impressão (Aparência):**")
+                                st.markdown(f"<span style='font-size: 1.5em; font-weight: bold; color: var(--accent);'>{impressao}</span>", unsafe_allow_html=True)
+                        with col_r3:
+                            with premium_card_container(variant="compact"):
+                                st.write("**Expressão (Atitude):**")
+                                st.markdown(f"<span style='font-size: 1.5em; font-weight: bold; color: var(--accent);'>{expressao}</span>", unsafe_allow_html=True)
+                                
+                        col_r4, col_r5, col_r6 = st.columns(3)
+                        with col_r4:
+                            with premium_card_container(variant="compact"):
+                                st.write("**Destino (Caminho):**")
+                                st.markdown(f"<span style='font-size: 1.5em; font-weight: bold; color: var(--accent);'>{destino}</span>", unsafe_allow_html=True)
+                        with col_r5:
+                            with premium_card_container(variant="compact"):
+                                st.write("**Número Psíquico:**")
+                                st.markdown(f"<span style='font-size: 1.5em; font-weight: bold; color: var(--accent);'>{reduce_number(nasc_tuple[0])}</span>", unsafe_allow_html=True)
+                        with col_r6:
+                            with premium_card_container(variant="compact"):
+                                st.write("**Missão (Propósito):**")
+                                st.markdown(f"<span style='font-size: 1.5em; font-weight: bold; color: var(--accent);'>{missao}</span>", unsafe_allow_html=True)
+                        
+                        st.markdown("#### 📐 Vetices Comportamentais do Trio")
+                        
+                        todos_num = []
+                        for v_it in [expressao, motivacao, impressao, destino, missao, nasc_tuple[0]]:
+                            if isinstance(v_it, int): todos_num.append(v_it)
+                            elif isinstance(v_it, str) and str(v_it).isdigit(): todos_num.append(int(v_it))
+                        for c_key in ciclos_vida:
+                            num_c = ciclos_vida[c_key].get('numero')
+                            if isinstance(num_c, int): todos_num.append(num_c)
+                        for m_key in momentos_decisivos:
+                            num_m = momentos_decisivos[m_key].get('numero')
+                            if isinstance(num_m, int): todos_num.append(num_m)
+                        num_ps = reduce_number(nasc_tuple[0])
+                        todos_num.append(num_ps)
+                        if isinstance(triangulo_base, int): todos_num.append(triangulo_base)
+                        
+                        from collections import Counter
+                        c_tot = Counter(todos_num)
+                        r_tot = sorted([(n, c) for n, c in c_tot.items()], key=lambda x: (-x[1], x[0]))
+                        
+                        r2_v = r_tot[0][0] if r_tot else 0
+                        r3_v = r_tot[1][0] if len(r_tot) > 1 else 0
+                        r4_v = r_tot[2][0] if len(r_tot) > 2 else 0
+                        
+                        def clean_val(v):
+                            if v is None: return None
+                            s = str(v).split(" - ")[0]
+                            return int(s) if s.isdigit() and int(s) > 0 else None
+                            
+                        k_v = clean_val(kan_num)
+                        e_v = clean_val(estrutural)
+                        d_v = clean_val(direcionamento)
+                        r1_v = clean_val(rep1)
+                        
+                        todos_comp = [
+                            {"campo": "KAN", "valor": k_v},
+                            {"campo": "ESTRUTURAL", "valor": e_v},
+                            {"campo": "DIRECIONAMENTO", "valor": d_v},
+                            {"campo": "REPETIÇÃO 1", "valor": r1_v},
+                            {"campo": "REPETICAO MAPA", "valor": r2_v},
+                            {"campo": "REPETICAO 2 MAPA", "valor": r3_v},
+                            {"campo": "REPETICAO 3 MAPA", "valor": r4_v}
+                        ]
+                        
+                        vertices_comp = []
+                        vals_comp = set()
+                        for it in todos_comp:
+                            v_it = it["valor"]
+                            if v_it is not None and v_it not in [11, 22] and v_it not in vals_comp:
+                                vertices_comp.append(v_it)
+                                vals_comp.add(v_it)
+                            if len(vertices_comp) == 3:
+                                break
+                                
+                        if len(vertices_comp) == 3:
+                            st.write(f"Os três vértices calculados para o triângulo harmônico no Plano de Tesla são: `{vertices_comp}`.")
+                            
+                            try:
+                                comparativo = {nome_simul: vertices_comp}
+                                svg_html = gerar_svg_triangulos_harmonicos(comparativo, lider_nome=nome_simul)
+                                st.markdown(svg_html, unsafe_allow_html=True)
+                            except Exception as ex:
+                                st.error(f"Erro ao desenhar o triângulo no SVG: {ex}")
+                        else:
+                            st.warning("Não foi possível formar um triângulo completo de 3 vértices distintos com os números calculados.")
+                    except Exception as e:
+                        st.error(f"Erro ao executar cálculos de simulação: {e}")

@@ -1706,7 +1706,7 @@ Instruções cruciais:
         try:
             res_val = supabase_client.table("mapas_salvos_valores").select("*").execute()
             rows_val = res_val.data if res_val and res_val.data else []
-            res_ms = supabase_client.table("mapas_salvos").select("*").execute()
+            res_ms = supabase_client.table("mapas_salvos").select("nome, empresa, grupo, profissao, cargo, data_nascimento").execute()
             rows_ms = res_ms.data if res_ms and res_ms.data else []
         except Exception as e:
             st.error(f"Erro ao carregar talentos da base de dados: {e}")
@@ -1729,8 +1729,19 @@ Instruções cruciais:
                 "profissao": profissao_val or "Sem Profissão",
                 "cargo": cargo_val or "",
                 "data_nascimento": r.get("data_nascimento") or "",
-                "foto_base64": r.get("foto_base64") or ""
+                "foto_base64": ""
             }
+
+        # Carregar fotos em lote apenas para os candidatos associados ao processo seletivo desta vaga
+        vaga_id_int = vaga["id"] if vaga else None
+        if vaga_id_int:
+            associated_names = st.session_state["candidatos_vagas"].get(vaga_id_int, [])
+            if associated_names:
+                from models.database import fetch_fotos_clientes
+                fotos_dict = fetch_fotos_clientes(associated_names)
+                for c_nome in associated_names:
+                    if c_nome in ms_dict:
+                        ms_dict[c_nome]["foto_base64"] = fotos_dict.get(c_nome, "")
 
         # Calcular scores
         matching_results = []

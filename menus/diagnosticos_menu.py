@@ -37,6 +37,13 @@ class DiagnosticosMenu(BaseMenu):
 
         nome = cliente_selecionado
         info_cliente = clientes_salvos[nome]
+        
+        # Otimização: Busca foto_base64 e ai_diagnosis sob demanda apenas para o cliente ativo
+        from models.database import fetch_cliente_detalhes
+        detalhes = fetch_cliente_detalhes(nome)
+        if detalhes:
+            info_cliente.update(detalhes)
+            
         data_str = info_cliente['data_nascimento']
         
         profissao = info_cliente.get('profissao', '')

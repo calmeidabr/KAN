@@ -359,9 +359,9 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
             if d: q_d_list.append(f"<b>{q}</b>: {d}")
         add_row_perfil_split("Qualidades", ", ".join(str(x) for x in q_escolhidas if x is not None), "<br>".join(str(x) for x in q_d_list if x is not None) if q_d_list else "")
         
-        user_name_key = f"diag_{nome}"
-        cl_map = carregar_todos_clientes()
-        desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (cl_map.get(nome, {}).get('ai_diagnosis')) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
+        from models.database import fetch_cliente_detalhes
+        detalhes = fetch_cliente_detalhes(nome)
+        desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (detalhes.get('ai_diagnosis') if detalhes else None) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
         add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
         f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "N/E", "descricao": ""}); add_row_perfil_split("Fortaleza", f_data.get('fortaleza', 'N/E'), f_data.get('descricao', ''))
         d_data = DESAFIOS_DB.get(str(nascimento[0]), {"desafio": "N/E", "descricao": ""}); add_row_perfil_split("Desafio", d_data.get('desafio', 'N/E'), d_data.get('descricao', ''))

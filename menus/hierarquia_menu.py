@@ -248,6 +248,35 @@ class HierarquiaMenu(BaseMenu):
             background: rgba(255, 255, 255, 0.08) !important;
             color: var(--accent) !important;
         }
+        /* Estilização do Botão de Excluir Departamento (Trash Can Lucide) */
+        div[class*="st-key-btn_rem_"][class*="_dept_"] button {
+            border: 1px solid rgba(239, 68, 68, 0.2) !important;
+            background: rgba(239, 68, 68, 0.05) !important;
+            color: #EF4444 !important;
+            border-radius: 8px !important;
+            width: 38px !important;
+            height: 38px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: none !important;
+            transition: all 0.2s ease !important;
+        }
+        div[class*="st-key-btn_rem_"][class*="_dept_"] button:hover {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border-color: #EF4444 !important;
+            color: #EF4444 !important;
+        }
+        div[class*="st-key-btn_rem_"][class*="_dept_"] button::before {
+            content: "" !important;
+            display: inline-flex !important;
+            width: 18px !important;
+            height: 18px !important;
+            background-size: contain !important;
+            background-repeat: no-repeat !important;
+            background-position: center !important;
+            background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNFRjQ0NDQiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXBlPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTMgNmgxOG0tMiAwdjE0YTIgMiAwIDAgMS0yIDJIN2EyIDIgMCAwIDEtMi0yVjZtMyAwVjRhMiAyIDAgMCAxIDItMmg0YTIgMiAwIDAgMSAyIDJ2Mk0xMCAxMXY2bTQtNnY2Ii8+PC9zdmc+") !important;
+        }
         </style>
         """, unsafe_allow_html=True)
 
@@ -497,18 +526,20 @@ class HierarquiaMenu(BaseMenu):
                                             time.sleep(1)
                                             st.rerun()
                                             
-                    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
-                    col_search, col_filter = st.columns([1.8, 1.2])
-                    with col_search:
-                        search_query = st.text_input("🔍 Buscar colaborador...", placeholder="Nome ou cargo", key="search_colab")
-                    with col_filter:
-                        filter_role = st.selectbox("Filtrar por Cargo:", options=["Todos"] + sorted(list(cargos_list)), key="filter_role_colab")
+                    search_query = ""
+                    filter_role = "Todos"
+                    if selected_dept_id != "all":
+                        st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+                        col_search, col_filter = st.columns([1.8, 1.2])
+                        with col_search:
+                            search_query = st.text_input("🔍 Buscar colaborador...", placeholder="Nome ou cargo", key="search_colab")
+                        with col_filter:
+                            filter_role = st.selectbox("Filtrar por Cargo:", options=["Todos"] + sorted(list(cargos_list)), key="filter_role_colab")
                         
                     if selected_dept_id == "all":
-                        talents_in_dept = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento")]
+                        talents_in_dept = []
                     else:
-                        target_depts = set(obter_subdepartamentos_recursivo(selected_dept_id, deptos))
-                        talents_in_dept = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") in target_depts]
+                        talents_in_dept = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada and info.get("departamento") == selected_dept_id]
                         
                     filtered_talents = []
                     for t_nome in talents_in_dept:
@@ -523,8 +554,10 @@ class HierarquiaMenu(BaseMenu):
                             continue
                         filtered_talents.append(t_nome)
                         
-                    if not filtered_talents:
-                        st.info("Nenhum colaborador encontrado neste setor com os filtros ativos.")
+                    if selected_dept_id == "all":
+                        st.info("Selecione um departamento no menu lateral para visualizar os colaboradores associados.")
+                    elif not filtered_talents:
+                        st.info("Nenhum colaborador encontrado neste departamento com os filtros ativos.")
                     else:
                         def sort_key(nome):
                             info = clientes.get(nome, {})
@@ -637,6 +670,32 @@ class HierarquiaMenu(BaseMenu):
         else:
             # Construtor da Hierarquia
             st.subheader(f"Construtor de Hierarquia: {empresa_selecionada}")
+            
+            # Processar ações pendentes de modificação da lista antes de ler ou iterar
+            if "add_sub_under_dept" in st.session_state:
+                parent_id, parent_nome = st.session_state.pop("add_sub_under_dept")
+                builder_list = st.session_state[state_key_builder]
+                novo_id = f"dept_{int(time.time()*1000)}_{len(builder_list)}"
+                builder_list.append({"id": novo_id, "nome": f"Subdepartamento de {parent_nome}", "parent_id": parent_id})
+                st.session_state[state_key_builder] = builder_list
+                st.rerun()
+                
+            if "rem_dept_idx" in st.session_state:
+                rem_idx = st.session_state.pop("rem_dept_idx")
+                builder_list = st.session_state[state_key_builder]
+                if 0 <= rem_idx < len(builder_list):
+                    builder_list.pop(rem_idx)
+                st.session_state[state_key_builder] = builder_list
+                st.rerun()
+
+            if "add_root_dept" in st.session_state:
+                st.session_state.pop("add_root_dept")
+                builder_list = st.session_state[state_key_builder]
+                novo_id = f"dept_{int(time.time()*1000)}_{len(builder_list)}"
+                builder_list.append({"id": novo_id, "nome": "Novo Departamento", "parent_id": "Nenhum (Nível Mais Alto)"})
+                st.session_state[state_key_builder] = builder_list
+                st.rerun()
+
             builder_list = st.session_state[state_key_builder]
             opcoes_pai = ["Nenhum (Nível Mais Alto)"] + [item["nome"] for item in builder_list]
             novos_dados = []
@@ -661,12 +720,11 @@ class HierarquiaMenu(BaseMenu):
                         st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
                         if len(builder_list) > 1:
                             if st.button(" ", key=f"btn_rem_{idx}_{item['id']}", help="Remover Departamento", use_container_width=True):
-                                builder_list.pop(idx)
+                                st.session_state["rem_dept_idx"] = idx
                                 st.rerun()
                     
                     if st.button(f"Adicionar Subdepartamento sob '{n_nome}'", key=f"btn_add_sub_{idx}_{item['id']}"):
-                        novo_id = f"dept_{int(time.time()*1000)}_{len(builder_list)}"
-                        builder_list.append({"id": novo_id, "nome": f"Subdepartamento de {n_nome}", "parent_id": item["id"]})
+                        st.session_state["add_sub_under_dept"] = (item["id"], n_nome)
                         st.rerun()
                     
                     pai_id = "Nenhum (Nível Mais Alto)"
@@ -680,8 +738,7 @@ class HierarquiaMenu(BaseMenu):
             st.session_state[state_key_builder] = novos_dados
             st.write("---")
             if st.button("Adicionar Departamento Principal", key=f"btn_add_root_{empresa_selecionada}"):
-                novo_id = f"dept_{int(time.time()*1000)}_{len(builder_list)}"
-                builder_list.append({"id": novo_id, "nome": "Novo Departamento", "parent_id": "Nenhum (Nível Mais Alto)"})
+                st.session_state["add_root_dept"] = True
                 st.rerun()
                 
             st.write("---")
@@ -703,6 +760,7 @@ class HierarquiaMenu(BaseMenu):
                         try:
                             supabase_client.table("hierarquia_departamentos").delete().eq("empresa", empresa_selecionada).execute()
                             supabase_client.table("hierarquia_departamentos").insert(payloads).execute()
+                            st.cache_data.clear()
                             st.success("Hierarquia salva com sucesso!")
                             st.session_state[state_key_edit] = False
                             st.rerun()
@@ -710,6 +768,7 @@ class HierarquiaMenu(BaseMenu):
                             st.error(f"Erro ao salvar: {ex}")
                     else:
                         st.session_state["hier_local_" + empresa_selecionada] = payloads
+                        st.cache_data.clear()
                         st.success("Hierarquia salva com sucesso!")
                         st.session_state[state_key_edit] = False
                         st.rerun()

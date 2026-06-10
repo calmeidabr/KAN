@@ -27,6 +27,8 @@ from .database import (
     carregar_hierarquia,
     carregar_todos_clientes,
     salvar_na_base_dados,
+    fetch_cliente_detalhes,
+    fetch_fotos_clientes,
     ARCANOS_DB,
     FORTALEZAS_DB,
     KAN_DB,

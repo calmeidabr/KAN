@@ -278,6 +278,12 @@ class TalentosMenu(BaseMenu):
                 })
                 
             if dados_filtrados:
+                from models.database import fetch_fotos_clientes
+                nomes_filtrados = [t["Nome"] for t in dados_filtrados]
+                fotos_dict = fetch_fotos_clientes(nomes_filtrados)
+                for t in dados_filtrados:
+                    t["foto_base64"] = fotos_dict.get(t["Nome"], "")
+
                 # Monta a grade de cards nativa
                 cols = st.columns(3)
                 for idx, t in enumerate(dados_filtrados):
