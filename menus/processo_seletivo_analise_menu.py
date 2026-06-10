@@ -2690,114 +2690,267 @@ Instruções cruciais:
                                     # Detalhes da Análise Premium
                                     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
                                     
-                                    with premium_card_container(variant="default"):
-                                        # Cabecalho da analise com nota e badge
-                                        col_n1, col_n2 = st.columns([3, 1])
-                                        with col_n1:
-                                            st.markdown(f"<h3 style='margin:0; font-family: Outfit; font-weight: 800; color: #F4F7FB;'>Análise de {c_selecionado_nome}</h3>", unsafe_allow_html=True)
-                                        with col_n2:
-                                            # Cor do badge baseada na nota
-                                            faixa_c = cand_sel_dados["faixa"]
-                                            nota_c = cand_sel_dados["nota"]
-                                            if nota_c >= 85.0:
-                                                badge_color = "#4CAF50" # Verde
-                                            elif nota_c >= 70.0:
-                                                badge_color = "#9C27B0" # Roxo
-                                            elif nota_c >= 55.0:
-                                                badge_color = "#8B5CF6" # Lilás
+                                    faixa_c = cand_sel_dados["faixa"]
+                                    nota_c = cand_sel_dados["nota"]
+                                    blocos = cand_sel_dados["blocos"]
+                                    justificativa_html = converter_markdown_para_html(cand_sel_dados['justificativa'])
+
+                                    card_diagnostico_html = f"""
+<div style="
+    background-color: #000000; 
+    border: 1px solid #1E1E2E; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    font-family: 'Outfit', sans-serif; 
+    margin-top: 15px; 
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+">
+    <!-- CABEÇALHO -->
+    <div style="
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background-color: #000000;
+        min-height: 60px;
+    ">
+        <!-- LADO ESQUERDO: ABA LARANJA -->
+        <div style="
+            background-color: #F08A00; 
+            color: #000000; 
+            padding: 18px 30px; 
+            font-weight: 800; 
+            font-size: 1.25rem; 
+            display: flex;
+            align-items: center;
+        ">
+            Análise de {c_selecionado_nome}
+        </div>
+        
+        <!-- LADO DIREITO: BADGE DE ENCAIXE -->
+        <div style="
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding-right: 30px;
+        ">
+            <span style="color: #FFFFFF; font-size: 1.15rem; font-weight: 600;">{faixa_c}</span>
+            <span style="
+                background-color: #F08A00; 
+                color: #FFFFFF; 
+                padding: 6px 18px; 
+                border-radius: 25px; 
+                font-weight: 800; 
+                font-size: 1.15rem;
+            ">
+                {round(nota_c, 1)}%
+            </span>
+        </div>
+    </div>
+
+    <!-- CORPO: TEXTO DA JUSTIFICATIVA -->
+    <div style="
+        padding: 30px; 
+        color: #E0E4EC; 
+        font-size: 1.05rem; 
+        line-height: 1.8; 
+        text-align: justify;
+        white-space: pre-wrap;
+    ">
+        {justificativa_html}
+    </div>
+
+    <!-- DIVISOR HORIZONTAL LARANJA -->
+    <div style="
+        background-color: #F08A00; 
+        color: #000000; 
+        text-align: center; 
+        padding: 10px 0; 
+        font-weight: 800; 
+        font-size: 1.1rem; 
+        letter-spacing: 0.5px;
+    ">
+        Detalhamento por Critério de Equipe
+    </div>
+
+    <!-- GRID DE MÉTRICAS (5 COLUNAS) -->
+    <div style="
+        display: grid; 
+        grid-template-columns: repeat(5, 1fr); 
+        gap: 15px; 
+        padding: 30px; 
+        background-color: #000000; 
+        text-align: center;
+    ">
+        <!-- COLUNA 1 -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+                Complementaridade
+            </span>
+            <div style="
+                background-color: #F08A00; 
+                color: #000000; 
+                font-weight: 800; 
+                font-size: 1.6rem; 
+                padding: 10px 0; 
+                width: 100%; 
+                border-radius: 12px;
+            ">
+                {round(blocos['complementaridade'], 1)}/5.0
+            </div>
+            <span style="color: #717D96; font-size: 0.82rem; font-weight: 500;">
+                Equilíbrio de KANs
+            </span>
+        </div>
+
+        <!-- COLUNA 2 -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+                Integração Geométrica
+            </span>
+            <div style="
+                background-color: #F08A00; 
+                color: #000000; 
+                font-weight: 800; 
+                font-size: 1.6rem; 
+                padding: 10px 0; 
+                width: 100%; 
+                border-radius: 12px;
+            ">
+                {round(blocos['integracao'], 1)}/5.0
+            </div>
+            <span style="color: #717D96; font-size: 0.82rem; font-weight: 500;">
+                Conexões de Triângulos
+            </span>
+        </div>
+
+        <!-- COLUNA 3 -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+                Balanceamento
+            </span>
+            <div style="
+                background-color: #F08A00; 
+                color: #000000; 
+                font-weight: 800; 
+                font-size: 1.6rem; 
+                padding: 10px 0; 
+                width: 100%; 
+                border-radius: 12px;
+            ">
+                {round(blocos['balanceamento'], 1)}/5.0
+            </div>
+            <span style="color: #717D96; font-size: 0.82rem; font-weight: 500;">
+                Cobertura de Planos
+            </span>
+        </div>
+
+        <!-- COLUNA 4 -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+                Potencial de Entrega
+            </span>
+            <div style="
+                background-color: #F08A00; 
+                color: #000000; 
+                font-weight: 800; 
+                font-size: 1.6rem; 
+                padding: 10px 0; 
+                width: 100%; 
+                border-radius: 12px;
+            ">
+                {round(blocos['entrega'], 1)}/5.0
+            </div>
+            <span style="color: #717D96; font-size: 0.82rem; font-weight: 500;">
+                Materialidade/Praticidade
+            </span>
+        </div>
+
+        <!-- COLUNA 5 -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+                Segurança Relacional
+            </span>
+            <div style="
+                background-color: #F08A00; 
+                color: #000000; 
+                font-weight: 800; 
+                font-size: 1.6rem; 
+                padding: 10px 0; 
+                width: 100%; 
+                border-radius: 12px;
+            ">
+                {round(blocos['conflito'], 1)}/5.0
+            </div>
+            <span style="color: #717D96; font-size: 0.82rem; font-weight: 500;">
+                Mitigação de Conflitos
+            </span>
+        </div>
+    </div>
+</div>
+"""
+                                    st.markdown(card_diagnostico_html, unsafe_allow_html=True)
+                                    
+                                    st.write("---")
+                                    
+                                    # Historico de observacoes anteriores deste candidato para esta vaga
+                                    hist_vaga = st.session_state["historico_harmonia_vagas"].get(vaga_id_int, [])
+                                    obs_anterior = ""
+                                    for h_ent in hist_vaga:
+                                        if h_ent.get("candidato") == c_selecionado_nome:
+                                            obs_anterior = h_ent.get("observacoes", "")
+                                            break
+                                            
+                                    # Campo de observacoes do analista
+                                    st.markdown("##### Observações Manuais do Analista")
+                                    obs_text = st.text_area(
+                                        "Registre notas de entrevista ou considerações estratégicas (não altera a pontuação matemática):",
+                                        value=obs_anterior,
+                                        placeholder="Ex: Candidato demonstrou excelente abertura para colaborar com a liderança no KAN de Finalidade, confirmando a estabilidade indicada na geometria...",
+                                        key=f"obs_harm_{c_selecionado_nome}_{vaga_id_int}",
+                                        height=100
+                                    )
+                                    
+                                    # Botão para salvar
+                                    if st.button("💾 Confirmar e Salvar Análise de Harmonia", type="primary", use_container_width=True, key=f"btn_save_harm_obs_{c_selecionado_nome}_{vaga_id_int}"):
+                                        nova_entrada = {
+                                            "candidato": c_selecionado_nome,
+                                            "equipe": equipe_associada,
+                                            "membros_trio": membros_trio,
+                                            "nota": nota_c,
+                                            "faixa": faixa_c,
+                                            "data": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
+                                            "observacoes": obs_text.strip(),
+                                            "justificativa": cand_sel_dados["justificativa"]
+                                        }
+                                        
+                                        # Atualiza na lista de historico local da vaga
+                                        novo_hist = [h for h in hist_vaga if h.get("candidato") != c_selecionado_nome]
+                                        novo_hist.append(nova_entrada)
+                                        st.session_state["historico_harmonia_vagas"][vaga_id_int] = novo_hist
+                                        
+                                        # Salvar no Supabase
+                                        try:
+                                            check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
+                                            if check_ex and check_ex.data:
+                                                row_id = check_ex.data[0]["id"]
+                                                supabase_client.table("processos_seletivos").update({
+                                                    "historico_harmonia": novo_hist,
+                                                    "updated_at": "now()"
+                                                }).eq("id", row_id).execute()
                                             else:
-                                                badge_color = "#F44336" # Vermelho
-                                            st.markdown(f"<span style='background: {badge_color}; color: #FFFFFF; font-family: Outfit; font-weight: 700; font-size: 0.9rem; padding: 6px 12px; border-radius: 20px; display: inline-block; text-align: center; float: right;'>{faixa_c} ({nota_c}%)</span>", unsafe_allow_html=True)
-                                            
-                                        st.write("---")
-                                        
-                                        # Justificativa descritiva
-                                        st.markdown(f"<p style='font-family: \"Outfit\", sans-serif; font-size: 1.05rem; line-height: 1.6; color: var(--text-main); text-align: justify;'>{converter_markdown_para_html(cand_sel_dados['justificativa'])}</p>", unsafe_allow_html=True)
-                                        
-                                        # Breakdown de pontuacao por bloco
-                                        st.write("")
-                                        st.markdown("#### Detalhamento por Critério de Equipe")
-                                        
-                                        # Grid de 5 blocos
-                                        col_b1, col_b2, col_b3, col_b4, col_b5 = st.columns(5)
-                                        blocos = cand_sel_dados["blocos"]
-                                        
-                                        with col_b1:
-                                            st.metric("Complementaridade", f"{round(blocos['complementaridade'], 1)}/5.0")
-                                            st.caption("Equilíbrio de KANs")
-                                        with col_b2:
-                                            st.metric("Integração Geométrica", f"{round(blocos['integracao'], 1)}/5.0")
-                                            st.caption("Conexões de Triângulos")
-                                        with col_b3:
-                                            st.metric("Balanceamento", f"{round(blocos['balanceamento'], 1)}/5.0")
-                                            st.caption("Cobertura de Planos")
-                                        with col_b4:
-                                            st.metric("Potencial de Entrega", f"{round(blocos['entrega'], 1)}/5.0")
-                                            st.caption("Materialidade/Praticidade")
-                                        with col_b5:
-                                            st.metric("Segurança Relacional", f"{round(blocos['conflito'], 1)}/5.0")
-                                            st.caption("Mitigação de Conflitos")
-                                        
-                                        st.write("---")
-                                        
-                                        # Historico de observacoes anteriores deste candidato para esta vaga
-                                        hist_vaga = st.session_state["historico_harmonia_vagas"].get(vaga_id_int, [])
-                                        obs_anterior = ""
-                                        for h_ent in hist_vaga:
-                                            if h_ent.get("candidato") == c_selecionado_nome:
-                                                obs_anterior = h_ent.get("observacoes", "")
-                                                break
-                                                
-                                        # Campo de observacoes do analista
-                                        st.markdown("##### Observações Manuais do Analista")
-                                        obs_text = st.text_area(
-                                            "Registre notas de entrevista ou considerações estratégicas (não altera a pontuação matemática):",
-                                            value=obs_anterior,
-                                            placeholder="Ex: Candidato demonstrou excelente abertura para colaborar com a liderança no KAN de Finalidade, confirmando a estabilidade indicada na geometria...",
-                                            key=f"obs_harm_{c_selecionado_nome}_{vaga_id_int}",
-                                            height=100
-                                        )
-                                        
-                                        # Botão para salvar
-                                        if st.button("💾 Confirmar e Salvar Análise de Harmonia", type="primary", use_container_width=True, key=f"btn_save_harm_obs_{c_selecionado_nome}_{vaga_id_int}"):
-                                            nova_entrada = {
-                                                "candidato": c_selecionado_nome,
-                                                "equipe": equipe_associada,
-                                                "membros_trio": membros_trio,
-                                                "nota": nota_c,
-                                                "faixa": faixa_c,
-                                                "data": datetime.datetime.now().strftime("%d/%m/%Y %H:%M"),
-                                                "observacoes": obs_text.strip(),
-                                                "justificativa": cand_sel_dados["justificativa"]
-                                            }
-                                            
-                                            # Atualiza na lista de historico local da vaga
-                                            novo_hist = [h for h in hist_vaga if h.get("candidato") != c_selecionado_nome]
-                                            novo_hist.append(nova_entrada)
-                                            st.session_state["historico_harmonia_vagas"][vaga_id_int] = novo_hist
-                                            
-                                            # Salvar no Supabase
-                                            try:
-                                                check_ex = supabase_client.table("processos_seletivos").select("id").eq("vaga_id", vaga_id_int).execute()
-                                                if check_ex and check_ex.data:
-                                                    row_id = check_ex.data[0]["id"]
-                                                    supabase_client.table("processos_seletivos").update({
-                                                        "historico_harmonia": novo_hist,
-                                                        "updated_at": "now()"
-                                                    }).eq("id", row_id).execute()
-                                                else:
-                                                    supabase_client.table("processos_seletivos").insert({
-                                                        "vaga_id": vaga_id_int,
-                                                        "empresa": empresa_selecionada,
-                                                        "candidatos": [],
-                                                        "equipe": equipe_associada,
-                                                        "historico_harmonia": novo_hist
-                                                    }).execute()
-                                                st.toast("Análise de harmonia salva com sucesso!", icon="✅")
-                                                st.rerun()
-                                            except Exception as e:
-                                                st.toast(f"Análise salva localmente. Nota: Execute o script SQL no Supabase para persistência total: {e}", icon="⚠️")
-                                                st.rerun()
+                                                supabase_client.table("processos_seletivos").insert({
+                                                    "vaga_id": vaga_id_int,
+                                                    "empresa": empresa_selecionada,
+                                                    "candidatos": [],
+                                                    "equipe": equipe_associada,
+                                                    "historico_harmonia": novo_hist
+                                                }).execute()
+                                            st.toast("Análise de harmonia salva com sucesso!", icon="✅")
+                                            st.rerun()
+                                        except Exception as e:
+                                            st.toast(f"Análise salva localmente. Nota: Execute o script SQL no Supabase para persistência total: {e}", icon="⚠️")
+                                            st.rerun()
                                     
                                     # Seção de Histórico de análises da vaga
                                     if hist_vaga:
@@ -2805,7 +2958,7 @@ Instruções cruciais:
                                         st.markdown("#### Histórico de Análises Confirmadas")
                                         for idx_h, h_ent in enumerate(hist_vaga):
                                             with st.expander(f"📋 {h_ent['candidato']} - {h_ent['faixa']} ({h_ent['nota']}%) em {h_ent['data']}", expanded=False):
-                                                st.markdown(f"<p style='font-family: \"Outfit\", sans-serif; font-size: 0.95rem; line-height: 1.5; color: var(--text-main); text-align: justify;'>{converter_markdown_para_html(h_ent.get('justificativa', ''))}</p>", unsafe_allow_html=True)
+                                                st.markdown(f"<p style='font-family: \"Outfit\", sans-serif; font-size: 0.95rem; line-height: 1.5; color: var(--text-main); text-align: justify; white-space: pre-wrap;'>{converter_markdown_para_html(h_ent.get('justificativa', ''))}</p>", unsafe_allow_html=True)
                                                 if h_ent.get("observacoes"):
                                                     st.markdown(f"<div style='background: rgba(255,255,255,0.02); padding: 10px; border-left: 3px solid #F08A00; border-radius: 4px; font-style: italic; color: #AAB3C5;'>{h_ent['observacoes']}</div>", unsafe_allow_html=True)
                                                 else:
