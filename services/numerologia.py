@@ -127,7 +127,7 @@ def calcular_licoes_carmicas(nome_completo):
 def calcular_tendencias_ocultas(nome_completo):
     nome_simplificado = nome_completo.upper().replace(' ', '')
     contagem = Counter(letter_values.get(ch, 0) for ch in nome_simplificado if ch in letter_values)
-    return sorted([num for num, count in contagem.items() if count >= 3])
+    return sorted([num for num, count in contagem.items() if count > 3])
 
 def soma_tendencias_ocultas(tendencias_ocultas):
     return sum(tendencias_ocultas)
