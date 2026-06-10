@@ -2701,7 +2701,6 @@ Instruções cruciais:
     border: 1px solid #1E1E2E; 
     border-radius: 12px; 
     overflow: hidden; 
-    font-family: 'Outfit', sans-serif; 
     margin-top: 15px; 
     margin-bottom: 25px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -2719,7 +2718,7 @@ Instruções cruciais:
             background-color: #F08A00; 
             color: #000000; 
             padding: 18px 30px; 
-            font-weight: 800; 
+            font-weight: 600; 
             font-size: 1.25rem; 
             display: flex;
             align-items: center;
@@ -2734,13 +2733,13 @@ Instruções cruciais:
             gap: 12px; 
             padding-right: 30px;
         ">
-            <span style="color: #FFFFFF; font-size: 1.15rem; font-weight: 600;">{faixa_c}</span>
+            <span style="color: #FFFFFF; font-size: 1.15rem; font-weight: 500;">{faixa_c}</span>
             <span style="
                 background-color: #F08A00; 
                 color: #FFFFFF; 
                 padding: 6px 18px; 
                 border-radius: 25px; 
-                font-weight: 800; 
+                font-weight: 600; 
                 font-size: 1.15rem;
             ">
                 {round(nota_c, 1)}%
@@ -2766,7 +2765,7 @@ Instruções cruciais:
         color: #000000; 
         text-align: center; 
         padding: 10px 0; 
-        font-weight: 800; 
+        font-weight: 600; 
         font-size: 1.1rem; 
         letter-spacing: 0.5px;
     ">
@@ -2784,13 +2783,13 @@ Instruções cruciais:
     ">
         <!-- COLUNA 1 -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 500; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
                 Complementaridade
             </span>
             <div style="
                 background-color: #F08A00; 
                 color: #000000; 
-                font-weight: 800; 
+                font-weight: 600; 
                 font-size: 1.6rem; 
                 padding: 10px 0; 
                 width: 100%; 
@@ -2805,13 +2804,13 @@ Instruções cruciais:
 
         <!-- COLUNA 2 -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 500; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
                 Integração Geométrica
             </span>
             <div style="
                 background-color: #F08A00; 
                 color: #000000; 
-                font-weight: 800; 
+                font-weight: 600; 
                 font-size: 1.6rem; 
                 padding: 10px 0; 
                 width: 100%; 
@@ -2826,13 +2825,13 @@ Instruções cruciais:
 
         <!-- COLUNA 3 -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 500; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
                 Balanceamento
             </span>
             <div style="
                 background-color: #F08A00; 
                 color: #000000; 
-                font-weight: 800; 
+                font-weight: 600; 
                 font-size: 1.6rem; 
                 padding: 10px 0; 
                 width: 100%; 
@@ -2847,13 +2846,13 @@ Instruções cruciais:
 
         <!-- COLUNA 4 -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 500; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
                 Potencial de Entrega
             </span>
             <div style="
                 background-color: #F08A00; 
                 color: #000000; 
-                font-weight: 800; 
+                font-weight: 600; 
                 font-size: 1.6rem; 
                 padding: 10px 0; 
                 width: 100%; 
@@ -2868,13 +2867,13 @@ Instruções cruciais:
 
         <!-- COLUNA 5 -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 600; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
+            <span style="color: #AAB3C5; font-size: 0.9rem; font-weight: 500; min-height: 38px; display: flex; align-items: center; justify-content: center; line-height: 1.2;">
                 Segurança Relacional
             </span>
             <div style="
                 background-color: #F08A00; 
                 color: #000000; 
-                font-weight: 800; 
+                font-weight: 600; 
                 font-size: 1.6rem; 
                 padding: 10px 0; 
                 width: 100%; 
@@ -2959,7 +2958,7 @@ Instruções cruciais:
                                         st.markdown("#### Histórico de Análises Confirmadas")
                                         for idx_h, h_ent in enumerate(hist_vaga):
                                             with st.expander(f"📋 {h_ent['candidato']} - {h_ent['faixa']} ({h_ent['nota']}%) em {h_ent['data']}", expanded=False):
-                                                st.markdown(f"<p style='font-family: \"Outfit\", sans-serif; font-size: 0.95rem; line-height: 1.5; color: var(--text-main); text-align: justify; white-space: pre-wrap;'>{converter_markdown_para_html(h_ent.get('justificativa', ''))}</p>", unsafe_allow_html=True)
+                                                st.markdown(f"<p style='font-size: 0.95rem; line-height: 1.5; color: var(--text-main); text-align: justify; white-space: pre-wrap;'>{converter_markdown_para_html(h_ent.get('justificativa', ''))}</p>", unsafe_allow_html=True)
                                                 if h_ent.get("observacoes"):
                                                     st.markdown(f"<div style='background: rgba(255,255,255,0.02); padding: 10px; border-left: 3px solid #F08A00; border-radius: 4px; font-style: italic; color: #AAB3C5;'>{h_ent['observacoes']}</div>", unsafe_allow_html=True)
                                                 else:

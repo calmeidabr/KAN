@@ -98,6 +98,6 @@ def format_vaga_title(nome_vaga, senioridade):
 def converter_markdown_para_html(texto):
     if not texto:
         return ""
-    # Substitui **texto** por <strong> com cor de destaque do tema, peso 800 e fonte Outfit com aspas válidas no CSS
-    return re.sub(r'\*\*(.*?)\*\*', "<strong style=\"color: var(--accent, #F08A00); font-weight: 800; font-family: 'Outfit', sans-serif;\">\\1</strong>", str(texto))
+    # Substitui **texto** por <strong> com cor de destaque do tema e peso 600 (semi-bold elegante)
+    return re.sub(r'\*\*(.*?)\*\*', "<strong style=\"color: var(--accent, #F08A00); font-weight: 600;\">\\1</strong>", str(texto))
 
