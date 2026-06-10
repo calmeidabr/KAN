@@ -31,6 +31,9 @@ def init_supabase_admin_client():
 def get_supabase():
     return init_supabase_client()
 
+def get_supabase_admin():
+    return init_supabase_admin_client()
+
 class LazyDB:
     def __init__(self, fetch_func):
         self._fetch_func = fetch_func
