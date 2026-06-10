@@ -2736,7 +2736,7 @@ Instruções cruciais:
             <span style="color: #FFFFFF; font-size: 1.15rem; font-weight: 500;">{faixa_c}</span>
             <span style="
                 background-color: #F08A00; 
-                color: #000000; 
+                color: #000000 !important; 
                 padding: 6px 18px; 
                 border-radius: 25px; 
                 font-weight: 600; 
