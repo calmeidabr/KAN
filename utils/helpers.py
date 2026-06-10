@@ -94,3 +94,10 @@ def format_vaga_title(nome_vaga, senioridade):
     if senioridade.lower() in nome_vaga.lower():
         return nome_vaga
     return f"{nome_vaga} ({senioridade})"
+
+def converter_markdown_para_html(texto):
+    if not texto:
+        return ""
+    # Substitui **texto** por <b>texto</b> de forma não gulosa
+    return re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', str(texto))
+

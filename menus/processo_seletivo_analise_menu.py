@@ -4,7 +4,7 @@ import json
 import google.generativeai as genai
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, get_supabase_admin, carregar_equipes
-from utils.helpers import remover_acentos, format_vaga_title
+from utils.helpers import remover_acentos, format_vaga_title, converter_markdown_para_html
 from services.harmonia import calcular_harmonia_trio, obter_vertices_triangulo, classificar_relacao_geometrica
 from utils.graphics import gerar_svg_triangulos_harmonicos
 
@@ -2712,7 +2712,7 @@ Instruções cruciais:
                                         st.write("---")
                                         
                                         # Justificativa descritiva
-                                        st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6; color: #E0E4EC; text-align: justify;'>{cand_sel_dados['justificativa']}</p>", unsafe_allow_html=True)
+                                        st.markdown(f"<p style='font-size: 1.1rem; line-height: 1.6; color: #E0E4EC; text-align: justify;'>{converter_markdown_para_html(cand_sel_dados['justificativa'])}</p>", unsafe_allow_html=True)
                                         
                                         # Breakdown de pontuacao por bloco
                                         st.write("")
@@ -2805,7 +2805,7 @@ Instruções cruciais:
                                         st.markdown("#### Histórico de Análises Confirmadas")
                                         for idx_h, h_ent in enumerate(hist_vaga):
                                             with st.expander(f"📋 {h_ent['candidato']} - {h_ent['faixa']} ({h_ent['nota']}%) em {h_ent['data']}", expanded=False):
-                                                st.markdown(f"<p style='font-size: 1rem; line-height: 1.5; color: #E0E4EC; text-align: justify;'>{h_ent.get('justificativa', '')}</p>", unsafe_allow_html=True)
+                                                st.markdown(f"<p style='font-size: 1rem; line-height: 1.5; color: #E0E4EC; text-align: justify;'>{converter_markdown_para_html(h_ent.get('justificativa', ''))}</p>", unsafe_allow_html=True)
                                                 if h_ent.get("observacoes"):
                                                     st.markdown(f"<div style='background: rgba(255,255,255,0.02); padding: 10px; border-left: 3px solid #F08A00; border-radius: 4px; font-style: italic; color: #AAB3C5;'>{h_ent['observacoes']}</div>", unsafe_allow_html=True)
                                                 else:
