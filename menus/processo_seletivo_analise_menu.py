@@ -2583,7 +2583,7 @@ Instruções cruciais:
                                         justificativa_base = justificativa_base.replace(alvo_pt1, substituicao).replace(alvo_pt2, substituicao)
 
                                     if len(membros_validos) > 2:
-                                        justificativa_final = f"**Análise Consolidada de Equipe ({len(membros_validos)} membros):** {justificativa_base}{lider_texto}"
+                                        justificativa_final = f"**Análise Consolidada de Equipe ({len(membros_validos)} membros):**\n\n{justificativa_base}{lider_texto}"
                                     else:
                                         justificativa_final = justificativa_base
                                         
