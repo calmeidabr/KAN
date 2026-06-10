@@ -155,6 +155,13 @@ class App:
             st.session_state["cad_exp"] = info.get("experiencias", "")
             emp_nome = info.get("empresa", "Nenhuma / Não associada")
             st.session_state["cad_empresa_sel"] = emp_nome if emp_nome else "Nenhuma / Não associada"
+            
+            # Adicionar à lista de últimos consultados
+            if "ultimos_consultados" not in st.session_state:
+                st.session_state["ultimos_consultados"] = []
+            if nome and nome.strip() not in st.session_state["ultimos_consultados"]:
+                st.session_state["ultimos_consultados"].insert(0, nome.strip())
+                st.session_state["ultimos_consultados"] = st.session_state["ultimos_consultados"][:6]
         st.session_state["sidebar_menu"] = "Talentos"
 
     def ver_equipe(self, nome_equipe):

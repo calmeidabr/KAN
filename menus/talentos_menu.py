@@ -15,6 +15,15 @@ class TalentosMenu(BaseMenu):
         if 'form_reset_id' not in st.session_state:
             st.session_state['form_reset_id'] = 0
 
+        # Adicionar o talento em exibição nos últimos consultados
+        cad_nome_atual = st.session_state.get("cad_nome", "")
+        if cad_nome_atual and cad_nome_atual.strip():
+            if "ultimos_consultados" not in st.session_state:
+                st.session_state["ultimos_consultados"] = []
+            if cad_nome_atual.strip() not in st.session_state["ultimos_consultados"]:
+                st.session_state["ultimos_consultados"].insert(0, cad_nome_atual.strip())
+                st.session_state["ultimos_consultados"] = st.session_state["ultimos_consultados"][:6]
+
         # Garantir que a câmera inicia fechada ao alternar para esta página
         current_menu = st.session_state.get('sidebar_menu', 'Talentos')
         if st.session_state.get('last_sidebar_menu') != current_menu:
@@ -240,7 +249,13 @@ class TalentosMenu(BaseMenu):
             busca = st.text_input("Buscar por Nome, Profissão ou Grupo:", placeholder="Digite o termo de busca...", key="busca_talentos_input")
             
             dados_filtrados = []
+            ultimos_consultados = st.session_state.get("ultimos_consultados", [])
+            usar_ultimos = not busca.strip()
+            
             for nome, info in clientes.items():
+                if usar_ultimos and nome not in ultimos_consultados:
+                    continue
+                    
                 profissao = info.get("profissao") or info.get("cargo") or ""
                 grupo = info.get("grupo") or info.get("empresa") or ""
                 
@@ -325,6 +340,9 @@ class TalentosMenu(BaseMenu):
                 st.write("")
                 st.caption(f"Total de talentos encontrados: {len(dados_filtrados)}")
             else:
-                st.info("Nenhum talento correspondente encontrado para a busca.")
+                if usar_ultimos:
+                    st.info("Use o campo de busca acima para pesquisar talentos cadastrados. Seus talentos consultados recentemente aparecerão aqui para acesso rápido.")
+                else:
+                    st.info("Nenhum talento correspondente encontrado para a busca.")
         else:
             st.info("Nenhum talento cadastrado no sistema ainda.")
