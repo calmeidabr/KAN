@@ -361,6 +361,7 @@ def realizar_calculos_completos(nome, nascimento, data_atual, cargo, empresa):
         
         from models.database import fetch_cliente_detalhes
         detalhes = fetch_cliente_detalhes(nome)
+        user_name_key = f"diag_{nome}"
         desc_diag = st.session_state.get("ai_diagnosis", {}).get(user_name_key) or (detalhes.get('ai_diagnosis') if detalhes else None) or "Clique no botão ao final da página para gerar o Diagnóstico com Inteligência Artificial."
         add_row_perfil_split("Diagnóstico", "Análise de Performance", desc_diag)
         f_data = FORTALEZAS_DB.get(str(triangulo_base), {"fortaleza": "N/E", "descricao": ""}); add_row_perfil_split("Fortaleza", f_data.get('fortaleza', 'N/E'), f_data.get('descricao', ''))
