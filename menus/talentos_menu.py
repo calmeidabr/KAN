@@ -42,6 +42,7 @@ class TalentosMenu(BaseMenu):
             st.session_state['cad_exp'] = ""
             st.session_state['ocr_nome'] = ""
             st.session_state['ocr_data_nascimento'] = ""
+            st.session_state['cad_data_sincronizado'] = ""
             st.session_state['cad_camera_aberta'] = False
             
             # Limpar chaves antigas de fotos do session_state
@@ -74,7 +75,30 @@ class TalentosMenu(BaseMenu):
             reset_id = st.session_state.get('form_reset_id', 0)
             col_f1, col_f2, col_f3 = st.columns([1, 1, 1])
             with col_f1:
-                cad_data = st.text_input("Data de Nascimento*:", placeholder="dd/mm/yyyy", value=st.session_state.get('ocr_data_nascimento', ''), key="cad_data")
+                ocr_data = st.session_state.get('ocr_data_nascimento', '')
+                if ocr_data and st.session_state.get("cad_data_sincronizado") != ocr_data:
+                    st.session_state["cad_data"] = ocr_data
+                    st.session_state["cad_data_sincronizado"] = ocr_data
+
+                raw_data = st.session_state.get("cad_data", "")
+                digitos = "".join(ch for ch in raw_data if ch.isdigit())[:8]
+                
+                if len(digitos) <= 2:
+                    data_formatada = digitos
+                elif len(digitos) <= 4:
+                    data_formatada = f"{digitos[:2]}/{digitos[2:]}"
+                else:
+                    data_formatada = f"{digitos[:2]}/{digitos[2:4]}/{digitos[4:]}"
+                    
+                if raw_data != data_formatada:
+                    st.session_state["cad_data"] = data_formatada
+                    st.rerun()
+
+                cad_data = st.text_input(
+                    "Data de Nascimento*:", 
+                    placeholder="dd/mm/aaaa", 
+                    key="cad_data"
+                )
             with col_f2:
                 cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg", "webp"], key=f"cad_foto_{reset_id}")
             with col_f3:
