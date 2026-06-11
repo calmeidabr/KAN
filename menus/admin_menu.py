@@ -1304,7 +1304,7 @@ class AdminMenu(BaseMenu):
             
             from components.card import premium_card_container
             
-            sub_estudos_tab1, sub_estudos_tab2, sub_estudos_tab3 = st.tabs(["📚 Metodologia KAN", "🧬 Guia Comportamental", "🧮 Calculadora de Estudo"])
+            sub_estudos_tab1, sub_estudos_tab2, sub_estudos_tab3, sub_estudos_tab4 = st.tabs(["📚 Metodologia KAN", "🧬 Guia Comportamental", "🧮 Calculadora de Estudo", "🧪 Simulação"])
             
             with sub_estudos_tab1:
                 st.markdown("### As Três Forças Primordiais do KAN")
@@ -1488,3 +1488,281 @@ class AdminMenu(BaseMenu):
                             st.warning("Não foi possível formar um triângulo completo de 3 vértices distintos com os números calculados.")
                     except Exception as e:
                         st.error(f"Erro ao executar cálculos de simulação: {e}")
+            
+            with sub_estudos_tab4:
+                st.markdown("### 🧪 Simulação Dinâmica de Fórmulas Numerológicas")
+                st.markdown("Monte uma fórmula personalizada somando e reduzindo campos numéricos do Mapa Salvo de qualquer talento.")
+                
+                OPCOES_CAMPOS = {
+                    "motivacao": "Motivação (Alma)",
+                    "impressao": "Impressão (Aparência)",
+                    "expressao": "Expressão (Atitude)",
+                    "dia_natalicio": "Dia Natalício",
+                    "numero_psiquico": "Número Psíquico",
+                    "destino": "Destino (Caminho)",
+                    "missao": "Missão (Propósito)",
+                    "direcionamento": "Direcionamento",
+                    "estrutural": "Estrutural",
+                    "repeticao_1": "Repetição 1",
+                    "repeticao_2": "Repetição 2",
+                    "repeticao_mapa": "Repetição Mapa",
+                    "repeticao_mapa_2": "Repetição 2 Mapa",
+                    "vertice_triangulo_3": "Vértice Triângulo 3",
+                    "dividas_carmicas": "Dívidas Cármicas",
+                    "licoes_carmicas": "Lições Cármicas",
+                    "tendencias_ocultas": "Tendências Ocultas",
+                    "resposta_subconsciente": "Resposta Subconsciente"
+                }
+                
+                if "simulacao_campos" not in st.session_state:
+                    st.session_state["simulacao_campos"] = ["motivacao", "destino"]
+                
+                def extrair_valor_numerico_campo(val):
+                    if not val:
+                        return 0
+                    val_str = str(val).strip()
+                    if not val_str or val_str.lower() in ("não há", "n/a", "none", "null", ""):
+                        return 0
+                    if " - " in val_str:
+                        val_str = val_str.split(" - ")[0].strip()
+                    if "," in val_str:
+                        soma = 0
+                        parts = val_str.split(",")
+                        for part in parts:
+                            part_clean = "".join(ch for ch in part if ch.isdigit())
+                            if part_clean:
+                                soma += int(part_clean)
+                        return soma
+                    else:
+                        dígitos = "".join(ch for ch in val_str if ch.isdigit())
+                        if dígitos:
+                            return int(dígitos)
+                    return 0
+                
+                def reduzir_cabala(n):
+                    while n > 9 and n not in (11, 22):
+                        n = sum(int(i) for i in str(n))
+                    return n
+                
+                mapas_valores = []
+                try:
+                    res_m = supabase_client.table("mapas_salvos_valores").select("*").order("nome").execute()
+                    if res_m.data:
+                        mapas_valores = res_m.data
+                except Exception:
+                    pass
+                    
+                if not mapas_valores:
+                    clientes_dict = carregar_todos_clientes()
+                    for n_aud, c_info in clientes_dict.items():
+                        nasc_dt = c_info.get('data_nascimento')
+                        if nasc_dt:
+                            try:
+                                if isinstance(nasc_dt, (datetime.datetime, datetime.date)):
+                                    nascimento_tup = (nasc_dt.day, nasc_dt.month, nasc_dt.year)
+                                elif isinstance(nasc_dt, str):
+                                    try: dt_obj = datetime.datetime.strptime(nasc_dt, "%d/%m/%Y")
+                                    except ValueError: dt_obj = datetime.datetime.strptime(nasc_dt, "%Y-%m-%d")
+                                    nascimento_tup = (dt_obj.day, dt_obj.month, dt_obj.year)
+                                else:
+                                    continue
+                                now_dt = datetime.datetime.now()
+                                data_atual_tup = (now_dt.day, now_dt.month, now_dt.year)
+                                res_calc = realizar_calculos_completos(
+                                    n_aud, nascimento_tup, data_atual_tup, 
+                                    c_info.get('profissao', c_info.get('cargo', '')), 
+                                    c_info.get('grupo')
+                                )
+                                dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, _, _, _, _, _, _ = res_calc
+                                
+                                def ext_val(label):
+                                    for d in dados:
+                                        if str(d.get("Campo")).startswith(label):
+                                            return str(d.get("Valor"))
+                                    return ""
+                                    
+                                def ext_perfil(label, just_value=False):
+                                    for d in dados_perfil:
+                                        if str(d.get("Campo")).lower() == label.lower():
+                                            if just_value: return str(d.get("Valor", ""))
+                                            return str(d.get("Resultado", d.get("Valor", "")))
+                                    return ""
+                                    
+                                num_psiquico = reduzir_cabala(nascimento_tup[0])
+                                
+                                row_val = {
+                                    "nome": n_aud,
+                                    "data_nascimento": nasc_dt if isinstance(nasc_dt, str) else nasc_dt.strftime('%Y-%m-%d'),
+                                    "perfil": ext_perfil("perfil", just_value=True),
+                                    "categoria": ext_perfil("categoria", just_value=True),
+                                    "qualidades": ext_perfil("qualidades", just_value=True),
+                                    "diferenciais": ext_perfil("diferenciais", just_value=True),
+                                    "motivacao": ext_val("Motivação"),
+                                    "impressao": ext_val("Impressão"),
+                                    "expressao": ext_val("Expressão"),
+                                    "dia_natalicio": ext_val("Dia Natalício"),
+                                    "numero_psiquico": str(num_psiquico),
+                                    "destino": ext_val("Destino"),
+                                    "missao": ext_val("Missão"),
+                                    "direcionamento": str(direcionamento),
+                                    "estrutural": str(estrutural),
+                                    "repeticao_1": str(rep1),
+                                    "repeticao_2": str(rep2),
+                                    "repeticao_mapa": ext_val("Repetição Mapa"),
+                                    "repeticao_mapa_2": ext_val("Repetição 2 Mapa"),
+                                    "vertice_triangulo_3": ext_val("Triângulo Harmônico"),
+                                    "dividas_carmicas": ext_val("Dívidas Cármicas"),
+                                    "licoes_carmicas": ext_val("Lições Cármicas"),
+                                    "tendencias_ocultas": ext_val("Tendências Ocultas"),
+                                    "resposta_subconsciente": ext_val("Resposta Subconsciente"),
+                                    "empresa": c_info.get("empresa", ""),
+                                    "grupo": c_info.get("grupo", ""),
+                                    "profissao": c_info.get("profissao", c_info.get("cargo", ""))
+                                }
+                                mapas_valores.append(row_val)
+                            except Exception:
+                                pass
+
+                if mapas_valores:
+                    try:
+                        clientes_dict = carregar_todos_clientes()
+                        for mv in mapas_valores:
+                            cli_info = clientes_dict.get(mv["nome"], {})
+                            mv["empresa"] = cli_info.get("empresa", "")
+                            mv["grupo"] = cli_info.get("grupo", "")
+                            mv["profissao"] = cli_info.get("profissao", cli_info.get("cargo", ""))
+                    except Exception:
+                        pass
+                
+                st.write("#### 🧱 Construtor de Fórmula")
+                
+                campos_atuais = st.session_state["simulacao_campos"]
+                novos_campos = []
+                
+                for idx, c_key in enumerate(campos_atuais):
+                    col_campo_sel, col_campo_del = st.columns([6, 1])
+                    with col_campo_sel:
+                        sel_c = st.selectbox(
+                            f"Termo {idx+1}:",
+                            options=list(OPCOES_CAMPOS.keys()),
+                            format_func=lambda x: OPCOES_CAMPOS[x],
+                            value=c_key if c_key in OPCOES_CAMPOS else list(OPCOES_CAMPOS.keys())[0],
+                            key=f"simul_c_sel_{idx}"
+                        )
+                        novos_campos.append(sel_c)
+                    with col_campo_del:
+                        st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+                        if st.button("🗑️", key=f"simul_c_del_{idx}"):
+                            st.session_state["simulacao_campos"].pop(idx)
+                            st.rerun()
+                            
+                st.session_state["simulacao_campos"] = novos_campos
+                
+                col_btn_add, _ = st.columns([2, 5])
+                with col_btn_add:
+                    if st.button("➕ Adicionar Campo", use_container_width=True, key="simul_btn_add_term"):
+                        st.session_state["simulacao_campos"].append("expressao")
+                        st.rerun()
+                        
+                st.write("---")
+                
+                if not st.session_state["simulacao_campos"]:
+                    st.warning("Adicione pelo menos um campo para formar a fórmula.")
+                else:
+                    nomes_disponiveis = [m["nome"] for m in mapas_valores]
+                    
+                    st.write("#### 🔍 Visualização da Fórmula")
+                    nome_teste = st.selectbox(
+                        "Selecione um talento para visualizar a fórmula aplicada:",
+                        options=nomes_disponiveis if nomes_disponiveis else ["Nenhum cadastrado"],
+                        key="simul_nome_teste"
+                    )
+                    
+                    if mapas_valores and nome_teste in nomes_disponiveis:
+                        reg = [m for m in mapas_valores if m["nome"] == nome_teste][0]
+                        termos_valores = []
+                        termos_nomes = []
+                        soma_total = 0
+                        
+                        for c_key in st.session_state["simulacao_campos"]:
+                            raw_v = reg.get(c_key, "")
+                            num_v = extrair_valor_numerico_campo(raw_v)
+                            soma_total += num_v
+                            termos_valores.append(num_v)
+                            termos_nomes.append(f"{OPCOES_CAMPOS[c_key]} ({num_v})")
+                            
+                        resultado_red = reduzir_cabala(soma_total)
+                        formula_str = " + ".join(termos_nomes)
+                        st.info(f"**Fórmula:** {formula_str} = `{soma_total}` $\\rightarrow$ **`{resultado_red}`**")
+                    else:
+                        st.info("Cadastre ou calcule mapas salvos para poder testar com um talento.")
+                        
+                st.write("---")
+                st.write("#### 📐 Seleção de Talentos e Relatório")
+                
+                if mapas_valores:
+                    empresas_unicas = sorted(list(set(str(m.get("empresa", "")).strip() for m in mapas_valores if m.get("empresa"))))
+                    grupos_unicos = sorted(list(set(str(m.get("grupo", "")).strip() for m in mapas_valores if m.get("grupo"))))
+                    profissoes_unicas = sorted(list(set(str(m.get("profissao", "")).strip() for m in mapas_valores if m.get("profissao"))))
+                    nomes_unicos = sorted(list(set(str(m.get("nome", "")).strip() for m in mapas_valores if m.get("nome"))))
+                    
+                    col_f1, col_f2 = st.columns(2)
+                    with col_f1:
+                        filtro_nomes = st.multiselect("Filtrar por Nome:", options=nomes_unicos, key="simul_filt_nomes")
+                        filtro_empresas = st.multiselect("Filtrar por Empresa:", options=empresas_unicas, key="simul_filt_empresas")
+                    with col_f2:
+                        filtro_grupos = st.multiselect("Filtrar por Grupo:", options=grupos_unicos, key="simul_filt_grupos")
+                        filtro_profissoes = st.multiselect("Filtrar por Profissão:", options=profissoes_unicas, key="simul_filt_profissoes")
+                        
+                    if st.button("Selecionar talentos e gerar planilha", type="primary", use_container_width=True, key="simul_btn_gerar"):
+                        regs_filtrados = mapas_valores
+                        
+                        if filtro_nomes:
+                            regs_filtrados = [r for r in regs_filtrados if r["nome"] in filtro_nomes]
+                        if filtro_empresas:
+                            regs_filtrados = [r for r in regs_filtrados if r.get("empresa") in filtro_empresas]
+                        if filtro_grupos:
+                            regs_filtrados = [r for r in regs_filtrados if r.get("grupo") in filtro_grupos]
+                        if filtro_profissoes:
+                            regs_filtrados = [r for r in regs_filtrados if r.get("profissao") in filtro_profissoes]
+                            
+                        if not regs_filtrados:
+                            st.warning("Nenhum talento corresponde aos filtros selecionados.")
+                        elif not st.session_state["simulacao_campos"]:
+                            st.warning("A fórmula está vazia. Adicione termos à fórmula acima.")
+                        else:
+                            rows_df = []
+                            for r in regs_filtrados:
+                                soma_t = 0
+                                valores_termos = []
+                                for c_key in st.session_state["simulacao_campos"]:
+                                    num_v = extrair_valor_numerico_campo(r.get(c_key, ""))
+                                    soma_t += num_v
+                                    valores_termos.append(str(num_v))
+                                    
+                                red_t = reduzir_cabala(soma_t)
+                                
+                                rows_df.append({
+                                    "Nome": r["nome"],
+                                    "Empresa": r.get("empresa", ""),
+                                    "Grupo": r.get("grupo", ""),
+                                    "Profissão/Cargo": r.get("profissao", ""),
+                                    "Valores dos Termos": ", ".join(valores_termos),
+                                    "Soma": soma_t,
+                                    "Resultado Reduzido": red_t
+                                })
+                                
+                            df_res = pd.DataFrame(rows_df)
+                            st.success(f"{len(df_res)} talentos processados com sucesso!")
+                            st.dataframe(df_res, use_container_width=True)
+                            
+                            csv_data = df_res.to_csv(index=False, encoding="utf-8-sig")
+                            st.download_button(
+                                label="📥 Exportar Planilha para CSV",
+                                data=csv_data,
+                                file_name=f"simulacao_numerologica_{datetime.date.today().strftime('%Y%m%d')}.csv",
+                                mime="text/csv",
+                                key="simul_btn_download"
+                            )
+                else:
+                    st.info("Nenhum talento ou mapa cadastrado. Vá à aba de 'Auditoria' e calcule os mapas salvos para popular os perfis.")
