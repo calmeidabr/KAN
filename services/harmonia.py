@@ -424,7 +424,7 @@ def calcular_harmonia_trio(membro1, membro2, candidato, pesos=None):
     # Potencial de Entrega
     if bloco_entrega >= 4.0:
         just_parts.append(
-            f"O potencial de entrega conjunta é excelente. O trio compartilha conexões nos planos práticos de Materialidade/Construção/Finalidade no Plano de Tesla. A presença de perfil com KAN Finalidade traz um forte senso de acabativa para as entregas."
+            f"O potencial de entrega conjunta é excelente. O trio compartilha conexões nos planos práticos de Materialidade/Construção/Finalidade. A presença de perfil com KAN Finalidade traz um forte senso de acabativa para as entregas."
         )
     elif bloco_entrega >= 2.5:
         just_parts.append(
