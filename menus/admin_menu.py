@@ -1642,11 +1642,17 @@ class AdminMenu(BaseMenu):
                 for idx, c_key in enumerate(campos_atuais):
                     col_campo_sel, col_campo_del = st.columns([6, 1])
                     with col_campo_sel:
+                        opcoes_lista = list(OPCOES_CAMPOS.keys())
+                        try:
+                            idx_default = opcoes_lista.index(c_key) if c_key in opcoes_lista else 0
+                        except ValueError:
+                            idx_default = 0
+                        
                         sel_c = st.selectbox(
                             f"Termo {idx+1}:",
-                            options=list(OPCOES_CAMPOS.keys()),
+                            options=opcoes_lista,
                             format_func=lambda x: OPCOES_CAMPOS[x],
-                            value=c_key if c_key in OPCOES_CAMPOS else list(OPCOES_CAMPOS.keys())[0],
+                            index=idx_default,
                             key=f"simul_c_sel_{idx}"
                         )
                         novos_campos.append(sel_c)
