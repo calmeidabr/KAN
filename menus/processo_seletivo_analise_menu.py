@@ -2433,7 +2433,7 @@ Instruções cruciais:
                 # Se tiver equipe associada
                 col_eq_info, col_eq_actions = st.columns([3.2, 1.2])
                 with col_eq_info:
-                    st.markdown(f"<h4 style='margin: 0; padding-top: 8px;'>Equipe Associada: <span style='color: #F08A00; font-weight: 700;'>{equipe_associada}</span></h4>", unsafe_allow_html=True)
+                    st.markdown(f"<h4 style='margin: 0; padding-top: 8px; font-family: \"Inter\", sans-serif;'>Equipe Associada: <span style='color: #F08A00; font-weight: 700; font-family: \"Inter\", sans-serif;'>{equipe_associada}</span></h4>", unsafe_allow_html=True)
                 with col_eq_actions:
                     if st.button("🔄 Alterar Equipe", key=f"btn_change_eq_{vaga_id_int}", use_container_width=True):
                         st.session_state["equipes_vagas"][vaga_id_int] = None
@@ -2625,18 +2625,18 @@ Instruções cruciais:
                         membros_trio = membros_validos
                         if True:
                                 # Renderizar a lista em cards do ranking de harmonia
-                                st.markdown("<h3 class='section-title-sub'>Ranking de Harmonia Comportamental de Equipe</h3>", unsafe_allow_html=True)
+                                st.markdown("<h3 class='section-title-sub' style='font-family: \"Inter\", sans-serif !important;'>Ranking de Harmonia Comportamental de Equipe</h3>", unsafe_allow_html=True)
                                 
                                 # Exibe a tabela de ranking com scroll e barra de rolagem horizontal/vertical
                                 table_harm_html = """
                                 <div class="scrollable-table-wrapper">
-                                    <table class="scrollable-table">
+                                    <table class="scrollable-table" style="font-family: 'Inter', sans-serif !important;">
                                         <thead>
                                             <tr>
-                                                <th>Candidato</th>
-                                                <th style="text-align: center;">Nota de Harmonia (%)</th>
-                                                <th style="text-align: center;">Nível de Encaixe</th>
-                                                <th style="text-align: center;">KAN Principal</th>
+                                                <th style="font-family: 'Inter', sans-serif !important;">Candidato</th>
+                                                <th style="text-align: center; font-family: 'Inter', sans-serif !important;">Nota de Harmonia (%)</th>
+                                                <th style="text-align: center; font-family: 'Inter', sans-serif !important;">Nível de Encaixe</th>
+                                                <th style="text-align: center; font-family: 'Inter', sans-serif !important;">KAN Principal</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -2683,7 +2683,7 @@ Instruções cruciais:
                                 
                                 if cand_sel_dados:
                                     # Renderiza o SVG inline interativo
-                                    st.markdown("#### Visualização dos Triângulos Harmônicos")
+                                    st.markdown("<h4 style='font-family: \"Inter\", sans-serif; font-weight: 600; margin-top: 15px;'>Visualização dos Triângulos Harmônicos</h4>", unsafe_allow_html=True)
                                     
                                     # Prepara dicionario de triangulos com todos os membros da equipe e o candidato
                                     resultados_tri = {}
@@ -2715,6 +2715,7 @@ Instruções cruciais:
     margin-top: 15px; 
     margin-bottom: 25px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    font-family: 'Inter', sans-serif;
 ">
     <!-- CABEÇALHO -->
     <div style="
@@ -2733,6 +2734,7 @@ Instruções cruciais:
             font-size: 1.25rem; 
             display: flex;
             align-items: center;
+            font-family: 'Inter', sans-serif;
         ">
             Análise de {c_selecionado_nome}
         </div>
@@ -2743,8 +2745,9 @@ Instruções cruciais:
             align-items: center; 
             gap: 12px; 
             padding-right: 30px;
+            font-family: 'Inter', sans-serif;
         ">
-            <span style="color: #FFFFFF; font-size: 1.15rem; font-weight: 500;">{faixa_c}</span>
+            <span style="color: #FFFFFF; font-size: 1.15rem; font-weight: 500; font-family: 'Inter', sans-serif;">{faixa_c}</span>
             <span style="
                 background-color: #F08A00; 
                 color: #000000 !important; 
@@ -2752,6 +2755,7 @@ Instruções cruciais:
                 border-radius: 25px; 
                 font-weight: 600; 
                 font-size: 1.15rem;
+                font-family: 'Inter', sans-serif;
             ">
                 {round(nota_c, 1)}%
             </span>
@@ -2766,6 +2770,7 @@ Instruções cruciais:
         line-height: 1.8; 
         text-align: justify;
         white-space: pre-wrap;
+        font-family: 'Inter', sans-serif;
     ">
         {justificativa_html}
     </div>
@@ -2779,6 +2784,7 @@ Instruções cruciais:
         font-weight: 600; 
         font-size: 1.1rem; 
         letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
     ">
         Detalhamento por Critério de Equipe
     </div>
@@ -2791,6 +2797,7 @@ Instruções cruciais:
         padding: 30px; 
         background-color: #000000; 
         text-align: center;
+        font-family: 'Inter', sans-serif;
     ">
         <!-- COLUNA 1 -->
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
