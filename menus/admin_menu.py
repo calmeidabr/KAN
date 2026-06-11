@@ -1800,3 +1800,63 @@ class AdminMenu(BaseMenu):
                                 st.bar_chart(df_chart)
                 else:
                     st.info("Nenhum talento ou mapa cadastrado. Vá à aba de 'Auditoria' e calcule os mapas salvos para popular os perfis.")
+            
+                st.write("---")
+                st.markdown("#### 🤖 Assistente de Simulação KAN (IA)")
+                st.markdown("Pergunte à IA sobre combinações de campos, lógica de resultados ou como formular operações matemáticas na metodologia KAN.")
+                
+                pergunta_ia = st.text_input(
+                    "Sua pergunta para o Assistente KAN:", 
+                    placeholder="Ex: Qual conjunto de campos que somados e reduzidos de 1 a 9 dão todos os resultados menos 3, 6 e 9?",
+                    key="simul_pergunta_ia"
+                )
+                
+                if st.button("Consultar Assistente IA", type="primary", key="simul_btn_ia"):
+                    if not pergunta_ia:
+                        st.warning("Por favor, digite uma pergunta.")
+                    else:
+                        with st.spinner("O Assistente KAN está analisando sua pergunta..."):
+                            try:
+                                import google.generativeai as genai
+                                api_key = st.secrets["gemini"]["api_key"]
+                                genai.configure(api_key=api_key)
+                                model = genai.GenerativeModel('models/gemini-2.5-flash')
+                                
+                                system_prompt = """
+Você é um consultor analítico especialista na metodologia KAN (numerologia comportamental).
+O sistema KAN possui 18 campos numéricos no Mapa Salvo:
+1. Motivação (Alma)
+2. Impressão (Aparência)
+3. Expressão (Atitude)
+4. Dia Natalício
+5. Número Psíquico
+6. Destino (Caminho)
+7. Missão (Propósito)
+8. Direcionamento
+9. Estrutural
+10. Repetição 1
+11. Repetição 2
+12. Repetição Mapa
+13. Repetição 2 Mapa
+14. Vértice Triângulo 3
+15. Dívidas Cármicas
+16. Lições Cármicas
+17. Tendências Ocultas
+18. Resposta Subconsciente
+
+Regras de Cálculo:
+- Qualquer valor numérico é reduzido a um único dígito (de 1 a 9) somando seus algarismos repetidamente (ex: 11 -> 1+1=2, 22 -> 2+2=4).
+- Se um campo tiver múltiplos números separados por vírgula (ex: Tendências Ocultas = "1, 3, 4"), os números individuais são somados antes de entrar na fórmula (ex: 1+3+4 = 8, depois reduzido).
+- No KAN, o número 3 representa Criação, 6 representa Movimento/Harmonia e 9 representa Finalidade.
+
+O usuário fará perguntas matemáticas, lógicas ou analíticas sobre as combinações desses campos e seus resultados somados e reduzidos.
+Por exemplo: "qual conjunto de campos que somados e reduzidos de 1 a 9 dão todos os resultados menos 3, 6 e 9?"
+Responda de forma didática, precisa e justifique numerologicamente as combinações possíveis.
+Use formatação Markdown para deixar a resposta legível.
+"""
+                                prompt_completo = f"{system_prompt}\n\nPergunta do Usuário: {pergunta_ia}"
+                                response = model.generate_content(prompt_completo)
+                                st.markdown("##### 💡 Resposta do Assistente:")
+                                st.markdown(response.text)
+                            except Exception as e:
+                                st.error(f"Erro ao consultar o assistente de IA: {e}")
