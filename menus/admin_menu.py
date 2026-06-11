@@ -1540,7 +1540,7 @@ class AdminMenu(BaseMenu):
                     return 0
                 
                 def reduzir_cabala(n):
-                    while n > 9 and n not in (11, 22):
+                    while n > 9:
                         n = sum(int(i) for i in str(n))
                     return n
                 
@@ -1770,5 +1770,33 @@ class AdminMenu(BaseMenu):
                                 mime="text/csv",
                                 key="simul_btn_download"
                             )
+                            
+                            st.write("---")
+                            st.markdown("#### 📊 Distribuição e Totalização dos Resultados (1 a 9)")
+                            
+                            total_talentos = len(df_res)
+                            contagem = df_res["Resultado Reduzido"].value_counts().to_dict()
+                            
+                            totalizacao_rows = []
+                            for n in range(1, 10):
+                                qtd = contagem.get(n, 0)
+                                pct = (qtd / total_talentos * 100) if total_talentos > 0 else 0.0
+                                totalizacao_rows.append({
+                                    "Resultado Numérico": f"Número {n}",
+                                    "Quantidade de Talentos": qtd,
+                                    "Percentual": f"{pct:.2f}%"
+                                })
+                            
+                            df_tot = pd.DataFrame(totalizacao_rows)
+                            
+                            col_t1, col_t2 = st.columns([1, 1])
+                            with col_t1:
+                                st.dataframe(df_tot, use_container_width=True)
+                            with col_t2:
+                                df_chart = pd.DataFrame({
+                                    "Resultado": [f"Nº {n}" for n in range(1, 10)],
+                                    "Talentos": [contagem.get(n, 0) for n in range(1, 10)]
+                                }).set_index("Resultado")
+                                st.bar_chart(df_chart)
                 else:
                     st.info("Nenhum talento ou mapa cadastrado. Vá à aba de 'Auditoria' e calcule os mapas salvos para popular os perfis.")
