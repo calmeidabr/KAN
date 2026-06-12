@@ -1690,6 +1690,24 @@ class AdminMenu(BaseMenu):
                 campos_atuais = st.session_state["simulacao_campos"]
                 novos_campos = []
                 
+                def excluir_campo_simulacao(idx_to_remove):
+                    valores_atuais = []
+                    for i in range(len(st.session_state["simulacao_campos"])):
+                        val_sel = st.session_state.get(f"simul_c_sel_{i}")
+                        if val_sel is not None:
+                            valores_atuais.append(val_sel)
+                        else:
+                            valores_atuais.append(st.session_state["simulacao_campos"][i])
+                    
+                    if 0 <= idx_to_remove < len(valores_atuais):
+                        valores_atuais.pop(idx_to_remove)
+                        st.session_state["simulacao_campos"] = valores_atuais
+                        for i in range(len(valores_atuais)):
+                            st.session_state[f"simul_c_sel_{i}"] = valores_atuais[i]
+                        last_key = f"simul_c_sel_{len(valores_atuais)}"
+                        if last_key in st.session_state:
+                            del st.session_state[last_key]
+                
                 for idx, c_key in enumerate(campos_atuais):
                     col_campo_sel, col_campo_del = st.columns([6, 1])
                     with col_campo_sel:
@@ -1709,29 +1727,12 @@ class AdminMenu(BaseMenu):
                         novos_campos.append(sel_c)
                     with col_campo_del:
                         st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-                        if st.button("🗑️", key=f"simul_c_del_{idx}"):
-                            # Reconstroi a lista baseada nos selectboxes atuais para capturar edições
-                            valores_atuais = []
-                            for i in range(len(st.session_state["simulacao_campos"])):
-                                val_sel = st.session_state.get(f"simul_c_sel_{i}")
-                                if val_sel is not None:
-                                    valores_atuais.append(val_sel)
-                                else:
-                                    valores_atuais.append(st.session_state["simulacao_campos"][i])
-                            
-                            # Remove o item correto
-                            valores_atuais.pop(idx)
-                            st.session_state["simulacao_campos"] = valores_atuais
-                            
-                            # Atualiza as chaves do session_state dos widgets para manter a sincronia
-                            for i in range(len(valores_atuais)):
-                                st.session_state[f"simul_c_sel_{i}"] = valores_atuais[i]
-                            
-                            last_key = f"simul_c_sel_{len(valores_atuais)}"
-                            if last_key in st.session_state:
-                                del st.session_state[last_key]
-                                
-                            st.rerun()
+                        st.button(
+                            "🗑️",
+                            key=f"simul_c_del_{idx}",
+                            on_click=excluir_campo_simulacao,
+                            args=(idx,)
+                        )
                             
                 st.session_state["simulacao_campos"] = novos_campos
                 
