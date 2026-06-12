@@ -1147,6 +1147,48 @@ class AdminMenu(BaseMenu):
                         pdf_bytes = gerar_pdf(nome, data_str_pdf, dados, titulo="Mapa Numerologico Cabalístico")
                         st.download_button("Baixar Mapa como PDF", data=pdf_bytes, file_name=f"mapa_{nome_limpo}.pdf", mime="application/pdf", key=f"dl_admin_mapa_pdf_{nome}", use_container_width=True)
 
+                    # SEÇÃO DA TABELA DO SUPABASE
+                    st.write("---")
+                    st.subheader("Tabela de Mapas Numerológicos Salvos (Supabase)")
+                    st.markdown("Visualize os resultados calculados e salvos de todos os talentos no banco de dados.")
+                    
+                    # Botão de recálculo em lote
+                    col_recalc1, col_recalc2 = st.columns([3, 4])
+                    with col_recalc1:
+                        btn_recalc_todos = st.button("🔄 Recalcular/Sincronizar Todos no Supabase", key="btn_admin_recalc_mapa_num_todos", use_container_width=True)
+                    
+                    if btn_recalc_todos:
+                        with st.spinner("Calculando e salvando mapas numerológicos no Supabase para todos os talentos..."):
+                            try:
+                                from scratch.calcular_mapas_numerologicos import calcular_e_salvar_mapas
+                                sucesso = calcular_e_salvar_mapas()
+                                if sucesso:
+                                    st.success("Tabela 'mapa_numerologico_salvo' recalculada e sincronizada com sucesso!")
+                                    st.cache_data.clear()
+                                    st.rerun()
+                                else:
+                                    st.error("Falha ao sincronizar os mapas numerológicos. Verifique os logs do servidor.")
+                            except Exception as ex_sync:
+                                st.error(f"Erro ao executar recálculo: {ex_sync}")
+                                
+                    try:
+                        res_tbl = supabase_client.table("mapa_numerologico_salvo").select("*").order("nome").execute()
+                        if res_tbl and res_tbl.data:
+                            df_num_salvo = pd.DataFrame(res_tbl.data)
+                            colunas_exibir = [
+                                "nome", "data_nascimento", "motivacao", "impressao", "expressao", 
+                                "dia_natalicio", "numero_psiquico", "destino", "missao", "desafio_principal", 
+                                "ciclo_1", "ciclo_2", "ciclo_3", "ano_pessoal", "triangulo_harmonico", 
+                                "repeticao_mapa", "dividas_carmicas", "licoes_carmicas", "tendencias_ocultas"
+                            ]
+                            colunas_exibir = [c for c in colunas_exibir if c in df_num_salvo.columns]
+                            st.dataframe(df_num_salvo[colunas_exibir], use_container_width=True)
+                            st.caption(f"Total de registros na tabela: {len(df_num_salvo)}")
+                        else:
+                            st.info("A tabela 'mapa_numerologico_salvo' está vazia. Clique no botão acima para calcular e sincronizar todos os registros.")
+                    except Exception as e_tbl:
+                        st.error(f"Erro ao carregar tabela 'mapa_numerologico_salvo': {e_tbl}. Certifique-se de que a tabela foi criada no banco de dados.")
+
         with t_tab5:
             st.subheader("Gerenciamento de Banners e Imagens")
             
@@ -1480,8 +1522,6 @@ class AdminMenu(BaseMenu):
                             
                             try:
                                 comparativo = {nome_simul: vertices_comp}
-                                svg_html = gerar_svg_triangulos_harmonicos(comparativo, lider_nome=nome_simul)
-                                st.markdown(svg_html, unsafe_allow_html=True)
                             except Exception as ex:
                                 st.error(f"Erro ao desenhar o triângulo no SVG: {ex}")
                         else:
@@ -1501,13 +1541,24 @@ class AdminMenu(BaseMenu):
                     "numero_psiquico": "Número Psíquico",
                     "destino": "Destino (Caminho)",
                     "missao": "Missão (Propósito)",
-                    "direcionamento": "Direcionamento",
-                    "estrutural": "Estrutural",
-                    "repeticao_1": "Repetição 1",
-                    "repeticao_2": "Repetição 2",
+                    "desafio_1": "1º Desafio",
+                    "desafio_2": "2º Desafio",
+                    "desafio_principal": "Desafio Principal",
+                    "ciclo_1": "1º Ciclo de Vida",
+                    "ciclo_2": "2º Ciclo de Vida",
+                    "ciclo_3": "3º Ciclo de Vida",
+                    "momento_1": "1º Momento Decisivo",
+                    "momento_2": "2º Momento Decisivo",
+                    "momento_3": "3º Momento Decisivo",
+                    "momento_4": "4º Momento Decisivo",
+                    "ano_pessoal": "Ano Pessoal",
+                    "mes_pessoal": "Mês Pessoal",
+                    "dia_pessoal": "Dia Pessoal",
+                    "triangulo_harmonico": "Triângulo Harmônico",
+                    "arcano_atual": "Arcano Atual",
                     "repeticao_mapa": "Repetição Mapa",
                     "repeticao_mapa_2": "Repetição 2 Mapa",
-                    "vertice_triangulo_3": "Vértice Triângulo 3",
+                    "repeticao_mapa_3": "Repetição 3 Mapa",
                     "dividas_carmicas": "Dívidas Cármicas",
                     "licoes_carmicas": "Lições Cármicas",
                     "tendencias_ocultas": "Tendências Ocultas",
@@ -1546,7 +1597,7 @@ class AdminMenu(BaseMenu):
                 
                 mapas_valores = []
                 try:
-                    res_m = supabase_client.table("mapas_salvos_valores").select("*").order("nome").execute()
+                    res_m = supabase_client.table("mapa_numerologico_salvo").select("*").order("nome").execute()
                     if res_m.data:
                         mapas_valores = res_m.data
                 except Exception:
@@ -1581,36 +1632,35 @@ class AdminMenu(BaseMenu):
                                             return str(d.get("Valor"))
                                     return ""
                                     
-                                def ext_perfil(label, just_value=False):
-                                    for d in dados_perfil:
-                                        if str(d.get("Campo")).lower() == label.lower():
-                                            if just_value: return str(d.get("Valor", ""))
-                                            return str(d.get("Resultado", d.get("Valor", "")))
-                                    return ""
-                                    
-                                num_psiquico = reduzir_cabala(nascimento_tup[0])
-                                
                                 row_val = {
                                     "nome": n_aud,
                                     "data_nascimento": nasc_dt if isinstance(nasc_dt, str) else nasc_dt.strftime('%Y-%m-%d'),
-                                    "perfil": ext_perfil("perfil", just_value=True),
-                                    "categoria": ext_perfil("categoria", just_value=True),
-                                    "qualidades": ext_perfil("qualidades", just_value=True),
-                                    "diferenciais": ext_perfil("diferenciais", just_value=True),
                                     "motivacao": ext_val("Motivação"),
                                     "impressao": ext_val("Impressão"),
                                     "expressao": ext_val("Expressão"),
                                     "dia_natalicio": ext_val("Dia Natalício"),
-                                    "numero_psiquico": str(num_psiquico),
+                                    "numero_psiquico": ext_val("Número Psíquico"),
                                     "destino": ext_val("Destino"),
                                     "missao": ext_val("Missão"),
-                                    "direcionamento": str(direcionamento),
-                                    "estrutural": str(estrutural),
-                                    "repeticao_1": str(rep1),
-                                    "repeticao_2": str(rep2),
+                                    "desafio_1": ext_val("1º Desafio"),
+                                    "desafio_2": ext_val("2º Desafio"),
+                                    "desafio_principal": ext_val("Desafio Principal"),
+                                    "ciclo_1": ext_val("1º Ciclo de Vida"),
+                                    "ciclo_2": ext_val("2º Ciclo de Vida"),
+                                    "ciclo_3": ext_val("3º Ciclo de Vida"),
+                                    "momento_1": ext_val("1º Momento Decisivo"),
+                                    "momento_2": ext_val("2º Momento Decisivo"),
+                                    "momento_3": ext_val("3º Momento Decisivo"),
+                                    "momento_4": ext_val("4º Momento Decisivo"),
+                                    "ano_pessoal": ext_val("Ano Pessoal"),
+                                    "mes_pessoal": ext_val("Mês Pessoal"),
+                                    "dia_pessoal": ext_val("Dia Pessoal"),
+                                    "triangulo_harmonico": ext_val("Triângulo Harmônico"),
+                                    "arcano_atual": ext_val("Arcano Atual"),
+                                    "arcano_atual_periodo": ext_val("Arcano Atual (Período)"),
                                     "repeticao_mapa": ext_val("Repetição Mapa"),
                                     "repeticao_mapa_2": ext_val("Repetição 2 Mapa"),
-                                    "vertice_triangulo_3": ext_val("Triângulo Harmônico"),
+                                    "repeticao_mapa_3": ext_val("Repetição 3 Mapa"),
                                     "dividas_carmicas": ext_val("Dívidas Cármicas"),
                                     "licoes_carmicas": ext_val("Lições Cármicas"),
                                     "tendencias_ocultas": ext_val("Tendências Ocultas"),
