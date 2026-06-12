@@ -1710,7 +1710,27 @@ class AdminMenu(BaseMenu):
                     with col_campo_del:
                         st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
                         if st.button("🗑️", key=f"simul_c_del_{idx}"):
-                            st.session_state["simulacao_campos"].pop(idx)
+                            # Reconstroi a lista baseada nos selectboxes atuais para capturar edições
+                            valores_atuais = []
+                            for i in range(len(st.session_state["simulacao_campos"])):
+                                val_sel = st.session_state.get(f"simul_c_sel_{i}")
+                                if val_sel is not None:
+                                    valores_atuais.append(val_sel)
+                                else:
+                                    valores_atuais.append(st.session_state["simulacao_campos"][i])
+                            
+                            # Remove o item correto
+                            valores_atuais.pop(idx)
+                            st.session_state["simulacao_campos"] = valores_atuais
+                            
+                            # Atualiza as chaves do session_state dos widgets para manter a sincronia
+                            for i in range(len(valores_atuais)):
+                                st.session_state[f"simul_c_sel_{i}"] = valores_atuais[i]
+                            
+                            last_key = f"simul_c_sel_{len(valores_atuais)}"
+                            if last_key in st.session_state:
+                                del st.session_state[last_key]
+                                
                             st.rerun()
                             
                 st.session_state["simulacao_campos"] = novos_campos
