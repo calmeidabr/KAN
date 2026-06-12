@@ -80,25 +80,95 @@ class TalentosMenu(BaseMenu):
                     st.session_state["cad_data"] = ocr_data
                     st.session_state["cad_data_sincronizado"] = ocr_data
 
-                raw_data = st.session_state.get("cad_data", "")
-                digitos = "".join(ch for ch in raw_data if ch.isdigit())[:8]
-                
-                if len(digitos) <= 2:
-                    data_formatada = digitos
-                elif len(digitos) <= 4:
-                    data_formatada = f"{digitos[:2]}/{digitos[2:]}"
-                else:
-                    data_formatada = f"{digitos[:2]}/{digitos[2:4]}/{digitos[4:]}"
-                    
-                if raw_data != data_formatada:
-                    st.session_state["cad_data"] = data_formatada
-                    st.rerun()
-
                 cad_data = st.text_input(
                     "Data de Nascimento*:", 
                     placeholder="dd/mm/aaaa", 
                     key="cad_data"
                 )
+                
+                # Injeta a máscara de data interativa e fluida via JS diretamente no navegador
+                javascript_mask = """
+                <script>
+                (function() {
+                    const aplicarMascaraData = () => {
+                        const inputs = window.parent.document.querySelectorAll('input[placeholder="dd/mm/aaaa"]');
+                        inputs.forEach(input => {
+                            if (input && !input.dataset.maskApplied) {
+                                input.dataset.maskApplied = 'true';
+                                input.setAttribute('maxlength', '10');
+                                
+                                let lastValue = '';
+                                
+                                input.addEventListener('input', (e) => {
+                                    let value = input.value;
+                                    
+                                    // Tratamento do Backspace para remover as barras "/" de forma fluida
+                                    if (e.inputType === 'deleteContentBackward') {
+                                        if (lastValue.length - value.length === 1) {
+                                            const pos = input.selectionStart;
+                                            const charApagado = lastValue.charAt(pos);
+                                            if (charApagado === '/') {
+                                                const digits = value.replace(/\\D/g, '');
+                                                const newDigits = digits.slice(0, -1);
+                                                let formatted = '';
+                                                if (newDigits.length <= 2) {
+                                                    formatted = newDigits;
+                                                } else if (newDigits.length <= 4) {
+                                                    formatted = newDigits.slice(0, 2) + '/' + newDigits.slice(2);
+                                                } else {
+                                                    formatted = newDigits.slice(0, 2) + '/' + newDigits.slice(2, 4) + '/' + newDigits.slice(4);
+                                                }
+                                                input.value = formatted;
+                                                
+                                                // Sincroniza estado com o Streamlit/React
+                                                const event = new Event('input', { bubbles: true });
+                                                input.dispatchEvent(event);
+                                                input.setSelectionRange(pos - 1, pos - 1);
+                                                lastValue = formatted;
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Filtragem de dígitos e formatação de máscara
+                                    let digits = value.replace(/\\D/g, '').slice(0, 8);
+                                    let formatted = '';
+                                    if (digits.length <= 2) {
+                                        formatted = digits;
+                                    } else if (digits.length <= 4) {
+                                        formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+                                    } else {
+                                        formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+                                    }
+                                    
+                                    let cursorCol = input.selectionStart;
+                                    const addedSlash = (formatted.length > value.length && (formatted.length === 3 || formatted.length === 6));
+                                    
+                                    input.value = formatted;
+                                    lastValue = formatted;
+                                    
+                                    const event = new Event('input', { bubbles: true });
+                                    input.dispatchEvent(event);
+                                    
+                                    if (addedSlash) {
+                                        input.setSelectionRange(cursorCol + 1, cursorCol + 1);
+                                    } else {
+                                        input.setSelectionRange(cursorCol, cursorCol);
+                                    }
+                                });
+                            }
+                        });
+                    };
+                    
+                    if (!window.dataMaskIntervalActive) {
+                        window.dataMaskIntervalActive = true;
+                        setInterval(aplicarMascaraData, 500);
+                    }
+                    aplicarMascaraData();
+                })();
+                </script>
+                """
+                st.components.v1.html(javascript_mask, height=0, width=0)
             with col_f2:
                 cad_foto = st.file_uploader("Foto (Opcional)", type=["png", "jpg", "jpeg", "webp"], key=f"cad_foto_{reset_id}")
             with col_f3:
@@ -187,13 +257,20 @@ class TalentosMenu(BaseMenu):
                     st.caption("Este talento não pertence a nenhuma equipe cadastrada.")
             
             st.write("---")
-            col_b1, col_b2, col_b3 = st.columns([2, 2, 4])
             with col_b1:
+                def is_valid_date_str(d_str):
+                    try:
+                        import datetime
+                        datetime.datetime.strptime(d_str.strip(), "%d/%m/%Y")
+                        return True
+                    except ValueError:
+                        return False
+
                 if st.button("Salvar", type="primary", use_container_width=True, key="cad_salvar_btn"):
                     if not cad_nome or not cad_nome.strip():
                         st.error("O campo 'Nome Completo' é obrigatório.")
-                    elif not cad_data or not cad_data.strip() or len(cad_data.split('/')) != 3:
-                        st.error("Formato de data inválido. Use dd/mm/yyyy (ex: 25/12/1980).")
+                    elif not cad_data or not cad_data.strip() or not is_valid_date_str(cad_data):
+                        st.error("Formato ou valor de data inválido (ex: 31/02/2024 é inválido). Use dd/mm/aaaa.")
                     else:
                         foto_b64 = ""
                         if cad_foto:
