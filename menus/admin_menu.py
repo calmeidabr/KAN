@@ -1178,8 +1178,9 @@ class AdminMenu(BaseMenu):
                             colunas_exibir = [
                                 "nome", "data_nascimento", "motivacao", "impressao", "expressao", 
                                 "dia_natalicio", "numero_psiquico", "destino", "missao", "desafio_principal", 
-                                "ciclo_1", "ciclo_2", "ciclo_3", "ano_pessoal", "triangulo_harmonico", 
-                                "repeticao_mapa", "dividas_carmicas", "licoes_carmicas", "tendencias_ocultas"
+                                "ciclo_1", "ciclo_2", "ciclo_3", "momento_1", "momento_2", "momento_3", "momento_4", 
+                                "ano_pessoal", "triangulo_harmonico", "repeticao_mapa", "dividas_carmicas", 
+                                "licoes_carmicas", "tendencias_ocultas"
                             ]
                             colunas_exibir = [c for c in colunas_exibir if c in df_num_salvo.columns]
                             st.dataframe(df_num_salvo[colunas_exibir], use_container_width=True)
