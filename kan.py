@@ -563,10 +563,10 @@ st.markdown("""
 
     /* Mapeamento de Ícones */
     .st-key-sidehome button::before { content: "\\e0f5" !important; } /* home */
-    .st-key-grpcadastros button::before { content: "\\e172" !important; } /* square-pen */
-    .st-key-grpanalises button::before { content: "\\e038" !important; } /* activity */
-    .st-key-grpconfiguracoes button::before { content: "\\e154" !important; } /* settings */
-    .st-key-grpadmin button::before { content: "\\e687" !important; } /* user-star */
+    div[class*="st-key-grpcadastros"] button::before { content: "\\e172" !important; } /* square-pen */
+    div[class*="st-key-grpanalises"] button::before { content: "\\e038" !important; } /* activity */
+    div[class*="st-key-grpconfiguracoes"] button::before { content: "\\e154" !important; } /* settings */
+    div[class*="st-key-grpadmin"] button::before { content: "\\e687" !important; } /* user-star */
     div[class*="st-key-grp"][class*="_open"] button::after { content: "▲" !important; } /* chevron-up */
     div[class*="st-key-grp"][class*="_closed"] button::after { content: "▼" !important; } /* chevron-down */
 
