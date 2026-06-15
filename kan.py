@@ -563,10 +563,10 @@ st.markdown("""
 
     /* Mapeamento de Ícones */
     .st-key-sidehome button::before { content: "\\e0f5" !important; } /* home */
-    .st-key-grpcadastros button::before { content: "\\e0d7" !important; } /* folder */
+    .st-key-grpcadastros button::before { content: "\\e172" !important; } /* square-pen */
     .st-key-grpanalises button::before { content: "\\e038" !important; } /* activity */
     .st-key-grpconfiguracoes button::before { content: "\\e154" !important; } /* settings */
-    .st-key-grpadmin button::before { content: "\\e10b" !important; } /* lock */
+    .st-key-grpadmin button::before { content: "\\e687" !important; } /* user-star */
     div[class*="st-key-grp"][class*="_open"] button::after { content: "▲" !important; } /* chevron-up */
     div[class*="st-key-grp"][class*="_closed"] button::after { content: "▼" !important; } /* chevron-down */
 
@@ -581,24 +581,24 @@ st.markdown("""
     div[class*="_closed_"] button::after { content: "▼" !important; }
 
     /* Itens de Cadastro */
-    .st-key-menutalentos button::before { content: "\\e1a4" !important; } /* users */
+    .st-key-menutalentos button::before { content: "\\e46c" !important; } /* user-round-plus */
     .st-key-menuvagas button::before { content: "\\e062" !important; } /* briefcase */
     .st-key-menuhierarquiadeptos button::before { content: "\\e125" !important; } /* network */
     .st-key-menuempresaeorganograma button::before { content: "\\e125" !important; } /* network */
     .st-key-menuequipes button::before { content: "\\e342" !important; } /* user-cog */
-    .st-key-menuempresas button::before { content: "\\e1cc" !important; } /* building */
+    .st-key-menuempresas button::before { content: "\\e290" !important; } /* building-2 */
     .st-key-menusaas button::before { content: "\\e0e8" !important; } /* globe */
 
     /* Itens de Análise */
-    .st-key-menudiagnosticos button::before { content: "\\e0cc" !important; } /* file-text */
+    .st-key-menudiagnosticos button::before { content: "\\e312" !important; } /* file-chart-column-increasing */
     .st-key-menumapas button::before { content: "\\e09b" !important; } /* compass */
     .st-key-menuanalytics button::before { content: "\\e06b" !important; } /* pie-chart */
     .st-key-menuprocessoseletivo button::before { content: "\\e1a0" !important; } /* user-check */
 
     /* Itens de Configuração */
-    .st-key-menuempresa button::before { content: "\\e162" !important; } /* sliders */
-    .st-key-menuusuarios button::before { content: "\\e1ff" !important; } /* shield-check */
-    .st-key-menupaineldecontrole button::before { content: "\\e1ff" !important; } /* shield-check */
+    .st-key-menuempresa button::before { content: "\\e154" !important; } /* settings */
+    .st-key-menuusuarios button::before { content: "\\e1a4" !important; } /* users */
+    .st-key-menupaineldecontrole button::before { content: "\\e687" !important; } /* user-star */
 
     /* Menu Ativo Selecionado (Tema Enterprise Laranja) */
     .stApp section[data-testid="stSidebar"] div.stButton > button[data-testid="baseButton-primary"] {
