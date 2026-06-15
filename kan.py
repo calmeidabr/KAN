@@ -590,16 +590,14 @@ st.markdown("""
     .st-key-menusaas button::before { content: "\\e0e8" !important; } /* globe */
 
     /* Itens de Análise */
-    .st-key-menudiagnosticos button::before,
-    .st-key-menudiagnósticos button::before { content: "\\e09b" !important; } /* compass */
+    div[class*="st-key-menudiagn"] button::before { content: "\\e09b" !important; } /* compass */
     .st-key-menumapas button::before { content: "\\e09b" !important; } /* compass */
     .st-key-menuanalytics button::before { content: "\\e06b" !important; } /* pie-chart */
     .st-key-menuprocessoseletivo button::before { content: "\\e1a0" !important; } /* user-check */
 
     /* Itens de Configuração */
     .st-key-menuempresa button::before { content: "\\e154" !important; } /* settings */
-    .st-key-menuusuarios button::before,
-    .st-key-menuusuários button::before { content: "\\e1a4" !important; } /* users */
+    div[class*="st-key-menuusu"] button::before { content: "\\e1a4" !important; } /* users */
     .st-key-menupaineldecontrole button::before { content: "\\e687" !important; } /* user-star */
 
     /* Menu Ativo Selecionado (Tema Enterprise Laranja) */
