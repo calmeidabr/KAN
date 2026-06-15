@@ -570,6 +570,16 @@ st.markdown("""
     div[class*="st-key-grp"][class*="_open"] button::after { content: "▲" !important; } /* chevron-up */
     div[class*="st-key-grp"][class*="_closed"] button::after { content: "▼" !important; } /* chevron-down */
 
+    /* Destaques para os menus Principais (Home + Grupos) */
+    .st-key-sidehome button:not([data-testid="baseButton-primary"]):not(:hover),
+    div[class*="st-key-grpcadastros"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    div[class*="st-key-grpanalises"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    div[class*="st-key-grpconfiguracoes"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    div[class*="st-key-grpadmin"] button:not([data-testid="baseButton-primary"]):not(:hover) {
+        background-color: rgba(139, 92, 246, 0.3) !important;
+        border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    }
+
     /* Chevrons Gerais */
     div[class*="_open_"] button::after, div[class*="_closed_"] button::after {
         font-family: system-ui, -apple-system, sans-serif !important;
