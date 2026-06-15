@@ -590,7 +590,7 @@ st.markdown("""
     .st-key-menusaas button::before { content: "\\e0e8" !important; } /* globe */
 
     /* Itens de Análise */
-    .st-key-menudiagnosticos button::before { content: "\\e312" !important; } /* file-chart-column-increasing */
+    .st-key-menudiagnosticos button::before { content: "\\e09b" !important; } /* compass */
     .st-key-menumapas button::before { content: "\\e09b" !important; } /* compass */
     .st-key-menuanalytics button::before { content: "\\e06b" !important; } /* pie-chart */
     .st-key-menuprocessoseletivo button::before { content: "\\e1a0" !important; } /* user-check */
