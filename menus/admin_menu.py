@@ -1566,9 +1566,13 @@ class AdminMenu(BaseMenu):
                     "resposta_subconsciente": "Resposta Subconsciente"
                 }
                 
-                if "simulacao_campos" not in st.session_state:
-                    st.session_state["simulacao_campos"] = ["motivacao", "destino"]
-                
+                if "simulacao_fatores" not in st.session_state:
+                    st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
+                if "simulacao_fatores_counter" not in st.session_state:
+                    st.session_state["simulacao_fatores_counter"] = 2
+                if "simulacao_nome_formula" not in st.session_state:
+                    st.session_state["simulacao_nome_formula"] = ""
+
                 def extrair_valor_numerico_campo(val):
                     if not val:
                         return 0
@@ -1685,67 +1689,177 @@ class AdminMenu(BaseMenu):
                     except Exception:
                         pass
                 
-                st.write("#### 🧱 Construtor de Fórmula")
+                # Buscar Fórmulas Salvas do Supabase
+                formulas_salvas = []
+                tabela_existe = True
+                try:
+                    if supabase_client:
+                        res_form = supabase_client.table("formulas_numerologicas_salvas").select("*").order("nome").execute()
+                        if res_form.data:
+                            formulas_salvas = res_form.data
+                except Exception:
+                    tabela_existe = False
                 
-                campos_atuais = st.session_state["simulacao_campos"]
-                novos_campos = []
+                st.session_state["formulas_salvas_list"] = formulas_salvas
+
+                st.write("---")
+                st.write("#### 💾 Gerenciar Fórmulas Salvas")
                 
-                def excluir_campo_simulacao(idx_to_remove):
-                    valores_atuais = []
-                    for i in range(len(st.session_state["simulacao_campos"])):
-                        val_sel = st.session_state.get(f"simul_c_sel_{i}")
-                        if val_sel is not None:
-                            valores_atuais.append(val_sel)
-                        else:
-                            valores_atuais.append(st.session_state["simulacao_campos"][i])
+                col_load_sel, col_load_btn = st.columns([3, 1])
+                opcoes_formulas = ["-- Nova Fórmula --"] + [f["nome"] for f in formulas_salvas]
+                
+                if "simulacao_formula_selecionada" not in st.session_state:
+                    st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
                     
-                    if 0 <= idx_to_remove < len(valores_atuais):
-                        valores_atuais.pop(idx_to_remove)
-                        st.session_state["simulacao_campos"] = valores_atuais
-                        for i in range(len(valores_atuais)):
-                            st.session_state[f"simul_c_sel_{i}"] = valores_atuais[i]
-                        last_key = f"simul_c_sel_{len(valores_atuais)}"
-                        if last_key in st.session_state:
-                            del st.session_state[last_key]
+                def on_change_formula():
+                    sel = st.session_state["simulacao_formula_selecionada"]
+                    if sel == "-- Nova Fórmula --":
+                        st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
+                        st.session_state["simulacao_fatores_counter"] = 2
+                        st.session_state["simulacao_nome_formula"] = ""
+                    else:
+                        list_f = st.session_state.get("formulas_salvas_list", [])
+                        if not list_f:
+                            try:
+                                if supabase_client:
+                                    res_form = supabase_client.table("formulas_numerologicas_salvas").select("*").execute()
+                                    list_f = res_form.data or []
+                            except Exception:
+                                pass
+                        for f in list_f:
+                            if f["nome"] == sel:
+                                estr = []
+                                for idx, fat in enumerate(f["estrutura"]):
+                                    estr.append({
+                                        "id": fat.get("id", f"fat_{idx+1}"),
+                                        "nome": fat.get("nome", fat.get("nome", f"Fator {idx+1}")),
+                                        "campos": fat.get("campos", [])
+                                    })
+                                st.session_state["simulacao_fatores"] = estr
+                                st.session_state["simulacao_fatores_counter"] = len(estr) + 1
+                                st.session_state["simulacao_nome_formula"] = f["nome"]
+                                break
+
+                with col_load_sel:
+                    st.selectbox(
+                        "Carregar Fórmula Existente:",
+                        options=opcoes_formulas,
+                        key="simulacao_formula_selecionada",
+                        on_change=on_change_formula
+                    )
                 
-                for idx, c_key in enumerate(campos_atuais):
-                    col_campo_sel, col_campo_del = st.columns([6, 1])
-                    with col_campo_sel:
-                        opcoes_lista = list(OPCOES_CAMPOS.keys())
-                        try:
-                            idx_default = opcoes_lista.index(c_key) if c_key in opcoes_lista else 0
-                        except ValueError:
-                            idx_default = 0
+                with col_load_btn:
+                    st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+                    if st.button("🧹 Nova Fórmula", use_container_width=True, key="btn_clear_formula"):
+                        st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
+                        st.session_state["simulacao_fatores_counter"] = 2
+                        st.session_state["simulacao_nome_formula"] = ""
+                        st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
+                        st.rerun()
+
+                col_save_name, col_save_action = st.columns([3, 1])
+                with col_save_name:
+                    nome_f_input = st.text_input(
+                        "Nome da Fórmula para Salvar:",
+                        value=st.session_state["simulacao_nome_formula"],
+                        placeholder="Ex: Fórmula de Liderança KAN"
+                    )
+                    st.session_state["simulacao_nome_formula"] = nome_f_input
+                
+                with col_save_action:
+                    st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+                    col_s_btn, col_d_btn = st.columns(2)
+                    with col_s_btn:
+                        if st.button("💾", help="Salvar Fórmula", use_container_width=True, key="btn_save_formula"):
+                            if not nome_f_input.strip():
+                                st.error("Por favor, digite um nome para a fórmula.")
+                            elif not st.session_state["simulacao_fatores"]:
+                                st.error("Adicione pelo menos um fator.")
+                            else:
+                                if not supabase_client:
+                                    st.error("Cliente Supabase não inicializado.")
+                                elif not tabela_existe:
+                                    st.error("A tabela formulas_numerologicas_salvas não existe no Supabase. Execute o script SQL no final desta página.")
+                                else:
+                                    try:
+                                        estrutura_to_save = st.session_state["simulacao_fatores"]
+                                        supabase_client.table("formulas_numerologicas_salvas").upsert({
+                                            "nome": nome_f_input.strip(),
+                                            "estrutura": estrutura_to_save
+                                        }, on_conflict="nome").execute()
+                                        
+                                        st.success(f"Fórmula '{nome_f_input.strip()}' salva com sucesso!")
+                                        st.session_state["simulacao_formula_selecionada"] = nome_f_input.strip()
+                                        st.rerun()
+                                    except Exception as ex:
+                                        st.error(f"Erro ao salvar fórmula: {ex}")
+                                        
+                    with col_d_btn:
+                        is_saved = st.session_state["simulacao_formula_selecionada"] != "-- Nova Fórmula --"
+                        if st.button("🗑️", help="Excluir Fórmula", use_container_width=True, disabled=not is_saved, key="btn_delete_formula"):
+                            if not supabase_client:
+                                st.error("Cliente Supabase não inicializado.")
+                            else:
+                                try:
+                                    supabase_client.table("formulas_numerologicas_salvas").delete().eq("nome", st.session_state["simulacao_formula_selecionada"]).execute()
+                                    st.success("Fórmula excluída com sucesso!")
+                                    st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
+                                    st.session_state["simulacao_fatores_counter"] = 2
+                                    st.session_state["simulacao_nome_formula"] = ""
+                                    st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
+                                    st.rerun()
+                                except Exception as ex:
+                                    st.error(f"Erro ao excluir fórmula: {ex}")
+
+                st.write("---")
+                st.write("#### 🧱 Construtor de Fórmula (Fatores)")
+                
+                fatores_atuais = st.session_state["simulacao_fatores"]
+                novos_fatores = []
+                
+                for idx, fat in enumerate(fatores_atuais):
+                    f_id = fat["id"]
+                    with st.container(border=True):
+                        col_nome, col_del = st.columns([5, 1])
+                        with col_nome:
+                            f_nome = st.text_input(
+                                f"Nome do Fator {idx+1}:",
+                                value=fat.get("nome", f"Fator {idx+1}"),
+                                key=f"simul_f_nome_{f_id}"
+                            )
+                        with col_del:
+                            st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+                            if st.button("🗑️ Fator", key=f"simul_f_del_{f_id}", use_container_width=True):
+                                st.session_state["simulacao_fatores"] = [f for f in st.session_state["simulacao_fatores"] if f["id"] != f_id]
+                                st.rerun()
                         
-                        sel_c = st.selectbox(
-                            f"Termo {idx+1}:",
-                            options=opcoes_lista,
+                        f_campos = st.multiselect(
+                            f"Campos somados e reduzidos no {f_nome}:",
+                            options=list(OPCOES_CAMPOS.keys()),
                             format_func=lambda x: OPCOES_CAMPOS[x],
-                            index=idx_default,
-                            key=f"simul_c_sel_{idx}"
+                            default=fat.get("campos", []),
+                            key=f"simul_f_campos_{f_id}"
                         )
-                        novos_campos.append(sel_c)
-                    with col_campo_del:
-                        st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-                        st.button(
-                            "🗑️",
-                            key=f"simul_c_del_{idx}",
-                            on_click=excluir_campo_simulacao,
-                            args=(idx,)
-                        )
-                            
-                st.session_state["simulacao_campos"] = novos_campos
+                        novos_fatores.append({"id": f_id, "nome": f_nome, "campos": f_campos})
+                
+                st.session_state["simulacao_fatores"] = novos_fatores
                 
                 col_btn_add, _ = st.columns([2, 5])
                 with col_btn_add:
-                    if st.button("➕ Adicionar Campo", use_container_width=True, key="simul_btn_add_term"):
-                        st.session_state["simulacao_campos"].append("expressao")
+                    if st.button("➕ Adicionar Fator", use_container_width=True, key="simul_btn_add_factor"):
+                        next_id = st.session_state.get("simulacao_fatores_counter", 1)
+                        st.session_state["simulacao_fatores"].append({
+                            "id": f"fat_{next_id}",
+                            "nome": f"Fator {len(st.session_state['simulacao_fatores'])+1}",
+                            "campos": []
+                        })
+                        st.session_state["simulacao_fatores_counter"] = next_id + 1
                         st.rerun()
                         
                 st.write("---")
                 
-                if not st.session_state["simulacao_campos"]:
-                    st.warning("Adicione pelo menos um campo para formar a fórmula.")
+                if not st.session_state["simulacao_fatores"]:
+                    st.warning("Adicione pelo menos um fator para formar a fórmula.")
                 else:
                     nomes_disponiveis = [m["nome"] for m in mapas_valores]
                     
@@ -1758,20 +1872,39 @@ class AdminMenu(BaseMenu):
                     
                     if mapas_valores and nome_teste in nomes_disponiveis:
                         reg = [m for m in mapas_valores if m["nome"] == nome_teste][0]
-                        termos_valores = []
-                        termos_nomes = []
-                        soma_total = 0
+                        st.markdown(f"##### Lógica da Fórmula para **{nome_teste}**:")
                         
-                        for c_key in st.session_state["simulacao_campos"]:
-                            raw_v = reg.get(c_key, "")
-                            num_v = extrair_valor_numerico_campo(raw_v)
-                            soma_total += num_v
-                            termos_valores.append(num_v)
-                            termos_nomes.append(f"{OPCOES_CAMPOS[c_key]} ({num_v})")
+                        fatores_resultados = []
+                        soma_fatores_total = 0
+                        
+                        for idx, fat in enumerate(st.session_state["simulacao_fatores"]):
+                            f_nome = fat.get("nome", f"Fator {idx+1}")
+                            campos_f = fat.get("campos", [])
                             
-                        resultado_red = reduzir_cabala(soma_total)
-                        formula_str = " + ".join(termos_nomes)
-                        st.info(f"**Fórmula:** {formula_str} = `{soma_total}` $\\rightarrow$ **`{resultado_red}`**")
+                            if not campos_f:
+                                st.write(f"🔸 **{f_nome}**: Nenhum campo selecionado (Resultado: `0`)")
+                                fatores_resultados.append(0)
+                                continue
+                                
+                            detalhes_campos = []
+                            soma_fator = 0
+                            for c_key in campos_f:
+                                raw_v = reg.get(c_key, "")
+                                num_v = extrair_valor_numerico_campo(raw_v)
+                                soma_fator += num_v
+                                detalhes_campos.append(f"{OPCOES_CAMPOS[c_key]} ({num_v})")
+                                
+                            reduzido_fator = reduzir_cabala(soma_fator)
+                            fatores_resultados.append(reduzido_fator)
+                            soma_fatores_total += reduzido_fator
+                            
+                            st.write(f"🔸 **{f_nome}**: {' + '.join(detalhes_campos)} = `{soma_fator}` $\\rightarrow$ **`{reduzido_fator}`**")
+                            
+                        final_reduzido = reduzir_cabala(soma_fatores_total)
+                        
+                        if st.session_state["simulacao_fatores"]:
+                            detalhes_final = [f"{fat.get('nome', f'Fator {i+1}')} ({res})" for i, (fat, res) in enumerate(zip(st.session_state["simulacao_fatores"], fatores_resultados))]
+                            st.info(f"**Resultado Final:** {' + '.join(detalhes_final)} = `{soma_fatores_total}` $\\rightarrow$ **`{final_reduzido}`**")
                     else:
                         st.info("Cadastre ou calcule mapas salvos para poder testar com um talento.")
                         
@@ -1806,29 +1939,32 @@ class AdminMenu(BaseMenu):
                             
                         if not regs_filtrados:
                             st.warning("Nenhum talento corresponde aos filtros selecionados.")
-                        elif not st.session_state["simulacao_campos"]:
-                            st.warning("A fórmula está vazia. Adicione termos à fórmula acima.")
+                        elif not st.session_state["simulacao_fatores"]:
+                            st.warning("A fórmula está vazia. Adicione fatores à fórmula acima.")
                         else:
                             rows_df = []
                             for r in regs_filtrados:
-                                soma_t = 0
-                                valores_termos = []
-                                for c_key in st.session_state["simulacao_campos"]:
-                                    num_v = extrair_valor_numerico_campo(r.get(c_key, ""))
-                                    soma_t += num_v
-                                    valores_termos.append(str(num_v))
-                                    
-                                red_t = reduzir_cabala(soma_t)
-                                
-                                rows_df.append({
+                                row_data = {
                                     "Nome": r["nome"],
                                     "Empresa": r.get("empresa", ""),
                                     "Grupo": r.get("grupo", ""),
-                                    "Profissão/Cargo": r.get("profissao", ""),
-                                    "Valores dos Termos": ", ".join(valores_termos),
-                                    "Soma": soma_t,
-                                    "Resultado Reduzido": red_t
-                                })
+                                    "Profissão/Cargo": r.get("profissao", "")
+                                }
+                                
+                                soma_fatores = 0
+                                for fat in st.session_state["simulacao_fatores"]:
+                                    f_nome = fat.get("nome", "Sem Nome")
+                                    soma_f = 0
+                                    for c_key in fat.get("campos", []):
+                                        soma_f += extrair_valor_numerico_campo(r.get(c_key, ""))
+                                    red_f = reduzir_cabala(soma_f)
+                                    row_data[f"Fator: {f_nome}"] = red_f
+                                    soma_fatores += red_f
+                                
+                                row_data["Soma dos Fatores"] = soma_fatores
+                                row_data["Resultado Reduzido Final"] = reduzir_cabala(soma_fatores)
+                                
+                                rows_df.append(row_data)
                                 
                             df_res = pd.DataFrame(rows_df)
                             st.success(f"{len(df_res)} talentos processados com sucesso!")
@@ -1847,7 +1983,7 @@ class AdminMenu(BaseMenu):
                             st.markdown("#### 📊 Distribuição e Totalização dos Resultados (1 a 9)")
                             
                             total_talentos = len(df_res)
-                            contagem = df_res["Resultado Reduzido"].value_counts().to_dict()
+                            contagem = df_res["Resultado Reduzido Final"].value_counts().to_dict()
                             
                             totalizacao_rows = []
                             for n in range(1, 10):
@@ -1874,12 +2010,44 @@ class AdminMenu(BaseMenu):
                     st.info("Nenhum talento ou mapa cadastrado. Vá à aba de 'Auditoria' e calcule os mapas salvos para popular os perfis.")
             
                 st.write("---")
+                with st.expander("🛠️ Script SQL para Configuração do Supabase", expanded=False):
+                    st.markdown("Execute o script DDL abaixo no painel **SQL Editor** do seu console do Supabase para criar a tabela necessária para salvar as fórmulas permanentes:")
+                    sql_code = """-- Script de definição de tabela para Fórmulas Numerológicas Salvas no Supabase
+CREATE TABLE IF NOT EXISTS formulas_numerologicas_salvas (
+    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    nome TEXT NOT NULL UNIQUE,
+    estrutura JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Habilita Row Level Security (RLS) na tabela
+ALTER TABLE formulas_numerologicas_salvas ENABLE ROW LEVEL SECURITY;
+
+-- Cria políticas de acesso público (Leitura, Inserção, Atualização e Exclusão)
+CREATE POLICY "Permitir leitura pública de fórmulas" 
+ON formulas_numerologicas_salvas FOR SELECT 
+USING (true);
+
+CREATE POLICY "Permitir inserção pública de fórmulas" 
+ON formulas_numerologicas_salvas FOR INSERT 
+WITH CHECK (true);
+
+CREATE POLICY "Permitir atualização pública de fórmulas" 
+ON formulas_numerologicas_salvas FOR UPDATE 
+USING (true);
+
+CREATE POLICY "Permitir exclusão pública de fórmulas" 
+ON formulas_numerologicas_salvas FOR DELETE 
+USING (true);"""
+                    st.code(sql_code, language="sql")
+
+                st.write("---")
                 st.markdown("#### 🤖 Assistente de Simulação KAN (IA)")
-                st.markdown("Pergunte à IA sobre combinações de campos, lógica de resultados ou como formular operações matemáticas na metodologia KAN.")
+                st.markdown("Pergunte à IA sobre combinações de fatores, lógica de resultados ou agrupamentos de campos na metodologia KAN.")
                 
                 pergunta_ia = st.text_input(
                     "Sua pergunta para o Assistente KAN:", 
-                    placeholder="Ex: Qual conjunto de campos que somados e reduzidos de 1 a 9 dão todos os resultados menos 3, 6 e 9?",
+                    placeholder="Ex: Como agrupar campos para analisar liderança usando Fatores?",
                     key="simul_pergunta_ia"
                 )
                 
@@ -1896,34 +2064,18 @@ class AdminMenu(BaseMenu):
                                 
                                 system_prompt = """
 Você é um consultor analítico especialista na metodologia KAN (numerologia comportamental).
-O sistema KAN possui 18 campos numéricos no Mapa Salvo:
-1. Motivação (Alma)
-2. Impressão (Aparência)
-3. Expressão (Atitude)
-4. Dia Natalício
-5. Número Psíquico
-6. Destino (Caminho)
-7. Missão (Propósito)
-8. Direcionamento
-9. Estrutural
-10. Repetição 1
-11. Repetição 2
-12. Repetição Mapa
-13. Repetição 2 Mapa
-14. Vértice Triângulo 3
-15. Dívidas Cármicas
-16. Lições Cármicas
-17. Tendências Ocultas
-18. Resposta Subconsciente
+O sistema KAN possui 29 campos numerológicos cadastrados no mapa de cada talento.
+O usuário agora pode construir fórmulas estruturadas em múltiplos "Fatores":
+- Cada Fator agrupa um ou mais campos numerológicos. Os valores destes campos são somados e o resultado é reduzido na Cabala (de 1 a 9).
+- O resultado final da fórmula é a soma dos resultados reduzidos de todos os fatores individuais (e que também pode ser reduzida cabalisticamente ao final).
 
-Regras de Cálculo:
+Regras de Cálculo Gerais:
 - Qualquer valor numérico é reduzido a um único dígito (de 1 a 9) somando seus algarismos repetidamente (ex: 11 -> 1+1=2, 22 -> 2+2=4).
-- Se um campo tiver múltiplos números separados por vírgula (ex: Tendências Ocultas = "1, 3, 4"), os números individuais são somados antes de entrar na fórmula (ex: 1+3+4 = 8, depois reduzido).
+- Se um campo tiver múltiplos números separados por vírgula (ex: Tendências Ocultas = "1, 3, 4"), os números individuais são somados antes de entrar no cálculo (ex: 1+3+4 = 8).
 - No KAN, o número 3 representa Criação, 6 representa Movimento/Harmonia e 9 representa Finalidade.
 
-O usuário fará perguntas matemáticas, lógicas ou analíticas sobre as combinações desses campos e seus resultados somados e reduzidos.
-Por exemplo: "qual conjunto de campos que somados e reduzidos de 1 a 9 dão todos os resultados menos 3, 6 e 9?"
-Responda de forma didática, precisa e justifique numerologicamente as combinações possíveis.
+O usuário fará perguntas sobre as combinações de fatores, agrupamentos de campos numerológicos e seus impactos nos perfis e metodologias.
+Responda de forma didática, precisa e com justificativas numerológicas para as combinações e fatores possíveis.
 Use formatação Markdown para deixar a resposta legível.
 """
                                 prompt_completo = f"{system_prompt}\n\nPergunta do Usuário: {pergunta_ia}"
