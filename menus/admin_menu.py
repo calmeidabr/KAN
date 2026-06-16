@@ -1702,9 +1702,69 @@ class AdminMenu(BaseMenu):
                 
                 st.session_state["formulas_salvas_list"] = formulas_salvas
 
+                # Callbacks para evitar erro de StreamlitAPIException (modificação de chave vinculada a widget após renderização)
+                def limpar_formula_callback():
+                    st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
+                    st.session_state["simulacao_fatores_counter"] = 2
+                    st.session_state["simul_nome_formula_input"] = ""
+                    st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
+
+                def salvar_formula_callback(client, tab_ok):
+                    nome_f = st.session_state.get("simul_nome_formula_input", "").strip()
+                    if not nome_f:
+                        st.session_state["simul_msg_status"] = ("error", "Por favor, digite um nome para a fórmula.")
+                        return
+                    if not st.session_state.get("simulacao_fatores"):
+                        st.session_state["simul_msg_status"] = ("error", "Adicione pelo menos um fator.")
+                        return
+                    if not client:
+                        st.session_state["simul_msg_status"] = ("error", "Cliente Supabase não inicializado.")
+                        return
+                    if not tab_ok:
+                        st.session_state["simul_msg_status"] = ("error", "A tabela formulas_numerologicas_salvas não existe no Supabase. Execute o script SQL no final desta página.")
+                        return
+                    
+                    try:
+                        estrutura_to_save = st.session_state["simulacao_fatores"]
+                        client.table("formulas_numerologicas_salvas").upsert({
+                            "nome": nome_f,
+                            "estrutura": estrutura_to_save
+                        }, on_conflict="nome").execute()
+                        
+                        st.session_state["simul_msg_status"] = ("success", f"Fórmula '{nome_f}' salva com sucesso!")
+                        st.session_state["simulacao_formula_selecionada"] = nome_f
+                    except Exception as ex:
+                        st.session_state["simul_msg_status"] = ("error", f"Erro ao salvar fórmula: {ex}")
+
+                def excluir_formula_callback(client):
+                    sel = st.session_state.get("simulacao_formula_selecionada", "-- Nova Fórmula --")
+                    if sel == "-- Nova Fórmula --":
+                        return
+                    if not client:
+                        st.session_state["simul_msg_status"] = ("error", "Cliente Supabase não inicializado.")
+                        return
+                    try:
+                        client.table("formulas_numerologicas_salvas").delete().eq("nome", sel).execute()
+                        st.session_state["simul_msg_status"] = ("success", "Fórmula excluída com sucesso!")
+                        st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
+                        st.session_state["simulacao_fatores_counter"] = 2
+                        st.session_state["simul_nome_formula_input"] = ""
+                        st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
+                    except Exception as ex:
+                        st.session_state["simul_msg_status"] = ("error", f"Erro ao excluir fórmula: {ex}")
+
                 st.write("---")
                 st.write("#### 💾 Gerenciar Fórmulas Salvas")
                 
+                # Exibição de mensagens de status das ações anteriores se existirem
+                if "simul_msg_status" in st.session_state:
+                    tipo_m, msg_m = st.session_state["simul_msg_status"]
+                    if tipo_m == "success":
+                        st.success(msg_m)
+                    else:
+                        st.error(msg_m)
+                    del st.session_state["simul_msg_status"]
+
                 col_load_sel, col_load_btn = st.columns([3, 1])
                 opcoes_formulas = ["-- Nova Fórmula --"] + [f["nome"] for f in formulas_salvas]
                 
@@ -1716,7 +1776,7 @@ class AdminMenu(BaseMenu):
                     if sel == "-- Nova Fórmula --":
                         st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
                         st.session_state["simulacao_fatores_counter"] = 2
-                        st.session_state["simulacao_nome_formula"] = ""
+                        st.session_state["simul_nome_formula_input"] = ""
                     else:
                         list_f = st.session_state.get("formulas_salvas_list", [])
                         if not list_f:
@@ -1737,7 +1797,7 @@ class AdminMenu(BaseMenu):
                                     })
                                 st.session_state["simulacao_fatores"] = estr
                                 st.session_state["simulacao_fatores_counter"] = len(estr) + 1
-                                st.session_state["simulacao_nome_formula"] = f["nome"]
+                                st.session_state["simul_nome_formula_input"] = f["nome"]
                                 break
 
                 with col_load_sel:
@@ -1750,66 +1810,47 @@ class AdminMenu(BaseMenu):
                 
                 with col_load_btn:
                     st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-                    if st.button("🧹 Nova Fórmula", use_container_width=True, key="btn_clear_formula"):
-                        st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
-                        st.session_state["simulacao_fatores_counter"] = 2
-                        st.session_state["simulacao_nome_formula"] = ""
-                        st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
-                        st.rerun()
+                    st.button(
+                        "🧹 Nova Fórmula",
+                        use_container_width=True,
+                        key="btn_clear_formula",
+                        on_click=limpar_formula_callback
+                    )
 
                 col_save_name, col_save_action = st.columns([3, 1])
                 with col_save_name:
-                    nome_f_input = st.text_input(
+                    if "simul_nome_formula_input" not in st.session_state:
+                        st.session_state["simul_nome_formula_input"] = ""
+                    st.text_input(
                         "Nome da Fórmula para Salvar:",
-                        value=st.session_state["simulacao_nome_formula"],
-                        placeholder="Ex: Fórmula de Liderança KAN"
+                        placeholder="Ex: Fórmula de Liderança KAN",
+                        key="simul_nome_formula_input"
                     )
-                    st.session_state["simulacao_nome_formula"] = nome_f_input
                 
                 with col_save_action:
                     st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
                     col_s_btn, col_d_btn = st.columns(2)
                     with col_s_btn:
-                        if st.button("💾", help="Salvar Fórmula", use_container_width=True, key="btn_save_formula"):
-                            if not nome_f_input.strip():
-                                st.error("Por favor, digite um nome para a fórmula.")
-                            elif not st.session_state["simulacao_fatores"]:
-                                st.error("Adicione pelo menos um fator.")
-                            else:
-                                if not supabase_client:
-                                    st.error("Cliente Supabase não inicializado.")
-                                elif not tabela_existe:
-                                    st.error("A tabela formulas_numerologicas_salvas não existe no Supabase. Execute o script SQL no final desta página.")
-                                else:
-                                    try:
-                                        estrutura_to_save = st.session_state["simulacao_fatores"]
-                                        supabase_client.table("formulas_numerologicas_salvas").upsert({
-                                            "nome": nome_f_input.strip(),
-                                            "estrutura": estrutura_to_save
-                                        }, on_conflict="nome").execute()
-                                        
-                                        st.success(f"Fórmula '{nome_f_input.strip()}' salva com sucesso!")
-                                        st.session_state["simulacao_formula_selecionada"] = nome_f_input.strip()
-                                        st.rerun()
-                                    except Exception as ex:
-                                        st.error(f"Erro ao salvar fórmula: {ex}")
+                        st.button(
+                            "💾",
+                            help="Salvar Fórmula",
+                            use_container_width=True,
+                            key="btn_save_formula",
+                            on_click=salvar_formula_callback,
+                            args=(supabase_client, tabela_existe)
+                        )
                                         
                     with col_d_btn:
                         is_saved = st.session_state["simulacao_formula_selecionada"] != "-- Nova Fórmula --"
-                        if st.button("🗑️", help="Excluir Fórmula", use_container_width=True, disabled=not is_saved, key="btn_delete_formula"):
-                            if not supabase_client:
-                                st.error("Cliente Supabase não inicializado.")
-                            else:
-                                try:
-                                    supabase_client.table("formulas_numerologicas_salvas").delete().eq("nome", st.session_state["simulacao_formula_selecionada"]).execute()
-                                    st.success("Fórmula excluída com sucesso!")
-                                    st.session_state["simulacao_fatores"] = [{"id": "fat_1", "nome": "Fator 1", "campos": ["motivacao", "destino"]}]
-                                    st.session_state["simulacao_fatores_counter"] = 2
-                                    st.session_state["simulacao_nome_formula"] = ""
-                                    st.session_state["simulacao_formula_selecionada"] = "-- Nova Fórmula --"
-                                    st.rerun()
-                                except Exception as ex:
-                                    st.error(f"Erro ao excluir fórmula: {ex}")
+                        st.button(
+                            "🗑️",
+                            help="Excluir Fórmula",
+                            use_container_width=True,
+                            disabled=not is_saved,
+                            key="btn_delete_formula",
+                            on_click=excluir_formula_callback,
+                            args=(supabase_client,)
+                        )
 
                 st.write("---")
                 st.write("#### 🧱 Construtor de Fórmula (Fatores)")
