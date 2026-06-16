@@ -571,11 +571,11 @@ st.markdown("""
     div[class*="st-key-grp"][class*="_closed"] button::after { content: "▼" !important; } /* chevron-down */
 
     /* Destaques para os menus Principais (Home + Grupos) */
-    .st-key-sidehome button:not([data-testid="baseButton-primary"]):not(:hover),
-    div[class*="st-key-grpcadastros"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    div[class*="st-key-grpanalises"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    div[class*="st-key-grpconfiguracoes"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    div[class*="st-key-grpadmin"] button:not([data-testid="baseButton-primary"]):not(:hover) {
+    .stApp section[data-testid="stSidebar"] div[class*="st-key-sidehome"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpcadastros"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpanalises"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpconfiguracoes"] button:not([data-testid="baseButton-primary"]):not(:hover),
+    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpadmin"] button:not([data-testid="baseButton-primary"]):not(:hover) {
         background-color: rgba(139, 92, 246, 0.3) !important;
         border: 1px solid rgba(139, 92, 246, 0.2) !important;
     }
