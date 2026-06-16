@@ -572,11 +572,8 @@ st.markdown("""
 
     /* Destaques para os menus Principais (Home + Grupos) */
     .stApp section[data-testid="stSidebar"] div[class*="st-key-sidehome"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpcadastros"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpanalises"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpconfiguracoes"] button:not([data-testid="baseButton-primary"]):not(:hover),
-    .stApp section[data-testid="stSidebar"] div[class*="st-key-grpadmin"] button:not([data-testid="baseButton-primary"]):not(:hover) {
-        background-color: rgba(139, 92, 246, 0.3) !important;
+    .stApp section[data-testid="stSidebar"] div[class*="st-key-grp"] button:not([data-testid="baseButton-primary"]):not(:hover) {
+        background: rgba(139, 92, 246, 0.3) !important;
         border: 1px solid rgba(139, 92, 246, 0.2) !important;
     }
 
