@@ -204,8 +204,7 @@ class DiagnosticosMenu(BaseMenu):
                 div[class*="st-key-dl_p_csv_"] button::before,
                 div[class*="st-key-dl_mapa_csv_"] button::before,
                 div[class*="st-key-dl_p_pdf_"] button::before,
-                div[class*="st-key-dl_mapa_pdf_"] button::before,
-                div[class*="st-key-save_bottom_"] button::before {
+                div[class*="st-key-dl_mapa_pdf_"] button::before {
                     content: "" !important;
                     display: inline-flex !important;
                     width: 16px !important;
@@ -227,11 +226,6 @@ class DiagnosticosMenu(BaseMenu):
                 div[class*="st-key-dl_p_pdf_"] button::before,
                 div[class*="st-key-dl_mapa_pdf_"] button::before {
                     background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTYgMjJhMiAyIDAgMCAxLTItMlY0YTIgMiAwIDAgMSAyLTJoOGEyLjQgMi40IDAgMCAxIDEuNzA0LjcwNmwzLjU4OCAzLjU4OEEyLjQgMi40IDAgMCAxIDIwIDh2MTJhMiAyIDAgMCAxLTIgMnoiIC8+PHBhdGggZD0iTTE0IDJ2NWExIDEgMCAwIDAgMSAxaDUiIC8+TTEwIDlIOCIgLz48cGF0aCBkPSJNMTYgMTNIOCIgLz48cGF0aCBkPSJNMTYgMTdIOCIgLz48L3N2Zz4=") !important;
-                }
-
-                /* Ícone de database/salvar (database) para Salvar na Base de Dados */
-                div[class*="st-key-save_bottom_"] button::before {
-                    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PGVsbGlwc2UgY3g9IjEyIiBjeT0iNSIgcng9IjkiIHJ5PSIzIiAvPjxwYXRoIGQ9Ik0zIDVWMTlBOSAzIDAgMCAwIDIxIDE5VjUiIC8+PHBhdGggZD0iTTMgMTJBOSAzIDAgMCAwIDIxIDEyIiAvPjwvc3ZnPg==") !important;
                 }
             </style>
             """, unsafe_allow_html=True)
@@ -348,7 +342,7 @@ class DiagnosticosMenu(BaseMenu):
                 st.markdown("---")
 
                 st.subheader("Salvar Perfil Comportamental")
-                col_p1, col_p2, col_p3 = st.columns(3)
+                col_p1, col_p2 = st.columns(2)
                 df_perfil = pd.DataFrame(dados_perfil)
                 nome_limpo_p = remover_acentos(nome).replace(' ', '_')
                 with col_p1:
@@ -358,9 +352,6 @@ class DiagnosticosMenu(BaseMenu):
                     data_str_pdf = data_input.strftime('%d/%m/%Y')
                     pdf_p = gerar_pdf(nome, data_str_pdf, dados_perfil, titulo="Perfil Comportamental KAN")
                     st.download_button("Baixar Perfil como PDF", data=pdf_p, file_name=f"perfil_{nome_limpo_p}.pdf", mime="application/pdf", key=f"dl_p_pdf_{nome}", use_container_width=True)
-                with col_p3:
-                    if st.button("Salvar na Base de Dados", key=f"save_bottom_{nome}", use_container_width=True):
-                        salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2)
 
             if st.session_state.get('show_mapa'):
                 st.markdown("---")
