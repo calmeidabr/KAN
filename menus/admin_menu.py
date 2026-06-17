@@ -2174,7 +2174,8 @@ class AdminMenu(BaseMenu):
                     if not res_list:
                         st.info("Nenhum talento corresponde aos critérios selecionados.")
                     else:
-                        campos_filtrados = list(set(crit["campo"] for crit in st.session_state["pesquisa_criterios"]))
+                        # Apresentar o mapa numerológico completo (todas as chaves de OPCOES_CAMPOS)
+                        campos_completos = list(OPCOES_CAMPOS.keys())
                         rows_res = []
                         for r in res_list:
                             row_data = {
@@ -2183,7 +2184,7 @@ class AdminMenu(BaseMenu):
                                 "Grupo": r.get("grupo", ""),
                                 "Profissão/Cargo": r.get("profissao", "")
                             }
-                            for c_k in campos_filtrados:
+                            for c_k in campos_completos:
                                 row_data[OPCOES_CAMPOS[c_k]] = r.get(c_k, "")
                             rows_res.append(row_data)
                             
