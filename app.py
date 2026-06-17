@@ -18,6 +18,7 @@ from menus.tenant_crud_menu import TenantCrudMenu
 
 def set_nav_route(route):
     st.session_state["sidebar_menu"] = route
+    st.session_state["scroll_to_top"] = True
 
 def toggle_exp_group(grupo):
     st.session_state[f"exp_{grupo}"] = not st.session_state.get(f"exp_{grupo}", False)
@@ -53,6 +54,7 @@ class App:
 
     def navigate(self, route):
         st.session_state["sidebar_menu"] = route
+        st.session_state["scroll_to_top"] = True
         st.rerun()
 
     def render_sidebar(self):
@@ -163,6 +165,7 @@ class App:
                 st.session_state["ultimos_consultados"].insert(0, nome.strip())
                 st.session_state["ultimos_consultados"] = st.session_state["ultimos_consultados"][:6]
         st.session_state["sidebar_menu"] = "Talentos"
+        st.session_state["scroll_to_top"] = True
 
     def ver_equipe(self, nome_equipe):
         from models.database import carregar_equipes
@@ -174,6 +177,7 @@ class App:
             else:
                 st.session_state[f"eq_open_{idx}"] = False
         st.session_state["sidebar_menu"] = "Equipes"
+        st.session_state["scroll_to_top"] = True
 
     def run(self):
         if not check_password():
@@ -199,6 +203,49 @@ class App:
         # Se houver parâmetros de ação de processos seletivos, força a rota correspondente
         if any(x in st.query_params for x in ["assoc_cand", "deassoc_cand", "excluir_cand"]):
             st.session_state["sidebar_menu"] = "Processo seletivo"
+
+        # Detect page changes to set scroll to top
+        curr_page = st.session_state.get("sidebar_menu", "Home")
+        prev_page = st.session_state.get("prev_sidebar_menu", None)
+        if curr_page != prev_page:
+            st.session_state["scroll_to_top"] = True
+            st.session_state["prev_sidebar_menu"] = curr_page
+
+        # Render scroll-to-top javascript if flagged
+        if st.session_state.get("scroll_to_top"):
+            st.markdown("""
+            <div style="display:none;">
+            <script>
+                (function() {
+                    function scrollToTop(win) {
+                        try {
+                            win.scrollTo(0, 0);
+                        } catch(e) {}
+                        try {
+                            const doc = win.document;
+                            const selectors = ['.main', '[data-testid="stAppViewContainer"]', '[data-testid="stMain"]', '.stApp'];
+                            selectors.forEach(sel => {
+                                try {
+                                    const el = doc.querySelector(sel);
+                                    if (el) {
+                                        el.scrollTo(0, 0);
+                                        el.scrollTop = 0;
+                                    }
+                                } catch(e) {}
+                            });
+                        } catch(e) {}
+                    }
+                    scrollToTop(window);
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            scrollToTop(window.parent);
+                        }
+                    } catch(e) {}
+                })();
+            </script>
+            </div>
+            """, unsafe_allow_html=True)
+            st.session_state["scroll_to_top"] = False
 
         self.render_sidebar()
 
