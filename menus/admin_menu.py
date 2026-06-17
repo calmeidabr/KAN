@@ -1573,6 +1573,14 @@ class AdminMenu(BaseMenu):
                 if "simulacao_nome_formula" not in st.session_state:
                     st.session_state["simulacao_nome_formula"] = ""
 
+                # Inicialização do estado de pesquisas
+                if "pesquisa_criterios" not in st.session_state:
+                    st.session_state["pesquisa_criterios"] = [{"id": "crit_1", "campo": "motivacao", "valor": 5}]
+                if "pesquisa_criterios_counter" not in st.session_state:
+                    st.session_state["pesquisa_criterios_counter"] = 2
+                if "pesquisa_resultados" not in st.session_state:
+                    st.session_state["pesquisa_resultados"] = None
+
                 def extrair_valor_numerico_campo(val):
                     if not val:
                         return 0
@@ -2050,6 +2058,147 @@ class AdminMenu(BaseMenu):
                 else:
                     st.info("Nenhum talento ou mapa cadastrado. Vá à aba de 'Auditoria' e calcule os mapas salvos para popular os perfis.")
             
+                st.write("---")
+                st.write("#### 🔍 Pesquisas")
+                st.markdown("Busque talentos cujos mapas numerológicos correspondam exatamente aos critérios selecionados combinados com **'E' (AND)**.")
+
+                criterios_atuais = st.session_state["pesquisa_criterios"]
+                novos_criterios = []
+                OPCOES_VALORES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22]
+
+                for idx, crit in enumerate(criterios_atuais):
+                    c_id = crit["id"]
+                    with st.container():
+                        col_campo, col_igual, col_valor, col_del = st.columns([4, 2, 3, 1])
+                        
+                        with col_campo:
+                            opcoes_lista = list(OPCOES_CAMPOS.keys())
+                            crit_campo = crit.get("campo", "motivacao")
+                            try:
+                                idx_default = opcoes_lista.index(crit_campo)
+                            except ValueError:
+                                idx_default = 0
+                            
+                            sel_campo = st.selectbox(
+                                f"Campo {idx+1}:",
+                                options=opcoes_lista,
+                                format_func=lambda x: OPCOES_CAMPOS[x],
+                                index=idx_default,
+                                key=f"pesquisa_c_campo_{c_id}"
+                            )
+                        
+                        with col_igual:
+                            st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+                            st.markdown("<p style='text-align: center; font-size: 1.15em; font-weight: bold; padding-top: 5px;'>é igual a</p>", unsafe_allow_html=True)
+                            
+                        with col_valor:
+                            crit_valor = crit.get("valor", 5)
+                            try:
+                                val_default_idx = OPCOES_VALORES.index(crit_valor)
+                            except ValueError:
+                                val_default_idx = 5
+                                
+                            sel_valor = st.selectbox(
+                                f"Valor {idx+1}:",
+                                options=OPCOES_VALORES,
+                                index=val_default_idx,
+                                key=f"pesquisa_c_valor_{c_id}"
+                            )
+                            
+                        with col_del:
+                            st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+                            if st.button("🗑️", key=f"pesquisa_c_del_{c_id}", use_container_width=True):
+                                st.session_state["pesquisa_criterios"] = [c for c in st.session_state["pesquisa_criterios"] if c["id"] != c_id]
+                                st.rerun()
+                                
+                        novos_criterios.append({"id": c_id, "campo": sel_campo, "valor": sel_valor})
+
+                st.session_state["pesquisa_criterios"] = novos_criterios
+
+                col_add_crit, col_buscar_crit = st.columns([2, 2])
+                with col_add_crit:
+                    if st.button("➕ Adicionar Critério", use_container_width=True, key="pesquisa_btn_add"):
+                        next_id = st.session_state.get("pesquisa_criterios_counter", 1)
+                        st.session_state["pesquisa_criterios"].append({
+                            "id": f"crit_{next_id}",
+                            "campo": "motivacao",
+                            "valor": 5
+                        })
+                        st.session_state["pesquisa_criterios_counter"] = next_id + 1
+                        st.rerun()
+
+                with col_buscar_crit:
+                    if st.button("🔍 Buscar", type="primary", use_container_width=True, key="pesquisa_btn_buscar"):
+                        if not st.session_state["pesquisa_criterios"]:
+                            st.warning("Adicione pelo menos um critério para realizar a busca.")
+                            st.session_state["pesquisa_resultados"] = None
+                        else:
+                            def verificar_criterio(val_banco, target_val):
+                                if val_banco is None:
+                                    return target_val == 0
+                                val_str = str(val_banco).strip()
+                                if "," in val_str:
+                                    parts = [p.strip() for p in val_str.split(",")]
+                                    numeros = []
+                                    for p in parts:
+                                        digits = "".join(ch for ch in p if ch.isdigit())
+                                        if digits:
+                                            numeros.append(int(digits))
+                                    if target_val == 0:
+                                        return len(numeros) == 0
+                                    return target_val in numeros
+                                else:
+                                    digits = "".join(ch for ch in val_str if ch.isdigit())
+                                    val_num = int(digits) if digits else 0
+                                    return val_num == target_val
+
+                            resultados = []
+                            for r in mapas_valores:
+                                atende_todos = True
+                                for crit in st.session_state["pesquisa_criterios"]:
+                                    campo_k = crit["campo"]
+                                    valor_k = crit["valor"]
+                                    val_banco = r.get(campo_k, "")
+                                    if not verificar_criterio(val_banco, valor_k):
+                                        atende_todos = False
+                                        break
+                                if atende_todos:
+                                    resultados.append(r)
+                            st.session_state["pesquisa_resultados"] = resultados
+
+                if st.session_state["pesquisa_resultados"] is not None:
+                    res_list = st.session_state["pesquisa_resultados"]
+                    st.write("---")
+                    st.write(f"##### 📊 Resultados da Pesquisa ({len(res_list)} talentos encontrados)")
+                    
+                    if not res_list:
+                        st.info("Nenhum talento corresponde aos critérios selecionados.")
+                    else:
+                        campos_filtrados = list(set(crit["campo"] for crit in st.session_state["pesquisa_criterios"]))
+                        rows_res = []
+                        for r in res_list:
+                            row_data = {
+                                "Nome": r["nome"],
+                                "Empresa": r.get("empresa", ""),
+                                "Grupo": r.get("grupo", ""),
+                                "Profissão/Cargo": r.get("profissao", "")
+                            }
+                            for c_k in campos_filtrados:
+                                row_data[OPCOES_CAMPOS[c_k]] = r.get(c_k, "")
+                            rows_res.append(row_data)
+                            
+                        df_res_pesq = pd.DataFrame(rows_res)
+                        st.dataframe(df_res_pesq, use_container_width=True)
+                        
+                        csv_data_pesq = df_res_pesq.to_csv(index=False, encoding="utf-8-sig")
+                        st.download_button(
+                            label="📥 Exportar Resultados para CSV",
+                            data=csv_data_pesq,
+                            file_name=f"pesquisa_numerologica_{datetime.date.today().strftime('%Y%m%d')}.csv",
+                            mime="text/csv",
+                            key="pesquisa_btn_download"
+                        )
+
                 st.write("---")
                 with st.expander("🛠️ Script SQL para Configuração do Supabase", expanded=False):
                     st.markdown("Execute o script DDL abaixo no painel **SQL Editor** do seu console do Supabase para criar a tabela necessária para salvar as fórmulas permanentes:")
