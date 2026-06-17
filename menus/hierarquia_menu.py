@@ -12,7 +12,8 @@ from models.database import (
     get_supabase_admin,
     carregar_todos_clientes,
     carregar_cargos,
-    carregar_equipes
+    carregar_equipes,
+    fetch_fotos_clientes
 )
 from services.numerologia import calcular_numerologia, reduce_number
 from services.perfil import calcular_perfil_comportamental
@@ -302,6 +303,13 @@ class HierarquiaMenu(BaseMenu):
         deptos = carregar_hierarquia(empresa_selecionada)
         clientes = carregar_todos_clientes()
         talentos_da_empresa = [nome for nome, info in clientes.items() if info.get("empresa") == empresa_selecionada]
+        
+        # Carrega as fotos em lote para os talentos da empresa a fim de exibi-las nos cards e equipes
+        fotos_dict = fetch_fotos_clientes(talentos_da_empresa)
+        for t_nome in talentos_da_empresa:
+            if t_nome in fotos_dict and not clientes[t_nome].get("foto_base64"):
+                clientes[t_nome]["foto_base64"] = fotos_dict[t_nome]
+                
         talentos_fora = sorted([nome for nome, info in clientes.items() if info.get("empresa") != empresa_selecionada])
 
         # ── SEÇÃO 2: ORGANOGRAMA & DEPARTAMENTOS ──────────────────────
