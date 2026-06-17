@@ -1607,6 +1607,57 @@ class AdminMenu(BaseMenu):
                     while n > 9:
                         n = sum(int(i) for i in str(n))
                     return n
+
+                def obter_kan_num_registro(r):
+                    try:
+                        def ext_v(val):
+                            if not val:
+                                return 0
+                            val_str = str(val).strip()
+                            digits = "".join(ch for ch in val_str if ch.isdigit())
+                            return int(digits) if digits else 0
+
+                        exp = ext_v(r.get("expressao", 0))
+                        mot = ext_v(r.get("motivacao", 0))
+                        imp = ext_v(r.get("impressao", 0))
+                        dest = ext_v(r.get("destino", 0))
+                        mis = ext_v(r.get("missao", 0))
+                        cic2 = ext_v(r.get("ciclo_2", 0))
+                        mom3 = ext_v(r.get("momento_3", 0))
+                        tri = ext_v(r.get("triangulo_harmonico", 0))
+                        
+                        # Obter o dia de nascimento
+                        dia = 0
+                        nasc_dt = r.get("data_nascimento")
+                        if nasc_dt:
+                            nasc_str = str(nasc_dt).strip()
+                            if "-" in nasc_str:
+                                parts = nasc_str.split("-")
+                                if len(parts[0]) == 4:
+                                    dia = int(parts[2])
+                                else:
+                                    dia = int(parts[0])
+                            elif "/" in nasc_str:
+                                parts = nasc_str.split("/")
+                                dia = int(parts[0])
+                        if not dia:
+                            dia = ext_v(r.get("dia_natalicio", 0))
+                            
+                        # Executar cálculo
+                        _, _, kan, _, _ = calcular_perfil_comportamental(
+                            expressao=exp,
+                            motivacao=mot,
+                            impressao=imp,
+                            dia=dia,
+                            destino=dest,
+                            missao=mis,
+                            ciclo2_num=cic2,
+                            momento3_num=mom3,
+                            triangulo_base=tri
+                        )
+                        return kan
+                    except Exception:
+                        return 0
                 
                 mapas_valores = []
                 try:
@@ -2178,11 +2229,13 @@ class AdminMenu(BaseMenu):
                         campos_completos = list(OPCOES_CAMPOS.keys())
                         rows_res = []
                         for r in res_list:
+                            kan_val = obter_kan_num_registro(r)
                             row_data = {
                                 "Nome": r["nome"],
                                 "Empresa": r.get("empresa", ""),
                                 "Grupo": r.get("grupo", ""),
-                                "Profissão/Cargo": r.get("profissao", "")
+                                "Profissão/Cargo": r.get("profissao", ""),
+                                "KAN": kan_val
                             }
                             for c_k in campos_completos:
                                 row_data[OPCOES_CAMPOS[c_k]] = r.get(c_k, "")
