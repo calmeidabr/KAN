@@ -1,5 +1,4 @@
 import streamlit as st
-import datetime
 from supabase import create_client, Client
 
 # Inicializa o cliente público básico

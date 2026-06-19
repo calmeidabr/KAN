@@ -1,8 +1,4 @@
 import sys
-import os
-import json
-import pandas as pd
-import datetime
 sys.path.append(r'c:\Users\calme\OneDrive\Documentos\KAN\PROG')
 from kan import calcular_perfil_faltante, fetch_matriz, fetch_atributos, fetch_repeticao, fetch_peso, fetch_perfis, fetch_lista_categoria, fetch_qualidades
 

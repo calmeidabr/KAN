@@ -1,0 +1,15 @@
+# Ruff configuration for KAN Perfil Comportamental
+extend-exclude = [".agents", "scratch", "test_supa.py"]
+
+[lint]
+ignore = [
+    "E701",  # Multiple statements on one line (colon)
+    "E702",  # Multiple statements on one line (semicolon)
+    "E712",  # Avoid equality comparisons to True/False
+    "E741",  # Ambiguous variable name
+    "F401",  # Unused imports
+    "E722",  # Bare except
+    "F841",  # Local variable assigned but unused
+    "E402",  # Module level import not at top of file
+    "E902",  # stream did not contain valid UTF-8
+]

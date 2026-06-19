@@ -1,19 +1,17 @@
 import streamlit as st
 import pandas as pd
 import datetime
-from PIL import Image, ImageDraw, ImageFont
-import os
 
 from menus.base_menu import BaseMenu
 from menus.empresas_menu import EmpresasMenu
 from models.database import (
-    get_supabase, get_supabase_admin, carregar_empresas, carregar_todos_clientes,
+    get_supabase_admin, carregar_empresas, carregar_todos_clientes,
     fetch_banners, fetch_assets_list, fetch_descricoes_mapa,
     KAN_DB, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB, MENU_PRINCIPAL
 )
 from services.numerologia import calcular_numerologia, reduce_number
 from services.perfil import realizar_calculos_completos, calcular_perfil_comportamental
-from utils.helpers import compress_image_to_b64, remover_acentos, validar_cnpj
+from utils.helpers import compress_image_to_b64, remover_acentos
 from utils.graphics import gerar_svg_triangulos_harmonicos
 
 class AdminMenu(BaseMenu):
@@ -201,7 +199,7 @@ class AdminMenu(BaseMenu):
                             for item in iniciais:
                                 supabase_client.table("usuarios").insert(item).execute()
                             return iniciais
-                    except Exception as ex:
+                    except Exception:
                         st.warning("A tabela 'usuarios' ainda não existe ou erro ao ler do banco de dados. Executando modo em cache local.")
                 if "usuarios_data" not in st.session_state:
                     st.session_state.usuarios_data = [
@@ -546,7 +544,7 @@ class AdminMenu(BaseMenu):
                             "resposta_subconsciente": ext_val("Resposta Subconsciente")
                         }
                         rows_to_insert.append(row_val)
-                    except Exception as e:
+                    except Exception:
                         pass
                 
                 if rows_to_insert:
@@ -565,7 +563,7 @@ class AdminMenu(BaseMenu):
                     st.dataframe(df_valores, use_container_width=True)
                 else:
                     st.info("A tabela 'mapas_salvos_valores' está vazia. Clique no botão acima para popular.")
-            except Exception as e:
+            except Exception:
                 st.error("Tabela mapas_salvos_valores não encontrada. Crie-a executando o script SQL correspondente.")
                 
             st.write("---")

@@ -42,7 +42,7 @@ class EmpresasMenu(BaseMenu):
                     if logo_val and len(logo_val) > 20:
                         st.image(f"data:image/png;base64,{logo_val}", width=80)
                     else:
-                        st.markdown(f"<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; height: 80px;'><i class='icon-building' style='color:#F18617;'></i></div>", unsafe_allow_html=True)
+                        st.markdown("<div style='font-size: 2.5em; text-align: center; background: rgba(241,134,23,0.2); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; height: 80px;'><i class='icon-building' style='color:#F18617;'></i></div>", unsafe_allow_html=True)
                 with top_c2:
                     st.markdown(f"<h3 style='margin: 0; color: #FFFFFF;'>{emp_em_visualizacao['nome_empresa']}</h3>", unsafe_allow_html=True)
                     st.caption(f"CNPJ: {emp_em_visualizacao.get('cnpj') or 'Não informado'} | Segmento: {emp_em_visualizacao.get('segmento') or 'Não informado'}")
@@ -273,7 +273,7 @@ class EmpresasMenu(BaseMenu):
                             if logo_v and len(logo_v) > 20:
                                 st.image(f"data:image/png;base64,{logo_v}", width=45)
                             else:
-                                st.markdown(f"<span style='font-size: 1.5em; display: inline-flex; align-items: center; justify-content: center; height: 45px; width: 45px; background: rgba(241,134,23,0.15); border-radius: 6px; border: 1px dashed rgba(241,134,23,0.3);'><i class='icon-building' style='color:#F18617; font-size: 20px;'></i></span>", unsafe_allow_html=True)
+                                st.markdown("<span style='font-size: 1.5em; display: inline-flex; align-items: center; justify-content: center; height: 45px; width: 45px; background: rgba(241,134,23,0.15); border-radius: 6px; border: 1px dashed rgba(241,134,23,0.3);'><i class='icon-building' style='color:#F18617; font-size: 20px;'></i></span>", unsafe_allow_html=True)
                         with col_c2:
                             st.write(f"**{emp['nome_empresa']}**")
                             st.caption(f"{emp.get('razao_social') or ''}")

@@ -63,7 +63,7 @@ def compress_image_to_b64(uploaded_file, max_width=1280, quality=75):
         output = io.BytesIO()
         img.save(output, format="JPEG", quality=quality, optimize=True)
         return base64.b64encode(output.getvalue()).decode("utf-8")
-    except Exception as e:
+    except Exception:
         return ""
 
 def validar_cnpj(cnpj):

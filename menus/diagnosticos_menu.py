@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import json
-import os
-from PIL import Image
 import google.generativeai as genai
 
 from menus.base_menu import BaseMenu
@@ -323,7 +320,7 @@ class DiagnosticosMenu(BaseMenu):
                                     model = genai.GenerativeModel('models/gemini-3.1-pro-preview')
                                     response = model.generate_content(contexto)
                                     texto_ia = response.text.replace("\n", "<br>")
-                                except Exception as e2:
+                                except Exception:
                                     texto_ia = f"<b>Aviso de Sistema:</b> Erro na geração com IA: {e1}"
                             
                             user_name_key = f"diag_{nome}"

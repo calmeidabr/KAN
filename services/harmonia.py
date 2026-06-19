@@ -386,7 +386,7 @@ def calcular_harmonia_trio(membro1, membro2, candidato, pesos=None):
     # Análise de KANs e complementaridade
     if bloco_kan == 5.0:
         just_parts.append(
-            f"O trio alcança equilíbrio absoluto de forças KAN: os três KANs essenciais (Criação, Movimento e Finalidade) estão representados. Isso assegura que o time terá estímulo para gerar ideias, articular contatos e finalizar tarefas."
+            "O trio alcança equilíbrio absoluto de forças KAN: os três KANs essenciais (Criação, Movimento e Finalidade) estão representados. Isso assegura que o time terá estímulo para gerar ideias, articular contatos e finalizar tarefas."
         )
     elif bloco_kan >= 3.5:
         representados = [k for k in kans_validos]
@@ -424,15 +424,15 @@ def calcular_harmonia_trio(membro1, membro2, candidato, pesos=None):
     # Potencial de Entrega
     if bloco_entrega >= 4.0:
         just_parts.append(
-            f"O potencial de entrega conjunta é excelente. O trio compartilha conexões nos planos práticos de Materialidade/Construção/Finalidade. A presença de perfil com KAN Finalidade traz um forte senso de acabativa para as entregas."
+            "O potencial de entrega conjunta é excelente. O trio compartilha conexões nos planos práticos de Materialidade/Construção/Finalidade. A presença de perfil com KAN Finalidade traz um forte senso de acabativa para as entregas."
         )
     elif bloco_entrega >= 2.5:
         just_parts.append(
-            f"O potencial de entrega é moderado. Há presença de força de acabativa ou conexões em planos de realização, permitindo fluidez na execução das demandas de negócio."
+            "O potencial de entrega é moderado. Há presença de força de acabativa ou conexões em planos de realização, permitindo fluidez na execução das demandas de negócio."
         )
     else:
         just_parts.append(
-            f"O potencial de entrega é reduzido, pois não foram identificadas conexões fortes nos planos de Materialidade e Construção (planos 8 e 4) ou liderança KAN Finalidade, exigindo supervisão externa para finalização de projetos."
+            "O potencial de entrega é reduzido, pois não foram identificadas conexões fortes nos planos de Materialidade e Construção (planos 8 e 4) ou liderança KAN Finalidade, exigindo supervisão externa para finalização de projetos."
         )
         
     # Riscos de Conflito

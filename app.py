@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-from PIL import Image
 
 from services.auth import check_password, get_header_image
 from menus.home_menu import HomeMenu
@@ -144,7 +143,6 @@ class App:
 
     def ver_cadastro_talento(self, nome):
         from models.database import carregar_todos_clientes
-        import pandas as pd
         st.session_state["busca_talentos_input"] = nome
         clientes = carregar_todos_clientes()
         if nome in clientes:

@@ -39,7 +39,6 @@ re.match = patched_match
 # --------------------------------------------------------------------------------
 
 import streamlit as st
-from PIL import Image
 import os
 
 # 1. Configuração da Página

@@ -10,7 +10,7 @@ MENU_PRINCIPAL = [
 @st.cache_resource
 def init_supabase_client():
     try:
-        from supabase import create_client, Client
+        from supabase import create_client
         url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
         key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
         return create_client(url, key)
@@ -20,7 +20,7 @@ def init_supabase_client():
 @st.cache_resource
 def init_supabase_admin_client():
     try:
-        from supabase import create_client, Client
+        from supabase import create_client
         url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
         key = st.secrets["connections"]["supabase"]["SUPABASE_SERVICE_ROLE_KEY"]
         return create_client(url, key)

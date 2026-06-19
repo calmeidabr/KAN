@@ -5,7 +5,7 @@ import google.generativeai as genai
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, get_supabase_admin, carregar_equipes
 from utils.helpers import remover_acentos, format_vaga_title, converter_markdown_para_html
-from services.harmonia import calcular_harmonia_trio, obter_vertices_triangulo, classificar_relacao_geometrica
+from services.harmonia import calcular_harmonia_trio, obter_vertices_triangulo
 from utils.graphics import gerar_svg_triangulos_harmonicos
 
 class ProcessoSeletivoAnaliseMenu(BaseMenu):
@@ -347,35 +347,35 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
             if resumo_parts:
                 header_resumo_text = " &nbsp;|&nbsp; ".join(resumo_parts)
         
-        from components.card import PremiumCard, premium_card_container
+        from components.card import premium_card_container
 
         # Injetar CSS local para layout e detalhes específicos
-        st.markdown(f"""
+        st.markdown("""
         <style>
             /* Reset e visual Dark Premium */
-            .stApp:has(.matching-page-wrapper) {{
+            .stApp:has(.matching-page-wrapper) {
                 background-color: #0D1016 !important;
-            }}
-            .stApp:has(.matching-page-wrapper) [data-testid="stMain"] {{
+            }
+            .stApp:has(.matching-page-wrapper) [data-testid="stMain"] {
                 background-color: #0D1016 !important;
-            }}
+            }
             
-            .matching-page-wrapper {{
+            .matching-page-wrapper {
                 background-color: #0D1016 !important;
                 color: #F4F7FB !important;
                 padding-bottom: 50px;
                 max-width: 1200px;
                 margin: 0 auto;
-            }}
+            }
 
-            .matching-page-wrapper .highlight-text {{
+            .matching-page-wrapper .highlight-text {
                 background: linear-gradient(135deg, #F08A00 0%, #FF9D1F 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-            }}
+            }
 
             /* Estilo do botão de link de nome de candidato */
-            .matching-page-wrapper .talent-link-container div.row-widget.stButton > button {{
+            .matching-page-wrapper .talent-link-container div.row-widget.stButton > button {
                 border: none !important;
                 background: transparent !important;
                 padding: 0 !important;
@@ -391,14 +391,14 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin: 0 auto !important;
                 transition: all 0.2s ease !important;
                 line-height: 1.2 !important;
-            }}
-            .matching-page-wrapper .talent-link-container div.row-widget.stButton > button:hover {{
+            }
+            .matching-page-wrapper .talent-link-container div.row-widget.stButton > button:hover {
                 color: #FF9D1F !important;
                 border-bottom: 2px solid #FF9D1F !important;
-            }}
+            }
             
             /* Botão de excluir posicionado absolutamente e perfeitamente centralizado */
-            .matching-page-wrapper div:has(> .btn-excluir-link) {{
+            .matching-page-wrapper div:has(> .btn-excluir-link) {
                 position: absolute !important;
                 top: 0 !important;
                 left: 0 !important;
@@ -408,8 +408,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 padding: 0 !important;
                 border: none !important;
                 z-index: 10 !important;
-            }}
-            .matching-page-wrapper .btn-excluir-link {{
+            }
+            .matching-page-wrapper .btn-excluir-link {
                 position: absolute !important;
                 top: 12px !important;
                 left: 12px !important;
@@ -429,15 +429,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 box-shadow: none !important;
                 transition: all 0.2s ease !important;
                 z-index: 11 !important;
-            }}
-            .matching-page-wrapper .btn-excluir-link:hover {{
+            }
+            .matching-page-wrapper .btn-excluir-link:hover {
                 background: rgba(239, 68, 68, 0.12) !important;
                 border-color: rgba(239, 68, 68, 0.25) !important;
                 color: #EF4444 !important;
                 opacity: 1 !important;
                 transform: scale(1.05) !important;
-            }}
-            .matching-page-wrapper .btn-excluir-link i {{
+            }
+            .matching-page-wrapper .btn-excluir-link i {
                 font-family: 'lucide' !important;
                 font-size: 14px !important;
                 line-height: 1 !important;
@@ -448,10 +448,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-weight: normal !important;
                 margin: 0 !important;
                 padding: 0 !important;
-            }}
+            }
             
             /* Estilização Premium do CTA "Associar Talentos" */
-            .matching-page-wrapper div[class*="st-key-btn_add_assoc_talents"] button {{
+            .matching-page-wrapper div[class*="st-key-btn_add_assoc_talents"] button {
                 background: #F08A00 !important;
                 color: #0D1016 !important;
                 font-family: 'Outfit', sans-serif !important;
@@ -469,22 +469,22 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 justify-content: center !important;
                 gap: 8px !important;
                 height: auto !important;
-            }}
-            .matching-page-wrapper div[class*="st-key-btn_add_assoc_talents"] button:hover {{
+            }
+            .matching-page-wrapper div[class*="st-key-btn_add_assoc_talents"] button:hover {
                 background: #FF9D1F !important;
                 box-shadow: 0 8px 24px rgba(240, 138, 0, 0.5) !important;
                 transform: translateY(-2px) !important;
                 color: #0D1016 !important;
-            }}
+            }
             
             /* Avatar Halo compact */
-            .matching-page-wrapper .avatar-halo-wrapper {{
+            .matching-page-wrapper .avatar-halo-wrapper {
                 display: flex;
                 justify-content: center;
                 margin-top: 5px;
                 margin-bottom: 12px;
-            }}
-            .matching-page-wrapper .avatar-halo {{
+            }
+            .matching-page-wrapper .avatar-halo {
                 width: 56px;
                 height: 56px;
                 border-radius: 50%;
@@ -496,29 +496,29 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 box-shadow: 0 4px 12px rgba(91, 20, 99, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.01);
                 position: relative;
                 transition: box-shadow 0.3s ease;
-            }}
-            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
+            }
+            .matching-page-wrapper div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {
                 box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3), 0 0 0 4px rgba(240, 138, 0, 0.03);
-            }}
-            .matching-page-wrapper .avatar-img {{
+            }
+            .matching-page-wrapper .avatar-img {
                 width: 50px;
                 height: 50px;
                 border-radius: 50%;
                 object-fit: cover;
                 border: 2px solid #171B2A;
-            }}
-            .matching-page-wrapper .font-avatar-bg {{
+            }
+            .matching-page-wrapper .font-avatar-bg {
                 background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 100%);
-            }}
-            .matching-page-wrapper .avatar-initial {{
+            }
+            .matching-page-wrapper .avatar-initial {
                 font-family: 'Outfit', sans-serif;
                 font-size: 1.2rem;
                 font-weight: 800;
                 color: #F4F7FB;
-            }}
+            }
             
             /* Dob nascimento compact */
-            .matching-page-wrapper .dob-text {{
+            .matching-page-wrapper .dob-text {
                 margin: 4px 0 12px 0 !important;
                 color: #7F8798 !important;
                 font-size: 0.72rem !important;
@@ -528,48 +528,48 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 gap: 5px !important;
                 font-weight: 500;
                 letter-spacing: 0.2px;
-            }}
-            .matching-page-wrapper .dob-text i {{
+            }
+            .matching-page-wrapper .dob-text i {
                 color: #7A2B8A !important;
                 font-size: 10px !important;
-            }}
+            }
             
             /* Atributos do candidato compact */
-            .matching-page-wrapper .attributes-container {{
+            .matching-page-wrapper .attributes-container {
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
                 padding-top: 12px;
                 margin-bottom: 12px;
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
-            }}
-            .matching-page-wrapper .attr-row-v {{
+            }
+            .matching-page-wrapper .attr-row-v {
                 display: flex;
                 flex-direction: column;
                 gap: 4px;
                 font-size: 0.76rem;
                 align-items: flex-start;
                 margin-bottom: 2px;
-            }}
-            .matching-page-wrapper .tags-container {{
+            }
+            .matching-page-wrapper .tags-container {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 3px;
                 width: 100%;
-            }}
-            .matching-page-wrapper .attr-label {{
+            }
+            .matching-page-wrapper .attr-label {
                 color: #7F8798;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.6px;
                 font-size: 0.68rem;
-            }}
-            .matching-page-wrapper .attr-value {{
+            }
+            .matching-page-wrapper .attr-value {
                 color: #AAB3C5;
                 font-weight: 500;
                 font-size: 0.76rem;
-            }}
-            .matching-page-wrapper .badge-tag {{
+            }
+            .matching-page-wrapper .badge-tag {
                 display: inline-block;
                 padding: 2px 8px;
                 border-radius: 5px;
@@ -581,38 +581,38 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 background-color: rgba(255, 255, 255, 0.03);
                 border: 1px solid rgba(255, 255, 255, 0.05);
                 color: #AAB3C5;
-            }}
-            .matching-page-wrapper .perfil-tag {{
+            }
+            .matching-page-wrapper .perfil-tag {
                 background-color: rgba(122, 43, 138, 0.08) !important;
                 border: 1px solid rgba(122, 43, 138, 0.2) !important;
                 color: #AAB3C5 !important;
-            }}
-            .matching-page-wrapper .cat-tag {{
+            }
+            .matching-page-wrapper .cat-tag {
                 background-color: rgba(240, 138, 0, 0.08) !important;
                 border: 1px solid rgba(240, 138, 0, 0.2) !important;
                 color: #FF9D1F !important;
-            }}
-            .matching-page-wrapper .qual-tag {{
+            }
+            .matching-page-wrapper .qual-tag {
                 background-color: rgba(255, 255, 255, 0.02) !important;
                 border: 1px solid rgba(255, 255, 255, 0.06) !important;
                 color: #7F8798 !important;
-            }}
-            .matching-page-wrapper .attr-chip {{
+            }
+            .matching-page-wrapper .attr-chip {
                 padding: 2px 8px;
                 border-radius: 6px;
                 font-size: 0.68rem;
                 font-weight: 700;
                 letter-spacing: 0.4px;
                 text-transform: uppercase;
-            }}
-            .matching-page-wrapper .kan-chip {{
+            }
+            .matching-page-wrapper .kan-chip {
                 background: rgba(240, 138, 0, 0.12);
                 border: 1px solid rgba(240, 138, 0, 0.25);
                 color: #F08A00;
-            }}
+            }
             
             /* Widget de pontuação compact */
-            .matching-page-wrapper .score-widget {{
+            .matching-page-wrapper .score-widget {
                 background: linear-gradient(135deg, rgba(23, 27, 42, 0.4) 0%, rgba(13, 16, 22, 0.3) 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.05) !important;
                 border-radius: 10px !important;
@@ -620,25 +620,25 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin-top: 12px !important;
                 box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
                 transition: all 0.25s ease;
-            }}
-            .matching-page-wrapper .score-widget:hover {{
+            }
+            .matching-page-wrapper .score-widget:hover {
                 border-color: rgba(240, 138, 0, 0.2) !important;
                 background: linear-gradient(135deg, rgba(23, 27, 42, 0.6) 0%, rgba(13, 16, 22, 0.5) 100%) !important;
-            }}
-            .matching-page-wrapper .score-main {{
+            }
+            .matching-page-wrapper .score-main {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 8px;
-            }}
-            .matching-page-wrapper .score-title {{
+            }
+            .matching-page-wrapper .score-title {
                 font-size: 0.68rem;
                 color: #7F8798;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.6px;
-            }}
-            .matching-page-wrapper .score-badge {{
+            }
+            .matching-page-wrapper .score-badge {
                 background: rgba(240, 138, 0, 0.1) !important;
                 border: 1px solid rgba(240, 138, 0, 0.25) !important;
                 padding: 2px 8px !important;
@@ -650,109 +650,109 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 align-items: center;
                 gap: 4px;
                 font-family: 'Outfit', sans-serif !important;
-            }}
-            .matching-page-wrapper .score-breakdown {{
+            }
+            .matching-page-wrapper .score-breakdown {
                 display: flex;
                 justify-content: space-between;
                 border-top: 1px solid rgba(255, 255, 255, 0.06);
                 padding-top: 8px;
                 gap: 4px;
-            }}
-            .matching-page-wrapper .breakdown-item {{
+            }
+            .matching-page-wrapper .breakdown-item {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-            }}
-            .matching-page-wrapper .border-l {{
+            }
+            .matching-page-wrapper .border-l {
                 border-left: 1px solid rgba(255, 255, 255, 0.06);
-            }}
-            .matching-page-wrapper .breakdown-label {{
+            }
+            .matching-page-wrapper .breakdown-label {
                 font-size: 0.58rem;
                 color: #7F8798;
                 text-transform: uppercase;
                 font-weight: 700;
                 letter-spacing: 0.4px;
-            }}
-            .matching-page-wrapper .breakdown-val {{
+            }
+            .matching-page-wrapper .breakdown-val {
                 font-size: 0.72rem;
                 color: #F4F7FB;
                 font-weight: 700;
                 margin-top: 1px;
-            }}
+            }
             
             /* Dropdowns */
             .matching-page-wrapper div[data-testid="stSelectbox"] div[role="combobox"],
-            .matching-page-wrapper div[data-testid="stMultiSelect"] div[role="combobox"] {{
+            .matching-page-wrapper div[data-testid="stMultiSelect"] div[role="combobox"] {
                 background-color: #171B2A !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
                 color: #F4F7FB !important;
                 border-radius: 12px !important;
-            }}
-            .matching-page-wrapper label {{
+            }
+            .matching-page-wrapper label {
                 color: #AAB3C5 !important;
                 font-weight: 600 !important;
                 font-size: 0.85rem !important;
-            }}
+            }
             
             /* Contorno laranja para o selectbox da empresa */
-            div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"] {{
+            div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"] {
                 border: 2px solid #F08A00 !important;
                 box-shadow: 0 0 8px rgba(240, 138, 0, 0.2) !important;
                 background-color: #171B2A !important;
-            }}
-            div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"]:hover {{
+            }
+            div[class*="st-key-analise_proc_emp_sel"] div[role="combobox"]:hover {
                 border-color: #FF9D1F !important;
                 box-shadow: 0 0 12px rgba(240, 138, 0, 0.4) !important;
-            }}
-            div[class*="st-key-analise_proc_emp_sel"] label {{
+            }
+            div[class*="st-key-analise_proc_emp_sel"] label {
                 color: rgba(255, 255, 255, 0.9) !important;
                 font-weight: 600 !important;
                 font-size: 0.85rem !important;
-            }}
+            }
             
             /* Dataframe adjustments */
-            .matching-page-wrapper div[data-testid="stDataFrame"] {{
+            .matching-page-wrapper div[data-testid="stDataFrame"] {
                 background-color: #141824 !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
                 border-radius: 16px !important;
-            }}
+            }
             
             /* Profile Requirements Table styling */
-            .profile-req-table {{
+            .profile-req-table {
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
                 margin-top: 20px;
                 margin-bottom: 20px;
                 width: 100%;
-            }}
-            .profile-req-row {{
+            }
+            .profile-req-row {
                 display: grid;
                 grid-template-columns: 180px 1fr;
                 align-items: center;
                 gap: 16px;
                 padding-bottom: 12px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            }}
-            .profile-req-row:last-child {{
+            }
+            .profile-req-row:last-child {
                 border-bottom: none;
                 padding-bottom: 0;
-            }}
-            .profile-req-label {{
+            }
+            .profile-req-label {
                 font-family: 'Outfit', sans-serif !important;
                 font-size: 0.8rem !important;
                 color: #8C96A8 !important;
                 text-transform: uppercase !important;
                 font-weight: 600 !important;
                 letter-spacing: 0.8px !important;
-            }}
-            .profile-req-value-cell {{
+            }
+            .profile-req-value-cell {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px;
-            }}
-            .profile-req-value {{
+            }
+            .profile-req-value {
                 background-color: #090C11 !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
                 color: #FFFFFF !important;
@@ -763,56 +763,56 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 border-radius: 6px !important;
                 display: inline-block !important;
                 box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-            }}
-            .profile-req-value.highlight-kan {{
+            }
+            .profile-req-value.highlight-kan {
                 border-color: rgba(240, 138, 0, 0.3) !important;
                 color: #F08A00 !important;
                 font-weight: 600 !important;
-            }}
+            }
             
-            @media (max-width: 768px) {{
-                .profile-req-row {{
+            @media (max-width: 768px) {
+                .profile-req-row {
                     grid-template-columns: 1fr;
                     align-items: flex-start;
                     gap: 8px;
-                }}
-            }}
+                }
+            }
 
             /* Candidate Card Table styling (same style as profile, but smaller) */
-            .cand-req-table {{
+            .cand-req-table {
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
                 margin-top: 10px;
                 margin-bottom: 12px;
                 width: 100%;
-            }}
-            .cand-req-row {{
+            }
+            .cand-req-row {
                 display: grid;
                 grid-template-columns: 80px 1fr;
                 align-items: center;
                 gap: 8px;
                 padding-bottom: 6px;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            }}
-            .cand-req-row:last-child {{
+            }
+            .cand-req-row:last-child {
                 border-bottom: none;
                 padding-bottom: 0;
-            }}
-            .cand-req-label {{
+            }
+            .cand-req-label {
                 font-family: 'Outfit', sans-serif !important;
                 font-size: 0.68rem !important;
                 color: #8C96A8 !important;
                 text-transform: uppercase !important;
                 font-weight: 600 !important;
                 letter-spacing: 0.5px !important;
-            }}
-            .cand-req-value-cell {{
+            }
+            .cand-req-value-cell {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 4px;
-            }}
-            .cand-req-value {{
+            }
+            .cand-req-value {
                 background-color: #090C11 !important;
                 border: 1px solid rgba(255, 255, 255, 0.06) !important;
                 color: #FFFFFF !important;
@@ -823,15 +823,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 border-radius: 4px !important;
                 display: inline-block !important;
                 box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-            }}
-            .cand-req-value.highlight-kan {{
+            }
+            .cand-req-value.highlight-kan {
                 border-color: rgba(240, 138, 0, 0.25) !important;
                 color: #F08A00 !important;
                 font-weight: 600 !important;
-            }}
+            }
             
             /* Subtitles */
-            .matching-page-wrapper .section-title-sub {{
+            .matching-page-wrapper .section-title-sub {
                 font-family: 'Outfit', sans-serif !important;
                 font-size: 1.6rem !important;
                 font-weight: 700 !important;
@@ -839,10 +839,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin-top: 40px !important;
                 margin-bottom: 20px !important;
                 letter-spacing: -0.3px;
-            }}
+            }
             
             /* Comparativo */
-            .matching-page-wrapper .comp-row {{
+            .matching-page-wrapper .comp-row {
                 font-size: 0.9rem !important;
                 color: #AAB3C5 !important;
                 margin-bottom: 12px !important;
@@ -851,8 +851,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 align-items: center !important;
                 border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
                 padding-bottom: 8px !important;
-            }}
-            .matching-page-wrapper .code-highlight {{
+            }
+            .matching-page-wrapper .code-highlight {
                 background-color: rgba(240, 138, 0, 0.1) !important;
                 color: #FF9D1F !important;
                 padding: 4px 10px !important;
@@ -860,33 +860,33 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-family: monospace !important;
                 border: 1px solid rgba(240, 138, 0, 0.2) !important;
                 font-size: 0.85rem !important;
-            }}
+            }
             
             /* Progress bar adjustments */
-            .matching-page-wrapper div[data-testid="stProgress"] > div > div > div > div {{
+            .matching-page-wrapper div[data-testid="stProgress"] > div > div > div > div {
                 background: linear-gradient(90deg, #5B1463 0%, #F08A00 100%) !important;
-            }}
-            .matching-page-wrapper div[data-testid="stProgress"] {{
+            }
+            .matching-page-wrapper div[data-testid="stProgress"] {
                 background-color: rgba(255, 255, 255, 0.05) !important;
                 border-radius: 10px !important;
                 height: 10px !important;
-            }}
+            }
             
             /* Centralização vertical das colunas nos cards de processos */
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"] {{
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="column"] {
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: center !important;
-            }}
+            }
             
             /* Se selecionado / ativo */
-            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_active"]) {{
+            .stApp div[data-testid="stVerticalBlockBorderWrapper"]:has(div[class*="st-key-btn_analisar_active"]) {
                 border-color: rgba(122, 43, 138, 0.6) !important;
                 box-shadow: 0 12px 35px rgba(122, 43, 138, 0.25) !important;
-            }}
+            }
             
             /* Titulo colorido do processo */
-            .stApp .process-card-title {{
+            .stApp .process-card-title {
                 font-family: 'Outfit', sans-serif !important;
                 font-weight: 800 !important;
                 font-size: 1.15rem !important; /* Tamanho do h4 no box de vagas */
@@ -895,19 +895,19 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 -webkit-text-fill-color: transparent;
                 margin-bottom: 4px;
                 display: inline-block;
-            }}
+            }
             
             /* Subtitulo / requisitos do processo */
-            .stApp .process-card-reqs {{
+            .stApp .process-card-reqs {
                 font-family: 'Inter', sans-serif !important;
                 font-size: 0.85rem !important;
                 color: #AAB3C5 !important;
                 margin-top: 4px;
                 line-height: 1.4;
-            }}
+            }
             
             /* Botão de analisar estilizado */
-            .stApp div[class*="st-key-btn_analisar_"] button {{
+            .stApp div[class*="st-key-btn_analisar_"] button {
                 background: rgba(240, 138, 0, 0.1) !important;
                 border: 1px solid rgba(240, 138, 0, 0.3) !important;
                 color: #FF9D1F !important;
@@ -918,15 +918,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-size: 0.85rem !important;
                 padding: 6px 16px !important;
                 box-shadow: none !important;
-            }}
-            .stApp div[class*="st-key-btn_analisar_"] button:hover {{
+            }
+            .stApp div[class*="st-key-btn_analisar_"] button:hover {
                 background: #F08A00 !important;
                 color: #0D1016 !important;
                 border-color: #F08A00 !important;
                 box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
-            }}
+            }
             /* Botão ativo */
-            .stApp div[class*="st-key-btn_analisar_active"] button {{
+            .stApp div[class*="st-key-btn_analisar_active"] button {
                 background: #F08A00 !important;
                 color: #0D1016 !important;
                 border-color: #F08A00 !important;
@@ -936,11 +936,11 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-size: 0.85rem !important;
                 padding: 6px 16px !important;
                 box-shadow: 0 4px 12px rgba(240, 138, 0, 0.3) !important;
-            }}
+            }
 
             
             /* Badges lilás no estilo da senioridade */
-            .stApp .req-badge-lilac {{
+            .stApp .req-badge-lilac {
                 background: rgba(122, 43, 138, 0.15) !important;
                 border: 1px solid rgba(122, 43, 138, 0.3) !important;
                 color: #AAB3C5 !important;
@@ -953,10 +953,10 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin: 2px 2px !important;
                 text-transform: uppercase !important;
                 font-family: 'Outfit', sans-serif !important;
-            }}
+            }
             
             /* Botão Premium IA */
-            div[class*="st-key-btn_ia_sug_req_"] button {{
+            div[class*="st-key-btn_ia_sug_req_"] button {
                 background: linear-gradient(135deg, #7A2B8A 0%, #B92B2B 50%, #F08A00 100%) !important;
                 color: #FFFFFF !important;
                 font-family: 'Outfit', sans-serif !important;
@@ -971,8 +971,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 align-items: center !important;
                 justify-content: center !important;
                 gap: 8px !important;
-            }}
-            div[class*="st-key-btn_ia_sug_req_"] button::before {{
+            }
+            div[class*="st-key-btn_ia_sug_req_"] button::before {
                 font-family: 'lucide' !important;
                 content: "\\e412" !important;
                 display: inline-block !important;
@@ -982,24 +982,24 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 font-weight: normal !important;
                 color: inherit !important;
                 line-height: 1 !important;
-            }}
-            div[class*="st-key-btn_ia_sug_req_"] button:hover {{
+            }
+            div[class*="st-key-btn_ia_sug_req_"] button:hover {
                 transform: translateY(-2px) !important;
                 box-shadow: 0 6px 20px rgba(122, 43, 138, 0.5) !important;
                 color: #FFFFFF !important;
-            }}
-            div[class*="st-key-btn_ia_sug_req_"] button:active {{
+            }
+            div[class*="st-key-btn_ia_sug_req_"] button:active {
                 transform: translateY(0) !important;
-            }}
+            }
             
             /* Overrides para os Cards de Candidatos Associados */
-            .stApp:has(.matching-page-wrapper) .avatar-halo-wrapper {{
+            .stApp:has(.matching-page-wrapper) .avatar-halo-wrapper {
                 display: flex !important;
                 justify-content: center !important;
                 margin-top: 5px !important;
                 margin-bottom: 12px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .avatar-halo {{
+            }
+            .stApp:has(.matching-page-wrapper) .avatar-halo {
                 width: 86px !important;
                 height: 86px !important;
                 border-radius: 50% !important;
@@ -1011,27 +1011,27 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 box-shadow: 0 4px 12px rgba(91, 20, 99, 0.2), 0 0 0 3px rgba(255, 255, 255, 0.01) !important;
                 position: relative !important;
                 transition: box-shadow 0.3s ease !important;
-            }}
-            .stApp:has(.matching-page-wrapper) div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {{
+            }
+            .stApp:has(.matching-page-wrapper) div[data-testid="stVerticalBlockBorderWrapper"]:hover .avatar-halo {
                 box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3), 0 0 0 4px rgba(240, 138, 0, 0.03) !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .avatar-img {{
+            }
+            .stApp:has(.matching-page-wrapper) .avatar-img {
                 width: 80px !important;
                 height: 80px !important;
                 border-radius: 50% !important;
                 object-fit: cover !important;
                 border: 2px solid #171B2A !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .font-avatar-bg {{
+            }
+            .stApp:has(.matching-page-wrapper) .font-avatar-bg {
                 background: linear-gradient(135deg, #5B1463 0%, #7A2B8A 100%) !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .avatar-initial {{
+            }
+            .stApp:has(.matching-page-wrapper) .avatar-initial {
                 font-family: 'Outfit', sans-serif !important;
                 font-size: 1.5rem !important;
                 font-weight: 800 !important;
                 color: #F4F7FB !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .dob-text {{
+            }
+            .stApp:has(.matching-page-wrapper) .dob-text {
                 margin: 4px 0 12px 0 !important;
                 color: #7F8798 !important;
                 font-size: 0.72rem !important;
@@ -1041,12 +1041,12 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 gap: 5px !important;
                 font-weight: 500 !important;
                 letter-spacing: 0.2px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .dob-text i {{
+            }
+            .stApp:has(.matching-page-wrapper) .dob-text i {
                 color: #7A2B8A !important;
                 font-size: 10px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .talent-link-container div.row-widget.stButton > button {{
+            }
+            .stApp:has(.matching-page-wrapper) .talent-link-container div.row-widget.stButton > button {
                 border: none !important;
                 background: transparent !important;
                 padding: 0 !important;
@@ -1062,12 +1062,12 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin: 0 auto !important;
                 transition: all 0.2s ease !important;
                 line-height: 1.2 !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .talent-link-container div.row-widget.stButton > button:hover {{
+            }
+            .stApp:has(.matching-page-wrapper) .talent-link-container div.row-widget.stButton > button:hover {
                 color: #FF9D1F !important;
                 border-bottom: 2px solid #FF9D1F !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .btn-excluir-link {{
+            }
+            .stApp:has(.matching-page-wrapper) .btn-excluir-link {
                 position: absolute !important;
                 top: 12px !important;
                 left: 12px !important;
@@ -1087,15 +1087,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 box-shadow: none !important;
                 transition: all 0.2s ease !important;
                 z-index: 11 !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .btn-excluir-link:hover {{
+            }
+            .stApp:has(.matching-page-wrapper) .btn-excluir-link:hover {
                 background: rgba(239, 68, 68, 0.12) !important;
                 border-color: rgba(239, 68, 68, 0.25) !important;
                 color: #EF4444 !important;
                 opacity: 1 !important;
                 transform: scale(1.05) !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .score-widget {{
+            }
+            .stApp:has(.matching-page-wrapper) .score-widget {
                 background: linear-gradient(135deg, rgba(23, 27, 42, 0.4) 0%, rgba(13, 16, 22, 0.3) 100%) !important;
                 border: 1px solid rgba(255, 255, 255, 0.05) !important;
                 border-radius: 8px !important;
@@ -1103,25 +1103,25 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin-top: 8px !important;
                 box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
                 transition: all 0.25s ease !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .score-widget:hover {{
+            }
+            .stApp:has(.matching-page-wrapper) .score-widget:hover {
                 border-color: rgba(240, 138, 0, 0.2) !important;
                 background: linear-gradient(135deg, rgba(23, 27, 42, 0.6) 0%, rgba(13, 16, 22, 0.5) 100%) !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .score-main {{
+            }
+            .stApp:has(.matching-page-wrapper) .score-main {
                 display: flex !important;
                 justify-content: space-between !important;
                 align-items: center !important;
                 margin-bottom: 6px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .score-title {{
+            }
+            .stApp:has(.matching-page-wrapper) .score-title {
                 font-size: 0.58rem !important;
                 color: #7F8798 !important;
                 font-weight: 700 !important;
                 text-transform: uppercase !important;
                 letter-spacing: 0.5px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .score-badge {{
+            }
+            .stApp:has(.matching-page-wrapper) .score-badge {
                 background: rgba(240, 138, 0, 0.08) !important;
                 border: 1px solid rgba(240, 138, 0, 0.20) !important;
                 padding: 1px 5px !important;
@@ -1133,38 +1133,38 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 align-items: center !important;
                 gap: 2px !important;
                 font-family: 'Outfit', sans-serif !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .score-breakdown {{
+            }
+            .stApp:has(.matching-page-wrapper) .score-breakdown {
                 display: flex !important;
                 justify-content: space-between !important;
                 border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
                 padding-top: 6px !important;
                 gap: 4px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .breakdown-item {{
+            }
+            .stApp:has(.matching-page-wrapper) .breakdown-item {
                 flex: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .border-l {{
+            }
+            .stApp:has(.matching-page-wrapper) .border-l {
                 border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .breakdown-label {{
+            }
+            .stApp:has(.matching-page-wrapper) .breakdown-label {
                 font-size: 0.52rem !important;
                 color: #7F8798 !important;
                 text-transform: uppercase !important;
                 font-weight: 700 !important;
                 letter-spacing: 0.3px !important;
-            }}
-            .stApp:has(.matching-page-wrapper) .breakdown-val {{
+            }
+            .stApp:has(.matching-page-wrapper) .breakdown-val {
                 font-size: 0.68rem !important;
                 color: #F4F7FB !important;
                 font-weight: 700 !important;
-            }}
+            }
 
             /* Estilos customizados da tabela de ranking por aderência (com scroll lateral e vertical) */
-            .scrollable-table-wrapper {{
+            .scrollable-table-wrapper {
                 overflow-x: auto !important;
                 overflow-y: auto !important;
                 max-height: 480px !important;
@@ -1175,15 +1175,15 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 margin-top: 10px !important;
                 margin-bottom: 25px !important;
                 box-shadow: var(--card-shadow) !important;
-            }}
-            .scrollable-table {{
+            }
+            .scrollable-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
                 font-family: 'Inter', sans-serif !important;
                 color: var(--text-main) !important;
                 min-width: 1050px !important; /* Força scroll horizontal em telas menores */
-            }}
-            .scrollable-table th {{
+            }
+            .scrollable-table th {
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 10 !important;
@@ -1197,21 +1197,21 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 padding: 12px 14px !important;
                 text-align: left !important;
                 border: 1px solid var(--panel-border) !important;
-            }}
-            .scrollable-table td {{
+            }
+            .scrollable-table td {
                 padding: 10px 14px !important;
                 font-size: 0.88rem !important;
                 border: 1px solid var(--panel-border) !important;
                 background-color: var(--panel-bg) !important;
                 vertical-align: middle !important;
                 color: var(--text-soft) !important;
-            }}
-            .scrollable-table tr:hover td {{
+            }
+            .scrollable-table tr:hover td {
                 background-color: var(--hover-bg) !important;
-            }}
+            }
 
             /* Botão de ação "+" e "✓" circular premium */
-            .action-link-btn {{
+            .action-link-btn {
                 display: inline-flex !important;
                 align-items: center !important;
                 justify-content: center !important;
@@ -1226,29 +1226,29 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 cursor: pointer !important;
                 margin: 0 auto !important;
                 line-height: 1 !important;
-            }}
-            .action-link-btn.btn-assoc {{
+            }
+            .action-link-btn.btn-assoc {
                 background-color: transparent !important;
                 color: #F08A00 !important;
                 border: 1.5px solid #F08A00 !important;
-            }}
-            .action-link-btn.btn-assoc:hover {{
+            }
+            .action-link-btn.btn-assoc:hover {
                 background-color: #F08A00 !important;
                 color: #0D1016 !important;
                 transform: scale(1.1) !important;
-            }}
-            .action-link-btn.btn-deassoc {{
+            }
+            .action-link-btn.btn-deassoc {
                 background-color: #4CAF50 !important;
                 color: #FFFFFF !important;
                 border: 1.5px solid #4CAF50 !important;
                 font-size: 0.85rem !important;
-            }}
-            .action-link-btn.btn-deassoc:hover {{
+            }
+            .action-link-btn.btn-deassoc:hover {
                 background-color: #EF4444 !important;
                 border-color: #EF4444 !important;
                 color: #FFFFFF !important;
                 transform: scale(1.1) !important;
-            }}
+            }
         </style>
         
         <div class="matching-page-wrapper" style="display: none;"></div>
@@ -2424,7 +2424,7 @@ Instruções cruciais:
                                         }).execute()
                                     st.success(f"Equipe '{eq_selecionada}' associada com sucesso!")
                                     st.rerun()
-                                except Exception as e:
+                                except Exception:
                                     st.success(f"Equipe '{eq_selecionada}' associada localmente na sessão.")
                                     st.rerun()
                 else:

@@ -1,13 +1,9 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
-from collections import Counter
 
-import json
 from menus.base_menu import BaseMenu
-from models.database import get_supabase_admin, carregar_empresas
-from utils.helpers import normalize_key
+from models.database import get_supabase_admin
 
 class AnalyticsMenu(BaseMenu):
     def render(self):

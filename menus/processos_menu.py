@@ -3,7 +3,7 @@ import datetime
 import json
 from menus.base_menu import BaseMenu
 from models.database import (
-    carregar_empresas, get_supabase, get_supabase_admin, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
+    carregar_empresas, get_supabase_admin, PERFIS_DB, LISTA_CATEGORIA_DB, QUALIDADES_DB
 )
 from utils.helpers import format_vaga_title
 

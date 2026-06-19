@@ -3,12 +3,8 @@ import datetime
 import json
 import time
 import os
-from collections import Counter
-from PIL import Image, ImageDraw, ImageFont
 from menus.base_menu import BaseMenu
 from models.database import carregar_empresas, carregar_todos_clientes, carregar_hierarquia, carregar_cargos, carregar_equipes, get_supabase_admin
-from services.numerologia import calcular_numerologia, reduce_number
-from services.perfil import calcular_perfil_comportamental
 from utils.helpers import compress_image_to_b64
 from utils.graphics import gerar_svg_triangulos_harmonicos
 from services.harmonia import obter_vertices_triangulo

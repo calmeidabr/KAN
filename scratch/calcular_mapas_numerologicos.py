@@ -13,7 +13,6 @@ if hasattr(sys.stderr, 'reconfigure'):
     sys.stderr.reconfigure(errors='replace')
 
 # Inicializa patches e carregadores básicos
-import kan
 
 from models.database import get_supabase_admin
 from services.numerologia import calcular_numerologia

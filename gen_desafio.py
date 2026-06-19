@@ -1,5 +1,4 @@
 import pandas as pd
-import math
 
 df = pd.read_csv('Desafio.csv', sep=';', encoding='utf-8')
 

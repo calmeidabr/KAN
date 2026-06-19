@@ -4,7 +4,6 @@ import time
 import json
 import os
 from collections import Counter
-from PIL import Image, ImageDraw, ImageFont
 from menus.base_menu import BaseMenu
 from models.database import (
     carregar_empresas,

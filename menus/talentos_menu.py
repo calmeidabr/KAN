@@ -1,5 +1,4 @@
 import streamlit as st
-import datetime
 import json
 from PIL import Image
 import google.generativeai as genai

@@ -24,7 +24,7 @@ for idx, row in df.iterrows():
         if descricao == 'nan': descricao = ''
         
         arcanos_dict[numero] = {'nome': nome, 'descricao': descricao}
-    except Exception as e:
+    except Exception:
         continue
 
 for numero, data in arcanos_dict.items():

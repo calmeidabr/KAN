@@ -1,5 +1,4 @@
 import streamlit as st
-from PIL import Image
 import os
 import hmac
 import hashlib

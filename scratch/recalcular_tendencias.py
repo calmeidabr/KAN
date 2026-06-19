@@ -237,7 +237,7 @@ def main():
     else:
         print("Nenhum registro a ser atualizado.")
         
-    print(f"\nRelatorio final:")
+    print("\nRelatorio final:")
     print(f"  - Sucesso: {sucesso}")
     print(f"  - Erros: {erros}")
 
