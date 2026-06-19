@@ -1408,7 +1408,7 @@ class AdminMenu(BaseMenu):
                     st.write("O propósito final de realização nesta existência, o legado que o profissional aspira a consolidar.")
             
             with sub_estudos_tab3:
-                st.markdown("### 🧮 Calculadora de Estudo e Simulação")
+                st.markdown("### <i class='lucide-inline icon-calculator' style='font-size: 20px;'></i>Calculadora de Estudo e Simulação", unsafe_allow_html=True)
                 st.markdown("Utilize esta ferramenta para simular cálculos numerológicos e entender a decomposição da metodologia KAN para qualquer indivíduo.")
                 
                 col_calc1, col_calc2 = st.columns(2)
@@ -1434,7 +1434,7 @@ class AdminMenu(BaseMenu):
                         )
                         
                         st.write("---")
-                        st.markdown("#### 📊 Resultados Obtidos na Simulação")
+                        st.markdown("#### <i class='lucide-inline icon-bar-chart-2' style='font-size: 18px;'></i>Resultados Obtidos na Simulação", unsafe_allow_html=True)
                         
                         col_r1, col_r2, col_r3 = st.columns(3)
                         with col_r1:
@@ -1963,7 +1963,7 @@ class AdminMenu(BaseMenu):
                 else:
                     nomes_disponiveis = [m["nome"] for m in mapas_valores]
                     
-                    st.write("#### 🔍 Visualização da Fórmula")
+                    st.markdown("#### <i class='lucide-inline icon-search' style='font-size: 18px;'></i>Visualização da Fórmula", unsafe_allow_html=True)
                     nome_teste = st.selectbox(
                         "Selecione um talento para visualizar a fórmula aplicada:",
                         options=nomes_disponiveis if nomes_disponiveis else ["Nenhum cadastrado"],
@@ -2072,7 +2072,7 @@ class AdminMenu(BaseMenu):
                             
                             csv_data = df_res.to_csv(index=False, encoding="utf-8-sig")
                             st.download_button(
-                                label="📥 Exportar Planilha para CSV",
+                                label="Exportar Planilha para CSV",
                                 data=csv_data,
                                 file_name=f"simulacao_numerologica_{datetime.date.today().strftime('%Y%m%d')}.csv",
                                 mime="text/csv",
@@ -2080,7 +2080,7 @@ class AdminMenu(BaseMenu):
                             )
                             
                             st.write("---")
-                            st.markdown("#### 📊 Distribuição e Totalização dos Resultados (1 a 9)")
+                            st.markdown("#### <i class='lucide-inline icon-bar-chart-2' style='font-size: 18px;'></i>Distribuição e Totalização dos Resultados (1 a 9)", unsafe_allow_html=True)
                             
                             total_talentos = len(df_res)
                             contagem = df_res["Resultado Reduzido Final"].value_counts().to_dict()
@@ -2110,7 +2110,7 @@ class AdminMenu(BaseMenu):
                     st.info("Nenhum talento ou mapa cadastrado. Vá à aba de 'Auditoria' e calcule os mapas salvos para popular os perfis.")
             
                 st.write("---")
-                st.write("#### 🔍 Pesquisas")
+                st.markdown("#### <i class='lucide-inline icon-search' style='font-size: 18px;'></i>Pesquisas", unsafe_allow_html=True)
                 st.markdown("Busque talentos cujos mapas numerológicos correspondam exatamente aos critérios selecionados combinados com **'E' (AND)**.")
 
                 criterios_atuais = st.session_state["pesquisa_criterios"]
@@ -2158,7 +2158,7 @@ class AdminMenu(BaseMenu):
                             
                         with col_del:
                             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-                            if st.button("🗑️", key=f"pesquisa_c_del_{c_id}", use_container_width=True):
+                            if st.button("Remover", key=f"pesquisa_c_del_{c_id}", use_container_width=True):
                                 st.session_state["pesquisa_criterios"] = [c for c in st.session_state["pesquisa_criterios"] if c["id"] != c_id]
                                 st.rerun()
                                 
@@ -2168,7 +2168,7 @@ class AdminMenu(BaseMenu):
 
                 col_add_crit, col_buscar_crit = st.columns([2, 2])
                 with col_add_crit:
-                    if st.button("➕ Adicionar Critério", use_container_width=True, key="pesquisa_btn_add"):
+                    if st.button("Adicionar Critério", use_container_width=True, key="pesquisa_btn_add"):
                         next_id = st.session_state.get("pesquisa_criterios_counter", 1)
                         st.session_state["pesquisa_criterios"].append({
                             "id": f"crit_{next_id}",
@@ -2179,7 +2179,7 @@ class AdminMenu(BaseMenu):
                         st.rerun()
 
                 with col_buscar_crit:
-                    if st.button("🔍 Buscar", type="primary", use_container_width=True, key="pesquisa_btn_buscar"):
+                    if st.button("Buscar", type="primary", use_container_width=True, key="pesquisa_btn_buscar"):
                         if not st.session_state["pesquisa_criterios"]:
                             st.warning("Adicione pelo menos um critério para realizar a busca.")
                             st.session_state["pesquisa_resultados"] = None
@@ -2220,7 +2220,7 @@ class AdminMenu(BaseMenu):
                 if st.session_state["pesquisa_resultados"] is not None:
                     res_list = st.session_state["pesquisa_resultados"]
                     st.write("---")
-                    st.write(f"##### 📊 Resultados da Pesquisa ({len(res_list)} talentos encontrados)")
+                    st.markdown(f"##### <i class='lucide-inline icon-bar-chart-2' style='font-size: 18px;'></i>Resultados da Pesquisa ({len(res_list)} talentos encontrados)", unsafe_allow_html=True)
                     
                     if not res_list:
                         st.info("Nenhum talento corresponde aos critérios selecionados.")
@@ -2246,7 +2246,7 @@ class AdminMenu(BaseMenu):
                         
                         csv_data_pesq = df_res_pesq.to_csv(index=False, encoding="utf-8-sig")
                         st.download_button(
-                            label="📥 Exportar Resultados para CSV",
+                            label="Exportar Resultados para CSV",
                             data=csv_data_pesq,
                             file_name=f"pesquisa_numerologica_{datetime.date.today().strftime('%Y%m%d')}.csv",
                             mime="text/csv",
@@ -2254,7 +2254,7 @@ class AdminMenu(BaseMenu):
                         )
 
                 st.write("---")
-                with st.expander("🛠️ Script SQL para Configuração do Supabase", expanded=False):
+                with st.expander("Script SQL para Configuração do Supabase", expanded=False):
                     st.markdown("Execute o script DDL abaixo no painel **SQL Editor** do seu console do Supabase para criar a tabela necessária para salvar as fórmulas permanentes:")
                     sql_code = """-- Script de definição de tabela para Fórmulas Numerológicas Salvas no Supabase
 CREATE TABLE IF NOT EXISTS formulas_numerologicas_salvas (
@@ -2286,7 +2286,7 @@ USING (true);"""
                     st.code(sql_code, language="sql")
 
                 st.write("---")
-                st.markdown("#### 🤖 Assistente de Simulação KAN (IA)")
+                st.markdown("#### <i class='lucide-inline icon-bot' style='font-size: 20px;'></i>Assistente de Simulação KAN (IA)", unsafe_allow_html=True)
                 st.markdown("Pergunte à IA sobre combinações de fatores, lógica de resultados ou agrupamentos de campos na metodologia KAN.")
                 
                 pergunta_ia = st.text_input(

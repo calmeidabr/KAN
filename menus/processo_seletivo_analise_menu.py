@@ -1948,7 +1948,7 @@ Instruções cruciais:
                     ] if is_admin else []
 
                     # 1. Tabela Talentos da Empresa
-                    st.markdown("##### 🏢 Talentos da Empresa")
+                    st.markdown("##### <i class='lucide-inline icon-building-2' style='font-size: 18px;'></i>Talentos da Empresa", unsafe_allow_html=True)
                     if not talentos_empresa:
                         st.info("Nenhum talento da empresa atende ao nível de aderência selecionado.")
                     else:
@@ -2108,7 +2108,7 @@ Instruções cruciais:
                             st.rerun()
 
         # Criar abas do Streamlit para separar Aderência e Harmonia de Equipe
-        tab_req, tab_harm = st.tabs(["🔍 Aderência aos Requisitos da Vaga", "⚖️ Escolha por Harmonia de Equipe"])
+        tab_req, tab_harm = st.tabs(["Aderência aos Requisitos da Vaga", "Escolha por Harmonia de Equipe"])
 
         with tab_req:
             # Renderizar os Cards dos Candidatos Associados

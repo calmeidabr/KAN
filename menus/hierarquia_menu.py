@@ -294,7 +294,7 @@ class HierarquiaMenu(BaseMenu):
             empresa_selecionada = st.selectbox("Selecione a Empresa (Foco):", options=nomes_empresas, key="sel_emp_hier")
 
         # ── SEÇÃO 1: GESTÃO DE EMPRESAS (COLLAPSIBLE) ──────────────────
-        with st.expander("🏢 Cadastro e Edição de Empresas", expanded=False):
+        with st.expander("Cadastro e Edição de Empresas", expanded=False):
             self.render_empresas_section(supabase_client, lista_empresas_salvas)
 
         st.write("---")
@@ -313,7 +313,7 @@ class HierarquiaMenu(BaseMenu):
         talentos_fora = sorted([nome for nome, info in clientes.items() if info.get("empresa") != empresa_selecionada])
 
         # ── SEÇÃO 2: ORGANOGRAMA & DEPARTAMENTOS ──────────────────────
-        st.markdown("### 📊 Organograma de Departamentos")
+        st.markdown("### <i class='lucide-inline icon-network' style='font-size: 20px;'></i>Organograma de Departamentos", unsafe_allow_html=True)
         
         col_org1, col_org2 = st.columns([2, 3])
         with col_org1:
@@ -410,11 +410,11 @@ class HierarquiaMenu(BaseMenu):
                 col_tree, col_main = st.columns([1, 2.8], gap="medium")
                 
                 with col_tree:
-                    st.markdown("<h4 style='margin-top:0; color: var(--text-main); font-weight:700;'>📁 Departamentos</h4>", unsafe_allow_html=True)
+                    st.markdown("<h4 style='margin-top:0; color: var(--text-main); font-weight:700; display: flex; align-items: center; gap: 8px;'><i class='lucide-inline icon-folder' style='font-size: 20px;'></i>Departamentos</h4>", unsafe_allow_html=True)
                     st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
                     
                     is_all_selected = st.session_state["selected_dept_id"] == "all"
-                    if st.button("🏢 Todos", key="tree_btn_all", use_container_width=True, type="primary" if is_all_selected else "secondary"):
+                    if st.button("Todos", key="tree_btn_all", use_container_width=True, type="primary" if is_all_selected else "secondary"):
                         st.session_state["selected_dept_id"] = "all"
                         st.rerun()
                         
@@ -455,7 +455,7 @@ class HierarquiaMenu(BaseMenu):
                     render_dept_tree_node("root", 0)
                     
                     st.markdown("---")
-                    if st.button("📝 Editar Estrutura", type="secondary", key=f"btn_edit_str_{empresa_selecionada}", use_container_width=True):
+                    if st.button("Editar Estrutura", type="secondary", key=f"btn_edit_str_{empresa_selecionada}", use_container_width=True):
                         st.session_state[state_key_edit] = True
                         st.session_state[state_key_builder] = [
                             {"id": d["departamento_id"], "nome": d["nome"], "parent_id": d.get("parent_id") or "Nenhum (Nível Mais Alto)"}
@@ -470,9 +470,9 @@ class HierarquiaMenu(BaseMenu):
                         path = obter_caminho_breadcrumb(selected_dept_id, deptos)
                         
                     # Breadcrumb
-                    breadcrumb_parts = ["🏢 " + empresa_selecionada.upper()]
+                    breadcrumb_parts = [empresa_selecionada.upper()]
                     for d in path:
-                        breadcrumb_parts.append(f"📂 {d['nome']}")
+                        breadcrumb_parts.append(d['nome'])
                     breadcrumb_str = " &nbsp;&gt;&nbsp; ".join(breadcrumb_parts)
                     st.markdown(f"<div style='font-size: 0.95em; color: var(--text-soft); margin-bottom: 15px;'>{breadcrumb_str}</div>", unsafe_allow_html=True)
                     
@@ -484,7 +484,7 @@ class HierarquiaMenu(BaseMenu):
                         
                     with col_link:
                         if selected_dept_id != "all":
-                            with st.popover("➕ Vincular Talento", use_container_width=True):
+                            with st.popover("Vincular Talento", use_container_width=True):
                                 st.markdown(f"**Vincular a: {dept_name}**")
                                 company_talents = sorted(talentos_da_empresa)
                                 talento_sel = st.selectbox(
@@ -540,7 +540,7 @@ class HierarquiaMenu(BaseMenu):
                         st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
                         col_search, col_filter = st.columns([1.8, 1.2])
                         with col_search:
-                            search_query = st.text_input("🔍 Buscar colaborador...", placeholder="Nome ou cargo", key="search_colab")
+                            search_query = st.text_input("Buscar colaborador...", placeholder="Nome ou cargo", key="search_colab")
                         with col_filter:
                             filter_role = st.selectbox("Filtrar por Cargo:", options=["Todos"] + sorted(list(cargos_list)), key="filter_role_colab")
                         
@@ -614,12 +614,12 @@ class HierarquiaMenu(BaseMenu):
                                                     st.markdown(f"<span style='color: var(--text-soft); font-size: 0.78em; display: block; margin-top: -3px;'>Setor: {t_dept_name}</span>", unsafe_allow_html=True)
                                                     
                                         with card_cols[2]:
-                                            with st.popover("⚙️", key=f"kebab_{t_nome}_{t_dept_id}", help="Ações"):
-                                                if st.button("📝 Editar Cargo", key=f"pop_edit_{t_nome}_{t_dept_id}", use_container_width=True):
+                                            with st.popover("Ações", key=f"kebab_{t_nome}_{t_dept_id}", help="Ações"):
+                                                if st.button("Editar Cargo", key=f"pop_edit_{t_nome}_{t_dept_id}", use_container_width=True):
                                                     modal_editar_cargo(t_nome, t_cargo, cargos_list)
                                                     
                                                 help_lider = "Remover Liderança" if is_lider else "Tornar Líder"
-                                                if st.button("👑 Liderança" if not is_lider else "🥈 Liderança", key=f"pop_lider_{t_nome}_{t_dept_id}", help=help_lider, use_container_width=True):
+                                                if st.button("Definir Líder" if not is_lider else "Remover Líder", key=f"pop_lider_{t_nome}_{t_dept_id}", help=help_lider, use_container_width=True):
                                                     novo_estado = not is_lider
                                                     curr_t_dept = t_info.get("departamento")
                                                     if curr_t_dept:
@@ -651,7 +651,7 @@ class HierarquiaMenu(BaseMenu):
                                                             time.sleep(1)
                                                             st.rerun()
                                                             
-                                                if st.button("❌ Desvincular", key=f"pop_rem_{t_nome}_{t_dept_id}", help="Remover do Departamento", use_container_width=True):
+                                                if st.button("Desvincular", key=f"pop_rem_{t_nome}_{t_dept_id}", help="Remover do Departamento", use_container_width=True):
                                                     if supabase_client:
                                                         try:
                                                             supabase_client.table("mapas_salvos").update({"departamento": None, "lider": False}).eq("nome", t_nome).execute()
@@ -673,7 +673,7 @@ class HierarquiaMenu(BaseMenu):
                                                         time.sleep(1)
                                                         st.rerun()
                                                         
-                                                if st.button("🔍 Ver Perfil", key=f"pop_perf_{t_nome}_{t_dept_id}", use_container_width=True):
+                                                if st.button("Ver Perfil", key=f"pop_perf_{t_nome}_{t_dept_id}", use_container_width=True):
                                                     self.app.ver_cadastro_talento(t_nome)
         else:
             # Construtor da Hierarquia
@@ -788,7 +788,7 @@ class HierarquiaMenu(BaseMenu):
         st.write("---")
 
         # ── SEÇÃO 3: GESTÃO DE EQUIPES ────────────────────────────────
-        st.markdown("### 👥 Equipes da Empresa")
+        st.markdown("### <i class='lucide-inline icon-users' style='font-size: 20px;'></i>Equipes da Empresa", unsafe_allow_html=True)
         self.render_equipes_section(supabase_client, empresa_selecionada, talentos_da_empresa, clientes)
 
     def render_empresas_section(self, supabase_client, lista_empresas):
@@ -934,7 +934,7 @@ class HierarquiaMenu(BaseMenu):
                         if logo and len(logo) > 20:
                             st.image(f"data:image/png;base64,{logo}", width=40)
                         else:
-                            st.markdown("🏢")
+                            st.markdown("<i class='lucide-inline icon-building-2' style='font-size: 24px; color: var(--text-soft);'></i>", unsafe_allow_html=True)
                     with c2:
                         st.write(f"**{emp['nome_empresa']}** &mdash; CNPJ: {emp.get('cnpj') or 'Não cadastrado'}")
                     with c3:
@@ -1046,7 +1046,7 @@ class HierarquiaMenu(BaseMenu):
                             if foto:
                                 st.markdown(f'<img src="data:image/png;base64,{foto}" class="hierarquia-card-avatar-img-40" />', unsafe_allow_html=True)
                             else:
-                                st.markdown("👥")
+                                st.markdown("<i class='lucide-inline icon-users' style='font-size: 24px; color: var(--text-soft);'></i>", unsafe_allow_html=True)
                         with c2:
                             st.write(f"**{eq['nome']}**")
                             st.caption(f"{len(lista_membros)} integrantes")
@@ -1159,19 +1159,19 @@ class HierarquiaMenu(BaseMenu):
                                             if m_foto:
                                                 st.markdown(f'<img src="data:image/png;base64,{m_foto}" class="hierarquia-card-avatar-img-40-noborder" />', unsafe_allow_html=True)
                                             else:
-                                                st.markdown("👤")
+                                                st.markdown("<i class='lucide-inline icon-user' style='font-size: 24px; color: var(--text-soft);'></i>", unsafe_allow_html=True)
                                         with c_txt:
                                             st.markdown('<div class="talent-link-container">', unsafe_allow_html=True)
                                             st.button(m_nome, key=f"lnk_h_eq_m_{idx}_{m_idx}", on_click=self.app.ver_cadastro_talento, args=(m_nome,))
                                             if is_lider_m:
-                                                st.markdown('<span style="color: #ff9f43; font-weight: bold; font-size: 0.8em; margin-left: 4px;">👑</span>', unsafe_allow_html=True)
+                                                st.markdown('<i class="lucide-inline icon-crown" style="color: #ff9f43; font-size: 14px; margin-left: 4px;"></i>', unsafe_allow_html=True)
                                             st.markdown('</div>', unsafe_allow_html=True)
                                             st.caption(m_info.get("cargo", "Sem Cargo") if m_info else "Sem cadastro")
                                         
                                         col_btn1, col_btn2, col_btn3 = st.columns(3)
                                         with col_btn1:
                                             # Botão Coroa (Líder)
-                                            if st.button("👑", key=f"btn_set_lider_eq_{idx}_{m_idx}", help="Definir Líder", use_container_width=True, type="primary" if is_lider_m else "secondary"):
+                                            if st.button("Líder", key=f"btn_set_lider_eq_{idx}_{m_idx}", help="Definir Líder", use_container_width=True, type="primary" if is_lider_m else "secondary"):
                                                 novo_lider = None if is_lider_m else m_nome
                                                 st.session_state[key_temp_lider] = novo_lider
                                                 novos_payload = [{"nome": n, "lider": (n == novo_lider)} for n in st.session_state[key_temp_membros]]
@@ -1196,7 +1196,7 @@ class HierarquiaMenu(BaseMenu):
                                         with col_btn2:
                                             # Botão Ocultar/Exibir Triângulo (Olho)
                                             is_oculto = m_nome in st.session_state[key_ocultos]
-                                            btn_eye_label = "🙈" if is_oculto else "👁️"
+                                            btn_eye_label = "Ocultar" if is_oculto else "Exibir"
                                             btn_eye_help = "Mostrar no gráfico" if is_oculto else "Ocultar no gráfico"
                                             if st.button(btn_eye_label, key=f"btn_hide_eq_{idx}_{m_idx}", help=btn_eye_help, use_container_width=True, type="secondary" if is_oculto else "primary"):
                                                 if is_oculto:
@@ -1206,7 +1206,7 @@ class HierarquiaMenu(BaseMenu):
                                                 st.rerun()
                                         with col_btn3:
                                             # Botão Excluir
-                                            if st.button("❌", key=f"btn_rem_eq_{idx}_{m_idx}", help="Excluir Membro", use_container_width=True, type="secondary"):
+                                            if st.button("Remover", key=f"btn_rem_eq_{idx}_{m_idx}", help="Excluir Membro", use_container_width=True, type="secondary"):
                                                 st.session_state[key_temp_membros].remove(m_nome)
                                                 if temp_lider == m_nome: st.session_state[key_temp_lider] = None
                                                 novos_payload = [{"nome": n, "lider": (n == st.session_state[key_temp_lider])} for n in st.session_state[key_temp_membros]]
