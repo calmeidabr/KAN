@@ -1347,7 +1347,7 @@ class AdminMenu(BaseMenu):
             
             from components.card import premium_card_container
             
-            sub_estudos_tab1, sub_estudos_tab2, sub_estudos_tab3, sub_estudos_tab4 = st.tabs(["📚 Metodologia KAN", "🧬 Guia Comportamental", "🧮 Calculadora de Estudo", "🧪 Simulação"])
+            sub_estudos_tab1, sub_estudos_tab2, sub_estudos_tab3, sub_estudos_tab4 = st.tabs(["Metodologia KAN", "Guia Comportamental", "Calculadora de Estudo", "Simulação"])
             
             with sub_estudos_tab1:
                 st.markdown("### As Três Forças Primordiais do KAN")
@@ -1356,25 +1356,25 @@ class AdminMenu(BaseMenu):
                 col_k1, col_k2, col_k3 = st.columns(3)
                 with col_k1:
                     with premium_card_container(variant="default"):
-                        st.markdown("<h4 style='color: #F08A00; margin-top:0;'>🎨 Criação (KAN 3)</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #F08A00; margin-top:0; display: flex; align-items: center; gap: 8px;'><i class='lucide-inline icon-edit-3' style='color: #F08A00; font-size: 20px;'></i>Criação (KAN 3)</h4>", unsafe_allow_html=True)
                         st.write("**Foco:** Comunicação, expressividade, inovação, sociabilidade e originalidade artística.")
                         st.write("**Perfil Típico:** Ideadores, comunicadores natos, profissionais de marketing e relações públicas.")
                         st.caption("Representa o início de novas ideias e a habilidade de conectá-las socialmente.")
                 with col_k2:
                     with premium_card_container(variant="default"):
-                        st.markdown("<h4 style='color: #8B5CF6; margin-top:0;'>⚡ Movimento (KAN 6)</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #8B5CF6; margin-top:0; display: flex; align-items: center; gap: 8px;'><i class='lucide-inline icon-activity' style='color: #8B5CF6; font-size: 20px;'></i>Movimento (KAN 6)</h4>", unsafe_allow_html=True)
                         st.write("**Foco:** Conciliação, harmonia, responsabilidade, acolhimento e suporte social.")
                         st.write("**Perfil Típico:** Mediadores, psicólogos, gestores de RH e líderes comunitários.")
                         st.caption("Representa a sustentação das relações, empatia e o zelo pelo equilíbrio do time.")
                 with col_k3:
                     with premium_card_container(variant="default"):
-                        st.markdown("<h4 style='color: #EF4444; margin-top:0;'>🎯 Finalidade (KAN 9)</h4>", unsafe_allow_html=True)
+                        st.markdown("<h4 style='color: #EF4444; margin-top:0; display: flex; align-items: center; gap: 8px;'><i class='lucide-inline icon-target' style='color: #EF4444; font-size: 20px;'></i>Finalidade (KAN 9)</h4>", unsafe_allow_html=True)
                         st.write("**Foco:** Altruísmo, entrega, conclusão, propósito elevado e visão humanitária.")
                         st.write("**Perfil Típico:** Diretores estratégicos, mentores, filósofos e líderes visionários.")
                         st.caption("Representa a concretização dos propósitos, desapego e foco em resultados coletivos.")
                 
                 st.markdown("---")
-                st.markdown("### 📐 Triângulos Harmônicos no Plano de Tesla")
+                st.markdown("### <i class='lucide-inline icon-triangle' style='font-size: 20px;'></i>Triângulos Harmônicos no Plano de Tesla", unsafe_allow_html=True)
                 st.markdown("""
                 Os triângulos harmônicos mapeiam os três principais vértices de competência de cada indivíduo no Plano de Tesla. A interação espacial desses triângulos define o grau de harmonia de uma equipe:
                 
@@ -2324,7 +2324,7 @@ Use formatação Markdown para deixar a resposta legível.
 """
                                 prompt_completo = f"{system_prompt}\n\nPergunta do Usuário: {pergunta_ia}"
                                 response = model.generate_content(prompt_completo)
-                                st.markdown("##### 💡 Resposta do Assistente:")
+                                st.markdown("##### <i class='lucide-inline icon-help-circle' style='color: var(--accent); font-size: 18px;'></i>Resposta do Assistente:", unsafe_allow_html=True)
                                 st.markdown(response.text)
                             except Exception as e:
                                 st.error(f"Erro ao consultar o assistente de IA: {e}")

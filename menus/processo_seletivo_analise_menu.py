@@ -1170,44 +1170,44 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                 max-height: 480px !important;
                 width: 100% !important;
                 border-radius: 12px !important;
-                border: 1px solid rgba(255, 255, 255, 0.15) !important;
-                background-color: #171B2A !important;
+                border: 1px solid var(--panel-border) !important;
+                background-color: var(--panel-bg) !important;
                 margin-top: 10px !important;
                 margin-bottom: 25px !important;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+                box-shadow: var(--card-shadow) !important;
             }}
             .scrollable-table {{
                 width: 100% !important;
                 border-collapse: collapse !important;
                 font-family: 'Inter', sans-serif !important;
-                color: #FFFFFF !important;
+                color: var(--text-main) !important;
                 min-width: 1050px !important; /* Força scroll horizontal em telas menores */
             }}
             .scrollable-table th {{
                 position: sticky !important;
                 top: 0 !important;
                 z-index: 10 !important;
-                background-color: #4a1b4d !important; /* Fundo lilás escuro */
-                color: #FFFFFF !important;
-                font-family: 'Outfit', sans-serif !important;
+                background-color: var(--accent) !important;
+                color: var(--button-primary-text) !important;
+                font-family: 'Inter', sans-serif !important;
                 font-weight: 700 !important;
                 font-size: 0.85rem !important;
                 text-transform: uppercase !important;
                 letter-spacing: 0.6px !important;
                 padding: 12px 14px !important;
                 text-align: left !important;
-                border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Bordas brancas finas */
+                border: 1px solid var(--panel-border) !important;
             }}
             .scrollable-table td {{
                 padding: 10px 14px !important;
                 font-size: 0.88rem !important;
-                border: 1px solid rgba(255, 255, 255, 0.15) !important; /* Bordas brancas finas */
-                background-color: #5B1463 !important; /* Fundo lilás */
+                border: 1px solid var(--panel-border) !important;
+                background-color: var(--panel-bg) !important;
                 vertical-align: middle !important;
-                color: #FFFFFF !important;
+                color: var(--text-soft) !important;
             }}
             .scrollable-table tr:hover td {{
-                background-color: #7A2B8A !important; /* Tom lilás mais claro ao passar o mouse */
+                background-color: var(--hover-bg) !important;
             }}
 
             /* Botão de ação "+" e "✓" circular premium */
@@ -1848,7 +1848,7 @@ Instruções cruciais:
             
             st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
             
-            if st.button("🎯 Associar por Aderência", key="btn_add_assoc_by_match", use_container_width=True):
+            if st.button("Associar por Aderência", key="btn_add_assoc_by_match", use_container_width=True):
                 st.session_state["mostrar_selector_aderencia"] = True
                 st.session_state["mostrar_selector_talentos"] = False
                 st.session_state["talentos_aderencia_temporarios"] = list(st.session_state["candidatos_vagas"].get(vaga_id_int, []))

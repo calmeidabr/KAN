@@ -6,8 +6,8 @@
     --card-border-top-color: #5B1463;
     --card-transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
     
-    --card-padding-default: 24px 32px;
-    --card-padding-compact: 16px 20px;
+    --card-padding-default: 16px 20px;
+    --card-padding-compact: 10px 14px;
     
     /* Default Dark Mode colors */
     --card-bg: linear-gradient(180deg, #141824 0%, #0D1016 100%);
@@ -39,7 +39,7 @@
     position: relative !important;
     overflow: hidden !important;
     transition: var(--card-transition) !important;
-    margin-bottom: 16px !important;
+    margin-bottom: 12px !important;
     color: var(--card-text-main) !important;
     text-align: left;
 }
@@ -65,7 +65,7 @@
 
 /* WRAPPER E GATILHOS PARA CONTAINER STREAMLIT */
 .premium-card-wrapper {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     width: 100%;
 }
 
@@ -298,5 +298,18 @@ div[data-testid="stVerticalBlockBorderWrapper"] .stExpander::before,
 .premium-card-trigger + div div.e1rw0b1u4 div[data-testid="stVerticalBlockBorderWrapper"]::before,
 .premium-card-trigger + div div.e1rw0b1u4 .stExpander::before {
     display: none !important;
+}
+
+/* CLASSE UNIFICADA PARA ICONES LUCIDE INLINE */
+.lucide-inline {
+    font-family: "lucide" !important;
+    font-style: normal !important;
+    font-weight: normal !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin-right: 6px !important;
+    color: var(--text-soft) !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
 }
 
