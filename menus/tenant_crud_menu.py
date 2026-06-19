@@ -1,163 +1,165 @@
 import streamlit as st
 import time
 from menus.base_menu import BaseMenu
-from services.tenant_service import (
-    login_user, register_user, logout_user, get_current_user, get_current_tenant,
-    list_records, create_record, update_record, delete_record
-)
+from services.db_client import get_supabase_admin, get_supabase_client
 
 class TenantCrudMenu(BaseMenu):
     def render(self):
-        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Demonstração SaaS Multi-Tenant</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Esta tela demonstra o isolamento real de dados por regras de segurança (RLS) no banco de dados baseado no usuário ativo.</p>", unsafe_allow_html=True)
+        # Proteção adicional de segurança
+        if st.session_state.get("user_rights") != "admin master":
+            st.error("Acesso restrito ao administrador master (adminkan).")
+            st.stop()
 
-        user = get_current_user()
-        
-        # 1. FLUXO DE LOGIN E ONBOARDING
-        if not user:
-            st.warning("Para testar o isolamento, você precisa se autenticar ou criar uma conta de usuário.")
+        st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>🔮 Painel de Gestão Multi-Tenant</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: var(--text-soft); margin-bottom: 20px;'>Gerenciamento de organizações (tenants), limites de assinatura e credenciais de usuários principais.</p>", unsafe_allow_html=True)
+
+        admin_client = get_supabase_admin()
+
+        # Abas do Painel
+        tab_list, tab_create, tab_users = st.tabs([
+            "📂 Listar Clientes (Tenants)", 
+            "➕ Adicionar Novo Cliente", 
+            "👤 Listar Usuários"
+        ])
+
+        # ABA 1: LISTAR TENANTS
+        with tab_list:
+            st.subheader("Clientes cadastrados no KAN")
+            try:
+                # Carrega os tenants
+                tenants_resp = admin_client.table("tenants").select("*").order("created_at", desc=True).execute()
+                tenants = tenants_resp.data if tenants_resp.data else []
+
+                if not tenants:
+                    st.info("Nenhum cliente cadastrado ainda.")
+                else:
+                    for t in tenants:
+                        # Ignora o tenant padrão na contagem de edição simples, ou exibe-o de forma distinta
+                        is_default = t["id"] == "00000000-0000-0000-0000-000000000000"
+                        badge_color = "#22C55E" if t["tier"] == "premium" else "#6B7280"
+                        
+                        with st.container(border=True):
+                            col_t1, col_t2 = st.columns([4, 1.2])
+                            with col_t1:
+                                st.markdown(f"#### {t['name']}")
+                                st.markdown(f"**Slug:** `{t['slug']}` | **ID:** `{t['id']}`")
+                                st.caption(f"Criado em: {t['created_at']}")
+                            with col_t2:
+                                st.markdown(f"<span style='background-color: {badge_color}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold;'>Plano {t['tier'].upper()}</span>", unsafe_allow_html=True)
+                                st.write("")
+                                # Permite alterar o plano do tenant
+                                if not is_default:
+                                    new_tier = "basic" if t["tier"] == "premium" else "premium"
+                                    btn_label = "Mudar para Básico" if t["tier"] == "premium" else "Mudar para Premium"
+                                    if st.button(btn_label, key=f"btn_tier_{t['id']}", use_container_width=True):
+                                        admin_client.table("tenants").update({"tier": new_tier}).eq("id", t["id"]).execute()
+                                        st.toast(f"Plano alterado com sucesso para {new_tier.upper()}!", icon="✅")
+                                        time.sleep(0.5)
+                                        st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao carregar clientes: {e}")
+
+        # ABA 2: CRIAR NOVO CLIENTE E USUÁRIO PRINCIPAL
+        with tab_create:
+            st.subheader("Registrar nova organização e conta administradora")
+            st.write("Isso criará uma organização (tenant) e o respectivo usuário principal com a senha inicial fornecida.")
             
-            tab_login, tab_register = st.tabs(["Entrar", "Cadastrar Novo Usuário"])
-            
-            with tab_login:
-                st.subheader("Acesse sua conta SaaS")
-                email = st.text_input("E-mail", key="saas_login_email")
-                password = st.text_input("Senha", type="password", key="saas_login_pwd")
-                if st.button("Entrar no Workspace", type="primary", key="btn_saas_login"):
-                    if not email or not password:
-                        st.error("Preencha todos os campos.")
-                    else:
-                        success, message = login_user(email, password)
-                        if success:
-                            st.success(message)
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            st.error(f"Erro no login: {message}")
-                            
-            with tab_register:
-                st.subheader("Crie sua conta (Onboarding Automático)")
-                st.write("Ao se cadastrar, o banco de dados criará automaticamente um Tenant/Workspace exclusivo para você via Trigger.")
-                new_name = st.text_input("Nome Completo", key="saas_reg_name")
-                new_email = st.text_input("E-mail", key="saas_reg_email")
-                new_password = st.text_input("Senha (min. 6 caracteres)", type="password", key="saas_reg_pwd")
+            with st.form("create_tenant_form", border=False):
+                col_c1, col_c2 = st.columns([1, 1])
+                with col_c1:
+                    st.markdown("##### Dados do Cliente (Organização)")
+                    tenant_name = st.text_input("Nome da Empresa*", placeholder="Ex: Acme Corporation")
+                    tenant_tier = st.selectbox("Plano de Assinatura*", ["basic", "premium"], format_func=lambda x: "Básico (Sem Equipes/Harmonia)" if x == "basic" else "Premium (Acesso Total)")
                 
-                if st.button("Cadastrar e Iniciar", type="primary", key="btn_saas_register"):
-                    if not new_name or not new_email or not new_password:
-                        st.error("Preencha todos os campos.")
-                    elif len(new_password) < 6:
-                        st.error("A senha deve ter no mínimo 6 caracteres.")
+                with col_c2:
+                    st.markdown("##### Usuário Administrador Principal")
+                    user_name = st.text_input("Nome do Usuário*", placeholder="Ex: joaosilva")
+                    user_email = st.text_input("E-mail do Usuário*", placeholder="Ex: joao@acme.com")
+                    user_pwd = st.text_input("Senha Inicial*", type="password", placeholder="Mínimo de 6 caracteres")
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                submit_create = st.form_submit_button("Criar Cliente e Usuário", type="primary", use_container_width=True)
+
+                if submit_create:
+                    if not tenant_name.strip() or not user_name.strip() or not user_email.strip() or not user_pwd.strip():
+                        st.error("Por favor, preencha todos os campos obrigatórios (*).")
+                    elif len(user_pwd) < 6:
+                        st.error("A senha deve conter pelo menos 6 caracteres.")
+                    elif "@" not in user_email:
+                        st.error("Digite um e-mail válido.")
                     else:
-                        success, message = register_user(new_email, new_password, new_name)
-                        if success:
-                            st.success(message)
-                            st.info("Protip: Vá na aba 'Entrar' para acessar seu workspace.")
-                        else:
-                            st.error(f"Erro no cadastro: {message}")
-            return
+                        with st.spinner("Registrando conta no Supabase Auth e criando workspace..."):
+                            try:
+                                # 1. Cria o usuário no Supabase Auth
+                                new_user = admin_client.auth.admin.create_user({
+                                    "email": user_email.strip(),
+                                    "password": user_pwd.strip(),
+                                    "email_confirm": True,
+                                    "user_metadata": {
+                                        "full_name": user_name.strip().capitalize()
+                                    }
+                                })
+                                
+                                if new_user and new_user.user:
+                                    # O trigger handle_new_user já foi executado no banco, criando o tenant básico
+                                    # 2. Localiza o tenant_id criado automaticamente
+                                    time.sleep(1) # Aguarda propagação
+                                    u_res = admin_client.table("usuarios").select("tenant_id").eq("id", new_user.user.id).execute()
+                                    
+                                    if u_res.data:
+                                        t_id = u_res.data[0]["tenant_id"]
+                                        # 3. Atualiza o tenant com o nome real e plano/tier desejados
+                                        slug_val = tenant_name.lower().replace(" ", "-").replace("/", "") + f"-{int(time.time()) % 1000}"
+                                        admin_client.table("tenants").update({
+                                            "name": tenant_name.strip(),
+                                            "slug": slug_val,
+                                            "tier": tenant_tier
+                                        }).eq("id", t_id).execute()
+                                        
+                                        # 4. Atualiza o nome_completo e usuário na tabela public.usuarios
+                                        admin_client.table("usuarios").update({
+                                            "nome_completo": tenant_name.strip() + " Admin",
+                                            "usuario": user_name.strip(),
+                                            "is_main_user": True,
+                                            "direitos": "Editor" # Define como Editor (Gestor)
+                                        }).eq("id", new_user.user.id).execute()
 
-        # 2. SEÇÃO DO USUÁRIO LOGADO E TENANT ATIVO
-        tenant_id = get_current_tenant()
-        
-        with st.container(border=True):
-            col_u1, col_u2 = st.columns([4, 1])
-            with col_u1:
-                st.markdown(f"**Logado como:** `{user.email}`")
-                st.markdown(f"**Workspace Ativo (tenant_id):** `{tenant_id}`")
-            with col_u2:
-                if st.button("Sair do Workspace", use_container_width=True, key="btn_saas_logout"):
-                    logout_user()
+                                        st.success(f"✅ Cliente '{tenant_name}' e usuário principal '{user_name}' criados com sucesso!")
+                                        time.sleep(1.5)
+                                        st.rerun()
+                                    else:
+                                        st.error("O usuário foi criado, mas houve um problema ao associar o Workspace. Verifique as triggers de banco.")
+                            except Exception as e:
+                                st.error(f"Erro ao criar cliente: {e}")
 
-        # Inicia variáveis de controle do CRUD
-        if "edit_id" not in st.session_state:
-            st.session_state["edit_id"] = None
-        if "add_mode" not in st.session_state:
-            st.session_state["add_mode"] = False
-
-        st.write("---")
-
-        # 3. FLUXO DE INSERÇÃO E EDICAO DE REGISTRO
-        if st.session_state["add_mode"]:
-            st.subheader("Criar Novo Registro no Tenant")
-            nome = st.text_input("Nome do Registro*", key="rec_name")
-            desc = st.text_area("Descrição", key="rec_desc")
-            
-            col_b1, col_b2 = st.columns([1, 5])
-            with col_b1:
-                if st.button("Salvar", type="primary", key="btn_save_changes_rec"):
-                    if not nome.strip():
-                        st.error("O nome é obrigatório.")
-                    else:
-                        if create_record(nome.strip(), desc.strip()):
-                            st.success("Registro adicionado com sucesso no seu tenant!")
-                            st.session_state["add_mode"] = False
-                            time.sleep(1)
-                            st.rerun()
-            with col_b2:
-                if st.button("Cancelar", key="btn_canc_add"):
-                    st.session_state["add_mode"] = False
-                    st.rerun()
-
-        elif st.session_state["edit_id"] is not None:
-            rec_id = st.session_state["edit_id"]
-            records = list_records()
-            record_to_edit = next((r for r in records if r["id"] == rec_id), None)
-            
-            if not record_to_edit:
-                st.error("Registro não encontrado ou você não tem acesso.")
-                st.session_state["edit_id"] = None
-                st.rerun()
+        # ABA 3: LISTAR USUÁRIOS
+        with tab_users:
+            st.subheader("Usuários do sistema")
+            try:
+                # Busca todos os usuários associados a seus tenants
+                users_resp = admin_client.table("usuarios").select("*").order("usuario").execute()
+                users = users_resp.data if users_resp.data else []
                 
-            st.subheader(f"Editar Registro #{rec_id}")
-            ed_nome = st.text_input("Nome do Registro*", value=record_to_edit["nome"], key="ed_rec_name")
-            ed_desc = st.text_area("Descrição", value=record_to_edit["descricao"] or "", key="ed_rec_desc")
-            
-            col_eb1, col_eb2 = st.columns([1, 5])
-            with col_eb1:
-                if st.button("Salvar Alterações", type="primary", key="btn_save_changes_edit"):
-                    if not ed_nome.strip():
-                        st.error("O nome é obrigatório.")
-                    else:
-                        if update_record(rec_id, ed_nome.strip(), ed_desc.strip()):
-                            st.success("Registro atualizado com sucesso!")
-                            st.session_state["edit_id"] = None
-                            time.sleep(1)
-                            st.rerun()
-            with col_eb2:
-                if st.button("Cancelar", key="btn_canc_edit"):
-                    st.session_state["edit_id"] = None
-                    st.rerun()
+                # Para mostrar o nome da empresa, buscamos os tenants e fazemos o mapeamento
+                tenants_resp = admin_client.table("tenants").select("id, name").execute()
+                tenant_map = {t["id"]: t["name"] for t in tenants_resp.data} if tenants_resp.data else {}
 
-        # 4. EXIBIÇÃO DA LISTAGEM DO TENANT
-        else:
-            col_h1, col_h2 = st.columns([4, 1])
-            with col_h1:
-                st.subheader("Registros cadastrados neste Workspace")
-            with col_h2:
-                if st.button("Adicionar Registro", use_container_width=True, type="primary", key="btn_start_add"):
-                    st.session_state["add_mode"] = True
-                    st.rerun()
-            
-            # Listagem de registros (filtrado nativamente pelas políticas de RLS)
-            records = list_records()
-            
-            if not records:
-                st.info("Não há nenhum registro cadastrado no seu workspace ainda. Crie um novo registro acima.")
-            else:
-                for rec in records:
-                    with st.container(border=True):
-                        col_r1, col_r2 = st.columns([4, 1])
-                        with col_r1:
-                            st.markdown(f"##### <i class='icon-folder' style='color:#F18617; font-size:18px; vertical-align:middle; margin-right:6px;'></i><span style='vertical-align:middle;'>{rec['nome']}</span>", unsafe_allow_html=True)
-                            st.write(rec['descricao'] or "*Sem descrição*")
-                            st.caption(f"ID do Registro: {rec['id']} | Criado em: {rec['created_at']}")
-                        with col_r2:
-                            # Botões de ação para Edição e Exclusão
-                            if st.button("Editar", key=f"btn_edit_{rec['id']}", use_container_width=True):
-                                st.session_state["edit_id"] = rec["id"]
-                                st.rerun()
-                            if st.button("Excluir", key=f"btn_delete_{rec['id']}", use_container_width=True):
-                                if delete_record(rec["id"]):
-                                    st.success("Registro excluído!")
-                                    time.sleep(0.5)
-                                    st.rerun()
+                if not users:
+                    st.info("Nenhum usuário cadastrado.")
+                else:
+                    for u in users:
+                        t_name = tenant_map.get(u.get("tenant_id"), "Desconhecido")
+                        badge_color = "#3B82F6" if u["direitos"] == "admin master" else "#10B981" if u["direitos"] == "Editor" else "#F59E0B" if u["direitos"] == "Analista" else "#6B7280"
+                        
+                        with st.container(border=True):
+                            col_u1, col_u2 = st.columns([4, 1.2])
+                            with col_u1:
+                                st.markdown(f"#### {u['usuario']}")
+                                st.markdown(f"**E-mail:** `{u['email']}` | **Empresa (Tenant):** `{t_name}`")
+                                st.caption(f"Status: {u['status']} | Criado em: {u['created_at']}")
+                            with col_u2:
+                                st.markdown(f"<span style='background-color: {badge_color}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold;'>{u['direitos'].upper()}</span>", unsafe_allow_html=True)
+                                if u["is_main_user"]:
+                                    st.markdown("<p style='font-size:0.8em; color:#10B981; margin: 4px 0 0 0;'>🔑 Usuário Principal</p>", unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Erro ao carregar usuários: {e}")

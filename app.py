@@ -78,12 +78,18 @@ class App:
             </div>
             """, unsafe_allow_html=True)
             
+            cadastros_itens = ["Talentos", "Vagas", "Empresa e Organograma"]
+            if st.session_state.get("tenant_tier") == "premium" or st.session_state.get("user_rights") == "admin master":
+                cadastros_itens.append("Equipes")
+            if st.session_state.get("user_rights") == "admin master":
+                cadastros_itens.append("SaaS Multi-Tenant")
+
             menu_groups = {
-                "CADASTROS": ["Talentos", "Vagas", "Empresa e Organograma", "Equipes", "SaaS Multi-Tenant"],
+                "CADASTROS": cadastros_itens,
                 "ANÁLISES": ["Diagnósticos", "Analytics", "Processo seletivo"],
                 "CONFIGURAÇÕES": ["Empresa", "Usuários"]
             }
-            if st.session_state.get("logged_user") == "adminkan":
+            if st.session_state.get("user_rights") == "admin master":
                 menu_groups["ADMIN"] = ["Painel de Controle"]
 
             for grupo in menu_groups.keys():
@@ -121,7 +127,8 @@ class App:
                 st.button(theme_btn_label, use_container_width=True, key="btn_theme_toggle", on_click=toggle_theme)
 
             user_logged = st.session_state.get("logged_user", "Usuário")
-            role_str = "Admin Master" if user_logged == "adminkan" else "Gestor" if user_logged in ["admin", "cristiano"] else "Membro"
+            rights = st.session_state.get("user_rights", "Comum")
+            role_str = "Admin Master" if rights == "admin master" else "Gestor" if rights == "Editor" else "Analista" if rights == "Analista" else "Membro"
             st.markdown(f"""
             <div class='user-profile-card'>
                 <div style='display: flex; align-items: center; justify-content: space-between;'>

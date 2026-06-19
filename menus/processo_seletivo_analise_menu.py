@@ -2383,6 +2383,32 @@ Instruções cruciais:
             st.progress(max(0, min(100, int(aderencia_percent))))
 
         with tab_harm:
+            # 0. Verificar se o tenant possui plano Premium ou se é o adminkan
+            is_premium = st.session_state.get("tenant_tier") == "premium" or st.session_state.get("user_rights") == "admin master"
+            if not is_premium:
+                st.info("🔮 **Recurso Premium**")
+                st.markdown("""
+                <div style="padding: 20px; border-radius: 10px; background-color: var(--card-bg); border-top: 3px solid var(--card-border-top-color); margin-top: 10px;">
+                    <h4 style="margin-top: 0; color: #9B30B3; font-family: 'Outfit', sans-serif;">Análise de Harmonia de Equipe</h4>
+                    <p style="font-size: 0.95em; line-height: 1.5; color: var(--text-soft);">
+                        O módulo de <b>Análise de Harmonia de Equipes</b> está disponível exclusivamente na versão Premium do KAN.
+                    </p>
+                    <p style="font-size: 0.95em; line-height: 1.5; color: var(--text-soft);">
+                        Com a versão Premium, você poderá:
+                    </p>
+                    <ul style="font-size: 0.95em; color: var(--text-soft); padding-left: 20px; line-height: 1.6;">
+                        <li>Analisar a compatibilidade comportamental de candidatos com as equipes existentes.</li>
+                        <li>Identificar a harmonia e o entrosamento do time com base nos triângulos comportamentais.</li>
+                        <li>Obter relatórios profundos sobre gaps comportamentais do grupo e complementaridade.</li>
+                    </ul>
+                    <br>
+                    <p style="font-size: 0.95em; margin-bottom: 0; color: var(--text-soft);">
+                        Fale com nosso suporte para ativar o upgrade!
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.stop()
+
             import datetime
             from components.card import premium_card_container
             

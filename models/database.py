@@ -7,32 +7,17 @@ MENU_PRINCIPAL = [
     "Hierarquia / Deptos", "Equipes", "Empresa", "Usuários"
 ]
 
-@st.cache_resource
-def init_supabase_client():
-    try:
-        from supabase import create_client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_KEY"]
-        return create_client(url, key)
-    except Exception:
-        return None
-
-@st.cache_resource
-def init_supabase_admin_client():
-    try:
-        from supabase import create_client
-        url = st.secrets["connections"]["supabase"]["SUPABASE_URL"]
-        key = st.secrets["connections"]["supabase"]["SUPABASE_SERVICE_ROLE_KEY"]
-        return create_client(url, key)
-    except Exception as e:
-        st.error(f"Erro no init_db_admin_client: {e}")
-        return None
+from services.db_client import get_supabase_client, get_supabase_admin as get_db_admin
 
 def get_supabase():
-    return init_supabase_client()
+    return get_supabase_client()
 
 def get_supabase_admin():
-    return init_supabase_admin_client()
+    # Para garantir o isolamento RLS, se o usuário logado NÃO for o adminkan (admin master),
+    # redirecionamos a conexão de admin para o cliente com RLS ativo do usuário.
+    if st.session_state.get("user_rights") == "admin master":
+        return get_db_admin()
+    return get_supabase_client()
 
 class LazyDB:
     def __init__(self, fetch_func):
