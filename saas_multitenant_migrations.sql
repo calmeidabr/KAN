@@ -64,6 +64,7 @@ $$ LANGUAGE plpgsql;
 -- 5. ADICIONAR COLUNA tenant_id NAS TABELAS DE NEGÓCIO COM VALOR DEFAULT AUTOMÁTICO
 -- O valor default public.get_my_tenant_id() garante que novas linhas inseridas pelo
 -- Streamlit recebam automaticamente o ID do tenant correto do usuário logado.
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS tier TEXT NOT NULL CHECK (tier IN ('basic', 'premium')) DEFAULT 'basic';
 ALTER TABLE public.equipes ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.vagas ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.processos_seletivos ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
