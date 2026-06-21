@@ -21,7 +21,8 @@ VALUES ('00000000-0000-0000-0000-000000000000', 'Mundo KAN Workspace', 'mundo-ka
 ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, tier = EXCLUDED.tier;
 
 -- 3. CRIAR/REESTRUTURAR A TABELA DE USUÁRIOS (vinculada ao Supabase Auth)
-CREATE TABLE IF NOT EXISTS public.usuarios (
+DROP TABLE IF EXISTS public.usuarios CASCADE;
+CREATE TABLE public.usuarios (
     id             UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     usuario        TEXT UNIQUE NOT NULL,
     nome_completo  TEXT,
