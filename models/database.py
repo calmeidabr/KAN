@@ -625,49 +625,73 @@ def fetch_assets_list():
         return res.data
     except Exception: return []
 
-@st.cache_data(ttl=300)
 def carregar_empresas(somente_ativas=True):
+    tenant_id = st.session_state.get("tenant_id")
+    return _carregar_empresas_cached(tenant_id, somente_ativas)
+
+@st.cache_data(ttl=300)
+def _carregar_empresas_cached(tenant_id, somente_ativas=True):
     client = get_supabase()
     if client:
         try:
             res = client.table("empresas").select("*").order("nome_empresa").execute()
-            if res.data:
+            if res.data is not None:
                 if somente_ativas:
                     return [emp for emp in res.data if emp.get("status", "Ativa") != "Inativa"]
                 return res.data
         except Exception: pass
-    if "empresas_local_data" not in st.session_state:
-        st.session_state["empresas_local_data"] = [
-            {"nome_empresa": "Mundo Kan", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br", "status": "Ativa"}
-        ]
-    local_data = st.session_state["empresas_local_data"]
-    if somente_ativas:
-        return [emp for emp in local_data if emp.get("status", "Ativa") != "Inativa"]
-    return local_data
+    
+    # Se for o tenant do Mundo KAN ou não estiver logado, exibe a empresa padrão de fallback
+    if tenant_id == "00000000-0000-0000-0000-000000000000" or not tenant_id:
+        if "empresas_local_data" not in st.session_state:
+            st.session_state["empresas_local_data"] = [
+                {"nome_empresa": "Mundo Kan", "razao_social": "Mundo KAN Tecnologia Ltda", "cnpj": "00.000.000/0001-00", "segmento": "Tecnologia", "num_colaboradores": "50", "site": "https://mundokan.com.br", "telefone": "(11) 99999-9999", "email": "contato@mundokan.com.br", "responsavel_nome": "Administrador KAN", "responsavel_celular": "(11) 99999-9999", "responsavel_email": "adminkan@mundokan.com.br", "status": "Ativa"}
+            ]
+        local_data = st.session_state["empresas_local_data"]
+        if somente_ativas:
+            return [emp for emp in local_data if emp.get("status", "Ativa") != "Inativa"]
+        return local_data
+    return []
+
+def carregar_hierarquia(empresa):
+    tenant_id = st.session_state.get("tenant_id")
+    return _carregar_hierarquia_cached(tenant_id, empresa)
 
 @st.cache_data(ttl=300)
-def carregar_hierarquia(empresa):
+def _carregar_hierarquia_cached(tenant_id, empresa):
     client = get_supabase()
     if client:
         try:
             res = client.table("hierarquia_departamentos").select("*").eq("empresa", empresa).order("ordem").execute()
-            if res.data: return res.data
+            if res.data is not None and len(res.data) > 0: 
+                return res.data
         except Exception: pass
-    if "hier_local_" + empresa in st.session_state:
-        return st.session_state["hier_local_" + empresa]
-    
-    padrao = [
-        {"departamento_id": "dept_exec", "nome": "Diretoria Executiva", "parent_id": "Nenhum (Nível Mais Alto)", "empresa": empresa, "ordem": 10},
-        {"departamento_id": "dept_com", "nome": "Diretoria Comercial", "parent_id": "dept_exec", "empresa": empresa, "ordem": 20},
-        {"departamento_id": "dept_ops", "nome": "Diretoria de Operações", "parent_id": "dept_exec", "empresa": empresa, "ordem": 30},
-        {"departamento_id": "dept_rh", "nome": "Recursos Humanos", "parent_id": "dept_ops", "empresa": empresa, "ordem": 40},
-        {"departamento_id": "dept_ti", "nome": "Tecnologia da Informação", "parent_id": "dept_ops", "empresa": empresa, "ordem": 50}
-    ]
-    st.session_state["hier_local_" + empresa] = padrao
-    return padrao
+        
+    # Se for o tenant do Mundo KAN ou não estiver logado, exibe os departamentos padrão
+    if tenant_id == "00000000-0000-0000-0000-000000000000" or not tenant_id:
+        if "hier_local_" + empresa in st.session_state:
+            return st.session_state["hier_local_" + empresa]
+        padrao = [
+            {"departamento_id": "dept_exec", "nome": "Diretoria Executiva", "parent_id": "Nenhum (Nível Mais Alto)", "empresa": empresa, "ordem": 10},
+            {"departamento_id": "dept_com", "nome": "Diretoria Comercial", "parent_id": "dept_exec", "empresa": empresa, "ordem": 20},
+            {"departamento_id": "dept_ops", "nome": "Diretoria de Operações", "parent_id": "dept_exec", "empresa": empresa, "ordem": 30},
+            {"departamento_id": "dept_rh", "nome": "Recursos Humanos", "parent_id": "dept_ops", "empresa": empresa, "ordem": 40},
+            {"departamento_id": "dept_ti", "nome": "Tecnologia da Informação", "parent_id": "dept_ops", "empresa": empresa, "ordem": 50}
+        ]
+        st.session_state["hier_local_" + empresa] = padrao
+        return padrao
+    return []
+
+def carregar_todos_clientes():
+    tenant_id = st.session_state.get("tenant_id")
+    cl_salvos = _fetch_supabase_clientes_cached(tenant_id).copy()
+    if "clientes_local_data" in st.session_state:
+        for nome, data in st.session_state["clientes_local_data"].items():
+            cl_salvos[nome] = data
+    return cl_salvos
 
 @st.cache_data(ttl=300)
-def _fetch_supabase_clientes():
+def _fetch_supabase_clientes_cached(tenant_id):
     client = get_supabase_admin()
     cl_salvos = {}
     if client:
@@ -743,8 +767,12 @@ def _fetch_supabase_clientes():
         st.error("Erro: Conexão administrativa retornou None. Verifique as chaves nos Secrets.")
     return cl_salvos
 
-@st.cache_data(ttl=60)
 def fetch_cliente_detalhes(nome):
+    tenant_id = st.session_state.get("tenant_id")
+    return _fetch_cliente_detalhes_cached(tenant_id, nome)
+
+@st.cache_data(ttl=60)
+def _fetch_cliente_detalhes_cached(tenant_id, nome):
     client = get_supabase_admin()
     if client and nome:
         try:
@@ -755,26 +783,25 @@ def fetch_cliente_detalhes(nome):
             pass
     return None
 
-@st.cache_data(ttl=60)
 def fetch_fotos_clientes(nomes):
+    tenant_id = st.session_state.get("tenant_id")
+    nomes_tuple = tuple(nomes) if isinstance(nomes, list) else nomes
+    return _fetch_fotos_clientes_cached(tenant_id, nomes_tuple)
+
+@st.cache_data(ttl=60)
+def _fetch_fotos_clientes_cached(tenant_id, nomes):
     if not nomes:
         return {}
     client = get_supabase_admin()
     if client:
         try:
-            res = client.table("mapas_salvos").select("nome, foto_base64").in_("nome", nomes).execute()
+            res = client.table("mapas_salvos").select("nome, foto_base64").in_("nome", list(nomes) if isinstance(nomes, tuple) else nomes).execute()
             if res.data:
                 return {r["nome"]: r["foto_base64"] for r in res.data if r.get("foto_base64")}
         except Exception:
             pass
     return {}
 
-def carregar_todos_clientes():
-    cl_salvos = _fetch_supabase_clientes().copy()
-    if "clientes_local_data" in st.session_state:
-        for nome, data in st.session_state["clientes_local_data"].items():
-            cl_salvos[nome] = data
-    return cl_salvos
 
 def salvar_na_base_dados(nome, dados_perfil, dados, estrutural, direcionamento, rep1, rep2):
     client = get_supabase_admin()
@@ -875,8 +902,12 @@ def carregar_cargos():
             pass
     return CARGOS_LIST_DEFAULT
 
-@st.cache_data(ttl=60)
 def carregar_equipes():
+    tenant_id = st.session_state.get("tenant_id")
+    return _carregar_equipes_cached(tenant_id)
+
+@st.cache_data(ttl=60)
+def _carregar_equipes_cached(tenant_id):
     client = get_supabase_admin()
     if client:
         try:
