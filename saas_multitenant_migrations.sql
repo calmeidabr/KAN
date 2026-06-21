@@ -8,9 +8,12 @@ CREATE TABLE IF NOT EXISTS public.tenants (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name       TEXT NOT NULL,
     slug       TEXT UNIQUE NOT NULL,
-    tier       TEXT NOT NULL CHECK (tier IN ('basic', 'premium')) DEFAULT 'basic',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Garantir que a coluna 'tier' exista caso a tabela tenha sido criada anteriormente
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS tier TEXT NOT NULL CHECK (tier IN ('basic', 'premium')) DEFAULT 'basic';
+
 
 -- 2. INSERIR TENANT PADRÃO "Mundo KAN Workspace" para os dados legados
 INSERT INTO public.tenants (id, name, slug, tier)
@@ -64,7 +67,6 @@ $$ LANGUAGE plpgsql;
 -- 5. ADICIONAR COLUNA tenant_id NAS TABELAS DE NEGÓCIO COM VALOR DEFAULT AUTOMÁTICO
 -- O valor default public.get_my_tenant_id() garante que novas linhas inseridas pelo
 -- Streamlit recebam automaticamente o ID do tenant correto do usuário logado.
-ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS tier TEXT NOT NULL CHECK (tier IN ('basic', 'premium')) DEFAULT 'basic';
 ALTER TABLE public.equipes ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.vagas ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.processos_seletivos ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
