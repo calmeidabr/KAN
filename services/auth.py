@@ -64,7 +64,7 @@ def handle_login_success(res):
     
     client = get_supabase_client()
     try:
-        user_res = client.table("usuarios").select("tenant_id, direitos, usuario").eq("id", res.user.id).execute()
+        user_res = client.table("usuarios").select("tenant_id, direitos, usuario, empresa").eq("id", res.user.id).execute()
         if user_res.data:
             user_info = user_res.data[0]
             st.session_state["tenant_id"] = user_info["tenant_id"]
@@ -72,11 +72,13 @@ def handle_login_success(res):
             st.session_state["logged_user"] = user_info["usuario"]
             
             # Carrega o plano do tenant correspondente
-            tenant_res = client.table("tenants").select("tier").eq("id", user_info["tenant_id"]).execute()
+            tenant_res = client.table("tenants").select("tier, name").eq("id", user_info["tenant_id"]).execute()
             if tenant_res.data:
                 st.session_state["tenant_tier"] = tenant_res.data[0]["tier"]
+                st.session_state["user_company"] = user_info.get("empresa") or tenant_res.data[0].get("name") or "Mundo Kan"
             else:
                 st.session_state["tenant_tier"] = "basic"
+                st.session_state["user_company"] = user_info.get("empresa") or "Mundo Kan"
         else:
             # Fallback em caso do trigger não ter terminado de popular a tabela
             username = res.user.email.split("@")[0]
@@ -84,12 +86,14 @@ def handle_login_success(res):
             st.session_state["tenant_id"] = "00000000-0000-0000-0000-000000000000" if res.user.email.endswith("@mundokan.com.br") else None
             st.session_state["tenant_tier"] = "premium" if res.user.email.endswith("@mundokan.com.br") else "basic"
             st.session_state["user_rights"] = "admin master" if username == "adminkan" else "Comum"
+            st.session_state["user_company"] = "Mundo Kan" if res.user.email.endswith("@mundokan.com.br") else f"{username.capitalize()} Workspace"
     except Exception:
         username = res.user.email.split("@")[0]
         st.session_state["logged_user"] = username
         st.session_state["tenant_id"] = "00000000-0000-0000-0000-000000000000" if res.user.email.endswith("@mundokan.com.br") else None
         st.session_state["tenant_tier"] = "premium" if res.user.email.endswith("@mundokan.com.br") else "basic"
         st.session_state["user_rights"] = "admin master" if username == "adminkan" else "Comum"
+        st.session_state["user_company"] = "Mundo Kan" if res.user.email.endswith("@mundokan.com.br") else f"{username.capitalize()} Workspace"
         
     st.session_state["write_auth_cookie"] = res.session.refresh_token
     return True, "Sucesso"

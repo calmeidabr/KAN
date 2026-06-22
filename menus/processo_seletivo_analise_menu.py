@@ -2415,7 +2415,8 @@ Instruções cruciais:
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
-                st.stop()
+                st.markdown("</div>", unsafe_allow_html=True)
+                return
 
             import datetime
             from components.card import premium_card_container

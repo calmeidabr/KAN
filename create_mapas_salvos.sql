@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS mapas_salvos (
     perfil_json TEXT,
     usuario TEXT,
     lider BOOLEAN DEFAULT FALSE,
+    empresa_criador TEXT DEFAULT 'Mundo Kan',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

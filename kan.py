@@ -53,7 +53,7 @@ st.set_page_config(
     page_title="KAN Perfil Comportamental", 
     layout="wide", 
     page_icon=favicon_img,
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"
 )
 
 # 2. Estilização CSS e Variáveis de Tema (Dark vs. Light)
@@ -363,6 +363,17 @@ st.markdown("""
             top: 12px !important;
             left: 12px !important;
             z-index: 99999 !important;
+        }
+        [data-testid="collapsedControl"] button::after, 
+        [data-testid="stSidebarCollapseButton"] button::after {
+            content: "" !important;
+            position: absolute !important;
+            top: -15px !important;
+            left: -15px !important;
+            right: -15px !important;
+            bottom: -15px !important;
+            display: block !important;
+            cursor: pointer !important;
         }
         [data-testid="collapsedControl"] button::before,
         [data-testid="stSidebarCollapseButton"] button::before {

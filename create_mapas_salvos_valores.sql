@@ -30,5 +30,22 @@ CREATE TABLE IF NOT EXISTS mapas_salvos_valores (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Habilita RLS por padrão para proteger os dados (Apenas service_role terá acesso)
+-- Habilita RLS por padrão para proteger os dados (Apenas service_role terá acesso se nenhuma política for definida)
 ALTER TABLE mapas_salvos_valores ENABLE ROW LEVEL SECURITY;
+
+-- Permite que usuários autenticados visualizem/manipulem mapas_salvos_valores apenas se tiverem acesso ao talento correspondente em mapas_salvos
+DROP POLICY IF EXISTS "tenant_isolation_mapas_valores" ON mapas_salvos_valores;
+CREATE POLICY "tenant_isolation_mapas_valores" ON mapas_salvos_valores
+    FOR ALL TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.mapas_salvos
+            WHERE public.mapas_salvos.nome = public.mapas_salvos_valores.nome
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.mapas_salvos
+            WHERE public.mapas_salvos.nome = public.mapas_salvos_valores.nome
+        )
+    );

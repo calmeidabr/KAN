@@ -199,6 +199,55 @@ class TalentosMenu(BaseMenu):
                         if cad_foto:
                             foto_b64 = compress_image_to_b64(cad_foto, max_width=300) or ""
 
+                        # Realizar cálculos do mapa numerológico
+                        try:
+                            dia, mes, ano = map(int, cad_data.strip().split('/'))
+                            nascimento_tup = (dia, mes, ano)
+                        except Exception:
+                            st.error("Erro ao processar data de nascimento. Use o formato dd/mm/yyyy (ex: 25/12/1980).")
+                            return
+
+                        import datetime
+                        import json
+                        from services.perfil import realizar_calculos_completos
+                        from models.database import KAN_DB
+
+                        hoje = datetime.date.today()
+                        data_atual_tup = (hoje.day, hoje.month, hoje.year)
+                        
+                        empresa_nome = cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else ""
+                        res_calc = realizar_calculos_completos(
+                            cad_nome.strip(),
+                            nascimento_tup,
+                            data_atual_tup,
+                            cad_profissao.strip() if cad_profissao else "",
+                            empresa_nome
+                        )
+                        
+                        dados, dados_perfil, kan, estrutural, direcionamento, rep1, rep2, rep3, rep4, _, _, _, _ = res_calc
+                        
+                        # Serializar perfil_json
+                        dados_para_salvar = list(dados_perfil)
+                        campos_extra = [("Estrutural", estrutural), ("Direcionamento", direcionamento), 
+                                       ("REPETIÇÃO 1", rep1), ("REPETIÇÃO 2", rep2)]
+                        for label, val in campos_extra:
+                            if not any(item['Campo'] == label for item in dados_para_salvar):
+                                dados_para_salvar.append({"Campo": label, "Valor": str(val), "Descricao": "", "Resultado": str(val)})
+                        for item in dados:
+                            campo_full = item.get('Campo', '')
+                            if ' - ' in campo_full:
+                                partes = campo_full.split(' - ')
+                                campo_simples = partes[0]
+                                valor_simples = partes[1]
+                            else:
+                                campo_simples = campo_full
+                                valor_simples = item.get('Resultado', '')
+                            if not any(it['Campo'] == f"Mapa: {campo_simples}" for it in dados_para_salvar):
+                                if len(str(valor_simples)) > 50: valor_simples = "Ver Mapa"
+                                dados_para_salvar.append({"Campo": f"Mapa: {campo_simples}", "Valor": valor_simples, "Descricao": "", "Resultado": valor_simples})
+
+                        perfil_json_str = json.dumps(dados_para_salvar, ensure_ascii=False)
+
                         payload = {
                             "nome": cad_nome.strip(),
                             "data_nascimento": cad_data.strip(),
@@ -207,11 +256,62 @@ class TalentosMenu(BaseMenu):
                             "empresa": cad_empresa_sel if cad_empresa_sel != "Nenhuma / Não associada" else None,
                             "linkedin_url": cad_link.strip() if cad_link else None,
                             "experiencias": cad_exp.strip() if cad_exp else None,
-                            "foto_base64": foto_b64
+                            "foto_base64": foto_b64,
+                            "perfil_json": perfil_json_str,
+                            "empresa_criador": st.session_state.get("user_company", "Mundo Kan")
                         }
+
                         if cad_foto:
                             if 'fotos' not in st.session_state: st.session_state['fotos'] = {}
                             st.session_state['fotos'][cad_nome.strip()] = cad_foto.getvalue()
+
+                        def ext_val(label):
+                            for d in dados:
+                                if str(d.get("Campo")).startswith(label):
+                                    return str(d.get("Valor"))
+                            return ""
+                            
+                        def ext_perfil(label, just_value=False):
+                            for d in dados_perfil:
+                                if str(d.get("Campo")).lower() == label.lower():
+                                    if just_value:
+                                        return str(d.get("Valor", ""))
+                                    return str(d.get("Resultado", d.get("Valor", "")))
+                            return ""
+
+                        def map_kan_name(k):
+                            res = KAN_DB.get(str(k), {})
+                            return res.get("kan", str(k))
+
+                        row_val = {
+                            "nome": cad_nome.strip(),
+                            "data_nascimento": cad_data.strip(),
+                            "kan": str(map_kan_name(kan)),
+                            "perfil": ext_perfil("perfil", just_value=True),
+                            "categoria": ext_perfil("categoria", just_value=True),
+                            "qualidades": ext_perfil("qualidades", just_value=True),
+                            "diferenciais": ext_perfil("diferenciais", just_value=True),
+                            "motivacao": ext_val("Motivação"),
+                            "impressao": ext_val("Impressão"),
+                            "expressao": ext_val("Expressão"),
+                            "dia_natalicio": ext_val("Dia Natalício"),
+                            "numero_psiquico": ext_val("Número Psíquico"),
+                            "destino": ext_val("Destino"),
+                            "missao": ext_val("Missão"),
+                            "direcionamento": str(direcionamento),
+                            "estrutural": str(estrutural),
+                            "repeticao_1": str(rep1),
+                            "repeticao_2": str(rep2),
+                            "repeticao_mapa": ext_val("Repetição Mapa"),
+                            "repeticao_mapa_2": ext_val("Repetição 2 Mapa"),
+                            "vertice_triangulo_1": "",
+                            "vertice_triangulo_2": "",
+                            "vertice_triangulo_3": ext_val("Triângulo Harmônico"),
+                            "dividas_carmicas": ext_val("Dívidas Cármicas"),
+                            "licoes_carmicas": ext_val("Lições Cármicas"),
+                            "tendencias_ocultas": ext_val("Tendências Ocultas"),
+                            "resposta_subconsciente": ext_val("Resposta Subconsciente")
+                        }
 
                         if supabase_client:
                             try:
@@ -220,6 +320,17 @@ class TalentosMenu(BaseMenu):
                                     supabase_client.table("mapas_salvos").update(payload).eq("nome", cad_nome.strip()).execute()
                                 else:
                                     supabase_client.table("mapas_salvos").insert(payload).execute()
+                                
+                                # Salvar na tabela de valores analíticos
+                                try:
+                                    res_val_exist = supabase_client.table("mapas_salvos_valores").select("id").eq("nome", cad_nome.strip()).execute()
+                                    if res_val_exist.data:
+                                        supabase_client.table("mapas_salvos_valores").update(row_val).eq("nome", cad_nome.strip()).execute()
+                                    else:
+                                        supabase_client.table("mapas_salvos_valores").insert(row_val).execute()
+                                except Exception as val_ex:
+                                    st.error(f"Erro ao salvar valores analíticos no banco de dados: {val_ex}")
+
                                 st.success("cadastro salvo com sucesso.")
                                 st.session_state['ocr_nome'] = ''
                                 st.session_state['ocr_data_nascimento'] = ''
@@ -243,18 +354,20 @@ class TalentosMenu(BaseMenu):
                                 'experiencias': cad_exp.strip() if cad_exp else '',
                                 'foto_base64': foto_b64,
                                 'ai_diagnosis': '',
-                                'kan': None,
-                                'perfil': '',
-                                'categoria': '',
-                                'qualidades': '',
-                                'fortaleza': '',
-                                'desafio': '',
-                                'estrutural': '',
-                                'direcionamento': '',
-                                'repeticao_1': '',
-                                'repeticao_2': '',
+                                'kan': kan,
+                                'perfil': ext_perfil("perfil", just_value=True),
+                                'categoria': ext_perfil("categoria", just_value=True),
+                                'qualidades': ext_perfil("qualidades", just_value=True),
+                                'fortaleza': ext_val("Fortaleza") or "",
+                                'desafio': ext_val("Desafio") or "",
+                                'estrutural': str(estrutural),
+                                'direcionamento': str(direcionamento),
+                                'repeticao_1': str(rep1),
+                                'repeticao_2': str(rep2),
                                 'mapa_detalhado': {},
-                                'has_json': False
+                                'perfil_json': perfil_json_str,
+                                'has_json': True,
+                                'empresa_criador': st.session_state.get("user_company", "Mundo Kan")
                             }
                             st.success("cadastro salvo com sucesso (armazenamento local ativo).")
                             st.session_state['ocr_nome'] = ''

@@ -72,6 +72,7 @@ ALTER TABLE public.equipes ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES pu
 ALTER TABLE public.vagas ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.processos_seletivos ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.mapas_salvos ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
+ALTER TABLE public.mapas_salvos ADD COLUMN IF NOT EXISTS empresa_criador TEXT DEFAULT 'Mundo Kan';
 ALTER TABLE public.empresas ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 ALTER TABLE public.hierarquia_departamentos ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES public.tenants(id) ON DELETE CASCADE DEFAULT public.get_my_tenant_id();
 
@@ -156,6 +157,22 @@ CREATE POLICY "tenant_isolation_mapas" ON public.mapas_salvos
     FOR ALL TO authenticated
     USING (public.is_adminkan() OR tenant_id = public.get_my_tenant_id())
     WITH CHECK (public.is_adminkan() OR tenant_id = public.get_my_tenant_id());
+
+DROP POLICY IF EXISTS "tenant_isolation_mapas_valores" ON public.mapas_salvos_valores;
+CREATE POLICY "tenant_isolation_mapas_valores" ON public.mapas_salvos_valores
+    FOR ALL TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.mapas_salvos
+            WHERE public.mapas_salvos.nome = public.mapas_salvos_valores.nome
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.mapas_salvos
+            WHERE public.mapas_salvos.nome = public.mapas_salvos_valores.nome
+        )
+    );
 
 DROP POLICY IF EXISTS "tenant_isolation_empresas" ON public.empresas;
 CREATE POLICY "tenant_isolation_empresas" ON public.empresas
