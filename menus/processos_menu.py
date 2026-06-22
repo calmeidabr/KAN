@@ -17,13 +17,14 @@ class ProcessosMenu(BaseMenu):
         supabase_client = get_supabase_admin()
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
-        if not nomes_empresas:
-            st.info("Nenhuma empresa cadastrada no sistema. Por favor, cadastre uma empresa no menu **Hierarquia / Deptos** antes de gerenciar vagas.")
-            return
 
-        col_e1, col_e2 = st.columns([2, 2])
-        with col_e1:
-            empresa_selecionada = st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="proc_emp_sel")
+        empresa_selecionada = None
+        if nomes_empresas:
+            col_e1, col_e2 = st.columns([2, 2])
+            with col_e1:
+                empresa_selecionada = st.selectbox("Selecione a Empresa:", options=nomes_empresas, key="proc_emp_sel")
+        else:
+            st.info("Nenhuma empresa cadastrada no sistema. Cadastre sua primeira vaga abaixo e a respectiva empresa será criada automaticamente.")
 
         departamentos = ["Geral / Sem Departamento"]
         if supabase_client and empresa_selecionada:
@@ -42,8 +43,16 @@ class ProcessosMenu(BaseMenu):
         opcoes_categorias = sorted(list(set(LISTA_CATEGORIA_DB))) if LISTA_CATEGORIA_DB else ["Justo", "Inovador", "Diplomático", "Realizador", "Versátil", "Visionário", "Magnético", "Analítico", "Organizado", "Harmônico", "Comunicativo", "Intuitivo", "Conhecimento"]
         opcoes_qualidades = sorted(list(set(QUALIDADES_DB.keys()))) if QUALIDADES_DB else ["Relacionamento", "Execução", "Análise", "Coletividade", "Justiça", "Praticidade e disciplina", "Comunicação", "Versatilidade", "Intuição", "Organização", "Serviço"]
 
-        with st.expander("Cadastrar Nova Vaga", expanded=False):
+        with st.expander("Cadastrar Nova Vaga", expanded=(not nomes_empresas)):
             with st.container(border=True):
+                # Se não há empresas cadastradas, pede o nome da empresa a ser criada
+                empresa_selecionada_input = ""
+                if not nomes_empresas:
+                    st.markdown("##### Dados da Empresa")
+                    empresa_selecionada_input = st.text_input("Nome da Empresa*", placeholder="Ex: Minha Empresa", key="proc_vaga_empresa_new")
+                    st.write("---")
+
+                st.markdown("##### Dados da Vaga")
                 col_v1, col_v2, col_v3 = st.columns([2, 1, 2])
                 with col_v1:
                     vaga_nome = st.text_input("Nome da Vaga*:", key="proc_vaga_n")
@@ -70,14 +79,19 @@ class ProcessosMenu(BaseMenu):
 
                 st.write("---")
                 if st.button("Salvar", type="primary", key="btn_save_vaga"):
-                    if not vaga_nome or not vaga_nome.strip():
+                    # Define a empresa de destino
+                    target_empresa = empresa_selecionada_input.strip() if not nomes_empresas else (empresa_selecionada or "")
+                    
+                    if not target_empresa:
+                        st.error("O Nome da Empresa é obrigatório.")
+                    elif not vaga_nome or not vaga_nome.strip():
                         st.error("O Nome da Vaga é obrigatório.")
                     else:
                         payload = {
                             "nome_vaga": vaga_nome.strip(),
                             "senioridade": vaga_senioridade,
                             "link_vaga": vaga_link.strip() if vaga_link else None,
-                            "empresa": empresa_selecionada,
+                            "empresa": target_empresa,
                             "departamento": vaga_depto,
                             "kan_ideal": str(vaga_kan) if vaga_kan != "Nenhum / Não Exigido" else "Nenhum",
                             "perfis_ideais": json.dumps(vaga_perfis, ensure_ascii=False),
@@ -88,7 +102,15 @@ class ProcessosMenu(BaseMenu):
                         }
                         if supabase_client:
                             try:
+                                # Se a empresa é nova, cria ela primeiro
+                                if not nomes_empresas:
+                                    supabase_client.table("empresas").insert({
+                                        "nome_empresa": target_empresa,
+                                        "status": "Ativa"
+                                    }).execute()
+
                                 supabase_client.table("vagas").insert(payload).execute()
+                                st.cache_data.clear()
                                 st.success("vaga cadastrada com sucesso.")
                                 st.rerun()
                             except Exception as ex:
