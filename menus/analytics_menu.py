@@ -44,6 +44,11 @@ class AnalyticsMenu(BaseMenu):
             st.markdown("</div>", unsafe_allow_html=True)
             return
 
+        if not rows_ms:
+            st.info("Nenhum talento cadastrado no sistema. Cadastre talentos no menu **Talentos** para visualizar as análises comportamentais consolidadas.")
+            st.markdown("</div>", unsafe_allow_html=True)
+            return
+
         if not rows_val:
             st.warning("A tabela 'mapas_salvos_valores' está vazia. Vá ao Painel de Controle > Auditoria e clique em 'CALCULAR MAPAS SALVOS' para popular a base analítica.")
             st.markdown("</div>", unsafe_allow_html=True)

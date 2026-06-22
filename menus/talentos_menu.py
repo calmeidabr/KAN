@@ -63,7 +63,8 @@ class TalentosMenu(BaseMenu):
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
-            nomes_empresas = ["Mundo Kan", "Empresa Cliente A"]
+            st.info("Nenhuma empresa cadastrada no sistema. Por favor, cadastre uma empresa no menu **Hierarquia / Deptos** antes de cadastrar talentos.")
+            return
 
         clientes = carregar_todos_clientes()
 

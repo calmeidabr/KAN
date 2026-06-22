@@ -18,7 +18,8 @@ class ProcessosMenu(BaseMenu):
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
-            nomes_empresas = ["Mundo Kan"]
+            st.info("Nenhuma empresa cadastrada no sistema. Por favor, cadastre uma empresa no menu **Hierarquia / Deptos** antes de gerenciar vagas.")
+            return
 
         col_e1, col_e2 = st.columns([2, 2])
         with col_e1:

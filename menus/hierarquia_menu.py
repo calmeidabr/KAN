@@ -286,7 +286,11 @@ class HierarquiaMenu(BaseMenu):
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
-            nomes_empresas = ["Mundo Kan"]
+            with st.expander("Cadastro e Edição de Empresas", expanded=True):
+                self.render_empresas_section(supabase_client, lista_empresas_salvas)
+            st.write("---")
+            st.info("Nenhuma empresa cadastrada. Por favor, cadastre uma empresa no painel acima para iniciar seu organograma.")
+            return
 
         col_sel1, col_sel2 = st.columns([3, 2])
         with col_sel1:

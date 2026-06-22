@@ -277,9 +277,12 @@ class EquipesMenu(BaseMenu):
             # Lista as Equipes Cadastradas
             col_topo1, col_topo2 = st.columns([1, 5])
             with col_topo1:
-                if st.button("Adicionar", type="primary", key="btn_eq_add_start"):
-                    st.session_state["add_equipe_mode"] = True
-                    st.rerun()
+                if not nomes_empresas:
+                    st.button("Adicionar", type="primary", key="btn_eq_add_start", disabled=True, help="Cadastre uma empresa no menu Hierarquia / Deptos primeiro.")
+                else:
+                    if st.button("Adicionar", type="primary", key="btn_eq_add_start"):
+                        st.session_state["add_equipe_mode"] = True
+                        st.rerun()
 
             st.write("---")
 

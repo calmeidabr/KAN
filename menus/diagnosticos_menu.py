@@ -29,7 +29,7 @@ class DiagnosticosMenu(BaseMenu):
         col_top2 = col_top2_area.empty()
 
         if cliente_selecionado == "Nenhum perfil cadastrado":
-            st.info("Nenhum perfil cadastrado ainda. Acesse o menu 'Cadastro' na barra lateral para adicionar o primeiro perfil.")
+            st.info("Nenhum perfil cadastrado ainda. Acesse o menu 'Talentos' na barra lateral para adicionar o primeiro perfil.")
             return
 
         nome = cliente_selecionado

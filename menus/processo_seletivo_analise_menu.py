@@ -18,6 +18,13 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Processo Seletivo</h2>", unsafe_allow_html=True)
         st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Análise comportamental inteligente e matching de talentos.</p>", unsafe_allow_html=True)
 
+        # Verificar se há empresas cadastradas
+        lista_empresas_salvas = carregar_empresas()
+        nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
+        if not nomes_empresas:
+            st.info("Nenhuma empresa cadastrada no sistema. Por favor, cadastre uma empresa no menu **Hierarquia / Deptos** antes de gerenciar os processos seletivos.")
+            return
+
         # Inicializar dicionário de candidatos e customizações por vaga no session_state
         if "candidatos_vagas" not in st.session_state:
             st.session_state["candidatos_vagas"] = {}
@@ -275,7 +282,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
         lista_empresas_salvas = carregar_empresas()
         nomes_empresas = [e["nome_empresa"] for e in lista_empresas_salvas if e.get("nome_empresa")]
         if not nomes_empresas:
-            nomes_empresas = ["Mundo Kan"]
+            st.info("Nenhuma empresa cadastrada no sistema. Por favor, cadastre uma empresa no menu **Hierarquia / Deptos** antes de gerenciar os processos seletivos.")
+            return
 
         # Renderizar a seleção da empresa no topo (antes do box do processo selecionado)
         col_filtro1, _ = st.columns([1, 1])

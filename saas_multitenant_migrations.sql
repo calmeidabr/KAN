@@ -101,6 +101,14 @@ ALTER TABLE public.hierarquia_departamentos ENABLE ROW LEVEL SECURITY;
 
 -- 9. CONFIGURAR AS POLÍTICAS DE RLS
 
+-- Remover políticas legadas ou abertas que possam anular o isolamento multitenant (PostgreSQL avalia políticas usando OR)
+DROP POLICY IF EXISTS "Permitir acesso total a vagas" ON public.vagas;
+DROP POLICY IF EXISTS "Acesso total equipes" ON public.equipes;
+DROP POLICY IF EXISTS "Permitir acesso total a processos_seletivos" ON public.processos_seletivos;
+DROP POLICY IF EXISTS "Permitir leitura publica de dicionarios" ON public.empresas;
+DROP POLICY IF EXISTS "Permitir leitura publica de dicionarios" ON public.hierarquia_departamentos;
+
+
 -- Políticas para tenants
 DROP POLICY IF EXISTS "Acesso tenants" ON public.tenants;
 CREATE POLICY "Acesso tenants" ON public.tenants
