@@ -233,5 +233,30 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+
+-- 11. SINCRONIZAR USUÁRIOS EXISTENTES DO AUTH.USERS
+-- Garante que se houver usuários criados anteriormente no Supabase Auth, eles sejam importados para public.usuarios
+INSERT INTO public.usuarios (id, usuario, nome_completo, email, tenant_id, is_main_user, direitos, status)
+SELECT 
+    u.id, 
+    split_part(u.email, '@', 1), 
+    coalesce(u.raw_user_meta_data->>'full_name', split_part(u.email, '@', 1)), 
+    u.email, 
+    CASE 
+        WHEN u.email = 'adminkan@mundokan.com.br' THEN '00000000-0000-0000-0000-000000000000'::uuid
+        WHEN u.email = 'cristiano.correabr7@gmail.com' THEN 'a99cfc9a-aecd-40fe-8aea-762d2c55f22a'::uuid
+        ELSE '00000000-0000-0000-0000-000000000000'::uuid
+    END,
+    TRUE,
+    CASE 
+        WHEN u.email = 'adminkan@mundokan.com.br' THEN 'admin master'
+        ELSE 'Editor'
+    END,
+    'Ativo'
+FROM auth.users u
+ON CONFLICT (id) DO NOTHING;
+
+
 -- Notifica o PostgREST para recarregar o schema
 NOTIFY pgrst, 'reload schema';
+
