@@ -30,6 +30,16 @@ class TenantCrudMenu(BaseMenu):
                 tenants_resp = admin_client.table("tenants").select("*").order("created_at", desc=True).execute()
                 tenants = tenants_resp.data if tenants_resp.data else []
 
+                # Carrega todos os usuários para associar e exibir nos boxes
+                users_resp = admin_client.table("usuarios").select("id, usuario, email, tenant_id").execute()
+                users_by_tenant = {}
+                for u in (users_resp.data or []):
+                    t_id = u.get("tenant_id")
+                    if t_id:
+                        if t_id not in users_by_tenant:
+                            users_by_tenant[t_id] = []
+                        users_by_tenant[t_id].append(u)
+
                 if not tenants:
                     st.info("Nenhum cliente cadastrado ainda.")
                 else:
@@ -39,11 +49,39 @@ class TenantCrudMenu(BaseMenu):
                         badge_color = "#22C55E" if t["tier"] == "premium" else "#6B7280"
                         
                         with st.container(border=True):
-                            col_t1, col_t2 = st.columns([4, 1.2])
+                            col_t1, col_t2 = st.columns([3.8, 1.4])
                             with col_t1:
                                 st.markdown(f"#### {t['name']}")
                                 st.markdown(f"**Slug:** `{t['slug']}` | **ID:** `{t['id']}`")
                                 st.caption(f"Criado em: {t['created_at']}")
+                                
+                                # Mostra usuários deste tenant
+                                tenant_users = users_by_tenant.get(t["id"], [])
+                                if tenant_users:
+                                    st.write("")
+                                    st.markdown("**Usuários criados:**")
+                                    for u in tenant_users:
+                                        # Exibe informações do usuário e formulário de reset de senha
+                                        col_u_info, col_u_action = st.columns([2.5, 1.5])
+                                        with col_u_info:
+                                            st.markdown(f"👤 **{u['usuario']}** (`{u['email']}`)")
+                                        with col_u_action:
+                                            with st.popover("🔑 Alterar Senha", use_container_width=True):
+                                                new_pwd = st.text_input("Nova Senha", type="password", key=f"pwd_{u['id']}", placeholder="Mínimo 6 caracteres")
+                                                if st.button("Confirmar", key=f"btn_pwd_{u['id']}", use_container_width=True, type="primary"):
+                                                    if len(new_pwd.strip()) < 6:
+                                                        st.error("A senha deve ter no mínimo 6 caracteres.")
+                                                    else:
+                                                        try:
+                                                            admin_client.auth.admin.update_user_by_id(u["id"], {"password": new_pwd.strip()})
+                                                            st.success("Senha alterada!")
+                                                            time.sleep(1)
+                                                            st.rerun()
+                                                        except Exception as ex:
+                                                            st.error(f"Erro: {ex}")
+                                else:
+                                    st.caption("Nenhum usuário cadastrado neste cliente.")
+                                    
                             with col_t2:
                                 st.markdown(f"<span style='background-color: {badge_color}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold;'>Plano {t['tier'].upper()}</span>", unsafe_allow_html=True)
                                 st.write("")
