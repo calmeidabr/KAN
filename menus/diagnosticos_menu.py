@@ -12,7 +12,7 @@ from utils.helpers import remover_acentos
 class DiagnosticosMenu(BaseMenu):
     def render(self, mode="diagnostico"):
         st.markdown("<h2 style='text-align: left; margin-bottom: 5px;'>Diagnóstico Comportamental</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Diagnóstico comportamental instantâneo. Sem testes. Sem manipulação.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.1em; color: rgba(255,255,255,0.7); margin-bottom: 20px;'>Diagnóstico comportamental instantâneo. Sem manipulação.</p>", unsafe_allow_html=True)
         st.session_state['show_mapa'] = False
         st.session_state['show_perfil'] = True
 

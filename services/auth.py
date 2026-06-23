@@ -197,7 +197,7 @@ def check_password():
             col1, col2, col3 = st.columns([1, 1, 1])
             with col2:
                 st.image(header_img, use_container_width=True)
-        st.markdown("<h4 style='text-align: center;'>Diagnóstico comportamental instantâneo. Sem testes. Sem manipulação.</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='text-align: center;'>Diagnóstico comportamental instantâneo. Sem manipulação.</h4>", unsafe_allow_html=True)
         st.write("")
 
     if "password_correct" not in st.session_state or not st.session_state["password_correct"]:
