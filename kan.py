@@ -231,7 +231,8 @@ st.markdown("""
     }
     
     /* Botões Primários do Streamlit (Área Principal) */
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] {
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"],
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] * {
         background: var(--accent) !important;
         color: #000000 !important;
         font-family: 'Inter', sans-serif !important;
@@ -242,22 +243,17 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(240, 138, 0, 0.2) !important;
         transition: all 0.2s ease;
     }
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] p,
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] span {
-        color: #000000 !important;
-    }
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover {
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover,
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover * {
         background: var(--accent-hover) !important;
         color: #000000 !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3) !important;
     }
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover p,
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover span {
-        color: #000000 !important;
-    }
-    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:active {
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:active,
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:active * {
         background: var(--accent-active) !important;
+        color: #000000 !important;
     }
     
     /* Botões Secundários/Outros */
