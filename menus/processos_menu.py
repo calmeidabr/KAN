@@ -87,6 +87,14 @@ class ProcessosMenu(BaseMenu):
                     elif not vaga_nome or not vaga_nome.strip():
                         st.error("O Nome da Vaga é obrigatório.")
                     else:
+                        # Validação de limite de processos seletivos por ano civil
+                        tenant_id = st.session_state.get("tenant_id")
+                        from services.plan_limits import check_limit
+                        allowed, current, max_val, msg = check_limit(tenant_id, "processes")
+                        if not allowed:
+                            st.error(f"⚠️ Limite Atingido: {msg}")
+                            return
+
                         payload = {
                             "nome_vaga": vaga_nome.strip(),
                             "senioridade": vaga_senioridade,

@@ -79,7 +79,10 @@ class App:
             """, unsafe_allow_html=True)
             
             cadastros_itens = ["Talentos", "Vagas", "Empresa e Organograma"]
-            if st.session_state.get("tenant_tier") == "premium" or st.session_state.get("user_rights") == "admin master":
+            tier = st.session_state.get("tenant_tier")
+            from services.plan_limits import get_plan_by_id
+            plan = get_plan_by_id(tier)
+            if plan.get("max_equipes", 0) > 0 or st.session_state.get("user_rights") == "admin master":
                 cadastros_itens.append("Equipes")
             if st.session_state.get("user_rights") == "admin master":
                 cadastros_itens.append("SaaS Multi-Tenant")

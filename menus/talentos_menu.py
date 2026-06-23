@@ -315,8 +315,19 @@ class TalentosMenu(BaseMenu):
 
                         if supabase_client:
                             try:
+                                # Verifica se o talento já existe (se for atualização, não aplica o limite)
                                 res_exist = supabase_client.table("mapas_salvos").select("id").eq("nome", cad_nome.strip()).execute()
-                                if res_exist.data:
+                                is_update = bool(res_exist.data)
+
+                                if not is_update:
+                                    tenant_id = st.session_state.get("tenant_id")
+                                    from services.plan_limits import check_limit
+                                    allowed, current, max_val, msg = check_limit(tenant_id, "talents")
+                                    if not allowed:
+                                        st.error(f"⚠️ Limite Atingido: {msg}")
+                                        return
+
+                                if is_update:
                                     supabase_client.table("mapas_salvos").update(payload).eq("nome", cad_nome.strip()).execute()
                                 else:
                                     supabase_client.table("mapas_salvos").insert(payload).execute()

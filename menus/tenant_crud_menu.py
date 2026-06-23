@@ -46,7 +46,16 @@ class TenantCrudMenu(BaseMenu):
                     for t in tenants:
                         # Ignora o tenant padrão na contagem de edição simples, ou exibe-o de forma distinta
                         is_default = t["id"] == "00000000-0000-0000-0000-000000000000"
-                        badge_color = "#22C55E" if t["tier"] == "premium" else "#6B7280"
+                        
+                        badge_colors = {
+                            "free": "#6B7280",
+                            "start": "#3B82F6",
+                            "intermediario": "#8B5CF6",
+                            "business": "#EC4899",
+                            "pro": "#F59E0B",
+                            "alta_performance": "#10B981"
+                        }
+                        badge_color = badge_colors.get(t["tier"], "#6B7280")
                         
                         with st.container(border=True):
                             col_t1, col_t2 = st.columns([3.8, 1.4])
@@ -87,11 +96,26 @@ class TenantCrudMenu(BaseMenu):
                                 st.write("")
                                 # Permite alterar o plano do tenant
                                 if not is_default:
-                                    new_tier = "basic" if t["tier"] == "premium" else "premium"
-                                    btn_label = "Mudar para Básico" if t["tier"] == "premium" else "Mudar para Premium"
-                                    if st.button(btn_label, key=f"btn_tier_{t['id']}", use_container_width=True):
-                                        admin_client.table("tenants").update({"tier": new_tier}).eq("id", t["id"]).execute()
-                                        st.toast(f"Plano alterado com sucesso para {new_tier.upper()}!", icon="✅")
+                                    from services.plan_limits import get_all_plans_cached
+                                    plans = get_all_plans_cached()
+                                    plan_options = [p["id"] for p in plans]
+                                    plan_names = {p["id"]: p["nome"] for p in plans}
+                                    
+                                    try:
+                                        def_idx = plan_options.index(t["tier"])
+                                    except ValueError:
+                                        def_idx = 0
+                                        
+                                    selected_tier = st.selectbox(
+                                        "Alterar Plano",
+                                        options=plan_options,
+                                        index=def_idx,
+                                        key=f"sel_tier_{t['id']}",
+                                        format_func=lambda x: plan_names.get(x, x.upper())
+                                    )
+                                    if selected_tier != t["tier"]:
+                                        admin_client.table("tenants").update({"tier": selected_tier}).eq("id", t["id"]).execute()
+                                        st.toast(f"Plano alterado com sucesso para {plan_names.get(selected_tier, selected_tier.upper())}!", icon="✅")
                                         time.sleep(0.5)
                                         st.rerun()
             except Exception as e:
@@ -107,7 +131,23 @@ class TenantCrudMenu(BaseMenu):
                 with col_c1:
                     st.markdown("##### Dados do Cliente (Organização)")
                     tenant_name = st.text_input("Nome da Empresa*", placeholder="Ex: Acme Corporation")
-                    tenant_tier = st.selectbox("Plano de Assinatura*", ["basic", "premium"], format_func=lambda x: "Básico (Sem Equipes/Harmonia)" if x == "basic" else "Premium (Acesso Total)")
+                    
+                    from services.plan_limits import get_all_plans_cached
+                    plans = get_all_plans_cached()
+                    plan_options = [p["id"] for p in plans]
+                    
+                    def get_plan_label(plan_id):
+                        p = next((x for x in plans if x["id"] == plan_id), None)
+                        if not p:
+                            return plan_id.upper()
+                        custo = f"R$ {p['custo_mensal']:.2f}".replace('.', ',') if p['custo_mensal'] > 0 else "Grátis"
+                        return f"{p['nome']} ({custo} - Usuários: {p['max_usuarios']}, Talentos: {p['max_talentos']}, Vagas/Ano: {p['max_processos_ano']}, Equipes: {p['max_equipes']})"
+                    
+                    tenant_tier = st.selectbox(
+                        "Plano de Assinatura*",
+                        options=plan_options,
+                        format_func=get_plan_label
+                    )
                 
                 with col_c2:
                     st.markdown("##### Usuário Administrador Principal")

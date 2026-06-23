@@ -416,6 +416,15 @@ class AdminMenu(BaseMenu):
                                 
                                 if supabase_client:
                                     try:
+                                        # Validação de limite de usuários para o tenant da empresa selecionada
+                                        from services.plan_limits import get_tenant_id_by_company, check_limit
+                                        target_tenant_id = get_tenant_id_by_company(add_emp)
+                                        if target_tenant_id:
+                                            allowed, current, max_val, msg = check_limit(target_tenant_id, "users")
+                                            if not allowed:
+                                                st.error(f"⚠️ Limite Atingido: {msg}")
+                                                return
+
                                         supabase_client.table("usuarios").insert(insert_payload).execute()
                                         st.success("usuário salvo com sucesso.")
                                         st.session_state["add_user_mode"] = False

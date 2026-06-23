@@ -227,6 +227,14 @@ class EquipesMenu(BaseMenu):
                         elif not membros_finais:
                             st.error("Selecione pelo menos um membro para a equipe.")
                         else:
+                            # Validação de limite de equipes
+                            tenant_id = st.session_state.get("tenant_id")
+                            from services.plan_limits import check_limit
+                            allowed, current, max_val, msg = check_limit(tenant_id, "teams")
+                            if not allowed:
+                                st.error(f"⚠️ Limite Atingido: {msg}")
+                                return
+
                             foto_b64 = ""
                             if foto_upload:
                                 foto_b64 = compress_image_to_b64(foto_upload, max_width=400)

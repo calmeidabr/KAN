@@ -77,21 +77,21 @@ def handle_login_success(res):
                 st.session_state["tenant_tier"] = tenant_res.data[0]["tier"]
                 st.session_state["user_company"] = user_info.get("empresa") or tenant_res.data[0].get("name") or "Mundo Kan"
             else:
-                st.session_state["tenant_tier"] = "basic"
+                st.session_state["tenant_tier"] = "free"
                 st.session_state["user_company"] = user_info.get("empresa") or "Mundo Kan"
         else:
             # Fallback em caso do trigger não ter terminado de popular a tabela
             username = res.user.email.split("@")[0]
             st.session_state["logged_user"] = username
             st.session_state["tenant_id"] = "00000000-0000-0000-0000-000000000000" if res.user.email.endswith("@mundokan.com.br") else None
-            st.session_state["tenant_tier"] = "premium" if res.user.email.endswith("@mundokan.com.br") else "basic"
+            st.session_state["tenant_tier"] = "alta_performance" if res.user.email.endswith("@mundokan.com.br") else "free"
             st.session_state["user_rights"] = "admin master" if username == "adminkan" else "Comum"
             st.session_state["user_company"] = "Mundo Kan" if res.user.email.endswith("@mundokan.com.br") else f"{username.capitalize()} Workspace"
     except Exception:
         username = res.user.email.split("@")[0]
         st.session_state["logged_user"] = username
         st.session_state["tenant_id"] = "00000000-0000-0000-0000-000000000000" if res.user.email.endswith("@mundokan.com.br") else None
-        st.session_state["tenant_tier"] = "premium" if res.user.email.endswith("@mundokan.com.br") else "basic"
+        st.session_state["tenant_tier"] = "alta_performance" if res.user.email.endswith("@mundokan.com.br") else "free"
         st.session_state["user_rights"] = "admin master" if username == "adminkan" else "Comum"
         st.session_state["user_company"] = "Mundo Kan" if res.user.email.endswith("@mundokan.com.br") else f"{username.capitalize()} Workspace"
         
