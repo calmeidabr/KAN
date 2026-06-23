@@ -93,7 +93,7 @@ if current_theme == "light":
         --selected-subtle: rgba(217, 119, 6, 0.08);
         --header-bg: #FFFFFF;
         --header-border: rgba(0, 0, 0, 0.06);
-        --button-primary-text: #FFFFFF;
+        --button-primary-text: #000000;
         --button-secondary-bg: #FFFFFF;
         --button-secondary-text: #374151;
         --button-secondary-border: rgba(0, 0, 0, 0.08);
@@ -154,7 +154,7 @@ else:
         --selected-subtle: rgba(240, 138, 0, 0.08);
         --header-bg: transparent;
         --header-border: transparent;
-        --button-primary-text: #121318;
+        --button-primary-text: #000000;
         --button-secondary-bg: #1B1D24;
         --button-secondary-text: #F5F7FA;
         --button-secondary-border: rgba(255, 255, 255, 0.08);
@@ -230,25 +230,33 @@ st.markdown("""
         color: var(--text-muted) !important;
     }
     
-    /* Botões Primários do Streamlit */
-    .stButton > button[data-testid="baseButton-primary"] {
+    /* Botões Primários do Streamlit (Área Principal) */
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] {
         background: var(--accent) !important;
-        color: var(--button-primary-text) !important;
+        color: #000000 !important;
         font-family: 'Inter', sans-serif !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         border: none !important;
         border-radius: 8px !important;
         padding: 10px 24px !important;
         box-shadow: 0 4px 12px rgba(240, 138, 0, 0.2) !important;
         transition: all 0.2s ease;
     }
-    .stButton > button[data-testid="baseButton-primary"]:hover {
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] p,
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"] span {
+        color: #000000 !important;
+    }
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover {
         background: var(--accent-hover) !important;
-        color: var(--button-primary-text) !important;
+        color: #000000 !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 6px 16px rgba(240, 138, 0, 0.3) !important;
     }
-    .stButton > button[data-testid="baseButton-primary"]:active {
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover p,
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:hover span {
+        color: #000000 !important;
+    }
+    .stApp [data-testid="stMain"] button[data-testid="baseButton-primary"]:active {
         background: var(--accent-active) !important;
     }
     
