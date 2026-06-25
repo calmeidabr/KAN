@@ -765,7 +765,8 @@ class HierarquiaMenu(BaseMenu):
                             "nome": d["nome"],
                             "parent_id": pid,
                             "ordem": idx_ord,
-                            "updated_at": datetime.datetime.now().isoformat()
+                            "updated_at": datetime.datetime.now().isoformat(),
+                            "tenant_id": st.session_state.get("tenant_id")
                         })
                     if supabase_client:
                         try:
@@ -899,7 +900,8 @@ class HierarquiaMenu(BaseMenu):
                             "logo": novo_logo,
                             "status": "Ativa",
                             "created_at": datetime.datetime.now().isoformat(),
-                            "updated_at": datetime.datetime.now().isoformat()
+                            "updated_at": datetime.datetime.now().isoformat(),
+                            "tenant_id": st.session_state.get("tenant_id")
                         }
                         if supabase_client:
                             try:
@@ -985,7 +987,8 @@ class HierarquiaMenu(BaseMenu):
                                 "empresa": empresa_selecionada,
                                 "membros": [{"nome": m, "lider": False} for m in membros_finais],
                                 "foto_base64": foto_b64,
-                                "updated_at": datetime.datetime.now().isoformat()
+                                "updated_at": datetime.datetime.now().isoformat(),
+                                "tenant_id": st.session_state.get("tenant_id")
                             }
 
                             sucesso = False

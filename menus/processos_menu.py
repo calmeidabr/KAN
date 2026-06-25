@@ -106,7 +106,8 @@ class ProcessosMenu(BaseMenu):
                             "categorias_ideais": json.dumps(vaga_cats, ensure_ascii=False),
                             "qualidades_ideais": json.dumps(vaga_quals, ensure_ascii=False),
                             "descricao_vaga": vaga_desc.strip() if vaga_desc else None,
-                            "created_at": datetime.datetime.now().isoformat()
+                            "created_at": datetime.datetime.now().isoformat(),
+                            "tenant_id": tenant_id
                         }
                         if supabase_client:
                             try:
@@ -114,7 +115,8 @@ class ProcessosMenu(BaseMenu):
                                 if not nomes_empresas:
                                     supabase_client.table("empresas").insert({
                                         "nome_empresa": target_empresa,
-                                        "status": "Ativa"
+                                        "status": "Ativa",
+                                        "tenant_id": tenant_id
                                     }).execute()
 
                                 supabase_client.table("vagas").insert(payload).execute()

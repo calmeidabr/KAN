@@ -213,7 +213,8 @@ class ProcessoSeletivoAnaliseMenu(BaseMenu):
                             supabase_client.table("processos_seletivos").insert({
                                 "vaga_id": vaga_id_int,
                                 "empresa": emp_sel,
-                                "candidatos": new_cands
+                                "candidatos": new_cands,
+                                "tenant_id": st.session_state.get("tenant_id")
                             }).execute()
                     except Exception as e:
                         import traceback
@@ -1672,7 +1673,8 @@ Instruções cruciais:
                                     "perfis_ideais": novos_perfis,
                                     "categorias_ideais": novas_categorias,
                                     "qualidades_ideais": novas_qualidades,
-                                    "kan_ideal": novos_kans
+                                    "kan_ideal": novos_kans,
+                                    "tenant_id": st.session_state.get("tenant_id")
                                 }).execute()
                             st.success("Requisitos personalizados salvos com sucesso!")
                             st.rerun()
@@ -1895,7 +1897,8 @@ Instruções cruciais:
                                 supabase_client.table("processos_seletivos").insert({
                                     "vaga_id": vaga["id"],
                                     "empresa": empresa_selecionada,
-                                    "candidatos": candidatos_selecionados
+                                    "candidatos": candidatos_selecionados,
+                                    "tenant_id": st.session_state.get("tenant_id")
                                 }).execute()
                         except Exception as e:
                             # Caso a tabela ainda não exista no banco de dados do usuário, mostramos um aviso útil
@@ -2096,7 +2099,8 @@ Instruções cruciais:
                                     supabase_client.table("processos_seletivos").insert({
                                         "vaga_id": vaga["id"],
                                         "empresa": empresa_selecionada,
-                                        "candidatos": candidatos_selecionados
+                                        "candidatos": candidatos_selecionados,
+                                        "tenant_id": st.session_state.get("tenant_id")
                                     }).execute()
                                 
                                 st.success("Talentos do processo salvos com sucesso!")
@@ -2455,7 +2459,8 @@ Instruções cruciais:
                                             "vaga_id": vaga_id_int,
                                             "empresa": empresa_selecionada,
                                             "equipe": eq_selecionada,
-                                            "candidatos": []
+                                            "candidatos": [],
+                                            "tenant_id": st.session_state.get("tenant_id")
                                         }).execute()
                                     st.success(f"Equipe '{eq_selecionada}' associada com sucesso!")
                                     st.rerun()
@@ -2997,7 +3002,8 @@ Instruções cruciais:
                                                     "empresa": empresa_selecionada,
                                                     "candidatos": [],
                                                     "equipe": equipe_associada,
-                                                    "historico_harmonia": novo_hist
+                                                    "historico_harmonia": novo_hist,
+                                                    "tenant_id": st.session_state.get("tenant_id")
                                                 }).execute()
                                             st.toast("Análise de harmonia salva com sucesso!", icon="✅")
                                             st.rerun()

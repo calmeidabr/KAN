@@ -245,7 +245,8 @@ class EquipesMenu(BaseMenu):
                                 "departamento": dept_sel if dept_sel != "Todos" else None,
                                 "membros": membros_finais,  # lista Python → JSONB direto
                                 "foto_base64": foto_b64,
-                                "updated_at": datetime.datetime.now().isoformat()
+                                "updated_at": datetime.datetime.now().isoformat(),
+                                "tenant_id": tenant_id
                             }
 
                             sucesso_salvar = False

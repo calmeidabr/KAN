@@ -232,7 +232,8 @@ class EmpresasMenu(BaseMenu):
                                 "logo": novo_logo,
                                 "status": n_status,
                                 "created_at": datetime.datetime.now().isoformat(),
-                                "updated_at": datetime.datetime.now().isoformat()
+                                "updated_at": datetime.datetime.now().isoformat(),
+                                "tenant_id": st.session_state.get("tenant_id")
                             }
                             if supabase_client:
                                 try:
