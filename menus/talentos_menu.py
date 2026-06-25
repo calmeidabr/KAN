@@ -258,7 +258,8 @@ class TalentosMenu(BaseMenu):
                             "experiencias": cad_exp.strip() if cad_exp else None,
                             "foto_base64": foto_b64,
                             "perfil_json": perfil_json_str,
-                            "empresa_criador": st.session_state.get("user_company", "Mundo Kan")
+                            "empresa_criador": st.session_state.get("user_company", "Mundo Kan"),
+                            "tenant_id": st.session_state.get("tenant_id")
                         }
 
                         if cad_foto:

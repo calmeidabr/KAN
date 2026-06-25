@@ -105,7 +105,8 @@ class AdminMenu(BaseMenu):
                                                             "nome": n_nome,
                                                             "data_nascimento": n_data,
                                                             "profissao": n_profissao,
-                                                            "grupo": n_empresa
+                                                            "grupo": n_empresa,
+                                                            "tenant_id": st.session_state.get("tenant_id")
                                                         }).execute()
                                                     sucessos += 1
                                             except Exception as ex:
