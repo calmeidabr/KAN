@@ -424,14 +424,22 @@ def fetch_qualidades():
         if client:
             resp = client.table("qualidades").select("*").execute()
             if resp.data:
-                return {str(get_from_row(row, 'qualidade')).strip().capitalize(): get_from_row(row, 'descricao') for row in resp.data}
+                return {
+                    str(get_from_row(row, 'qualidade')).strip().capitalize(): (
+                        get_from_row(row, 'descricao') or get_from_row(row, 'descricao_no_ambiente_de_trabalho')
+                    ) for row in resp.data
+                }
     except Exception: pass
         
     try:
         df = pd.read_csv("Qualidades.csv", sep=";")
         if df.shape[1] <= 1:
             df = pd.read_csv("Qualidades.csv", sep=",")
-        return {str(get_from_row(row.to_dict(), 'qualidade')).strip().capitalize(): get_from_row(row.to_dict(), 'descricao') for _, row in df.iterrows()}
+        return {
+            str(get_from_row(row.to_dict(), 'qualidade')).strip().capitalize(): (
+                get_from_row(row.to_dict(), 'descricao') or get_from_row(row.to_dict(), 'descricao_no_ambiente_de_trabalho')
+            ) for _, row in df.iterrows()
+        }
     except Exception: return {}
 
 QUALIDADES_DB = LazyDB(fetch_qualidades)
