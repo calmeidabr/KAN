@@ -59,6 +59,7 @@ class AdminMenu(BaseMenu):
                 """)
                 arquivo_csv = st.file_uploader("Escolha o arquivo CSV ou Excel:", type=["csv", "xls", "xlsx"])
                 if arquivo_csv is not None:
+                    file_key = f"processed_{arquivo_csv.name}_{arquivo_csv.size}"
                     try:
                         nome_arquivo = arquivo_csv.name.lower()
                         if nome_arquivo.endswith('.xls') or nome_arquivo.endswith('.xlsx'):
@@ -123,10 +124,11 @@ class AdminMenu(BaseMenu):
                             st.error("Coluna obrigatória ausente no arquivo: `Grupo` (ou `Empresa/Grupo`) ")
                         
                         if colunas_validas:
-                            st.dataframe(df_lote, use_container_width=True)
-                            if st.button("Confirmar Inserção em Lote"):
-                                with st.spinner("Gravando perfis no banco de dados..."):
+                            # Processamento e gravação automática se ainda não foi feito nesta sessão para este arquivo
+                            if file_key not in st.session_state:
+                                with st.spinner("Processando e gravando talentos no banco de dados..."):
                                     sucessos = 0
+                                    erros = []
                                     for _, row in df_lote.iterrows():
                                         n_nome = str(row[col_nome_name]).strip() if col_nome_name else ""
                                         n_data = str(row[col_data_name]).strip() if col_data_name else ""
@@ -153,11 +155,25 @@ class AdminMenu(BaseMenu):
                                                         }).execute()
                                                     sucessos += 1
                                             except Exception as ex:
-                                                st.error(f"Erro ao inserir `{n_nome}`: {ex}")
-                                    st.success(f"Processamento concluído! {sucessos} perfis integrados.")
+                                                erros.append(f"Erro ao inserir `{n_nome}`: {ex}")
                                     st.cache_data.clear()
+                                    st.session_state[file_key] = {"sucessos": sucessos, "erros": erros}
+                            
+                            # Exibir resultado do processamento
+                            res = st.session_state[file_key]
+                            if res["erros"]:
+                                for err in res["erros"]:
+                                    st.error(err)
+                            
+                            if res["sucessos"] > 0:
+                                st.success(f"Upload processado sem erros. {res['sucessos']} talentos integrados com sucesso na planilha de mapas salvos!")
+                            elif not res["erros"]:
+                                st.warning("Nenhum talento válido encontrado para integração.")
+                            
+                            # Mostrar visualização da tabela importada
+                            st.dataframe(df_lote, use_container_width=True)
                     except Exception as e:
-                        st.error(f"Erro ao ler CSV: {e}")
+                        st.error(f"Erro ao processar o arquivo: {e}")
 
             st.markdown("---")
             tabelas_config = ["matriz", "atributos", "repeticao", "peso", "perfis", "lista_categoria", "qualidades", "categoria_descricao", "descricoes_mapa", "campo_definicao"]
