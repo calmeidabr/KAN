@@ -62,7 +62,11 @@ class AdminMenu(BaseMenu):
                     try:
                         nome_arquivo = arquivo_csv.name.lower()
                         if nome_arquivo.endswith('.xls') or nome_arquivo.endswith('.xlsx'):
-                            df_lote = pd.read_excel(arquivo_csv)
+                            try:
+                                df_lote = pd.read_excel(arquivo_csv)
+                            except ImportError:
+                                st.error("⚠️ Para processar planilhas Excel (.xls, .xlsx), as bibliotecas `openpyxl` e `xlrd` precisam estar instaladas. Por favor, execute: `pip install openpyxl xlrd` no seu terminal ou faça upload de um arquivo `.csv`.")
+                                st.stop()
                         else:
                             try:
                                 df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="utf-8")
