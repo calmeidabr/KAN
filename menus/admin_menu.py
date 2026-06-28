@@ -60,9 +60,17 @@ class AdminMenu(BaseMenu):
                 arquivo_csv = st.file_uploader("Escolha o arquivo CSV:", type=["csv"])
                 if arquivo_csv is not None:
                     try:
-                        df_lote = pd.read_csv(arquivo_csv, sep=";")
-                        if df_lote.shape[1] <= 1:
-                            df_lote = pd.read_csv(arquivo_csv, sep=",")
+                        try:
+                            df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="utf-8")
+                            if df_lote.shape[1] <= 1:
+                                arquivo_csv.seek(0)
+                                df_lote = pd.read_csv(arquivo_csv, sep=",", encoding="utf-8")
+                        except UnicodeDecodeError:
+                            arquivo_csv.seek(0)
+                            df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="latin-1")
+                            if df_lote.shape[1] <= 1:
+                                arquivo_csv.seek(0)
+                                df_lote = pd.read_csv(arquivo_csv, sep=",", encoding="latin-1")
                         
                         col_grupo_name = next((c for c in df_lote.columns if c in ["Grupo", "Empresa/Grupo"]), None)
                         col_cargo_name = next((c for c in df_lote.columns if c in ["Cargo/Profissao", "Profissao", "Cargo/Profissão"]), None)
