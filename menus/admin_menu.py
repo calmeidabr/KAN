@@ -52,40 +52,71 @@ class AdminMenu(BaseMenu):
         with t_tab1:
             st.subheader("Editor de Configurações (Tabelas)")
             
-            with st.expander("Inserção em Lote (Upload de Perfis via CSV)", expanded=False):
+            with st.expander("Inserção em Lote (Upload de Perfis via CSV/Excel)", expanded=False):
                 st.markdown("""
-                **Instruções:** Carregue um arquivo CSV com as seguintes colunas:
-                `Nome completo`, `Data de Nascimento`, `Cargo/Profissao`, `Grupo` (ou `Empresa/Grupo`).
+                **Instruções:** Carregue um arquivo CSV ou Excel (.xls, .xlsx) com as seguintes colunas:
+                `Nome completo`, `Data de Nascimento`, `Cargo/Profissão`, `Grupo` (ou `Empresa/Grupo`).
                 """)
-                arquivo_csv = st.file_uploader("Escolha o arquivo CSV:", type=["csv"])
+                arquivo_csv = st.file_uploader("Escolha o arquivo CSV ou Excel:", type=["csv", "xls", "xlsx"])
                 if arquivo_csv is not None:
                     try:
-                        try:
-                            df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="utf-8")
-                            if df_lote.shape[1] <= 1:
+                        nome_arquivo = arquivo_csv.name.lower()
+                        if nome_arquivo.endswith('.xls') or nome_arquivo.endswith('.xlsx'):
+                            df_lote = pd.read_excel(arquivo_csv)
+                        else:
+                            try:
+                                df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="utf-8")
+                                if df_lote.shape[1] <= 1:
+                                    arquivo_csv.seek(0)
+                                    df_lote = pd.read_csv(arquivo_csv, sep=",", encoding="utf-8")
+                            except UnicodeDecodeError:
                                 arquivo_csv.seek(0)
-                                df_lote = pd.read_csv(arquivo_csv, sep=",", encoding="utf-8")
-                        except UnicodeDecodeError:
-                            arquivo_csv.seek(0)
-                            df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="latin-1")
-                            if df_lote.shape[1] <= 1:
-                                arquivo_csv.seek(0)
-                                df_lote = pd.read_csv(arquivo_csv, sep=",", encoding="latin-1")
+                                df_lote = pd.read_csv(arquivo_csv, sep=";", encoding="latin-1")
+                                if df_lote.shape[1] <= 1:
+                                    arquivo_csv.seek(0)
+                                    df_lote = pd.read_csv(arquivo_csv, sep=",", encoding="latin-1")
                         
-                        col_grupo_name = next((c for c in df_lote.columns if c in ["Grupo", "Empresa/Grupo"]), None)
-                        col_cargo_name = next((c for c in df_lote.columns if c in ["Cargo/Profissao", "Profissao", "Cargo/Profissão"]), None)
-                        colunas_obrigatorias = ["Nome completo", "Data de Nascimento"]
+                        # Normalização das colunas do DataFrame para busca resiliente
+                        import re
+                        def normalize_col(c):
+                            norm = remover_acentos(str(c)).lower()
+                            return re.sub(r'[^a-z0-9]', '', norm)
+                        
+                        cols_normalizadas = {normalize_col(c): c for c in df_lote.columns}
+                        
+                        col_nome_name = (
+                            cols_normalizadas.get("nomecompleto") or 
+                            cols_normalizadas.get("nome")
+                        )
+                        col_data_name = (
+                            cols_normalizadas.get("datadenascimento") or 
+                            cols_normalizadas.get("datanascimento") or 
+                            cols_normalizadas.get("nascimento")
+                        )
+                        col_cargo_name = (
+                            cols_normalizadas.get("cargoprofissao") or 
+                            cols_normalizadas.get("profissao") or 
+                            cols_normalizadas.get("cargo")
+                        )
+                        col_grupo_name = (
+                            cols_normalizadas.get("grupo") or 
+                            cols_normalizadas.get("empresagrupo") or 
+                            cols_normalizadas.get("empresa")
+                        )
+                        
                         colunas_validas = True
-                        for col in colunas_obrigatorias:
-                            if col not in df_lote.columns:
-                                colunas_validas = False
-                                st.error(f"Coluna obrigatória ausente no CSV: `{col}`")
+                        if not col_nome_name:
+                            colunas_validas = False
+                            st.error("Coluna obrigatória ausente no arquivo: `Nome completo` (ou `Nome`)")
+                        if not col_data_name:
+                            colunas_validas = False
+                            st.error("Coluna obrigatória ausente no arquivo: `Data de Nascimento` (ou `Nascimento`)")
                         if not col_cargo_name:
                             colunas_validas = False
-                            st.error("Coluna obrigatória ausente no CSV: `Profissao` ou `Cargo/Profissao`")
+                            st.error("Coluna obrigatória ausente no arquivo: `Profissão` ou `Cargo/Profissão`")
                         if not col_grupo_name:
                             colunas_validas = False
-                            st.error("Coluna obrigatória ausente no CSV: `Grupo` (ou `Empresa/Grupo`) ")
+                            st.error("Coluna obrigatória ausente no arquivo: `Grupo` (ou `Empresa/Grupo`) ")
                         
                         if colunas_validas:
                             st.dataframe(df_lote, use_container_width=True)
@@ -93,9 +124,9 @@ class AdminMenu(BaseMenu):
                                 with st.spinner("Gravando perfis no banco de dados..."):
                                     sucessos = 0
                                     for _, row in df_lote.iterrows():
-                                        n_nome = str(row["Nome completo"]).strip()
-                                        n_data = str(row["Data de Nascimento"]).strip()
-                                        n_profissao = str(row[col_cargo_name]).strip()
+                                        n_nome = str(row[col_nome_name]).strip() if col_nome_name else ""
+                                        n_data = str(row[col_data_name]).strip() if col_data_name else ""
+                                        n_profissao = str(row[col_cargo_name]).strip() if col_cargo_name else ""
                                         n_empresa = str(row[col_grupo_name]).strip() if col_grupo_name else ""
                                         
                                         if n_nome and n_data:
